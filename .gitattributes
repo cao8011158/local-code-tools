@@ -1,0 +1,4 @@
+# Preserve the accepted runtime byte fingerprint on every checkout/platform.
+* -text
+# This historical transcript uses intentional Markdown two-space line breaks.
+review/historical/codex-dense-final.txt whitespace=-blank-at-eol,cr-at-eol

@@ -1,0 +1,178 @@
+{
+  "all_embeddings_authentic": true,
+  "budget_scope": "global production ledger and compatible cache; fixture builds offline",
+  "failed_publish_preserves_dense_version": true,
+  "old_cursor_stable_then_expired": true,
+  "old_source_snapshot_preserved": true,
+  "owner_inputs_updated": true,
+  "stages": [
+    {
+      "changed_vector_nodes": [
+        "isolated-sample:src/sample.py:module:sample#1",
+        "isolated-sample:src/sample.py:function:calculate_weight#1.1",
+        "isolated-sample:src/sample.py:class:Box#1.1",
+        "isolated-sample:src/sample.py:function:Box.total#1.1.1",
+        "isolated-sample:src/sample.py:function:untouched#1.1"
+      ],
+      "global_api_attempts": 1,
+      "global_usage_tokens": 283,
+      "index_diffs": {
+        "edges_added": 7,
+        "edges_removed": 0,
+        "nodes_removed": 0,
+        "nodes_updated": 7,
+        "postings_updated": 7,
+        "previous": null
+      },
+      "index_version": "20261026T214501-426fc25966",
+      "new_vector_inputs": 5,
+      "offline_build": {
+        "cache_hits": 5,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [],
+      "stage": "initial"
+    },
+    {
+      "changed_vector_nodes": [
+        "isolated-sample:src/sample.py:module:sample#1",
+        "isolated-sample:src/sample.py:function:calculate_weight#1.1",
+        "isolated-sample:src/sample.py:class:Box#1.1",
+        "isolated-sample:src/sample.py:function:Box.total#1.1.1"
+      ],
+      "global_api_attempts": 1,
+      "global_usage_tokens": 237,
+      "index_diffs": {
+        "edges_added": 0,
+        "edges_removed": 0,
+        "nodes_removed": 0,
+        "nodes_updated": 5,
+        "postings_updated": 4,
+        "previous": "20261026T214501-426fc25966"
+      },
+      "index_version": "20261026T214505-848a7a4d5b",
+      "new_vector_inputs": 4,
+      "offline_build": {
+        "cache_hits": 5,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [],
+      "stage": "member-docstrings-and-owner-inputs"
+    },
+    {
+      "changed_vector_nodes": [
+        "isolated-sample:src/added.py:module:added#1",
+        "isolated-sample:src/added.py:function:added#1.1"
+      ],
+      "global_api_attempts": 1,
+      "global_usage_tokens": 81,
+      "index_diffs": {
+        "edges_added": 2,
+        "edges_removed": 0,
+        "nodes_removed": 0,
+        "nodes_updated": 2,
+        "postings_updated": 2,
+        "previous": "20261026T214505-848a7a4d5b"
+      },
+      "index_version": "20261026T214507-5603706039",
+      "new_vector_inputs": 2,
+      "offline_build": {
+        "cache_hits": 7,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [],
+      "stage": "addition"
+    },
+    {
+      "changed_vector_nodes": [],
+      "global_api_attempts": 0,
+      "global_usage_tokens": 0,
+      "index_diffs": {
+        "edges_added": 0,
+        "edges_removed": 2,
+        "nodes_removed": 2,
+        "nodes_updated": 0,
+        "postings_updated": 0,
+        "previous": "20261026T214507-5603706039"
+      },
+      "index_version": "20261026T214509-e946061a73",
+      "new_vector_inputs": 0,
+      "offline_build": {
+        "cache_hits": 5,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [
+        "isolated-sample:src/added.py:function:added#1.1",
+        "isolated-sample:src/added.py:module:added#1"
+      ],
+      "stage": "deletion"
+    },
+    {
+      "changed_vector_nodes": [
+        "isolated-sample:src/moved.py:module:moved#1",
+        "isolated-sample:src/moved.py:function:calculate_weight#1.1",
+        "isolated-sample:src/moved.py:class:Box#1.1",
+        "isolated-sample:src/moved.py:function:Box.total#1.1.1",
+        "isolated-sample:src/moved.py:function:untouched#1.1"
+      ],
+      "global_api_attempts": 1,
+      "global_usage_tokens": 296,
+      "index_diffs": {
+        "edges_added": 6,
+        "edges_removed": 6,
+        "nodes_removed": 5,
+        "nodes_updated": 5,
+        "postings_updated": 5,
+        "previous": "20261026T214509-e946061a73"
+      },
+      "index_version": "20261026T214512-fcc433d977",
+      "new_vector_inputs": 5,
+      "offline_build": {
+        "cache_hits": 5,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [
+        "isolated-sample:src/sample.py:class:Box#1.1",
+        "isolated-sample:src/sample.py:function:Box.total#1.1.1",
+        "isolated-sample:src/sample.py:function:calculate_weight#1.1",
+        "isolated-sample:src/sample.py:function:untouched#1.1",
+        "isolated-sample:src/sample.py:module:sample#1"
+      ],
+      "stage": "move-without-rename-inference"
+    },
+    {
+      "changed_vector_nodes": [],
+      "global_api_attempts": 0,
+      "global_usage_tokens": 0,
+      "index_diffs": {
+        "edges_added": 0,
+        "edges_removed": 0,
+        "nodes_removed": 0,
+        "nodes_updated": 0,
+        "postings_updated": 0,
+        "previous": "20261026T214512-fcc433d977"
+      },
+      "index_version": "20261026T214517-552bf0c1e9",
+      "new_vector_inputs": 0,
+      "offline_build": {
+        "cache_hits": 5,
+        "historical_hits": 0,
+        "new_vectors": 0,
+        "requests": 0
+      },
+      "removed_vector_nodes": [],
+      "stage": "resume-unchanged"
+    }
+  ],
+  "unchanged_vectors_reused": true
+}

@@ -1,0 +1,249 @@
+{
+  "comparisons": [
+    {
+      "approximate_count": 10,
+      "case": "Q01:zh",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q01:zh",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 0.98,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "Q01:expanded",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q01:expanded",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "Q05:zh",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q05:zh",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "Q05:expanded",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q05:expanded",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "Q30:zh",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q30:zh",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "Q30:expanded",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "Q30:expanded",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 0.96,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "module",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "module",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "module",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "module",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "class",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "class",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "class",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "class",
+      "recall": 0.98,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "identifier",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "identifier",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 0.98,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "RE",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-rules-engine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "RE",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 0.96,
+      "repository": "trpg-rules-engine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "mixed",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "module",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "mixed",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "module",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "mixed",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "class",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "mixed",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "class",
+      "recall": 0.98,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 10,
+      "case": "mixed",
+      "exact_count": 10,
+      "k": 10,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    },
+    {
+      "approximate_count": 50,
+      "case": "mixed",
+      "exact_count": 50,
+      "k": 50,
+      "kind": "function",
+      "recall": 1.0,
+      "repository": "trpg-state-machine"
+    }
+  ],
+  "filtered_candidate_capacity_checked": true,
+  "hnsw": {
+    "connectivity": 32,
+    "expansion_add": 128,
+    "expansion_search": 128
+  },
+  "index_version": "20261026T215543-7961d6f6d2",
+  "mean_recall": 0.9938461538461538,
+  "metric": "cosine; normalized float32; exact uses dot product",
+  "min_recall": 0.96,
+  "zero_additional_api_requests": true
+}

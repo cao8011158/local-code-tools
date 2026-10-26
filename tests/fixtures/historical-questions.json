@@ -1,0 +1,212 @@
+[
+  {
+    "id": "Q01",
+    "split": "development",
+    "topic": "容器重量",
+    "zh": "我想显示一个箱子连同里面物品的当前总重量，应该从哪里读？",
+    "expanded": "我想显示一个箱子连同里面物品的当前总重量，应该从哪里读？\nEnglish: Read the current total weight of a container including its contents."
+  },
+  {
+    "id": "Q02",
+    "split": "development",
+    "topic": "容器重量",
+    "zh": "修改物品数量后，之前缓存的箱子重量为什么会失效？",
+    "expanded": "修改物品数量后，之前缓存的箱子重量为什么会失效？\nEnglish: After an item quantity changes, how is cached container weight invalidated?"
+  },
+  {
+    "id": "Q03",
+    "split": "development",
+    "topic": "嵌套容器",
+    "zh": "把装着东西的小箱子放进大箱子时，哪里检查深度和容量？",
+    "expanded": "把装着东西的小箱子放进大箱子时，哪里检查深度和容量？\nEnglish: Where are depth and capacity checked when moving a filled box into another container?"
+  },
+  {
+    "id": "Q04",
+    "split": "development",
+    "topic": "嵌套容器",
+    "zh": "外层箱子关闭后，怎样阻止直接拿走内层物品？",
+    "expanded": "外层箱子关闭后，怎样阻止直接拿走内层物品？\nEnglish: How is taking an inner item prevented when an outer container is closed?"
+  },
+  {
+    "id": "Q05",
+    "split": "development",
+    "topic": "环境快照",
+    "zh": "给玩家查询某一小片区域的天气时，权限和可见范围在哪里检查？",
+    "expanded": "给玩家查询某一小片区域的天气时，权限和可见范围在哪里检查？\nEnglish: Where are authorization and visibility checked for a player weather query over a small area?"
+  },
+  {
+    "id": "Q06",
+    "split": "development",
+    "topic": "环境快照",
+    "zh": "环境结果能否跨查询复用，哪里决定提供方和版本是否有效？",
+    "expanded": "环境结果能否跨查询复用，哪里决定提供方和版本是否有效？\nEnglish: What decides whether environment results can be reused across queries with valid providers and versions?"
+  },
+  {
+    "id": "Q07",
+    "split": "development",
+    "topic": "光照",
+    "zh": "想知道角色看得到的某个格子有多亮，应调用哪一层？",
+    "expanded": "想知道角色看得到的某个格子有多亮，应调用哪一层？\nEnglish: Which entry reads illumination of a cell visible to an actor?"
+  },
+  {
+    "id": "Q08",
+    "split": "development",
+    "topic": "光照",
+    "zh": "灯放进不透光的容器里后，场景里的光源集合在哪里排除它？",
+    "expanded": "灯放进不透光的容器里后，场景里的光源集合在哪里排除它？\nEnglish: Where are emitters inside opaque containers excluded from the scene light-source collection?"
+  },
+  {
+    "id": "Q09",
+    "split": "development",
+    "topic": "机关索引",
+    "zh": "移动事件触发陷阱时，哪里按位置取候选而不是逐个运行所有机关？",
+    "expanded": "移动事件触发陷阱时，哪里按位置取候选而不是逐个运行所有机关？\nEnglish: Where does movement-triggered trap dispatch select candidates by location instead of executing every mechanism?"
+  },
+  {
+    "id": "Q10",
+    "split": "development",
+    "topic": "机关索引",
+    "zh": "某个部件损坏后，哪里找到依赖该部件的跨场景机关？",
+    "expanded": "某个部件损坏后，哪里找到依赖该部件的跨场景机关？\nEnglish: Where are cross-scene mechanisms linked to a destroyed component found?"
+  },
+  {
+    "id": "Q11",
+    "split": "development",
+    "topic": "空间查询",
+    "zh": "只检查一步移动附近的动态阻挡，如何避免构造整场景视图？",
+    "expanded": "只检查一步移动附近的动态阻挡，如何避免构造整场景视图？\nEnglish: How can a single movement step inspect nearby dynamic blockers without building a whole-scene view?"
+  },
+  {
+    "id": "Q12",
+    "split": "development",
+    "topic": "空间查询",
+    "zh": "已经拿到固定网格视图，查某格被谁占用是否还要遍历所有实体？",
+    "expanded": "已经拿到固定网格视图，查某格被谁占用是否还要遍历所有实体？\nEnglish: With a fixed grid view, how are occupants of one cell found without scanning every entity?"
+  },
+  {
+    "id": "Q13",
+    "split": "development",
+    "topic": "库存版本",
+    "zh": "角色掉血或换位置后为什么不必重新构造库存模型？",
+    "expanded": "角色掉血或换位置后为什么不必重新构造库存模型？\nEnglish: Why need actor HP or position changes not rebuild the inventory model?"
+  },
+  {
+    "id": "Q14",
+    "split": "development",
+    "topic": "库存版本",
+    "zh": "物品换主人时，世界归属和角色库存投影怎样一起更新？",
+    "expanded": "物品换主人时，世界归属和角色库存投影怎样一起更新？\nEnglish: How are world ownership and character inventory projections updated together on item transfer?"
+  },
+  {
+    "id": "Q15",
+    "split": "development",
+    "topic": "事务失败",
+    "zh": "SQL 报错被业务层捕获之后，哪里防止继续提交已经不可信的候选？",
+    "expanded": "SQL 报错被业务层捕获之后，哪里防止继续提交已经不可信的候选？\nEnglish: After application code catches a SQL error, what prevents committing an untrusted candidate?"
+  },
+  {
+    "id": "Q16",
+    "split": "development",
+    "topic": "事务失败",
+    "zh": "准备好候选到真正开始持久写入之间，怎样发现另一连接已经改了事实？",
+    "expanded": "准备好候选到真正开始持久写入之间，怎样发现另一连接已经改了事实？\nEnglish: How is a foreign writer detected between candidate preparation and starting durable persistence?"
+  },
+  {
+    "id": "Q17",
+    "split": "development",
+    "topic": "保存点回滚",
+    "zh": "局部效果失败回到保存点后，内存版本和候选事实在哪里一起恢复？",
+    "expanded": "局部效果失败回到保存点后，内存版本和候选事实在哪里一起恢复？\nEnglish: Where are candidate facts and memory versions restored together after rollback to a savepoint?"
+  },
+  {
+    "id": "Q18",
+    "split": "development",
+    "topic": "保存点回滚",
+    "zh": "保存点回滚后之前算过的派生结果为什么不能继续被发布？",
+    "expanded": "保存点回滚后之前算过的派生结果为什么不能继续被发布？\nEnglish: Why are earlier derived results prevented from publication after savepoint rollback?"
+  },
+  {
+    "id": "Q19",
+    "split": "development",
+    "topic": "RAM 发布",
+    "zh": "数据库提交已经成功但内存发布异常时，哪里把会话暂停？",
+    "expanded": "数据库提交已经成功但内存发布异常时，哪里把会话暂停？\nEnglish: Where is a session paused if durable database commit succeeded but RAM publication failed?"
+  },
+  {
+    "id": "Q20",
+    "split": "development",
+    "topic": "恢复",
+    "zh": "另一个连接完成恢复之后，旧连接如何知道自己的缓存已过期？",
+    "expanded": "另一个连接完成恢复之后，旧连接如何知道自己的缓存已过期？\nEnglish: After another connection recovers, how does an old connection invalidate its stale caches?"
+  },
+  {
+    "id": "Q21",
+    "split": "heldout",
+    "topic": "容器重量",
+    "zh": "某件物品没有明确重量时，箱子的总重量会当零算还是保留未知？",
+    "expanded": "某件物品没有明确重量时，箱子的总重量会当零算还是保留未知？\nEnglish: Does a missing item weight become zero or propagate unknown to a container total?"
+  },
+  {
+    "id": "Q22",
+    "split": "heldout",
+    "topic": "嵌套容器",
+    "zh": "候选里移动嵌套箱子后，哪些祖先的旧重量不能继续用？",
+    "expanded": "候选里移动嵌套箱子后，哪些祖先的旧重量不能继续用？\nEnglish: After a nested box moves in a candidate, which ancestor weights can no longer be reused?"
+  },
+  {
+    "id": "Q23",
+    "split": "heldout",
+    "topic": "环境快照",
+    "zh": "隐藏的天气来源会怎样影响玩家看到的结果，为什么不能暴露来源标识？",
+    "expanded": "隐藏的天气来源会怎样影响玩家看到的结果，为什么不能暴露来源标识？\nEnglish: How do hidden weather sources affect public results without exposing source identities?"
+  },
+  {
+    "id": "Q24",
+    "split": "heldout",
+    "topic": "光照",
+    "zh": "单格光照中遮挡不确定时，哪里保留未知而不是直接判亮或暗？",
+    "expanded": "单格光照中遮挡不确定时，哪里保留未知而不是直接判亮或暗？\nEnglish: Where does cell illumination preserve unknown when occlusion geometry is uncertain?"
+  },
+  {
+    "id": "Q25",
+    "split": "heldout",
+    "topic": "机关索引",
+    "zh": "机关事件索引第一次准备好后，怎样安全地读取它而不复制整张表？",
+    "expanded": "机关事件索引第一次准备好后，怎样安全地读取它而不复制整张表？\nEnglish: After a mechanism event index is prepared, how is it read safely without copying the whole table?"
+  },
+  {
+    "id": "Q26",
+    "split": "heldout",
+    "topic": "空间查询",
+    "zh": "多格物体旋转后，哪里检查新占地与周围角色或物体是否冲突？",
+    "expanded": "多格物体旋转后，哪里检查新占地与周围角色或物体是否冲突？\nEnglish: Where are a rotated multi-cell object footprint and nearby occupancy conflicts checked?"
+  },
+  {
+    "id": "Q27",
+    "split": "heldout",
+    "topic": "库存版本",
+    "zh": "关闭角色携带的箱子后，如何让里面物品的可访问库存投影失效？",
+    "expanded": "关闭角色携带的箱子后，如何让里面物品的可访问库存投影失效？\nEnglish: How does closing a carried container invalidate accessibility in its owner inventory projection?"
+  },
+  {
+    "id": "Q28",
+    "split": "heldout",
+    "topic": "事务失败",
+    "zh": "持久提交抛错但数据库已经退出事务时，为什么不能直接重试当作失败？",
+    "expanded": "持久提交抛错但数据库已经退出事务时，为什么不能直接重试当作失败？\nEnglish: Why must a commit exception after the database leaves its transaction be reconciled before retry?"
+  },
+  {
+    "id": "Q29",
+    "split": "heldout",
+    "topic": "保存点回滚",
+    "zh": "一个 SQL 失败之后回滚到失败之前的保存点，为什么同一事务还能继续？",
+    "expanded": "一个 SQL 失败之后回滚到失败之前的保存点，为什么同一事务还能继续？\nEnglish: Why may a transaction continue after rolling back a SQL failure to an earlier valid savepoint?"
+  },
+  {
+    "id": "Q30",
+    "split": "heldout",
+    "topic": "恢复",
+    "zh": "想卸载会话内存再从已有存档恢复，哪里保证不重新套用初始模板？",
+    "expanded": "想卸载会话内存再从已有存档恢复，哪里保证不重新套用初始模板？\nEnglish: Where do unloading and resuming a saved session avoid reapplying initialization templates?"
+  }
+]

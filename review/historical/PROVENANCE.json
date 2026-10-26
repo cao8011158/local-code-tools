@@ -1,0 +1,63 @@
+{
+  "historical": true,
+  "new_tests": false,
+  "files": [
+    {
+      "file": "historical/ACCEPTANCE.md",
+      "original_report_sha256": "1dc8d94b5fe49679c3be3f0cccae68b197756114fb3bed3df967214526fc39ee",
+      "review_copy_sha256": "74208f37a5faadf0a28cccc5430c739f4b1be213b2a697d67853abd0f8e8254d",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/current-hnsw-recall.json",
+      "original_report_sha256": "28055b90ddf94a04e1d0720a7fabd5de21cf0e37b5494117b677e68c97cdbea7",
+      "review_copy_sha256": "6503635c702a3fedd8c853b8e6c98d9d0276398f01991802f0bfa5cf1907444b",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/real-incremental-first-run.json",
+      "original_report_sha256": "239a32a015da3e685d16fb3fb17ce55d11307dbde9a8320488dd638e5d556b32",
+      "review_copy_sha256": "81d08e21a25f9ff45a542907bbbe568f6ff129dfcad1a6b1813e4df6b456ca4d",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/real-incremental-acceptance.json",
+      "original_report_sha256": "238d515d8c325b8619e6639af2623cfeba0785d437eaeb1f4697cfcfa6b9f90b",
+      "review_copy_sha256": "83208ab1a291c817764cf525bf13d526ade6fb55bef1307692b0c4ab49f55543",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/real-api-accounting.json",
+      "original_report_sha256": "f5b6a5a01368a4db747d63fee557c601cd1c676d39ef72ba809676de031af1cf",
+      "review_copy_sha256": "c67c0f7f823d6d8be52069319daef58e2c0cef818b3529ed765af15b11c0abd7",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/q05-alternate-entry-evidence.json",
+      "original_report_sha256": "b4fb0835ee7ffaabdb2da929c96de3781fd9666883742230e3e9a4e0bc74f46f",
+      "review_copy_sha256": "3f5b11490c5724b46c95da65c630b12f38e001ff53090e11483c24dfe8957fda",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/mcp-protocol.json",
+      "original_report_sha256": "a6c90739ab4f8c44571865aecea462215a0fef98c3728b67c9059a858c396622",
+      "review_copy_sha256": "9a92bb3362f98886f7efb9e4869749693f5e1bc2aed7af54e9838ad8cb449b37",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    },
+    {
+      "file": "historical/codex-dense-final.txt",
+      "original_report_sha256": "36fcf7510f631963dc7c689d99af5d42ba2094a22d4f3450f6ddcee2387fd37b",
+      "review_copy_sha256": "bc4646efd36694f59a148745b410d842848d36af73e5b0e281ceaaa2a686b605",
+      "transformation": "path redaction and JSON formatting only; original dates/results/fingerprints unchanged",
+      "source_phase": "2026-10-27 original local acceptance, pre-Git toolkit source"
+    }
+  ],
+  "index_identity_not_rewritten": true
+}

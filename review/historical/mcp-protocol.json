@@ -1,0 +1,187 @@
+{
+  "calls": [
+    {
+      "ok": true,
+      "tool": "index_status"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_docs"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "get_nodes"
+    },
+    {
+      "ok": true,
+      "tool": "get_relations"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    },
+    {
+      "ok": true,
+      "tool": "search_code"
+    }
+  ],
+  "code_top": [
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "Validate containment/access and maintain candidate subtree weight and transfer\nbehavior.",
+      "end": 456,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "class",
+      "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:class:ContainerService#1.1",
+      "node_version": "6e08d3175141dcee318d65c3a1a38f381ac1a61cedbd0bb583fe1e34cbde0a75",
+      "path": "src/trpg_state_machine/world_containers.py",
+      "qualname": "ContainerService",
+      "ranks": {
+        "bm25": 1,
+        "dense": null,
+        "level": 1
+      },
+      "repository": "trpg-state-machine",
+      "start": 84
+    },
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "Route object capability admission, mutation and authorized view construction.",
+      "end": 263,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "class",
+      "node_id": "trpg-state-machine:src/trpg_state_machine/world_objects.py:class:WorldObjectService#1.1",
+      "node_version": "0b94b80a91910ee5c341017005d439b1fec583b861b03c1272fdb32e1bd71257",
+      "path": "src/trpg_state_machine/world_objects.py",
+      "qualname": "WorldObjectService",
+      "ranks": {
+        "bm25": 2,
+        "dense": null,
+        "level": 2
+      },
+      "repository": "trpg-state-machine",
+      "start": 30
+    },
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "Define container access, capacity and supported containment policy.",
+      "end": 84,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "class",
+      "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:class:Container#1.1",
+      "node_version": "c18a644e29f8d21038302f8b4700328c388c0c6786277d95e5a053582c9c217a",
+      "path": "src/trpg_state_machine/world_package.py",
+      "qualname": "Container",
+      "ranks": {
+        "bm25": 3,
+        "dense": null,
+        "level": 3
+      },
+      "repository": "trpg-state-machine",
+      "start": 73
+    }
+  ],
+  "dense_and_rrf_three_levels": true,
+  "dense_ready": true,
+  "doc_top": [
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "### 6.4 原子性与故障 `[DECIDED]`\r\n\r\n相关领域事实、版本、RNG、必要正式事件／非战斗阶段证据或战斗审计、Receipt、Outbox 与可靠工作在**同一 SQLite 短事务**内增量提交。SQLite 与 RAM **不是跨介质 ACID 事务**；正确性依靠持久提交、受控发布、版本校验、故障暂停及恢复协议，不能声称两者天然原子同步。RE／LLM／外部 I/O 不占写事务或世界提交临界区。\r\n\r\n| 故障边界 | 必须行为 |\r\n|---|---|",
+      "end": 1089,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "documentsection",
+      "node_id": "agentic-trpg:docs/MODULE_CONTRACTS.md:documentsection:Agentic TRPG — Module Contracts（目标架构与 MVP） / 6. 共享 Atomic Commit 与 CommandReceipt（P0） / 6.4 原子性与故障 `[DECIDED]`#1.0",
+      "node_version": "2d42f168a488b3d58584c7c13e2590aff2fe74e55c0c2ae1ed2e839a6dedd6cc",
+      "path": "docs/MODULE_CONTRACTS.md",
+      "qualname": "Agentic TRPG — Module Contracts（目标架构与 MVP） / 6. 共享 Atomic Commit 与 CommandReceipt（P0） / 6.4 原子性与故障 `[DECIDED]`",
+      "ranks": {
+        "bm25": 1,
+        "dense": null,
+        "level": 1
+      },
+      "repository": "agentic-trpg",
+      "start": 1072
+    },
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "## 5. Command → Result → World Event 的执行协议\r\n\r\n目标读写主链如下；具体 API／结构 OPEN，统一协议见 MC §6：\r\n\r\n```mermaid\r\nflowchart TD\r\n    Load[持久实例首次或冷加载并校验版本] --> Live[已发布 Session RAM]\r\n    Live --> Read[一致版本读取或必要 Snapshot]\r\n    Read --> Eval[事务与提交临界区外 RE 或异步推理",
+      "end": 440,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "documentsection",
+      "node_id": "agentic-trpg:docs/STATE_MACHINE_ARCHITECTURE.md:documentsection:Agentic TRPG — State Machine Architecture（MVP） / 5. Command → Result → World Event 的执行协议#1.0",
+      "node_version": "84bb6169a6077644447431b42a945944887808edf381b9aa023e86a80cc640e7",
+      "path": "docs/STATE_MACHINE_ARCHITECTURE.md",
+      "qualname": "Agentic TRPG — State Machine Architecture（MVP） / 5. Command → Result → World Event 的执行协议",
+      "ranks": {
+        "bm25": 2,
+        "dense": null,
+        "level": 2
+      },
+      "repository": "agentic-trpg",
+      "start": 417
+    },
+    {
+      "bm25_unique_in_candidates": null,
+      "brief": "### 6.1 执行时序 `[DECIDED; PARTIALLY IMPLEMENTED]`\r\n\r\n既有短事务、绑定／OCC／回执／RNG 为部分基础；新增统一候选与提交后 RAM 发布整体 **[NOT IMPLEMENTED]**，当前入口见 §1.8。以下为目标逻辑流程，不冻结 API。\r\n\r\n```text\r\nCommand / trusted system work -> authorization + original idempotency-key looku",
+      "end": 1035,
+      "index_version": "20261026T215543-7961d6f6d2",
+      "is_test": false,
+      "kind": "documentsection",
+      "node_id": "agentic-trpg:docs/MODULE_CONTRACTS.md:documentsection:Agentic TRPG — Module Contracts（目标架构与 MVP） / 6. 共享 Atomic Commit 与 CommandReceipt（P0） / 6.1 执行时序 `[DECIDED; PARTIALLY IMPLEMENTED]`#1.0",
+      "node_version": "0b748207bb79d3bc6d5e0c439b0f97639490a3836824cea72b3072273f078868",
+      "path": "docs/MODULE_CONTRACTS.md",
+      "qualname": "Agentic TRPG — Module Contracts（目标架构与 MVP） / 6. 共享 Atomic Commit 与 CommandReceipt（P0） / 6.1 执行时序 `[DECIDED; PARTIALLY IMPLEMENTED]`",
+      "ranks": {
+        "bm25": 3,
+        "dense": null,
+        "level": 3
+      },
+      "repository": "agentic-trpg",
+      "start": 1009
+    }
+  ],
+  "relation_edges": 5,
+  "server": {
+    "name": "agentic-trpg-local-code",
+    "version": "1.30.0"
+  },
+  "source_verified": true,
+  "stdout": "valid JSON-RPC lines only",
+  "tools": [
+    "index_status",
+    "search_code",
+    "search_docs",
+    "get_nodes",
+    "get_relations"
+  ],
+  "version": "20261026T215543-7961d6f6d2"
+}

@@ -1,0 +1,17 @@
+# Local runtime state and source-workspace checkouts (never publish).
+/config.json
+/data/
+/reports/
+/workspaces/
+/.publication/
+/.tmp/
+/.venv/
+/.pytest_cache/
+/.ruff_cache/
+
+# Python bytecode and credential files; synthetic JSON/source fixtures remain tracked.
+**/__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
