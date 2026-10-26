@@ -1,0 +1,2093 @@
+{
+  "generated_at": "2026-10-26T22:40:07Z",
+  "source_commit_tested": "b3e6fd7ae26b1c64299bfa371bfbee87f7ef37e4",
+  "runtime_program_hash": "42ae0f3336e274d94aa6dbdcb59652f1dfbc5f97eab11602e6b45a17697a8c03",
+  "runtime_program_matches_index": true,
+  "index": {
+    "version": "20261026T215543-7961d6f6d2",
+    "toolkit_version": "1.0.0",
+    "schema": 1,
+    "format": 1,
+    "template": "source-docstring-v1",
+    "tokenizer": "camel-snake-latin-han-uni-bi-v1",
+    "embedding": {
+      "dimension": 1024,
+      "dtype": "float",
+      "model": "voyage-code-4"
+    },
+    "metric": "cosine; normalized float32; exact uses dot product",
+    "hnsw": {
+      "connectivity": 32,
+      "expansion_add": 128,
+      "expansion_search": 128
+    },
+    "source_fingerprint": "244958da7016f00a1fc0b510d8c5b46171cff831c484ddf15bb7ed0026dccaa7",
+    "nodes": {
+      "class": 845,
+      "documentsection": 1888,
+      "function": 2760,
+      "module": 286,
+      "repository": 3
+    },
+    "edges": {
+      "CALLS": 22521,
+      "CONTAINS": 5779,
+      "IMPORTS": 5286,
+      "INHERITS": 440
+    },
+    "call_resolution": {
+      "boundary": 3149,
+      "possible": 4977,
+      "resolved": 4053,
+      "unresolved": 10342
+    },
+    "current_source_matches_index": true,
+    "config_hash": "6c92b69311cbc88e2581c5c779ea058cc65faf6791c2bc18ddb6b384406a82ea"
+  },
+  "checks": {
+    "code_search_and_filters": {
+      "status": "passed",
+      "queries": 11,
+      "channel_observations": 33
+    },
+    "document_search": {
+      "status": "passed",
+      "top3": [
+        {
+          "node_id": "agentic-trpg:docs/CODE_DOCUMENTATION.md:documentsection:源码说明与开发工作流程 / 运行原则的权威入口#1.0",
+          "kind": "documentsection",
+          "qualname": "源码说明与开发工作流程 / 运行原则的权威入口",
+          "path": "docs/CODE_DOCUMENTATION.md",
+          "start": 34,
+          "end": 47,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "agentic-trpg:docs/STATE_MACHINE_ARCHITECTURE.md:documentsection:Agentic TRPG — State Machine Architecture（MVP） / 2026-10-22 局部查询复用实现补充#1.0",
+          "kind": "documentsection",
+          "qualname": "Agentic TRPG — State Machine Architecture（MVP） / 2026-10-22 局部查询复用实现补充",
+          "path": "docs/STATE_MACHINE_ARCHITECTURE.md",
+          "start": 28,
+          "end": 104,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "agentic-trpg:docs/MODULE_CONTRACTS.md:documentsection:Agentic TRPG — Module Contracts（目标架构与 MVP） / 2. 统一标识、版本和契约通则（P0） / 2.3a 实例字段、关联与局部准入 `[DECIDED]`#1.0",
+          "kind": "documentsection",
+          "qualname": "Agentic TRPG — Module Contracts（目标架构与 MVP） / 2. 统一标识、版本和契约通则（P0） / 2.3a 实例字段、关联与局部准入 `[DECIDED]`",
+          "path": "docs/MODULE_CONTRACTS.md",
+          "start": 559,
+          "end": 620,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    "paging": {
+      "status": "passed",
+      "bound_version": "20261026T215543-7961d6f6d2",
+      "has_more_is_candidate_pool_only": true
+    },
+    "source_location": {
+      "status": "passed",
+      "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+      "path": "src/trpg_state_machine/world_containers.py",
+      "start": 179,
+      "end": 200,
+      "content_fingerprint": "8ecad8f1e2d884d14eeff7afcc91f3217db5ca3b7635b804f3f5ec9d93504e46",
+      "live_file_matches": true,
+      "source_origin": "indexed_snapshot"
+    },
+    "graph": {
+      "status": "passed",
+      "bounded_relation_examples": [
+        {
+          "basis": "lexical/import/assignment/type/argument/mapping points-to; flow-insensitive; alternatives=1",
+          "column": 16,
+          "edge_id": "534a45c2b4509b1b65716cf8ac3785352bc1e99bbfcf5bf5034b31efe6ce7bcf",
+          "expression": "self.own_weight",
+          "kind": "CALLS",
+          "line": 196,
+          "source": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "status": "resolved",
+          "target": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.own_weight#1.1.1"
+        }
+      ],
+      "unresolved_edge_count": 10342,
+      "bounded_static_analysis": {
+        "analysis_limited": true,
+        "call_sites": 21780,
+        "dependency_bindings": {
+          "trpg-state-machine": {
+            "dependencies": {
+              "dnd5e-engine": {
+                "dependency": "dnd5e-engine",
+                "matched": false,
+                "pin": "a011eba3ea2226e22d8081294ee38d3ec193b325",
+                "target_head": "ab276fffc5ff02a973e1c767543e712dd0897451",
+                "worktree_python_clean": null
+              },
+              "dnd5e-srd-data": {
+                "dependency": "dnd5e-srd-data",
+                "matched": false,
+                "pin": "a011eba3ea2226e22d8081294ee38d3ec193b325",
+                "target_head": "ab276fffc5ff02a973e1c767543e712dd0897451",
+                "worktree_python_clean": null
+              }
+            },
+            "matched": false,
+            "pin": "a011eba3ea2226e22d8081294ee38d3ec193b325",
+            "target_head": "ab276fffc5ff02a973e1c767543e712dd0897451"
+          }
+        },
+        "engine": "stdlib ast + bounded monotone points-to (no project imports)",
+        "fixed_point": false,
+        "iterations": 12,
+        "limits": "12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved"
+      }
+    },
+    "hnsw_exact": {
+      "status": "passed",
+      "comparisons": [
+        {
+          "case": "Q01:zh",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q01:zh",
+          "level": "function",
+          "k": 50,
+          "recall": 0.98
+        },
+        {
+          "case": "Q01:expanded",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q01:expanded",
+          "level": "function",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "Q05:zh",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q05:zh",
+          "level": "function",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "Q05:expanded",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q05:expanded",
+          "level": "function",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "Q30:zh",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q30:zh",
+          "level": "function",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "Q30:expanded",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "Q30:expanded",
+          "level": "function",
+          "k": 50,
+          "recall": 0.96
+        },
+        {
+          "case": "module",
+          "level": "module",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "module",
+          "level": "module",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "class",
+          "level": "class",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "class",
+          "level": "class",
+          "k": 50,
+          "recall": 0.98
+        },
+        {
+          "case": "identifier",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "identifier",
+          "level": "function",
+          "k": 50,
+          "recall": 0.98
+        },
+        {
+          "case": "RE",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "RE",
+          "level": "function",
+          "k": 50,
+          "recall": 0.96
+        },
+        {
+          "case": "mixed",
+          "level": "module",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "mixed",
+          "level": "module",
+          "k": 50,
+          "recall": 1.0
+        },
+        {
+          "case": "mixed",
+          "level": "class",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "mixed",
+          "level": "class",
+          "k": 50,
+          "recall": 0.98
+        },
+        {
+          "case": "mixed",
+          "level": "function",
+          "k": 10,
+          "recall": 1.0
+        },
+        {
+          "case": "mixed",
+          "level": "function",
+          "k": 50,
+          "recall": 1.0
+        }
+      ],
+      "mean_recall": 0.9938461538461538,
+      "min_recall": 0.96
+    },
+    "mcp": {
+      "status": "passed",
+      "server": {
+        "name": "agentic-trpg-local-code",
+        "version": "1.30.0"
+      },
+      "tools": [
+        "index_status",
+        "search_code",
+        "search_docs",
+        "get_nodes",
+        "get_relations"
+      ],
+      "calls": [
+        {
+          "name": "index_status",
+          "status": "passed",
+          "arguments": {
+            "refresh": false
+          }
+        },
+        {
+          "name": "search_code",
+          "status": "passed",
+          "arguments": {
+            "query": "world_containers ContainerService weights",
+            "level": "module",
+            "repositories": [
+              "trpg-state-machine"
+            ],
+            "mode": "dense",
+            "limit": 1
+          }
+        },
+        {
+          "name": "search_code",
+          "status": "passed",
+          "arguments": {
+            "query": "ContainerService",
+            "level": "class",
+            "repositories": [
+              "trpg-state-machine"
+            ],
+            "mode": "rrf",
+            "limit": 1
+          }
+        },
+        {
+          "name": "search_code",
+          "status": "passed",
+          "arguments": {
+            "query": "ContainerService current_weight",
+            "level": "function",
+            "repositories": [
+              "trpg-state-machine"
+            ],
+            "mode": "bm25",
+            "limit": 1
+          }
+        },
+        {
+          "name": "search_docs",
+          "status": "passed",
+          "arguments": {
+            "query": "实例字段 局部准入",
+            "category": "contract",
+            "limit": 1
+          }
+        },
+        {
+          "name": "get_nodes",
+          "status": "passed",
+          "arguments": {
+            "node_ids": [
+              "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1"
+            ],
+            "version": "20261026T215543-7961d6f6d2"
+          }
+        },
+        {
+          "name": "get_relations",
+          "status": "passed",
+          "arguments": {
+            "node_ids": [
+              "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1"
+            ],
+            "relation_types": [
+              "CALLS",
+              "CONTAINS"
+            ],
+            "direction": "both",
+            "depth": 1,
+            "max_edges": 10
+          }
+        }
+      ],
+      "index_version": "20261026T215543-7961d6f6d2",
+      "api_guard": "mode=ro existing cache; provider calls forbidden",
+      "protocol_only_stdout": true
+    },
+    "protected_data_unchanged": {
+      "status": "passed",
+      "files_hashed": 23,
+      "embedding_api_requests": 0
+    },
+    "real_index_update_delete_rename_recovery": {
+      "status": "not_run",
+      "reason": "Forbidden on real data in this source-only task; isolated synthetic/lifecycle tests cover these operations"
+    },
+    "fresh_embedding_api": {
+      "status": "not_run",
+      "reason": "User forbids new Embedding requests; existing authentic cached vectors used"
+    }
+  },
+  "observations": [
+    {
+      "case": "Q01:zh",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 0,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": []
+    },
+    {
+      "case": "Q01:zh",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 4,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.own_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.own_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 163,
+          "end": 177,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q01:zh",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 4,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.own_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.own_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 163,
+          "end": 177,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q01:expanded",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 2,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q01:expanded",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 3,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q01:expanded",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 3,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 1,
+            "dense": 2,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 2,
+            "dense": 1,
+            "bm25": 3
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": 2
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q05:zh",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 0,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": []
+    },
+    {
+      "case": "Q05:zh",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_access.py:function:SessionAccess._npc_combat_target_guard#1.1.1",
+          "kind": "function",
+          "qualname": "SessionAccess._npc_combat_target_guard",
+          "path": "src/trpg_state_machine/session_access.py",
+          "start": 262,
+          "end": 301,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/spatial.py:function:WorldHandler._spatial_reader#1.1.1",
+          "kind": "function",
+          "qualname": "WorldHandler._spatial_reader",
+          "path": "src/trpg_state_machine/spatial.py",
+          "start": 966,
+          "end": 980,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_area#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_area",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 783,
+          "end": 822,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q05:zh",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_access.py:function:SessionAccess._npc_combat_target_guard#1.1.1",
+          "kind": "function",
+          "qualname": "SessionAccess._npc_combat_target_guard",
+          "path": "src/trpg_state_machine/session_access.py",
+          "start": 262,
+          "end": 301,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/spatial.py:function:WorldHandler._spatial_reader#1.1.1",
+          "kind": "function",
+          "qualname": "WorldHandler._spatial_reader",
+          "path": "src/trpg_state_machine/spatial.py",
+          "start": 966,
+          "end": 980,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_area#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_area",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 783,
+          "end": 822,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q05:expanded",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 5,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_area#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_area",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 783,
+          "end": 822,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_spatial.py:function:ObjectSpatialService.project_protection#1.1.1",
+          "kind": "function",
+          "qualname": "ObjectSpatialService.project_protection",
+          "path": "src/trpg_state_machine/world_spatial.py",
+          "start": 174,
+          "end": 198,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_height_range#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_height_range",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 836,
+          "end": 845,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q05:expanded",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/spatial.py:function:WorldHandler._spatial_reader#1.1.1",
+          "kind": "function",
+          "qualname": "WorldHandler._spatial_reader",
+          "path": "src/trpg_state_machine/spatial.py",
+          "start": 966,
+          "end": 980,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_access.py:function:SessionAccess._npc_combat_target_guard#1.1.1",
+          "kind": "function",
+          "qualname": "SessionAccess._npc_combat_target_guard",
+          "path": "src/trpg_state_machine/session_access.py",
+          "start": 262,
+          "end": 301,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_area#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_area",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 783,
+          "end": 822,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q05:expanded",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_area#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_area",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 783,
+          "end": 822,
+          "ranks": {
+            "level": 1,
+            "dense": 3,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/environment.py:function:EnvironmentService.query_height_range#1.1.1",
+          "kind": "function",
+          "qualname": "EnvironmentService.query_height_range",
+          "path": "src/trpg_state_machine/environment.py",
+          "start": 836,
+          "end": 845,
+          "ranks": {
+            "level": 2,
+            "dense": 4,
+            "bm25": 3
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/spatial.py:function:WorldHandler._public_scope#1.1.1",
+          "kind": "function",
+          "qualname": "WorldHandler._public_scope",
+          "path": "src/trpg_state_machine/spatial.py",
+          "start": 212,
+          "end": 243,
+          "ranks": {
+            "level": 3,
+            "dense": 7,
+            "bm25": 6
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q30:zh",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 0,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": []
+    },
+    {
+      "case": "Q30:zh",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 2,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_creation.py:function:SessionCreation.create#1.1.1",
+          "kind": "function",
+          "qualname": "SessionCreation.create",
+          "path": "src/trpg_state_machine/session_creation.py",
+          "start": 72,
+          "end": 253,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.resume_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.resume_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 430,
+          "end": 441,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.unload_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.unload_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 397,
+          "end": 405,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q30:zh",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 2,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_creation.py:function:SessionCreation.create#1.1.1",
+          "kind": "function",
+          "qualname": "SessionCreation.create",
+          "path": "src/trpg_state_machine/session_creation.py",
+          "start": 72,
+          "end": 253,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.resume_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.resume_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 430,
+          "end": 441,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.unload_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.unload_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 397,
+          "end": 405,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q30:expanded",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/rules_adapter.py:function:RulesAdapter.validate_saved_mechanics#1.1.1",
+          "kind": "function",
+          "qualname": "RulesAdapter.validate_saved_mechanics",
+          "path": "src/trpg_state_machine/rules_adapter.py",
+          "start": 354,
+          "end": 375,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/time_coordination.py:function:SessionTime.control#1.1.1",
+          "kind": "function",
+          "qualname": "SessionTime.control",
+          "path": "src/trpg_state_machine/time_coordination.py",
+          "start": 308,
+          "end": 396,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/perception.py:function:PerceptionRuntime._project_perception#1.1.1",
+          "kind": "function",
+          "qualname": "PerceptionRuntime._project_perception",
+          "path": "src/trpg_state_machine/perception.py",
+          "start": 360,
+          "end": 630,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q30:expanded",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.resume_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.resume_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 430,
+          "end": 441,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_creation.py:function:SessionCreation.create#1.1.1",
+          "kind": "function",
+          "qualname": "SessionCreation.create",
+          "path": "src/trpg_state_machine/session_creation.py",
+          "start": 72,
+          "end": 253,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine.unload_session#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine.unload_session",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 397,
+          "end": 405,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "Q30:expanded",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/rules_adapter.py:function:RulesAdapter.validate_saved_mechanics#1.1.1",
+          "kind": "function",
+          "qualname": "RulesAdapter.validate_saved_mechanics",
+          "path": "src/trpg_state_machine/rules_adapter.py",
+          "start": 354,
+          "end": 375,
+          "ranks": {
+            "level": 1,
+            "dense": 14,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_creation.py:function:SessionCreation.create#1.1.1",
+          "kind": "function",
+          "qualname": "SessionCreation.create",
+          "path": "src/trpg_state_machine/session_creation.py",
+          "start": 72,
+          "end": 253,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": 21
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:function:StateMachine._snapshot#1.1.1",
+          "kind": "function",
+          "qualname": "StateMachine._snapshot",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 295,
+          "end": 384,
+          "ranks": {
+            "level": 3,
+            "dense": 7,
+            "bm25": 22
+          }
+        }
+      ]
+    },
+    {
+      "case": "module",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:module:trpg_state_machine.world_containers#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_containers",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 1,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_objects.py:module:trpg_state_machine.world_objects#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_objects",
+          "path": "src/trpg_state_machine/world_objects.py",
+          "start": 1,
+          "end": 263,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:module:trpg_state_machine.world_package#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_package",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 1,
+          "end": 696,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "module",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:module:trpg_state_machine.world_containers#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_containers",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 1,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:module:trpg_state_machine.world_package#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_package",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 1,
+          "end": 696,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_commands.py:module:trpg_state_machine.world_commands#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_commands",
+          "path": "src/trpg_state_machine/world_commands.py",
+          "start": 1,
+          "end": 191,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "module",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:module:trpg_state_machine.world_containers#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_containers",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 1,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:module:trpg_state_machine.world_package#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_package",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 1,
+          "end": 696,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": 3
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_objects.py:module:trpg_state_machine.world_objects#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.world_objects",
+          "path": "src/trpg_state_machine/world_objects.py",
+          "start": 1,
+          "end": 263,
+          "ranks": {
+            "level": 3,
+            "dense": 4,
+            "bm25": 2
+          }
+        }
+      ]
+    },
+    {
+      "case": "class",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:class:ContainerService#1.1",
+          "kind": "class",
+          "qualname": "ContainerService",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 84,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_objects.py:class:WorldObjectService#1.1",
+          "kind": "class",
+          "qualname": "WorldObjectService",
+          "path": "src/trpg_state_machine/world_objects.py",
+          "start": 30,
+          "end": 263,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:class:Container#1.1",
+          "kind": "class",
+          "qualname": "Container",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 73,
+          "end": 84,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "class",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:class:ContainerService#1.1",
+          "kind": "class",
+          "qualname": "ContainerService",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 84,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:class:Container#1.1",
+          "kind": "class",
+          "qualname": "Container",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 73,
+          "end": 84,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/service.py:class:StateMachine#1.1",
+          "kind": "class",
+          "qualname": "StateMachine",
+          "path": "src/trpg_state_machine/service.py",
+          "start": 58,
+          "end": 560,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "class",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:class:ContainerService#1.1",
+          "kind": "class",
+          "qualname": "ContainerService",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 84,
+          "end": 456,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_package.py:class:Container#1.1",
+          "kind": "class",
+          "qualname": "Container",
+          "path": "src/trpg_state_machine/world_package.py",
+          "start": 73,
+          "end": 84,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": 3
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_objects.py:class:WorldObjectService#1.1",
+          "kind": "class",
+          "qualname": "WorldObjectService",
+          "path": "src/trpg_state_machine/world_objects.py",
+          "start": 30,
+          "end": 263,
+          "ranks": {
+            "level": 3,
+            "dense": 7,
+            "bm25": 2
+          }
+        }
+      ]
+    },
+    {
+      "case": "identifier",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainmentState.relocate#1.1.1",
+          "kind": "function",
+          "qualname": "ContainmentState.relocate",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 51,
+          "end": 75,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "identifier",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.own_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.own_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 163,
+          "end": 177,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "identifier",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.current_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 179,
+          "end": 200,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService._weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService._weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 211,
+          "end": 239,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": 4
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.contents_weight#1.1.1",
+          "kind": "function",
+          "qualname": "ContainerService.contents_weight",
+          "path": "src/trpg_state_machine/world_containers.py",
+          "start": 202,
+          "end": 209,
+          "ranks": {
+            "level": 3,
+            "dense": 5,
+            "bm25": 2
+          }
+        }
+      ]
+    },
+    {
+      "case": "RE",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation.py:function:evaluate#1.1",
+          "kind": "function",
+          "qualname": "evaluate",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation.py",
+          "start": 68,
+          "end": 195,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_openable.py:function:evaluate_openable#1.1",
+          "kind": "function",
+          "qualname": "evaluate_openable",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_openable.py",
+          "start": 66,
+          "end": 100,
+          "ranks": {
+            "level": 2,
+            "dense": null,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_concentration.py:function:evaluate_concentration_candidate#1.1",
+          "kind": "function",
+          "qualname": "evaluate_concentration_candidate",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_concentration.py",
+          "start": 495,
+          "end": 584,
+          "ranks": {
+            "level": 3,
+            "dense": null,
+            "bm25": 3
+          }
+        }
+      ]
+    },
+    {
+      "case": "RE",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation.py:function:evaluate#1.1",
+          "kind": "function",
+          "qualname": "evaluate",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation.py",
+          "start": 68,
+          "end": 195,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_contracts.py:function:RuleEvaluationRequest.operation_payload#1.1.1",
+          "kind": "function",
+          "qualname": "RuleEvaluationRequest.operation_payload",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_contracts.py",
+          "start": 145,
+          "end": 178,
+          "ranks": {
+            "level": 2,
+            "dense": 2,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_spells.py:function:evaluate_invocation#1.1",
+          "kind": "function",
+          "qualname": "evaluate_invocation",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_spells.py",
+          "start": 330,
+          "end": 454,
+          "ranks": {
+            "level": 3,
+            "dense": 3,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "RE",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": 1,
+      "expected_entry_defined": true,
+      "top3": [
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation.py:function:evaluate#1.1",
+          "kind": "function",
+          "qualname": "evaluate",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation.py",
+          "start": 68,
+          "end": 195,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_contracts.py:function:RuleEvaluationResult.verify_request#1.1.1",
+          "kind": "function",
+          "qualname": "RuleEvaluationResult.verify_request",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_contracts.py",
+          "start": 287,
+          "end": 308,
+          "ranks": {
+            "level": 2,
+            "dense": 4,
+            "bm25": 4
+          }
+        },
+        {
+          "node_id": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_openable.py:function:evaluate_openable#1.1",
+          "kind": "function",
+          "qualname": "evaluate_openable",
+          "path": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_openable.py",
+          "start": 66,
+          "end": 100,
+          "ranks": {
+            "level": 3,
+            "dense": 9,
+            "bm25": 2
+          }
+        }
+      ]
+    },
+    {
+      "case": "mixed",
+      "mode": "bm25",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": false,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/storage.py:module:trpg_state_machine.storage#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.storage",
+          "path": "src/trpg_state_machine/storage.py",
+          "start": 1,
+          "end": 569,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/storage.py:class:SqliteStore#1.1",
+          "kind": "class",
+          "qualname": "SqliteStore",
+          "path": "src/trpg_state_machine/storage.py",
+          "start": 55,
+          "end": 494,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/storage.py:function:SqliteStore._transaction_scope#1.1.1",
+          "kind": "function",
+          "qualname": "SqliteStore._transaction_scope",
+          "path": "src/trpg_state_machine/storage.py",
+          "start": 297,
+          "end": 410,
+          "ranks": {
+            "level": 1,
+            "dense": null,
+            "bm25": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "mixed",
+      "mode": "dense",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": false,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:module:trpg_state_machine.session_memory#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.session_memory",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 1,
+          "end": 1605,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:class:SessionMemory#1.1",
+          "kind": "class",
+          "qualname": "SessionMemory",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 213,
+          "end": 1437,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:function:SessionMemory.publish#1.1.1",
+          "kind": "function",
+          "qualname": "SessionMemory.publish",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 1398,
+          "end": 1428,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": null
+          }
+        }
+      ]
+    },
+    {
+      "case": "mixed",
+      "mode": "rrf",
+      "execution_status": "passed",
+      "result_count": 10,
+      "expected_entry_rank_top10": null,
+      "expected_entry_defined": false,
+      "top3": [
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:module:trpg_state_machine.session_memory#1",
+          "kind": "module",
+          "qualname": "trpg_state_machine.session_memory",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 1,
+          "end": 1605,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:class:RuntimeConnection#1.1",
+          "kind": "class",
+          "qualname": "RuntimeConnection",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 1474,
+          "end": 1605,
+          "ranks": {
+            "level": 1,
+            "dense": 3,
+            "bm25": 2
+          }
+        },
+        {
+          "node_id": "trpg-state-machine:src/trpg_state_machine/session_memory.py:function:SessionMemory.publish#1.1.1",
+          "kind": "function",
+          "qualname": "SessionMemory.publish",
+          "path": "src/trpg_state_machine/session_memory.py",
+          "start": 1398,
+          "end": 1428,
+          "ranks": {
+            "level": 1,
+            "dense": 1,
+            "bm25": 3
+          }
+        }
+      ]
+    }
+  ],
+  "retrieval_is_independent_review": false,
+  "repositories": [
+    {
+      "name": "agentic-trpg",
+      "path": "<WORKSPACE_ROOT>\\agentic-trpg",
+      "head": "ac2a0e41ec99bcc78d4fa608287fb4e7ea7fd436",
+      "branch": "main",
+      "indexed_head": "ac2a0e41ec99bcc78d4fa608287fb4e7ea7fd436",
+      "included_content_sha256": "e17f1c920a56d8c0eba2f9024c0277e2af6c1193042acaceba14ce4fc0f2f9a4",
+      "working_directory_state": {
+        "branch_status": "## main...origin/main",
+        "tracked_changes": 0,
+        "untracked_entries": 2,
+        "private_untracked_filenames_omitted": true
+      }
+    },
+    {
+      "name": "trpg-state-machine",
+      "path": "<WORKSPACE_ROOT>\\trpg-state-machine",
+      "head": "4166e52f0809ae80ba1694295bb0739acec76bd8",
+      "branch": "main",
+      "indexed_head": "4166e52f0809ae80ba1694295bb0739acec76bd8",
+      "included_content_sha256": "2ebcd2066d782c00aebbd1127c923f196bdeee04af5df6d1928284dba054f759",
+      "working_directory_state": {
+        "branch_status": "## main...origin/main",
+        "tracked_changes": 0,
+        "untracked_entries": 2,
+        "private_untracked_filenames_omitted": true
+      }
+    },
+    {
+      "name": "trpg-rules-engine",
+      "path": "<WORKSPACE_ROOT>\\trpg-rules-engine",
+      "head": "ab276fffc5ff02a973e1c767543e712dd0897451",
+      "branch": "main",
+      "indexed_head": "ab276fffc5ff02a973e1c767543e712dd0897451",
+      "included_content_sha256": "4c6d88e479b093d2a09e802134d1290c8a4f4a3c77467217957c1d96c1e9cd03",
+      "working_directory_state": {
+        "branch_status": "## main...origin/main",
+        "tracked_changes": 0,
+        "untracked_entries": 1,
+        "private_untracked_filenames_omitted": true
+      }
+    }
+  ],
+  "elapsed_seconds": 13.25,
+  "preservation": {
+    "all_51_original_data_files_sizes_mtimes_unchanged": true,
+    "protected_file_bytes_unchanged": {
+      "status": "passed",
+      "files_hashed": 23,
+      "embedding_api_requests": 0
+    },
+    "no_original_files_removed": true,
+    "sqlite_read_coordination_sidecars_added": [
+      "data/vectors.sqlite-shm",
+      "data/vectors.sqlite-wal"
+    ],
+    "wal_bytes": 0,
+    "data_pointer_and_embedding_ledger_unchanged": true,
+    "business_repo_HEAD_branch_origin_status_unchanged": true,
+    "embedding_api_requests": 0
+  },
+  "commands": [
+    {
+      "command": "python -m pytest -q tests --basetemp=<TEMP> --junitxml=<TEMP>/unit-tests.xml",
+      "exit_code": 0,
+      "scope": "current checkout, API key removed"
+    },
+    {
+      "command": "uv sync --locked --offline",
+      "exit_code": 0,
+      "scope": "clean local clone; cached dependencies only"
+    },
+    {
+      "command": "python -m pytest -q tests --basetemp=.tmp/t --junitxml=.tmp/unit-tests.xml",
+      "exit_code": 0,
+      "scope": "clean clone, no real config/data/reports/workspaces, API key removed"
+    },
+    {
+      "command": "python -m tests.synthetic_demo --output .tmp/demo",
+      "exit_code": 0,
+      "scope": "clean clone; deterministic synthetic test vectors only"
+    },
+    {
+      "command": "python tools/validate_local_index.py --config config.json --output <LOCAL_OUTPUT>",
+      "exit_code": 0,
+      "scope": "read-only existing real index and cached vectors"
+    }
+  ],
+  "runtime_core_file_sha256": {
+    "lct/__init__.py": "8c96770212c8fa1ea0aa44f007a0e96315a2875b87c1e9c4403aee8d874e80d3",
+    "lct/cli.py": "462a5c0d3cf52be4473c75e90ca89b2b3efda9093dcb6c05da6f83febd46f9ca",
+    "lct/common.py": "ff4cc07e23b14b5e71c76ca15f383fd01e163f85b0b56e8bc50159bc8bc649e6",
+    "lct/embedding.py": "4d2b635bd8d6bdb20ad7c90dcbb894c55fc3aefb5e02aa7dedf9112cab803007",
+    "lct/extract.py": "5c62655aadfd413d6d473166b50aac8e9be0dc504d7bac1ea55ef10b7fe7bac6",
+    "lct/graph.py": "c9db57cc3d3faf39bb50273e17a40fbe8e78d81ea319c021b9505fe297ac2ec0",
+    "lct/lexical.py": "190b9a26dde2fb498b2e34f074d72a9d9c70f44252298f477598d236750fd178",
+    "lct/management.py": "17ca209a6d00916244087ace476908c779a29c9c4b4dcf453a7eb66e0f95f329",
+    "lct/mcp_server.py": "741853af5d5574dc25354c19ed4eca0023e5090cf86a05a7ffe209bbcd765f36",
+    "lct/query.py": "149f51fa44e8306fcd9c82fc354aef57629eec00179c87024c706f4e249ea70f",
+    "lct/storage.py": "d7459eddc24d345dfb14bb315d6e33c16fc1d4d29bdd56ec57e7d53b160dc9a1",
+    "local_code_tools.py": "654bbc07bacb2143f9c8aa304015c7868ef8086c418d7c8e9c732b642cb8fd0e",
+    "pyproject.toml": "d0f84cdbf722b0b7857686efaaf1a3d125ce7604e11956403b5d5c666893ff25",
+    "register_mcp.py": "2787f7a104f7b5889ae054a5c3a48dc930760ad904f03f9eeeeabdce414c4bec",
+    "uv.lock": "c3e104639e98f9cc2d863cf05041c45ac46e5c29ff1f36ea11d505c0c12962a5"
+  },
+  "checkout_tests": {
+    "tests": "36",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "1",
+    "time": "33.796"
+  },
+  "clean_clone_tests": {
+    "tests": "36",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "1",
+    "time": "34.594"
+  },
+  "synthetic_demo": {
+    "synthetic_test_vectors_only": true,
+    "real_retrieval_quality": false,
+    "index_version": "20261026T224426-8ca56746fd",
+    "nodes": {
+      "repository": 1,
+      "documentsection": 3,
+      "module": 1,
+      "function": 3,
+      "class": 1
+    },
+    "api_requests": 0,
+    "results": {
+      "bm25": [
+        "base_weight",
+        "SyntheticBox.total"
+      ],
+      "dense": [
+        "base_weight",
+        "SyntheticBox.total",
+        "unchanged"
+      ],
+      "rrf": [
+        "base_weight",
+        "SyntheticBox.total",
+        "unchanged"
+      ]
+    },
+    "doc_sections": 1
+  },
+  "evidence_scope": "Fresh local validation of the indicated commit; not independent review. No real index data uploaded.",
+  "source_version_note": "Final report-only commit does not change tested source/test files; compare to source_commit_tested.",
+  "harness_notes": [
+    "Initial clean-clone command used a missing parent for explicit --basetemp; no assertions ran. Created the temporary parent and reran identical committed source successfully.",
+    "SQLite mode=ro created local SHM/empty WAL coordination files. All pre-existing data files and protected bytes remain unchanged. Sidecars are retained locally and ignored."
+  ]
+}
