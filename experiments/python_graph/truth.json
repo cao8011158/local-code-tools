@@ -1,0 +1,650 @@
+{
+  "schema": 1,
+  "frozen_before_candidate_run": true,
+  "assumptions": [
+    "Analyze source only; never execute fixtures.",
+    "Unannotated public inputs are unknown unless the closed synthetic drivers explicitly supply all origins.",
+    "Targets refer to lexical functions/classes, not argument validity or runtime success.",
+    "Calls attempted on noncallable strings or undefined names have no valid callable target.",
+    "Builtin super and constructor helper sites remain in inventory; marked sites form the bounded annotated metric set.",
+    "Jedi inferred names and Pyan USES retain their semantics and never become native CALLS."
+  ],
+  "sites": [
+    {
+      "id": "direct",
+      "file": "sample.py",
+      "context": "sample:direct",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Lexically bound function name.",
+      "expression": null
+    },
+    {
+      "id": "alias",
+      "file": "sample.py",
+      "context": "sample:alias",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Single assignment of a function object.",
+      "expression": null
+    },
+    {
+      "id": "string",
+      "file": "sample.py",
+      "context": "sample:string_value",
+      "targets": [],
+      "complete": true,
+      "forbidden": [
+        "sample:target"
+      ],
+      "phase": "body",
+      "kind": "call",
+      "why": "String is not callable; no target function execution. The call attempt must remain visible.",
+      "expression": null
+    },
+    {
+      "id": "callback_known",
+      "file": "sample.py",
+      "context": "sample:invoke",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Closed synthetic driver invokes this callback only with target.",
+      "expression": null
+    },
+    {
+      "id": "known_driver",
+      "file": "sample.py",
+      "context": "sample:known_driver",
+      "targets": [
+        "sample:invoke"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "callback_mixed",
+      "file": "sample.py",
+      "context": "sample:mixed",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": false,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Two callers: target and externally supplied unknown. Known candidate is not exhaustive.",
+      "expression": null
+    },
+    {
+      "id": "mixed_known_driver",
+      "file": "sample.py",
+      "context": "sample:mixed_driver",
+      "targets": [
+        "sample:mixed"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "mixed_unknown_driver",
+      "file": "sample.py",
+      "context": "sample:mixed_driver",
+      "targets": [
+        "sample:mixed"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "dict_fixed",
+      "file": "sample.py",
+      "context": "sample:dispatch_fixed",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [
+        "sample:other"
+      ],
+      "phase": "body",
+      "kind": "call",
+      "why": "Literal fixed key a; dictionary has no later writes.",
+      "expression": null
+    },
+    {
+      "id": "dict_dynamic",
+      "file": "sample.py",
+      "context": "sample:dispatch_dynamic",
+      "targets": [
+        "sample:target",
+        "sample:other"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Either a or b; other keys raise KeyError before dispatch.",
+      "expression": null
+    },
+    {
+      "id": "register",
+      "file": "sample.py",
+      "context": "sample:<module>",
+      "targets": [
+        "registry:register"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "module",
+      "kind": "call",
+      "why": "target is passed, not invoked by this call.",
+      "expression": null
+    },
+    {
+      "id": "registry",
+      "file": "sample.py",
+      "context": "sample:registered",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "The only registry write is register(go,target) across files.",
+      "expression": null
+    },
+    {
+      "id": "import_alias",
+      "file": "sample.py",
+      "context": "sample:imported",
+      "targets": [
+        "helpers:work"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "shadow",
+      "file": "sample.py",
+      "context": "sample:shadow",
+      "targets": [],
+      "complete": false,
+      "forbidden": [
+        "helpers:work"
+      ],
+      "phase": "body",
+      "kind": "call",
+      "why": "Parameter shadows import and has an unknown external origin.",
+      "expression": null
+    },
+    {
+      "id": "bare",
+      "file": "sample.py",
+      "context": "sample:A.bare",
+      "targets": [],
+      "complete": true,
+      "forbidden": [
+        "sample:A.work",
+        "helpers:work"
+      ],
+      "phase": "body",
+      "kind": "call",
+      "why": "Method body bare name skips class namespace. No global work exists.",
+      "expression": null
+    },
+    {
+      "id": "staticmethod_callback",
+      "file": "sample.py",
+      "context": "sample:A.invoke",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "staticmethod does not bind or remove cb as self.",
+      "expression": null
+    },
+    {
+      "id": "classmethod_body",
+      "file": "sample.py",
+      "context": "sample:A.construct",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "instance",
+      "file": "sample.py",
+      "context": "sample:method_driver",
+      "targets": [
+        "sample:A.work"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "class_attribute",
+      "file": "sample.py",
+      "context": "sample:method_driver",
+      "targets": [
+        "sample:A.work"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "staticmethod_driver",
+      "file": "sample.py",
+      "context": "sample:method_driver",
+      "targets": [
+        "sample:A.invoke"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "classmethod_driver",
+      "file": "sample.py",
+      "context": "sample:method_driver",
+      "targets": [
+        "sample:A.construct"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "super",
+      "file": "sample.py",
+      "context": "sample:Child.run",
+      "targets": [
+        "sample:Base.run"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Zero-argument super in Child starts lookup after Child in MRO.",
+      "expression": "super().run"
+    },
+    {
+      "id": "inherited",
+      "file": "sample.py",
+      "context": "sample:inherited",
+      "targets": [
+        "sample:Child.run"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": "Child().run"
+    },
+    {
+      "id": "closure_body",
+      "file": "sample.py",
+      "context": "sample:outer.inner",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "nested",
+      "file": "sample.py",
+      "context": "sample:outer",
+      "targets": [
+        "sample:outer.inner"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "factory",
+      "file": "sample.py",
+      "context": "sample:returned",
+      "targets": [
+        "sample:factory"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "returned",
+      "file": "sample.py",
+      "context": "sample:returned",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "factory returns the function object, called only here.",
+      "expression": null
+    },
+    {
+      "id": "lambda_body",
+      "file": "sample.py",
+      "context": "sample:lambda_factory.<lambda>",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Executed in lambda body, not during lambda_factory.",
+      "expression": null
+    },
+    {
+      "id": "lambda_factory",
+      "file": "sample.py",
+      "context": "sample:lambda_driver",
+      "targets": [
+        "sample:lambda_factory"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "lambda_call",
+      "file": "sample.py",
+      "context": "sample:lambda_driver",
+      "targets": [
+        "sample:lambda_factory.<lambda>"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "decorator_implicit",
+      "file": "sample.py",
+      "context": "sample:<module>",
+      "targets": [
+        "sample:decorate"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "definition",
+      "kind": "implicit_decorator",
+      "why": "Python applies bare decorator while defining decorated.",
+      "expression": null
+    },
+    {
+      "id": "default",
+      "file": "sample.py",
+      "context": "sample:<module>",
+      "targets": [
+        "sample:make"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "definition",
+      "kind": "call",
+      "why": "Default evaluated in module execution, never by decorated body.",
+      "expression": null
+    },
+    {
+      "id": "decorated_body",
+      "file": "sample.py",
+      "context": "sample:decorated",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "",
+      "expression": null
+    },
+    {
+      "id": "branch",
+      "file": "sample.py",
+      "context": "sample:branch",
+      "targets": [
+        "sample:target",
+        "sample:other"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Flag unknown; two assignments on mutually exclusive paths.",
+      "expression": null
+    },
+    {
+      "id": "reassignment",
+      "file": "sample.py",
+      "context": "sample:reassignment",
+      "targets": [
+        "sample:other"
+      ],
+      "complete": true,
+      "forbidden": [
+        "sample:target"
+      ],
+      "phase": "body",
+      "kind": "call",
+      "why": "Unconditional second assignment kills earlier target before call.",
+      "expression": null
+    },
+    {
+      "id": "external",
+      "file": "sample.py",
+      "context": "sample:boundary",
+      "targets": [
+        "json:loads"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "call",
+      "why": "Standard-library boundary; not a project-owned implementation.",
+      "expression": null
+    },
+    {
+      "id": "assignment",
+      "file": "sample.py",
+      "context": "sample:references",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "reference",
+      "why": "Only stores a function; no invocation.",
+      "expression": null
+    },
+    {
+      "id": "container",
+      "file": "sample.py",
+      "context": "sample:references",
+      "targets": [
+        "sample:target",
+        "sample:other"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "reference",
+      "why": "Only builds a container; no invocation.",
+      "expression": null
+    },
+    {
+      "id": "factory_return",
+      "file": "sample.py",
+      "context": "sample:factory",
+      "targets": [
+        "sample:target"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "phase": "body",
+      "kind": "reference",
+      "why": "Only returns a function object.",
+      "expression": null
+    }
+  ],
+  "required_nodes": {
+    "sample.py": [
+      "<module>",
+      "target",
+      "other",
+      "direct",
+      "alias",
+      "string_value",
+      "invoke",
+      "known_driver",
+      "mixed",
+      "mixed_driver",
+      "dispatch_fixed",
+      "dispatch_dynamic",
+      "registered",
+      "imported",
+      "shadow",
+      "A",
+      "A.work",
+      "A.bare",
+      "A.invoke",
+      "A.construct",
+      "method_driver",
+      "Base",
+      "Base.run",
+      "Child",
+      "Child.run",
+      "inherited",
+      "outer",
+      "outer.inner",
+      "factory",
+      "returned",
+      "lambda_factory",
+      "lambda_factory.<lambda>",
+      "lambda_driver",
+      "decorate",
+      "make",
+      "decorated",
+      "branch",
+      "reassignment",
+      "boundary",
+      "references"
+    ],
+    "helpers.py": [
+      "<module>",
+      "work"
+    ],
+    "registry.py": [
+      "<module>",
+      "register"
+    ]
+  },
+  "non_call_relations": [
+    {
+      "kind": "INHERITS",
+      "source": "sample:Child",
+      "target": "sample:Base"
+    },
+    {
+      "kind": "IMPORTS",
+      "source": "sample:<module>",
+      "target": "helpers:work"
+    }
+  ],
+  "cross_repository": [
+    {
+      "mode": "matched",
+      "targets": [
+        "dnd5e_engine.evaluation:evaluate"
+      ],
+      "complete": true
+    },
+    {
+      "mode": "mismatched",
+      "targets": [],
+      "boundary": "dependency-version-unmatched",
+      "complete": false,
+      "forbidden": [
+        "dnd5e_engine.evaluation:evaluate"
+      ]
+    }
+  ]
+}

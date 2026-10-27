@@ -1,0 +1,322 @@
+{
+  "schema": 1,
+  "frozen_before_candidate_run": true,
+  "selection": "Source-stratified BEFORE candidate runs: sink delivery; mutable command/hook registries; lambda timing; inheritance; local constructor; cross-module classmethod; SM-to-RE version mismatch. Not sampled from existing graph. Architecture repo has zero configured Python roots.",
+  "not_full_repository_ground_truth": true,
+  "sites": [
+    {
+      "id": "R01",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/events.py",
+      "sha256": "04a82dfae66a22b59af6f909f91b2e8a01336e102c9be0ffc05e5a8b5f0d51e0",
+      "context": "trpg_state_machine.events:EventRuntime.deliver_event",
+      "expression": "sink",
+      "line": 143,
+      "column": 12,
+      "targets": [],
+      "complete": false,
+      "forbidden": [],
+      "why": "Keyword-only external sink callback; targets cannot be enumerated.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        try:",
+        "            sink(event)",
+        "        except Exception:"
+      ]
+    },
+    {
+      "id": "R02",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/commands.py",
+      "sha256": "f5e6bffd06e2189e47597f7b8bc82ead685915c70e3822365326a28fa30a8829",
+      "context": "trpg_state_machine.commands:world_command_from_data",
+      "expression": "OPERATIONS[kind]",
+      "line": 561,
+      "column": 17,
+      "targets": [
+        "trpg_state_machine._operations:MoveActor",
+        "trpg_state_machine._operations:UnlockDoor"
+      ],
+      "complete": false,
+      "forbidden": [],
+      "why": "Literal OPERATIONS and admission prove these two alternatives; table updates supply more.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "            if kind in ENVIRONMENT_COMMANDS",
+        "            else OPERATIONS[kind](**payload)",
+        "        )"
+      ]
+    },
+    {
+      "id": "R03",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/rules_adapter.py",
+      "sha256": "7c35bf43dc64a79995c79b916b78f0d964b3473998ddfacf668db2053871b068",
+      "context": "trpg_state_machine.rules_adapter:RulesAdapter._evaluate_dnd",
+      "expression": "evaluate",
+      "line": 518,
+      "column": 21,
+      "targets": [],
+      "complete": false,
+      "forbidden": [
+        "dnd5e_engine.evaluation:evaluate"
+      ],
+      "why": "SM pins a011eba and local RE HEAD differs; imported name does not prove identity.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        \"\"\"Invoke stateless evaluation with the selected fixed rules loader.\"\"\"",
+        "        return await evaluate(request, loader=self.loader)",
+        ""
+      ]
+    },
+    {
+      "id": "R04",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/errors.py",
+      "sha256": "8ffc53487cba31dac6f2d3b8d23a41eb4732532bb222b573c2b10d657f2608cc",
+      "context": "trpg_state_machine.errors:StateMachineError.__init__",
+      "expression": "Issue",
+      "line": 20,
+      "column": 21,
+      "targets": [
+        "trpg_state_machine.errors:Issue"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "why": "Local lexical dataclass construction, represented by class node.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        \"\"\"Retain the structured issue and initialize its exception message.\"\"\"",
+        "        self.issue = Issue(code, path, message)",
+        "        super().__init__(message)"
+      ]
+    },
+    {
+      "id": "R05",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/grid_maps.py",
+      "sha256": "88f4f0b8e9d7572e37a75b8434d79f5227d45104fa1746295dd60aedf359de70",
+      "context": "trpg_state_machine.grid_maps:ReadOnlyTopology.__init__",
+      "expression": "super().__init__",
+      "line": 166,
+      "column": 8,
+      "targets": [],
+      "complete": false,
+      "forbidden": [
+        "dnd5e_engine.spatial:GridTopology.__init__"
+      ],
+      "why": "GridTopology base belongs to pinned RE; current local RE is another revision.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        \"\"\"Prepare read-only topology and its wall index.\"\"\"",
+        "        super().__init__(scene)",
+        "        self._walls = tuple(_Wall(w.x1, w.y1, w.x2, w.y2) for w in self._walls)"
+      ]
+    },
+    {
+      "id": "R06",
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/live_attack_riders.py",
+      "sha256": "b14829f7a79c2b188511c77e0e35db05925fe6a260635b99d053b386b7b1157b",
+      "context": "dnd5e_engine.live_attack_riders:register_rider_hooks",
+      "expression": "live.lifecycle.register",
+      "line": 343,
+      "column": 4,
+      "targets": [
+        "dnd5e_engine.turn_lifecycle:TurnLifecycle.register"
+      ],
+      "complete": false,
+      "forbidden": [],
+      "why": "_LiveCombat.lifecycle has TurnLifecycle default factory; registration does not execute the lambda.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "    \"\"\"Register keyed rider expiry handling on the existing turn lifecycle.\"\"\"",
+        "    live.lifecycle.register(",
+        "        \"turn_end\",",
+        "        lambda combat, actor: expire_rider_effects(combat, actor, \"end\"),",
+        "        key=\"engine:attack-rider-expiry\",",
+        "    )",
+        ""
+      ]
+    },
+    {
+      "id": "R07",
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/live_attack_riders.py",
+      "sha256": "b14829f7a79c2b188511c77e0e35db05925fe6a260635b99d053b386b7b1157b",
+      "context": "dnd5e_engine.live_attack_riders:register_rider_hooks.<lambda>",
+      "expression": "expire_rider_effects",
+      "line": 345,
+      "column": 30,
+      "targets": [
+        "dnd5e_engine.live_attack_riders:expire_rider_effects"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "why": "Called in lambda body, not registration body.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        \"turn_end\",",
+        "        lambda combat, actor: expire_rider_effects(combat, actor, \"end\"),",
+        "        key=\"engine:attack-rider-expiry\","
+      ]
+    },
+    {
+      "id": "R08",
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/turn_lifecycle.py",
+      "sha256": "2efacf902edd8e49fd39bbb11e3848eccd0fdef5a41c25c1c0f8eea117870fd6",
+      "context": "dnd5e_engine.turn_lifecycle:TurnLifecycle.run",
+      "expression": "hook",
+      "line": 114,
+      "column": 12,
+      "targets": [],
+      "complete": false,
+      "forbidden": [],
+      "why": "Public mutable per-instance hook registry can receive arbitrary host callbacks.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        for _key, hook in tuple(self._hooks.get(phase, ())):",
+        "            hook(live, actor_id)",
+        ""
+      ]
+    },
+    {
+      "id": "R09",
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_shield.py",
+      "sha256": "b400ac71baab3d8348971f17cfdc4e56aaa3b434d94c3756c8638fb9a01641a0",
+      "context": "dnd5e_engine.evaluation_shield:ShieldComputation.emit",
+      "expression": "super().emit",
+      "line": 249,
+      "column": 8,
+      "targets": [
+        "dnd5e_engine.evaluation_computation:CombatComputation.emit"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "why": "Imported explicit base and MRO; first super.emit site in emit is annotated.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "            )",
+        "        super().emit(event)",
+        "        if isinstance(event, TurnPhase) and event.phase == \"turn_start\":"
+      ]
+    },
+    {
+      "id": "R10",
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/live_effect_lifecycle.py",
+      "sha256": "08258464639fa9ab12adcf56976a9aff949b08ade912b80ba5140bdd186b74e4",
+      "context": "dnd5e_engine.live_effect_lifecycle:register_effect",
+      "expression": "OngoingEffectLifecycle.from_application",
+      "line": 43,
+      "column": 39,
+      "targets": [
+        "dnd5e_engine.effect_lifecycle:OngoingEffectLifecycle.from_application"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "why": "Imported class has this actual classmethod definition.",
+      "kind": "call",
+      "phase": "body",
+      "excerpt": [
+        "        return",
+        "    live.effect_lifecycles[identity] = OngoingEffectLifecycle.from_application(",
+        "        identity, app, live.turn_serial, live.round_number",
+        "    )",
+        ""
+      ]
+    },
+    {
+      "id": "R11",
+      "repository": "trpg-state-machine",
+      "file": "src/trpg_state_machine/commands.py",
+      "sha256": "f5e6bffd06e2189e47597f7b8bc82ead685915c70e3822365326a28fa30a8829",
+      "context": "trpg_state_machine.commands:<module>",
+      "expression": "MoveActor",
+      "line": 89,
+      "column": 18,
+      "targets": [
+        "trpg_state_machine._operations:MoveActor"
+      ],
+      "complete": true,
+      "forbidden": [],
+      "why": "OPERATIONS stores class object without constructing it.",
+      "kind": "reference",
+      "phase": "module",
+      "excerpt": [
+        "    \"set_object_state\": SetObjectState,",
+        "    \"move_actor\": MoveActor,",
+        "}"
+      ]
+    }
+  ],
+  "proof": [
+    {
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/orchestrator.py",
+      "sha256": "8994850fe8df40cc14ec5b6eccc468b5e7a7073ead6b95d0c77ce0d26d90155c",
+      "lines": [
+        {
+          "line": 3039,
+          "text": "    lifecycle: TurnLifecycle = field(default_factory=TurnLifecycle)"
+        }
+      ]
+    },
+    {
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/effect_lifecycle.py",
+      "sha256": "1844e3cdce68524884135566e9669dca84f050f3e30c8396a7dfd740838d7d4b",
+      "lines": [
+        {
+          "line": 118,
+          "text": "    def from_application("
+        }
+      ]
+    },
+    {
+      "repository": "trpg-rules-engine",
+      "file": "packages/dnd5e-engine/src/dnd5e_engine/evaluation_computation.py",
+      "sha256": "ec0be6cbf0597f8cb808a2a0589a2774b7e99e1ad199a1933d1f5dccc15ff2f9",
+      "lines": [
+        {
+          "line": 54,
+          "text": "class CombatComputationResult:"
+        },
+        {
+          "line": 66,
+          "text": "class CombatComputation:"
+        },
+        {
+          "line": 128,
+          "text": "    def emit(self, event: CombatEvent) -> None:"
+        }
+      ]
+    },
+    {
+      "repository": "trpg-state-machine",
+      "file": "pyproject.toml",
+      "sha256": "146079ba4c4cae95a401702cf04958469b372d4f914c390ce9a41539619c2a21",
+      "lines": [
+        {
+          "line": 13,
+          "text": "dnd5e-engine = { git = \"https://github.com/agentic-trpg/trpg-rules-engine.git\", rev = \"a011eba3ea2226e22d8081294ee38d3ec193b325\", subdirectory = \"packages/dnd5e-engine\" }"
+        },
+        {
+          "line": 14,
+          "text": "dnd5e-srd-data = { git = \"https://github.com/agentic-trpg/trpg-rules-engine.git\", rev = \"a011eba3ea2226e22d8081294ee38d3ec193b325\", subdirectory = \"packages/dnd5e-srd-data\" }"
+        }
+      ]
+    }
+  ]
+}

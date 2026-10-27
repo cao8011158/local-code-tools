@@ -1,0 +1,7 @@
+[project]
+name = "python-graph-evaluation"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["jedi==0.20.1", "pyan3==2.9.0", "psutil==7.2.2", "pytest==9.0.2"]
+[tool.uv]
+package = false
