@@ -1,3 +1,145 @@
+# 第三轮审阅修复：字段更新、字典来源、工厂阶段与快照顺序
+
+本批审阅基线：0b35a984ec8335f3cfefc9dc198f8d337b93bd05。
+最终程序/测试提交：999e0ca1b5187ce440a148873252bebf2864fd52。
+最终仓库 tests/：**173 passed、1 skipped、0 failed**；冻结实验 harness：**7 passed**。
+本批所列问题具备提交独立审阅的条件，尚未获得独立审阅通过结论。
+
+## 范围与工作区
+
+启动时分支为 refactor/cgr-pipeline-integration，HEAD 与审阅基线完全一致，没有其他新增提交
+需要整合；工作区仅有未跟踪 code_graph/，未发现额外适用 AGENTS.md。
+沿同分支工作，未创建新分支、reset、merge 或覆盖用户工作。code_graph/ 未读取、采用、
+删除、移动或暂存。未修改 CGR 或三个业务仓库，未构建真实业务 graph/向量/BM25，
+未启动 Neo4j、Docker、JVM、MCP 或其他常驻服务，付费 Embedding/LLM 请求为 0。
+全部索引生命周期验证只使用测试夹具的合成源码和临时数据；未访问、迁移、清理用户真实索引。
+
+AST、Jedi 0.20.1 与 LCT 的责任分工保持；根和实验环境均复用，没有安装或下载依赖。
+没有 CGR 运行依赖、通用执行器或 Flow 引擎。小图＋MCP 端到端工作留待下一批。
+随后的报告提交只更新本报告、契约边界说明、日志空白规则和精简证据；最终远端 SHA 见交付消息，
+也可用 git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md 定位。
+
+## 修复前复现
+
+先提交到工作区的测试覆盖五个字段/容器主要反例、sync/alias/async 工厂三条路径，以及
+同秒逆序 UUID、恢复后发布/失败候选、旧指针保留三组快照场景。
+在修改实现前实际得到 **11 failed、exit 1**，保存在 phase1-round3/before.txt、before.xml。
+测试使用 closed_world=False，检查位置、caller 执行/词法作用域、应有/禁止目标、
+unknown/complete/原因和最终 CALLS；工厂还检查包装/进入关系和无提前主体调用。
+没有按解析输出修改答案，没有 xfail 或跳过难例，没有 sleep 或放宽旧游标断言。
+
+## 四类问题的结果
+
+| 类别 | 本批实现与验收 | 状态 |
+| --- | --- | --- |
+| 实例字段更新 | Assign、带值 AnnAssign、无值注解及 Delete 分开处理。注解-only 不覆盖值；删除后可回退类方法。简单同 receiver 直线方法的引用/常量 store/delete 可作有限效果关联；不支持的调用/参数/分支或被字段覆盖的方法使字段未知。其他 allocation 对象不受污染 | 通过 |
+| 容器更新与来源 | 处理槽位 AnnAssign；有限字典展开读取展开时的源槽状态，按从左到右覆盖。后续源槽替换不反向改变副本；未知展开保留未知，后面的确定键可覆盖该键的不确定来源。无法覆盖的写入/逃逸不产生“缺失键”证明 | 通过 |
+| contextmanager 工厂调用 | 工厂 Atom 纳入统一 callable 分类，acquire() 的 CALLS 指向原声明并标记创建阶段/不执行主体。WRAPS 记录标准库包装关系，CONTEXT_ENTERS 单独表示进入时恢复生成器；支持 async、装饰器别名及跨文件导入工厂别名 | 通过 |
+| 快照保留顺序 | current.json 原子携带有界、去重的激活 history；build/recover 共用已有 update.lock。prune 按该链保留当前及策略要求的上一激活版本，不按随机版本名排序。恢复当前为 no-op；失败候选/完成 manifest 不算成功激活证据 | 通过 |
+
+字段方法规则只检查有限的 AST 字段效果，不执行方法或建立通用跨过程状态。
+构造器中的同类简单方法效果也覆盖；方法被实例字段覆盖时不假装执行原类方法。
+条件/动态修改保持部分已知或未知。原实例隔离、普通字段、上轮六反例及原两项 gap 均在
+最终完整测试中通过。本批新增正式测试共 38 项，没有修改任何既有 oracle 或冻结 fixture。
+
+## complete 与冲突裁决
+
+捕获范围内字段/槽位的完整性和排除候选都要求当前访问的 write_source_coverage，
+记录源码行、事件种类和相关来源。继承的 literal-slot-state 或字段规则标签单独不足，
+即使 Jedi 恰好给出同一候选也不能省略覆盖检查。
+原始 Jedi 候选、LCT 轨迹、选中/排除/未裁决候选和具体规则仍分别保留；
+缺覆盖时不简单合并双方，也不让 LCT 旧值排除 Jedi 正确信号。
+两个注入控制分别证明“标签但无覆盖＋Jedi 冲突”和“标签但无覆盖＋Jedi 一致”均不完整。
+
+简单确定场景仍完整，已知无有效目标须有缺失槽/越界/未绑定等证明；没有识别到目标、
+内部 Atom 未被收集、只有一个候选或没有异常都不是证明。
+
+## 工厂与执行阶段的最小契约调整
+
+图输出 schema 从 2 到 3，仍使用一份 AST 声明目录，不另造检索解析器或业务源码 ID。
+
+- acquire()：CALLS、target_role=decorated-factory、
+  invocation_phase=context-manager-create、executes_body=false。
+- WRAPS：标准库 contextlib boundary → 捕获原函数节点，保留 wrapper_origin。
+- CONTEXT_ENTERS：with/async with 的执行 owner → 原函数节点，
+  invocation_phase=generator-resume。生成器 body 中 C() 的词法/执行归属仍是 acquire。
+- 普通 CALLS 的 executes_body=null，不新增“类声明主体在构造时执行”的错误保证。
+- 查询核心只增加新关系的显式类型过滤，默认关系集合保持原样；没有运行 MCP E2E。
+
+复杂 generator 协议、任意装饰器等仍有既有 unknown 边界，不能从创建调用完整推出进入/
+yield 结果或运行时无异常。详见更新的 docs/PYTHON_PIPELINE.md。
+
+## 发布顺序与旧格式策略
+
+version 名仍为秒时间＋UUID，仅用作唯一身份。唯一发布/激活依据是原子 current.json：
+version、previous、history_schema=1、最近不同激活的有界 history。默认至少保留 2 个。
+recover 先完整校验，再把目标移到链首，旧 current 成为 previous；恢复后再 build 保留
+恢复得到的 current。恢复当前不改链，不丢 previous。
+
+未完成候选可清理；完成但未引用的候选/过期目录在历史充分时清理。
+build-state 的时间或 failed 标记不证明年龄：标记可能在指针已发布后写入，
+因此指针引用的有效版本始终保护。没有按候选名或 UUID 排序补足发布序列。
+旧指针只有 version/previous 时沿用这两个有依据的顺序；若不足更大的保留数，
+保守多保留其他完成目录，直到新链足够，不猜旧顺序。提高保留数不恢复已删除版本。
+所有删除都限制在配置的 versions 直接目录，拒绝符号链接/越界目标；本批从未对真实数据运行。
+
+同秒测试使 f/e/d/0 等 UUID 字典序与发布顺序相反，断言确切保留集合。
+还覆盖旧游标到期、恢复后发布、失败候选清理、恢复当前、旧格式历史不足及发布后遗留
+失败标记。既有 test_mutations_cursor_failure_recovery 原断言在最终全套中通过。
+精简证据仅保存本批临时目录的 pointer/版本名，不上传 SQLite/索引内容。
+
+## 验证时序、结果与限制
+
+| 实际执行范围 | 结果 | exit |
+| --- | --- | --- |
+| 实现修改前新回归 | 11 failed | 1 |
+| 稳定阶段本批定向测试 | 35 passed | 0 |
+| 随后字段控制范围 | 12 passed | 0 |
+| 覆盖标签两个负控制 | 2 passed | 0 |
+| 第一次完整 tests/ | 172 passed、1 skipped | 0 |
+| 最终完整 tests/ | 173 passed、1 skipped | 0 |
+| 带 Git 元数据的冻结 harness | 7 passed | 0 |
+| 冻结合成导出 | 39/39 标注、44/44 节点，未触限 | 0 |
+| Ruff check / format --check / diff --check | 通过 | 0 |
+
+第一次完整运行后增加了“Jedi 一致时也不能仅凭标签宣布完整”的门槛及一个负控制，
+先复测两个覆盖控制，再运行最终完整 tests/。最终全套后程序没有修改，只给测试 import
+组补了一处空行；随后 lint/format 通过，harness 串行运行。两次完整结果均保留，未掩盖时序。
+修复过程中发现并修复了一个条件字段候选丢失的定向回归；最终既有回归失败 0，
+本批强制验收剩余失败 0。跳过仍为可选真实缓存兼容测试，缺依赖跳过 0。
+冻结答案/禁止目标未改，合成 TP/FP/FN 仍为 34/0/0，虚假确定 0。
+
+这些是实际目标、禁止目标、作用域、阶段、关系和保留集合断言，不把框架通过当作
+所有 Python 语义健全性证明。复杂方法效果、动态属性/描述符、任意装饰器、复杂复制/
+别名/变参和反射仍有明确未知边界；旧格式缺失的历史只能保守保留。
+未验证真实业务 graph、真实旧索引迁移、远程 MCP 或“小图＋MCP”闭环，不外推业务仓库准确率。
+
+## 独立复现
+
+在 LCT 根目录串行执行，输出路径选择尚未使用的名字。复用 Python 3.12 和已有锁定环境。
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_review_round3.py --basetemp=.tmp/reproduce-round3
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/reproduce-round3-all
+experiments/python_graph/.venv/Scripts/python.exe -m pytest -q experiments/python_graph/tests --basetemp=.tmp/reproduce-round3-harness
+.venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/reproduce-round3-frozen.json
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+git diff --check 0b35a984ec8335f3cfefc9dc198f8d337b93bd05..HEAD
+~~~
+
+旧选型实验运行前已确认本仓库 Git 元数据有效；实验自己建立的 cross-version 合成仓库也有
+真实 Git 元数据，所有工具运行完成，未将缺环境算通过。
+证据位于 phase1-round3/：原始 TXT/JUnit、简明 evidence.json（含源码指纹、解析裁决、
+临时 pointer 状态及冻结摘要）、暂存审计。没有数据库、向量、索引、环境、密钥或大型临时产物。
+只正常 push 当前分支，不 merge。完成后停止，等待独立审阅，通过后再进入下一批。
+
+---
+
+# 历史记录：上一轮 0b35a98 审阅修复批次
+
+下文保留上一批报告，135 passed 等数字仅代表当时状态，不代表本批最终结果。
+
 # Python 解析第一阶段：独立审阅修复批次
 
 本批基线为 c1785038492a6955bbd140a31afc1a3867df3314。

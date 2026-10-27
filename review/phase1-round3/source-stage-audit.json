@@ -1,0 +1,53 @@
+{
+  "baseline": "0b35a984ec8335f3cfefc9dc198f8d337b93bd05",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5739,
+      "sha256": "69408f995afabbef22e47809434f325bef2e1bada834311561b26d279d15030a"
+    },
+    {
+      "path": "docs/PYTHON_PIPELINE.md",
+      "bytes": 10055,
+      "sha256": "eee56df5ba77dcc4e547ac4852f285a88e88ec91152bf75c76ce5e41c81242c0"
+    },
+    {
+      "path": "docs/USAGE.md",
+      "bytes": 16160,
+      "sha256": "eca25e950aee37aac64f6748ddccd0e1e32cd3c5cac564a8248b9fc5f5a9241b"
+    },
+    {
+      "path": "lct/graph.py",
+      "bytes": 17974,
+      "sha256": "356c0cd8340a39f4de5d1d78f4b2bff8fd35e1f37bde9b888c312176a1251491"
+    },
+    {
+      "path": "lct/python_analysis.py",
+      "bytes": 78512,
+      "sha256": "1ffa43ec6dded890dc72617cab948b07ec528534f3a1bded326317a26c05dae0"
+    },
+    {
+      "path": "lct/query.py",
+      "bytes": 21845,
+      "sha256": "f1798d64873b864c6693d6f2960107558a2a547825e651bb360817b07eb02404"
+    },
+    {
+      "path": "lct/storage.py",
+      "bytes": 18793,
+      "sha256": "1e4d38d765efabffe13763379cea90caef6be964e8af8a2135bce963cb095001"
+    },
+    {
+      "path": "tests/test_python_review_round3.py",
+      "bytes": 14944,
+      "sha256": "8b0b97ed0e8467534698e44021840ba6381c8f6ad13fa02c74e64f3bd39e231d"
+    },
+    {
+      "path": "tools/review_python_pipeline.py",
+      "bytes": 6811,
+      "sha256": "40e6e033a4c61e6e5c5c8f8eee9f94d53adeb7a5cf760bf45dc7d29bfc61efcc"
+    }
+  ],
+  "known_environment_secrets_absent": true,
+  "no_real_data_or_runtime_artifacts": true,
+  "code_graph_untracked": true
+}

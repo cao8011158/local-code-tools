@@ -10,3 +10,7 @@ review/phase1/*.xml whitespace=-blank-at-eol,cr-at-eol
 # Raw independent-review pytest transcripts.
 review/phase1-review/*.txt whitespace=-blank-at-eol,cr-at-eol
 review/phase1-review/*.xml whitespace=-blank-at-eol,cr-at-eol
+
+# Raw third-review pytest evidence.
+review/phase1-round3/*.txt whitespace=-blank-at-eol,cr-at-eol
+review/phase1-round3/*.xml whitespace=-blank-at-eol,cr-at-eol

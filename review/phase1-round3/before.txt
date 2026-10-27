@@ -1,0 +1,366 @@
+FFFFFFFFFFF                                                              [100%]
+================================== FAILURES ===================================
+_____________________ test_review_calls[annotated_field] ______________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_review_calls_annotated_fi0')
+case = ('annotated_field', 'def target(): pass\nclass C:\n def __init__(self): self.run: object=target\n def run(self): pass\ndef caller(): C().run()\n', 'C().run', {'target'}, {'C.run'})
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_calls(tmp_path,case):
+        _,source,expression,targets,forbidden=case
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,expression,targets,forbidden)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 2, ...})
+expression = 'C().run', owner = 'caller', targets = {'target'}, unknown = False
+complete = True, forbidden = {'C.run'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert {'C.run'} == {'target'}
+E         
+E         Extra items in the left set:
+E         'C.run'
+E         Extra items in the right set:
+E         'target'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+_______________________ test_review_calls[method_write] _______________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_review_calls_method_write0')
+case = ('method_write', 'def a(): pass\ndef b(): pass\nclass C:\n def __init__(self): self.run=a\n def change(self): self.run=b\ndef caller():\n obj=C()\n obj.change()\n obj.run()\n', 'obj.run', {'b'}, {'a'})
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_calls(tmp_path,case):
+        _,source,expression,targets,forbidden=case
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,expression,targets,forbidden)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'b'}, unknown = False
+complete = True, forbidden = {'a'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert {'a'} == {'b'}
+E         
+E         Extra items in the left set:
+E         'a'
+E         Extra items in the right set:
+E         'b'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+_______________________ test_review_calls[field_delete] _______________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_review_calls_field_delete0')
+case = ('field_delete', 'def a(): pass\nclass C:\n def __init__(self): self.run=a\n def run(self): pass\ndef caller():\n obj=C()\n del obj.run\n obj.run()\n', 'obj.run', {'C.run'}, {'a'})
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_calls(tmp_path,case):
+        _,source,expression,targets,forbidden=case
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,expression,targets,forbidden)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 2, ...})
+expression = 'obj.run', owner = 'caller', targets = {'C.run'}, unknown = False
+complete = True, forbidden = {'a'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert {'a'} == {'C.run'}
+E         
+E         Extra items in the left set:
+E         'a'
+E         Extra items in the right set:
+E         'C.run'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+______________________ test_review_calls[annotated_slot] ______________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_review_calls_annotated_sl0')
+case = ('annotated_slot', 'def a(): pass\ndef b(): pass\ndef caller():\n table={"go":a}\n table["go"]: object=b\n table["go"]()\n', "table['go']", {'b'}, {'a'})
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_calls(tmp_path,case):
+        _,source,expression,targets,forbidden=case
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,expression,targets,forbidden)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = "table['go']", owner = 'caller', targets = {'b'}, unknown = False
+complete = True, forbidden = {'a'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert {'a'} == {'b'}
+E         
+E         Extra items in the left set:
+E         'a'
+E         Extra items in the right set:
+E         'b'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+_______________________ test_review_calls[dict_unpack] ________________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_review_calls_dict_unpack_0')
+case = ('dict_unpack', 'def a(): pass\ndef caller():\n original={"go":a}\n copied={**original}\n copied["go"]()\n', "copied['go']", {'a'}, set())
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_calls(tmp_path,case):
+        _,source,expression,targets,forbidden=case
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,expression,targets,forbidden)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = "copied['go']", owner = 'caller', targets = {'a'}, unknown = False
+complete = True, forbidden = set()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'a'}
+E         
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+_____________ test_context_factory_create_and_enter[False-False] ______________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_context_factory_create_an0')
+asynchronous = False, alias = False
+
+    @pytest.mark.parametrize("asynchronous,alias",[(False,False),(False,True),(True,True)])
+    def test_context_factory_create_and_enter(tmp_path,asynchronous,alias):
+        deco="asynccontextmanager" if asynchronous else "contextmanager"
+        binding="cm" if alias else deco
+        source=(f"from contextlib import {deco}"+(" as cm" if alias else "")+
+                "\nclass C:\n def work(self): pass\n@"+binding+"\n"+
+                ("async " if asynchronous else "")+"def acquire():\n yield C()\n"+
+                ("async " if asynchronous else "")+"def caller():\n "+
+                ("async " if asynchronous else "")+"with acquire() as obj: obj.work()\n")
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,"acquire",{"acquire"})
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+______________ test_context_factory_create_and_enter[False-True] ______________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_context_factory_create_an1')
+asynchronous = False, alias = True
+
+    @pytest.mark.parametrize("asynchronous,alias",[(False,False),(False,True),(True,True)])
+    def test_context_factory_create_and_enter(tmp_path,asynchronous,alias):
+        deco="asynccontextmanager" if asynchronous else "contextmanager"
+        binding="cm" if alias else deco
+        source=(f"from contextlib import {deco}"+(" as cm" if alias else "")+
+                "\nclass C:\n def work(self): pass\n@"+binding+"\n"+
+                ("async " if asynchronous else "")+"def acquire():\n yield C()\n"+
+                ("async " if asynchronous else "")+"def caller():\n "+
+                ("async " if asynchronous else "")+"with acquire() as obj: obj.work()\n")
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,"acquire",{"acquire"})
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+______________ test_context_factory_create_and_enter[True-True] _______________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_context_factory_create_an2')
+asynchronous = True, alias = True
+
+    @pytest.mark.parametrize("asynchronous,alias",[(False,False),(False,True),(True,True)])
+    def test_context_factory_create_and_enter(tmp_path,asynchronous,alias):
+        deco="asynccontextmanager" if asynchronous else "contextmanager"
+        binding="cm" if alias else deco
+        source=(f"from contextlib import {deco}"+(" as cm" if alias else "")+
+                "\nclass C:\n def work(self): pass\n@"+binding+"\n"+
+                ("async " if asynchronous else "")+"def acquire():\n yield C()\n"+
+                ("async " if asynchronous else "")+"def caller():\n "+
+                ("async " if asynchronous else "")+"with acquire() as obj: obj.work()\n")
+        r=analyze(tmp_path,{"demo.py":source},closed=False)
+>       s=check(r,"acquire",{"acquire"})
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round3.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:56: in check
+    s=expect(result,expression,"caller",targets,forbidden=forbidden,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+__________________ test_same_second_order_and_cursor_expiry ___________________
+
+sandbox = ({'data': 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1-round3\\before\\test_same_second_order_and_cur0\...dowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_same_second_order_and_cur0/sample'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001FFDCE16210>
+
+    def test_same_second_order_and_cursor_expiry(sandbox,monkeypatch):
+        c,_=sandbox
+        fixed_versions(monkeypatch,["f","e","0"])
+        first=build(c,lexical_only=True)
+        query=Query(c)
+        cursor=query.search_code("weight",mode="bm25",candidates=10,limit=1)["next_cursor"]
+        second=build(c,lexical_only=True)
+        third=build(c,lexical_only=True)
+        assert current(c)==third["version"]
+        folders={p.name for p in (Path(c["data"])/"versions").iterdir() if p.is_dir()}
+>       assert folders=={second["version"],third["version"]}
+E       AssertionError: assert {'20261027T12...0-ffffffffff'} == {'20261027T12...0-eeeeeeeeee'}
+E         
+E         Extra items in the left set:
+E         '20261027T120000-ffffffffff'
+E         Use -v to get more diff
+
+tests\test_python_review_round3.py:125: AssertionError
+_______________ test_recover_then_publish_and_failed_candidate ________________
+
+sandbox = ({'data': 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1-round3\\before\\test_recover_then_publish_and_0\...dowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_recover_then_publish_and_0/sample'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001FFDCE15CD0>
+
+    def test_recover_then_publish_and_failed_candidate(sandbox,monkeypatch):
+        c,_=sandbox
+        fixed_versions(monkeypatch,["f","e","d","0"])
+        first=build(c,lexical_only=True)
+        second=build(c,lexical_only=True)
+        with pytest.raises(ToolError,match="Injected"):
+            build(c,lexical_only=True,fail_at="before_publish")
+        recover(c,first["version"])
+        third=build(c,lexical_only=True)
+        assert current(c)==third["version"]
+        assert load(Path(c["data"])/"current.json")["previous"]==first["version"]
+        folders={p.name for p in (Path(c["data"])/"versions").iterdir() if p.is_dir()}
+>       assert folders=={first["version"],third["version"]}
+E       AssertionError: assert {'20261027T12...0-ffffffffff'} == {'20261027T12...0-ffffffffff'}
+E         
+E         Extra items in the left set:
+E         '20261027T120000-eeeeeeeeee'
+E         Use -v to get more diff
+
+tests\test_python_review_round3.py:143: AssertionError
+_________________ test_legacy_pointer_uses_previous_not_uuid __________________
+
+sandbox = ({'data': 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1-round3\\before\\test_legacy_pointer_uses_previ0\...dowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round3/before/test_legacy_pointer_uses_previ0/sample'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001FFDCD49910>
+
+    def test_legacy_pointer_uses_previous_not_uuid(sandbox,monkeypatch):
+        c,_=sandbox
+        c["retained_versions"]=4
+        fixed_versions(monkeypatch,["f","e","0"])
+        versions=[build(c,lexical_only=True)["version"] for _ in range(3)]
+        atomic(Path(c["data"])/"current.json",dict(version=versions[2],previous=versions[1]))
+        c["retained_versions"]=2
+        prune(c)
+>       assert {p.name for p in (Path(c["data"])/"versions").iterdir() if p.is_dir()}==set(versions[1:])
+E       AssertionError: assert {'20261027T12...0-ffffffffff'} == {'20261027T12...0-eeeeeeeeee'}
+E         
+E         Extra items in the left set:
+E         '20261027T120000-ffffffffff'
+E         Use -v to get more diff
+
+tests\test_python_review_round3.py:156: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_python_review_round3.py::test_review_calls[annotated_field]
+FAILED tests/test_python_review_round3.py::test_review_calls[method_write] - ...
+FAILED tests/test_python_review_round3.py::test_review_calls[field_delete] - ...
+FAILED tests/test_python_review_round3.py::test_review_calls[annotated_slot]
+FAILED tests/test_python_review_round3.py::test_review_calls[dict_unpack] - A...
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[False-False]
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[False-True]
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[True-True]
+FAILED tests/test_python_review_round3.py::test_same_second_order_and_cursor_expiry
+FAILED tests/test_python_review_round3.py::test_recover_then_publish_and_failed_candidate
+FAILED tests/test_python_review_round3.py::test_legacy_pointer_uses_previous_not_uuid
+11 failed in 12.10s

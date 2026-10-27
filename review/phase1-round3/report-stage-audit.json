@@ -1,0 +1,104 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 770,
+      "sha256": "f7c9ff630b1816affb3aa4438de19bef06ff09c6e3319b885c209dc6ea6ab516"
+    },
+    {
+      "path": "docs/PYTHON_PIPELINE.md",
+      "bytes": 10188,
+      "sha256": "11bdd68b6e82a0b82ed48c664196717f90d72588bb92d837d337e1d939a1acab"
+    },
+    {
+      "path": "review/PYTHON_PIPELINE_PHASE1.md",
+      "bytes": 31761,
+      "sha256": "dabb2a8411c061b5597d6cdbaaa5b433af30509c4d6c434942baf1856a956ceb"
+    },
+    {
+      "path": "review/phase1-round3/before.txt",
+      "bytes": 20832,
+      "sha256": "9fa6c0475bd4d2647cfbe55b18aaac9d8786299469508198b788ef3792fc1dbb"
+    },
+    {
+      "path": "review/phase1-round3/before.xml",
+      "bytes": 22508,
+      "sha256": "629ce33b231b4b9048fc2fa48026c4bf5c271fc07a770602591d56303b21bc13"
+    },
+    {
+      "path": "review/phase1-round3/coverage-final.txt",
+      "bytes": 115,
+      "sha256": "e6a7262c785f61344438cd69927aafc30abab13425c5ecbc092de15f51d52e52"
+    },
+    {
+      "path": "review/phase1-round3/evidence.json",
+      "bytes": 16976,
+      "sha256": "269a1b4e081745e950eb1b70742bf05966f92547c81f63b709ec6dfddee9821a"
+    },
+    {
+      "path": "review/phase1-round3/final-all.txt",
+      "bytes": 276,
+      "sha256": "6729868feea7e517409883b1064f4ad8e256ec8034b9283174a5d2e5ac40f8d4"
+    },
+    {
+      "path": "review/phase1-round3/final-all.xml",
+      "bytes": 22141,
+      "sha256": "70795610793fc24e8ffd967975df337cd434d42fb6a86e91952d1a1246b117cc"
+    },
+    {
+      "path": "review/phase1-round3/focused.txt",
+      "bytes": 102,
+      "sha256": "9381febe7051a76252998dc103c528c43476663a8ba58ad6f95c5b6a4f5b8cf5"
+    },
+    {
+      "path": "review/phase1-round3/focused.xml",
+      "bytes": 5269,
+      "sha256": "26ae2581ff5205829d9675bb4560906862f15ee9f811cf357857ac46a79a3e61"
+    },
+    {
+      "path": "review/phase1-round3/harness.txt",
+      "bytes": 101,
+      "sha256": "1a6e524b4155629aac707190e02d7afed0029a61838c65d4110673aa78b43fb4"
+    },
+    {
+      "path": "review/phase1-round3/harness.xml",
+      "bytes": 1053,
+      "sha256": "23622eb39654877c28be2a835ac723921d7303fba166d7a061aa88cb511c3496"
+    },
+    {
+      "path": "review/phase1-round3/initial-all.txt",
+      "bytes": 276,
+      "sha256": "10ecc38d8ca9625b27b58e3c3045b1c42f35c35fe4077e7000d8014362fdb39b"
+    },
+    {
+      "path": "review/phase1-round3/initial-all.xml",
+      "bytes": 21994,
+      "sha256": "bf2120affdac9d95dff22abdca4607fcfb955ee7ed901f978b9270926867a879"
+    },
+    {
+      "path": "review/phase1-round3/last-fields.txt",
+      "bytes": 116,
+      "sha256": "6f160780070d4e29ee24a6cdbac0721fd0f0a1e451e2290c678e780ee255cc6b"
+    },
+    {
+      "path": "review/phase1-round3/ruff-check.txt",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": "review/phase1-round3/ruff-format.txt",
+      "bytes": 28,
+      "sha256": "d08230b1454d424dcb460fe8ce2fae71121ad589f91b38491dce79de9a9d4035"
+    },
+    {
+      "path": "review/phase1-round3/source-stage-audit.json",
+      "bytes": 1591,
+      "sha256": "a479b213748c5caf88b6af405b5e25a2ee3152b583ea84ebd62f7ea85243b40f"
+    }
+  ],
+  "staged_bytes": 156117,
+  "known_environment_secrets_absent": true,
+  "no_database_index_vector_cache_or_environment": true,
+  "code_graph_untracked": true,
+  "documentation_links_and_fences": true
+}
