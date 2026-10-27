@@ -382,6 +382,11 @@ def test_exact_mapping_without_full_name_unicode_and_ambiguity(tmp_path):
         value, raw = a.map_name(name)
         assert {g.nodes[v.target]["qualname"] for v in value.atoms} == {"工作"}
         assert raw["mapping"] == "exact-captured-definition"
+        name.module_path = None
+        value, raw = a.map_name(name)
+        assert not value.atoms and value.unknown
+        assert raw["mapping"] == "unlocatable-jedi-result"
+        name.module_path = path
         name.column = 5
         value, raw = a.map_name(name)
         assert not value.atoms and value.unknown

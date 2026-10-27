@@ -221,6 +221,9 @@ class Analyzer:
         path = Path(name.module_path).resolve() if name.module_path else None
         module = self.paths.get(path)
         if not module:
+            if not name.module_path and not name.full_name:
+                raw["mapping"] = "unlocatable-jedi-result"
+                return unknown("unlocatable-jedi-result"), raw
             raw["mapping"] = "external-or-excluded"
             kind = (
                 "boundary"
