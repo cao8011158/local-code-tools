@@ -174,6 +174,33 @@ class EffectCatalog:
             self.visit(node.value, scope, conditional, ordered, reachable)
             for target in node.targets if isinstance(node, ast.Assign) else [node.target]:
                 self.visit(target, scope, conditional, ordered, reachable)
+        elif isinstance(node, (ast.With, ast.AsyncWith)):
+            for item in node.items:
+                self.visit(
+                    item.context_expr,
+                    scope,
+                    conditional,
+                    ordered,
+                    reachable,
+                )
+                # Enter protocol runs before the as-target and suite.
+                self.add(
+                    scope, node, "region",
+                    conditional, False, reachable, phase,
+                )
+                self.visit(
+                    item.optional_vars,
+                    scope,
+                    True,
+                    False,
+                    reachable,
+                )
+            self.block(node.body, scope, True, False, reachable)
+            # Exit protocol may affect reads following the statement.
+            self.add(
+                scope, node, "region",
+                conditional, False, reachable, phase,
+            )
         elif isinstance(node, ast.Dict):
             for key, value in zip(node.keys, node.values):
                 self.visit(key, scope, conditional, ordered, reachable)
