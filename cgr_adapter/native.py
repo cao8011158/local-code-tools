@@ -46,11 +46,16 @@ def stop(home, state):
         or str(home) not in " ".join(process.cmdline())
     ):
         raise ValueError("Native PID identity mismatch; no process stopped")
-    children = process.children(recursive=True)
-    if any(
-        Path(p.exe()).name != "java.exe" or str(home) not in " ".join(p.cmdline()) for p in children
-    ):
-        raise ValueError("Unexpected native process child; refusing stop")
+    children = []
+    console = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/conhost.exe"
+    for child in process.children(recursive=True):
+        executable = Path(child.exe())
+        if executable == console:
+            # Owned JVM console hosts exit with their JVM; never terminate them by name.
+            continue
+        if executable.name != "java.exe" or str(home) not in " ".join(child.cmdline()):
+            raise ValueError("Unexpected native process child; refusing stop")
+        children.append(child)
     for child in children:
         child.terminate()
     process.terminate()

@@ -18,18 +18,19 @@
   "lct": {
     "baseline": "9d5a54f9f8ecdd6f5ce6349a916c03522a1453a7",
     "branch": "feat/cgr-neo4j-integration",
-    "content_fingerprint": "76003f38d4d8375852a58528e90b6df6fdd1ee4d16d9f8de673f24ea47702601",
+    "content_fingerprint": "00047621c8fb061386c639c2d282664af3fe86106578993830f419b26b3d7f74",
     "content_files": {
       "cgr_adapter/__init__.py": "75d3cd4b2d7ba125102f49a68a3053bfcedaa82e1bc976eebfb14c936a7c5445",
       "cgr_adapter/cli.py": "06bd28ed02cb12bb3a92d9e1b4d9381b8a2ea7c9eac275bbf8411bb4db289281",
       "cgr_adapter/coordinator.py": "7c6a6bdd26ade648f612d0608e183d00bd94c57f5981bebe37035725d3b40a90",
-      "cgr_adapter/native.py": "5747bc03a69fbc4ea4dea700d06303a27b88bd3272d676d712cc5a9d20a3ad31",
+      "cgr_adapter/native.py": "30b59c523564b0e9a77e6d54b5cb6bdc82da2d609f39756454dc0f23b67f4397",
       "cgr_adapter/retrieval.py": "905c66b17a1c1b546c51b6d9bad30e2721e502191b766e9ee1df8317480bccc3",
       "cgr_adapter/server.py": "86a7d181cdd3db25a007abb088e5252def9fdab8c228e17e137d03494de08f30",
       "cgr_adapter/services.py": "4c608743d4e16de4f006636ff78cc485602aad7e3406e84aefa10216a459f794",
       "integration_env/pyproject.toml": "c54fff9fae636880692819282b52da17b16bf08eebba2f5207dfefe372fd0f06",
       "integration_env/uv.lock": "e014b6da7e3937c60b42851522d98a1e4566c165b3d9b74d2d4d71a626ba0af3",
       "tests/cgr_integration/fixtures/sample.py": "43c12cb6f8cc0c0784fe5a055e9b155237b04524f36e05b5272d34f8a4d728e5",
+      "tests/cgr_integration/test_native_lifecycle.py": "772550d1af8e8d9933456ddf78a03e25803d2c7efb033bb4c4cc8e16886ac083",
       "tests/cgr_integration/test_offline.py": "fb80cd03e9004c60f7d5293aa40952e752b422ac99ce6cbbe05d81585cd0d0b9",
       "tests/cgr_integration/test_publication.py": "d7c6b7113bc3b6457b62da759ff75de426de1673d7cd3d2d97cd9ee6df6cd209",
       "tools/prepare_cgr_fixture.py": "14110508e89b60b40e03b121a896b39a570497b5f9513be598c84c52f2279bbf"
@@ -342,7 +343,8 @@
         "name": "tests.cgr_integration.test_publication::test_unowned_data_and_preserved_legacy_path_are_rejected",
         "status": "passed"
       }
-    ]
+    ],
+    "tested_content_fingerprint": "76003f38d4d8375852a58528e90b6df6fdd1ee4d16d9f8de673f24ea47702601"
   },
   "protection": {
     "existing_data_files_checked": 53,
@@ -379,5 +381,27 @@
   "paid_embedding_requests": 0,
   "paid_llm_requests": 0,
   "real_business_index_builds": 0,
-  "synthetic_only": true
+  "synthetic_only": true,
+  "native_stop_followup": {
+    "tested_content_fingerprint": "00047621c8fb061386c639c2d282664af3fe86106578993830f419b26b3d7f74",
+    "focused_tests": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "actual_owned_windows_jvm_stop": "passed",
+    "scope": "native lifecycle helper only; retrieval/parser/publication code unchanged",
+    "reason": "Windows-owned conhost descendants were safely refused; now ignored rather than terminated; unrelated children still refuse before termination"
+  },
+  "download_verification": {
+    "commit": "ca2ce85b953fe15b5e594cee11d67140c5639fa5",
+    "fresh_remote_checkout": true,
+    "existing_pinned_environment_reused": true,
+    "offline_tests": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "note": "No extra dependency installation or full suite replay; lifecycle followup recorded separately"
+  }
 }

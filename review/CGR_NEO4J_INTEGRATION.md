@@ -12,8 +12,10 @@
 | local-code-tools | `9d5a54f9f8ecdd6f5ce6349a916c03522a1453a7` | `feat/cgr-neo4j-integration` | 在该基线增加独立 profile；包含此前上传实现，未退回旧审阅提交 |
 
 LCT 的运行代码、测试和独立环境锁文件内容指纹：
-`76003f38d4d8375852a58528e90b6df6fdd1ee4d16d9f8de673f24ea47702601`。
-逐文件 SHA-256 见 [紧凑证据](CGR_NEO4J_INTEGRATION.json)。此指纹不包含报告本身。
+`00047621c8fb061386c639c2d282664af3fe86106578993830f419b26b3d7f74`。
+逐文件 SHA-256 见 [紧凑证据](CGR_NEO4J_INTEGRATION.json)。此指纹不包含报告本身。15 项完整套件对应停止脚本修复前指纹 `76003f38d4d8375852a58528e90b6df6fdd1ee4d16d9f8de673f24ea47702601`；
+随后只修改 native 停止 helper，增加 2 项定向回归，并实际停止专用 JVM，未重跑完整套件。
+检索、解析、发布代码未变；两批证据明确分开记录。
 根 `lct/`、CLI、注册脚本及根依赖文件未改，原程序指纹仍为
 `42ae0f3336e274d94aa6dbdcb59652f1dfbc5f97eab11602e6b45a17697a8c03`。
 此前未提交的 `code_graph/` 保留在原位，未纳入本轮提交。
@@ -110,6 +112,8 @@ HNSW 配置、输入哈希、各仓库提交与具体文件哈希。源码在图
 | 官方 MCP 1.6.1 HTTP | 实际 get-schema / read-cypher 成功；无 write-cypher，read-cypher 写入尝试被拒绝 |
 | LCT MCP HTTP | 实际 status / RRF / get_nodes / update / expected_version 错误通过；未认证 HTTP 401 |
 | 提交校验 | CGR 实际 pre-commit/commit-msg 全部通过；无 --no-verify；LCT ruff/格式与 staged audit |
+| 停止 helper 收尾修复 | 2 passed；实际专用 JVM 停止成功；未按名称结束其他 Java/控制台进程 |
+| 远端全新下载副本 | 4 项离线复现通过，复用既有固定依赖环境，未重复安装 |
 | 全上游套件、CI、真实检索质量、ChatGPT 远程接入 | **NOT RUN**，不以本地小样例替代 |
 
 逐测试状态、版本和文件哈希见 [紧凑 JSON](CGR_NEO4J_INTEGRATION.json)，
@@ -181,3 +185,7 @@ CGR ty 验证安装了其锁定版本的检查依赖；pydantic-ai 的临时版�
 
 未 merge、未修改业务仓库、未调用付费接口、未创建 Release、未上传真实数据库或密钥。
 完成代码与报告推送后停止，等待独立审阅，不自动进入正式建图。
+
+停止脚本最初安全拒绝 Windows conhost 子进程。收尾修复只忽略归属树中的系统 conhost、
+让其随 JVM 退出，不直接结束它；对其他未知子进程仍在任何终止前拒绝。新增定向回归及实际
+停止验证通过。此次后续修复单独提交，保留首次上传历史。
