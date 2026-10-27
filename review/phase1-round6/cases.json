@@ -1,0 +1,3964 @@
+[
+  {
+    "case": "closure",
+    "closed_world": false,
+    "line": 9,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": false,
+    "unknown_origin": true,
+    "unresolved_reasons": [
+      "captured-receiver-effects-not-modeled"
+    ],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "4ee00f8e9dc8f460f7c58c05a78d5458b401c0e6ee240bbfc505a8691313326e",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "4545f06f74a791ffae539b878d554f82cecbffda93cec8a9f3d699f44664be08",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:7:write",
+          "fixture:demo.py:function:caller#1.1:8:binding",
+          "fixture:demo.py:function:caller#1.1:13:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "9faea01039523bcfecb0f0ae0555642dbc45590e30cabfcb37e60e9de6278f72"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.mutate#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.mutate#1.1.1",
+                      "version_id": "3f7e529f29a8ab6c9f9b4d77a0812b3d923155318180727c31e46a1fbd25bf2c",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 8
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "b",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 7
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:b#1.1",
+                      "version_id": "e8dd11c7cbc73665eb795d1f06736ff00ca2fa85533d320f915525e1cb39c28b",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.mutate#1.1.1",
+                  "version_id": "3f7e529f29a8ab6c9f9b4d77a0812b3d923155318180727c31e46a1fbd25bf2c"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:13:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "captured-receiver-effects-not-modeled"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "9faea01039523bcfecb0f0ae0555642dbc45590e30cabfcb37e60e9de6278f72"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:7:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:binding",
+            "kind": "binding",
+            "event_kind": "binding",
+            "syntax": "FunctionDef",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "binding-does-not-replace-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:13:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "UNKNOWN_EFFECT",
+            "reason": "captured-receiver-effects-not-modeled",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.mutate#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.mutate#1.1.1",
+                      "version_id": "3f7e529f29a8ab6c9f9b4d77a0812b3d923155318180727c31e46a1fbd25bf2c",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 8
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "b",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 7
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:b#1.1",
+                      "version_id": "e8dd11c7cbc73665eb795d1f06736ff00ca2fa85533d320f915525e1cb39c28b",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.mutate#1.1.1",
+                  "version_id": "3f7e529f29a8ab6c9f9b4d77a0812b3d923155318180727c31e46a1fbd25bf2c"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": false
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": false,
+        "unknown_origin": true
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "mutate",
+        "targets": [
+          "caller.mutate"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      }
+    ]
+  },
+  {
+    "case": "nested_argument",
+    "closed_world": false,
+    "line": 8,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": false,
+    "unknown_origin": true,
+    "unresolved_reasons": [
+      "instance-argument-escape"
+    ],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "cb8e47f8835dad19541ffc29dd0c8d84b150a76d49ecb2667bfba8aea9f659bd",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "11220c6e0726f2a137714a992feb1fe08e07dc86375945ccf5b6e5f9aef35b4a",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:8:write",
+          "fixture:demo.py:function:caller#1.1:16:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "89d6f38340f98f1134d7fbe3f95eed701089d78ebac4ff22fea72488f00da980"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:16:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "instance-argument-escape"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "89d6f38340f98f1134d7fbe3f95eed701089d78ebac4ff22fea72488f00da980"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:16:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "instance-argument-escape"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "89d6f38340f98f1134d7fbe3f95eed701089d78ebac4ff22fea72488f00da980"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:16:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "instance-argument-escape"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "89d6f38340f98f1134d7fbe3f95eed701089d78ebac4ff22fea72488f00da980"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:16:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "UNKNOWN_EFFECT",
+            "reason": "instance-argument-escape",
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": []
+            }
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": false
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": false,
+        "unknown_origin": true
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "consume",
+        "targets": [],
+        "complete": false,
+        "unknown_origin": true
+      }
+    ]
+  },
+  {
+    "case": "uncalled",
+    "closed_world": false,
+    "line": 8,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": true,
+    "unknown_origin": false,
+    "unresolved_reasons": [],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "7495877d1b6131b1207bd5c6d0dea63193610e69046ba0d88a2354c25a426fdb",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "35b3b99788b5dbd263a2a73f449f9749490b54dc8dd2f671ac9d91623a4c10d0",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:7:write",
+          "fixture:demo.py:function:caller#1.1:8:binding"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "2f8e7e82cb7105696143070b0e43cc91a7c745188c5f41016a38b5c3a0555af2"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "2f8e7e82cb7105696143070b0e43cc91a7c745188c5f41016a38b5c3a0555af2"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:7:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:binding",
+            "kind": "binding",
+            "event_kind": "binding",
+            "syntax": "FunctionDef",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "binding-does-not-replace-receiver"
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": true
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": true,
+        "unknown_origin": false
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      }
+    ]
+  },
+  {
+    "case": "verified_noop",
+    "closed_world": false,
+    "line": 9,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": true,
+    "unknown_origin": false,
+    "unresolved_reasons": [],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "dce8c7e18cfe15275fb82e05315eb765be2ff48bb72cd26f37262054be1189ab",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "29b3ef2d507a8a9916dc4ec567459677cffaafb4dec3b1d52200e85d09d22311",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:8:write",
+          "fixture:demo.py:function:caller#1.1:14:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "1005cdfc05e0495897da1a22aba42387ec00257c662873ba17b5ed6aa69be7e7"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:7:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "kind": "method-effect-applicability",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "receiver": "fixture:demo.py:class:C#1.1",
+            "allocation": "fixture:demo.py:function:caller#1.1:7:5",
+            "targets": [
+              "fixture:demo.py:function:noop#1.1"
+            ],
+            "decision": "finite-body-summary",
+            "unknown_reasons": [],
+            "invocation_phase": "ordinary-call",
+            "body_receiver_allocation": "",
+            "summary_coverage": {
+              "rule": "finite-method-summary",
+              "required_events": [],
+              "events": [],
+              "checks": [],
+              "sources": [
+                {
+                  "source": "verified-call-target-and-phase",
+                  "supported": true
+                }
+              ],
+              "gaps": [],
+              "complete": true
+            },
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:noop#1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:7:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:noop#1.1",
+                  "version_id": "1418653c94db46787b60ac1b06ba54b332a04ca7f519545ac1fc2d980c462f5f"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ],
+              "unused_inputs": {
+                "used_parameters": [],
+                "dependencies": [
+                  {
+                    "state": "NOT_REACHABLE",
+                    "evidence": [
+                      {
+                        "reason": "definition-dependencies",
+                        "function": "fixture:demo.py:function:noop#1.1",
+                        "version_id": "1418653c94db46787b60ac1b06ba54b332a04ca7f519545ac1fc2d980c462f5f",
+                        "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                        "call_line": 8
+                      },
+                      {
+                        "reason": "finite-function-dependencies"
+                      }
+                    ],
+                    "gaps": []
+                  }
+                ],
+                "ignored_inputs": []
+              }
+            },
+            "no_effect_basis": "unused-input-summary"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "1005cdfc05e0495897da1a22aba42387ec00257c662873ba17b5ed6aa69be7e7"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:7:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:14:call",
+            "kind": "method-effect-applicability",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "verified-body-without-field-effect",
+            "receiver": "fixture:demo.py:class:C#1.1",
+            "allocation": "fixture:demo.py:function:caller#1.1:7:5",
+            "targets": [
+              "fixture:demo.py:function:noop#1.1"
+            ],
+            "decision": "finite-body-summary",
+            "unknown_reasons": [],
+            "invocation_phase": "ordinary-call",
+            "body_receiver_allocation": "",
+            "summary_coverage": {
+              "rule": "finite-method-summary",
+              "required_events": [],
+              "events": [],
+              "checks": [],
+              "sources": [
+                {
+                  "source": "verified-call-target-and-phase",
+                  "supported": true
+                }
+              ],
+              "gaps": [],
+              "complete": true
+            },
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:noop#1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:7:5"
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:noop#1.1",
+                  "version_id": "1418653c94db46787b60ac1b06ba54b332a04ca7f519545ac1fc2d980c462f5f"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ],
+              "unused_inputs": {
+                "used_parameters": [],
+                "dependencies": [
+                  {
+                    "state": "NOT_REACHABLE",
+                    "evidence": [
+                      {
+                        "reason": "definition-dependencies",
+                        "function": "fixture:demo.py:function:noop#1.1",
+                        "version_id": "1418653c94db46787b60ac1b06ba54b332a04ca7f519545ac1fc2d980c462f5f",
+                        "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                        "call_line": 8
+                      },
+                      {
+                        "reason": "finite-function-dependencies"
+                      }
+                    ],
+                    "gaps": []
+                  }
+                ],
+                "ignored_inputs": []
+              }
+            },
+            "no_effect_basis": "unused-input-summary"
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": true
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": true,
+        "unknown_origin": false
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "noop",
+        "targets": [
+          "noop"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      }
+    ]
+  },
+  {
+    "case": "private_input",
+    "closed_world": false,
+    "line": 8,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": true,
+    "unknown_origin": false,
+    "unresolved_reasons": [],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "6731d18e07beeaafb7b35847244971c50fb6b0c09ecf7908050db1a514fee6dd",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "c696efe15ecd4ab4b973354951a1d502484dbdf5e52fc972d75fc427a0e2e028",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:8:write",
+          "fixture:demo.py:function:caller#1.1:13:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "e46fd8ab3279c34d31936389ee0019e933b462f087ba72351227840a3f442f40"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "PREEXISTING_INPUT",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "NOT_REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "literal-value",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [],
+              "private_input": {
+                "parameter": "consume",
+                "allocation": "fixture:demo.py:function:caller#1.1:6:5",
+                "creation_order": 3,
+                "event_order": 12,
+                "constructor_targets": [
+                  "fixture:demo.py:function:C.__init__#1.1.1"
+                ],
+                "private_constructor": true,
+                "checked_events": [
+                  "fixture:demo.py:function:caller#1.1:4:call",
+                  "fixture:demo.py:function:caller#1.1:8:write"
+                ],
+                "escape_check_complete": true,
+                "binding_capture_check_complete": true,
+                "checked_capture_names": [],
+                "creation_binding_names": [
+                  "obj"
+                ]
+              }
+            },
+            "no_effect_basis": "private-input"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "e46fd8ab3279c34d31936389ee0019e933b462f087ba72351227840a3f442f40"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "PREEXISTING_INPUT",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "NOT_REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "literal-value",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [],
+              "private_input": {
+                "parameter": "consume",
+                "allocation": "fixture:demo.py:function:caller#1.1:6:5",
+                "creation_order": 3,
+                "event_order": 12,
+                "constructor_targets": [
+                  "fixture:demo.py:function:C.__init__#1.1.1"
+                ],
+                "private_constructor": true,
+                "checked_events": [
+                  "fixture:demo.py:function:caller#1.1:4:call",
+                  "fixture:demo.py:function:caller#1.1:8:write"
+                ],
+                "escape_check_complete": true,
+                "binding_capture_check_complete": true,
+                "checked_capture_names": [],
+                "creation_binding_names": [
+                  "obj"
+                ]
+              }
+            },
+            "no_effect_basis": "private-input"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "e46fd8ab3279c34d31936389ee0019e933b462f087ba72351227840a3f442f40"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "PREEXISTING_INPUT",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "NOT_REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "literal-value",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [],
+              "private_input": {
+                "parameter": "consume",
+                "allocation": "fixture:demo.py:function:caller#1.1:6:5",
+                "creation_order": 3,
+                "event_order": 12,
+                "constructor_targets": [
+                  "fixture:demo.py:function:C.__init__#1.1.1"
+                ],
+                "private_constructor": true,
+                "checked_events": [
+                  "fixture:demo.py:function:caller#1.1:4:call",
+                  "fixture:demo.py:function:caller#1.1:8:write"
+                ],
+                "escape_check_complete": true,
+                "binding_capture_check_complete": true,
+                "checked_capture_names": [],
+                "creation_binding_names": [
+                  "obj"
+                ]
+              }
+            },
+            "no_effect_basis": "private-input"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "e46fd8ab3279c34d31936389ee0019e933b462f087ba72351227840a3f442f40"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:13:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "preexisting-input-cannot-access-private-allocation",
+            "call_access": {
+              "target_state": "PREEXISTING_INPUT",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "NOT_REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "literal-value",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7
+                    }
+                  ],
+                  "gaps": []
+                }
+              ],
+              "definitions": [],
+              "private_input": {
+                "parameter": "consume",
+                "allocation": "fixture:demo.py:function:caller#1.1:6:5",
+                "creation_order": 3,
+                "event_order": 12,
+                "constructor_targets": [
+                  "fixture:demo.py:function:C.__init__#1.1.1"
+                ],
+                "private_constructor": true,
+                "checked_events": [
+                  "fixture:demo.py:function:caller#1.1:4:call",
+                  "fixture:demo.py:function:caller#1.1:8:write"
+                ],
+                "escape_check_complete": true,
+                "binding_capture_check_complete": true,
+                "checked_capture_names": [],
+                "creation_binding_names": [
+                  "obj"
+                ]
+              }
+            },
+            "no_effect_basis": "private-input"
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": true
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": true,
+        "unknown_origin": false
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "consume",
+        "targets": [],
+        "complete": false,
+        "unknown_origin": true
+      }
+    ]
+  },
+  {
+    "case": "escaped_input",
+    "closed_world": false,
+    "line": 9,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": false,
+    "unknown_origin": true,
+    "unresolved_reasons": [
+      "unresolved-call-target-access"
+    ],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "b7e378b2356bce8af00de27ee101dc258430538508618357dd8c48f0d32a18c8",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "b57c25e8be2ce0b5365448aff3ab1a9ff584c6fd6d4c9024bc066ed78ec0a323",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:8:write",
+          "fixture:demo.py:function:caller#1.1:17:write",
+          "fixture:demo.py:function:caller#1.1:21:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "dc9ff59362aec0c81697ac317b03de9e59c1af1a1e37615d1b243c914c118563"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:21:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-target-access"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "dc9ff59362aec0c81697ac317b03de9e59c1af1a1e37615d1b243c914c118563"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:21:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-target-access"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "dc9ff59362aec0c81697ac317b03de9e59c1af1a1e37615d1b243c914c118563"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:21:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-target-access"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "dc9ff59362aec0c81697ac317b03de9e59c1af1a1e37615d1b243c914c118563"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:17:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:21:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "UNKNOWN_EFFECT",
+            "reason": "unresolved-call-target-access",
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [],
+              "definitions": []
+            }
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": false
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": false,
+        "unknown_origin": true
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "consume",
+        "targets": [],
+        "complete": false,
+        "unknown_origin": true
+      }
+    ]
+  },
+  {
+    "case": "transitive_container",
+    "closed_world": false,
+    "line": 12,
+    "column": 1,
+    "phase": "body",
+    "lexical_owner": "caller",
+    "execution_owner": "caller",
+    "targets": [
+      "a"
+    ],
+    "complete": false,
+    "unknown_origin": true,
+    "unresolved_reasons": [
+      "captured-receiver-effects-not-modeled",
+      "unresolved-call-access:captured-container-mutation-not-modeled"
+    ],
+    "jedi_raw": [
+      {
+        "name": "a",
+        "full_name": "demo.a",
+        "type": "function",
+        "line": 1,
+        "column": 4,
+        "module_path": "fixture/demo.py",
+        "source_sha256": "6798f834c98650cd6407f3d17016fc33237c9f01e9abbafe4a089e9bb0c7538f",
+        "mapping": "exact-captured-definition",
+        "target": "fixture:demo.py:function:a#1.1",
+        "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+        "repository": "fixture"
+      }
+    ],
+    "decision": {
+      "jedi_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "lct_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "selected_targets": [
+        "fixture:demo.py:function:a#1.1"
+      ],
+      "conflict": false,
+      "reason": "matching-signals",
+      "semantic_rules": [
+        "constructor-field-origin",
+        "python-instance-field-precedence",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "write_source_coverage": {
+        "rule": "instance-field-coverage",
+        "required_events": [
+          "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+          "fixture:demo.py:function:caller#1.1:4:call",
+          "fixture:demo.py:function:caller#1.1:8:write",
+          "fixture:demo.py:function:caller#1.1:14:write",
+          "fixture:demo.py:function:caller#1.1:15:binding",
+          "fixture:demo.py:function:caller#1.1:17:binding",
+          "fixture:demo.py:function:caller#1.1:22:call",
+          "fixture:demo.py:function:caller#1.1:29:call"
+        ],
+        "events": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "bd7ba3c97894a7bcf4735f29121d64a469ed0f8e575d46e12226b9237ddba099"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.relay#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.relay#1.1.1",
+                  "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:22:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 10,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "captured-receiver-effects-not-modeled"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "UNKNOWN",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "captured-container-mutation-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-reference",
+                      "target": "fixture:demo.py:function:caller#1.1:7:9"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "recursive-call-dependency"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 11,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 12,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "captured-container-mutation-not-modeled",
+                    "instance-association-history-not-modeled",
+                    "recursive-call-dependency",
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:29:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 11,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-access:captured-container-mutation-not-modeled"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "bd7ba3c97894a7bcf4735f29121d64a469ed0f8e575d46e12226b9237ddba099"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.relay#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.relay#1.1.1",
+                  "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:22:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 10,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "captured-receiver-effects-not-modeled"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "UNKNOWN",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "captured-container-mutation-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-reference",
+                      "target": "fixture:demo.py:function:caller#1.1:7:9"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "recursive-call-dependency"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 11,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 12,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "captured-container-mutation-not-modeled",
+                    "instance-association-history-not-modeled",
+                    "recursive-call-dependency",
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:29:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 11,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-access:captured-container-mutation-not-modeled"
+          },
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "bd7ba3c97894a7bcf4735f29121d64a469ed0f8e575d46e12226b9237ddba099"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.relay#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.relay#1.1.1",
+                  "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:22:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 10,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "captured-receiver-effects-not-modeled"
+          },
+          {
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "UNKNOWN",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "captured-container-mutation-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-reference",
+                      "target": "fixture:demo.py:function:caller#1.1:7:9"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "recursive-call-dependency"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 11,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 12,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "captured-container-mutation-not-modeled",
+                    "instance-association-history-not-modeled",
+                    "recursive-call-dependency",
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": []
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:29:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 11,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "reason": "unresolved-call-access:captured-container-mutation-not-modeled"
+          }
+        ],
+        "checks": [
+          {
+            "event_id": "fixture:demo.py:function:C.__init__#1.1.1:5:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+            "line": 4,
+            "column": 21,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "KNOWN_EFFECT",
+            "reason": "direct-field-store-or-delete"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:4:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 5,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "construction-accounted-in-field-scope",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:class:C#1.1"
+              ],
+              "entries": [],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:class:C#1.1",
+                  "version_id": "bd7ba3c97894a7bcf4735f29121d64a469ed0f8e575d46e12226b9237ddba099"
+                }
+              ],
+              "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+            },
+            "no_effect_basis": "construction"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:8:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 6,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:14:write",
+            "kind": "write",
+            "event_kind": "write",
+            "syntax": "Assign",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 7,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "write-does-not-rebind-queried-field-or-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:15:binding",
+            "kind": "binding",
+            "event_kind": "binding",
+            "syntax": "FunctionDef",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 8,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "binding-does-not-replace-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:17:binding",
+            "kind": "binding",
+            "event_kind": "binding",
+            "syntax": "FunctionDef",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 9,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "NO_EFFECT",
+            "reason": "binding-does-not-replace-receiver"
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:22:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 10,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "UNKNOWN_EFFECT",
+            "reason": "captured-receiver-effects-not-modeled",
+            "call_access": {
+              "target_state": "RESOLVED",
+              "targets": [
+                "fixture:demo.py:function:caller.relay#1.1.1"
+              ],
+              "entries": [
+                {
+                  "state": "REACHABLE",
+                  "evidence": [
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "direct-argument",
+                      "allocation": "fixture:demo.py:function:caller#1.1:6:5"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": [
+                {
+                  "target": "fixture:demo.py:function:caller.relay#1.1.1",
+                  "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829"
+                }
+              ],
+              "phases": [
+                "ordinary-call"
+              ]
+            }
+          },
+          {
+            "event_id": "fixture:demo.py:function:caller#1.1:29:call",
+            "kind": "call",
+            "event_kind": "call",
+            "syntax": "Call",
+            "scope": "fixture:demo.py:function:caller#1.1",
+            "line": 11,
+            "column": 1,
+            "conditional": false,
+            "ordered": true,
+            "reachable": true,
+            "phase": "body",
+            "outcome": "UNKNOWN_EFFECT",
+            "reason": "unresolved-call-access:captured-container-mutation-not-modeled",
+            "call_access": {
+              "target_state": "UNKNOWN",
+              "targets": [],
+              "entries": [
+                {
+                  "state": "UNKNOWN",
+                  "evidence": [
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-source",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 7,
+                      "column": 9,
+                      "mode": "value"
+                    },
+                    {
+                      "reason": "container-element"
+                    },
+                    {
+                      "reason": "captured-container-mutation-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "version_id": "dfc17198f9a641077cc3d0ffd40bde33961cbf705b75681c1066436a42f25829",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 10
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "version_id": "6766265cb373f058099cc762874bb1c0dc25089c9e51079413442efe8499a3c6",
+                      "invocation_scope": "fixture:demo.py:function:caller.relay#1.1.1",
+                      "call_line": 9
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "payload",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "container-reference",
+                      "target": "fixture:demo.py:function:caller#1.1:7:9"
+                    },
+                    {
+                      "reason": "closure-binding",
+                      "name": "obj",
+                      "scope": "fixture:demo.py:function:caller#1.1",
+                      "line": 8
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "independent-construction-inputs"
+                    },
+                    {
+                      "reason": "constructor-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller#1.1",
+                      "call_line": 6
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "class-storage-dependencies"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:C.__init__#1.1.1",
+                      "version_id": "b2034b1d62dd51a16e9b19ae4b05ea524bcdbceda7ea4ec7306fa4696a79d5c3",
+                      "invocation_scope": "fixture:demo.py:function:caller.fill#1.1.1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "external-binding",
+                      "name": "a",
+                      "scope": "fixture:demo.py:module:demo#1",
+                      "line": 4
+                    },
+                    {
+                      "reason": "value-origins"
+                    },
+                    {
+                      "reason": "definition-dependencies",
+                      "function": "fixture:demo.py:function:a#1.1",
+                      "version_id": "2c194c3f88268bc6107db8b6feb83b849accb0b458250d0b6d7217c81949e1ba",
+                      "invocation_scope": "fixture:demo.py:module:demo#1",
+                      "call_line": null
+                    },
+                    {
+                      "reason": "finite-function-dependencies"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 10
+                    },
+                    {
+                      "reason": "recursive-call-dependency"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 11,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "instance-association-history-not-modeled",
+                      "line": 12,
+                      "gap": "unresolved-call-history"
+                    },
+                    {
+                      "reason": "unsupported-transitive-call-target"
+                    }
+                  ],
+                  "gaps": [
+                    "captured-container-mutation-not-modeled",
+                    "instance-association-history-not-modeled",
+                    "recursive-call-dependency",
+                    "unsupported-transitive-call-target"
+                  ]
+                }
+              ],
+              "definitions": []
+            }
+          }
+        ],
+        "sources": [
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          },
+          {
+            "source": "supported-construction-protocol",
+            "supported": true
+          },
+          {
+            "source": "receiver-origin",
+            "supported": true
+          }
+        ],
+        "gaps": [],
+        "complete": false
+      },
+      "excluded_jedi_targets": [],
+      "unresolved_jedi_targets": [],
+      "excluded_lct_targets": []
+    },
+    "calls": [
+      {
+        "target": "a",
+        "complete": false,
+        "unknown_origin": true
+      }
+    ],
+    "other_sites": [
+      {
+        "expression": "C",
+        "targets": [
+          "C"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "relay",
+        "targets": [
+          "caller.relay"
+        ],
+        "complete": true,
+        "unknown_origin": false
+      },
+      {
+        "expression": "consume",
+        "targets": [],
+        "complete": false,
+        "unknown_origin": true
+      }
+    ]
+  }
+]

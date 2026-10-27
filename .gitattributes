@@ -22,3 +22,7 @@ review/phase1-round4/*.xml whitespace=-blank-at-eol,cr-at-eol
 # Raw fifth-review mechanism transcripts.
 review/phase1-round5/*.txt whitespace=-blank-at-eol,cr-at-eol
 review/phase1-round5/*.xml whitespace=-blank-at-eol,cr-at-eol
+
+# Raw sixth-review call access evidence.
+review/phase1-round6/*.txt whitespace=-blank-at-eol,cr-at-eol
+review/phase1-round6/*.xml whitespace=-blank-at-eol,cr-at-eol

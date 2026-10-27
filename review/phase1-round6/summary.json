@@ -1,0 +1,92 @@
+{
+  "branch": "refactor/cgr-pipeline-integration",
+  "baseline": "36b0ede83eb278f2af6079f2d2403493385d5a6b",
+  "source_commit": "966ea960883ff9e050273fc16ba4b2b18ca9ad88",
+  "environment": {
+    "python": "3.12.14",
+    "jedi": "0.20.1",
+    "pytest": "9.1.1"
+  },
+  "before": {
+    "passed": 1,
+    "failed": 2,
+    "skipped": 0
+  },
+  "final": {
+    "passed": 356,
+    "failed": 0,
+    "skipped": 1
+  },
+  "new_tests": {
+    "total": 86,
+    "passed": 86
+  },
+  "parser": {
+    "passed": 321,
+    "failed": 0,
+    "skipped": 0
+  },
+  "skip_reasons": [
+    "optional existing real-cache test; use --run-local-index"
+  ],
+  "paid_requests": {
+    "embedding": 0,
+    "llm": 0
+  },
+  "not_run": [
+    "legacy parser-selection harness",
+    "business graph/index/cache",
+    "small graph + MCP",
+    "remote CI"
+  ],
+  "complete_runs": [
+    {
+      "scope": "before lambda correction",
+      "passed": 348,
+      "skipped": 1,
+      "seconds": 33.05
+    },
+    {
+      "scope": "before late history counterexamples",
+      "passed": 354,
+      "skipped": 1,
+      "seconds": 33.44
+    },
+    {
+      "scope": "final tested source",
+      "passed": 356,
+      "skipped": 1,
+      "seconds": 34.36
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_python_call_access.py --basetemp=.tmp/round6-before --junitxml=.tmp/round6-before.xml",
+      "exit": 1,
+      "result": "first three tests: 2 failed, 1 passed"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_python_call_access.py tests/test_python_effect_coverage.py tests/test_python_review_round4.py tests/test_python_review_round3.py tests/test_python_pipeline.py tests/test_python_pipeline_gaps.py tests/test_python_review_regressions.py --basetemp=.tmp/round6-stable-focused --junitxml=.tmp/round6-stable-focused.xml",
+      "exit": 0,
+      "result": "321 passed"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/round6-delivery-all --junitxml=.tmp/round6-delivery-all.xml",
+      "exit": 0,
+      "result": "356 passed, 1 skipped"
+    },
+    {
+      "command": ".venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/round6-frozen.json",
+      "exit": 0,
+      "result": "39/39; 44 nodes; analysis_limited=false"
+    },
+    {
+      "command": ".venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py",
+      "exit": 0
+    },
+    {
+      "command": ".venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py",
+      "exit": 0
+    }
+  ]
+}

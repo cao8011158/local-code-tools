@@ -1,3 +1,145 @@
+# 第六轮：调用三态关联与 NO_EFFECT 依据（2026-10-28）
+
+分支：refactor/cgr-pipeline-integration。启动/已审阅 HEAD：
+36b0ede83eb278f2af6079f2d2403493385d5a6b，与用户指定一致，未前进。
+启动仅未跟踪 code_graph/，无已跟踪修改。目标及父目录未发现额外 AGENTS.md；
+已阅读当前契约和第五轮报告。沿原分支继续，未新建分支、reset、merge、覆盖用户内容。
+最终源码、测试及契约提交：**966ea960883ff9e050273fc16ba4b2b18ca9ad88**。
+最终完整 tests：**356 passed、1 skipped、0 failed**。后续报告提交的完整 SHA 见交付消息，
+或 `git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md`。
+
+code_graph/ 未读取/采用/暂存。未修改 CGR 或三个业务仓库，未访问/清理真实索引、数据库、
+向量、BM25 或缓存。未启动 Neo4j/Docker/JVM/MCP，没有 Embedding/LLM 请求。
+复用原 Python 3.12.14/Jedi 0.20.1/pytest 9.1.1 环境，未安装依赖，串行合成测试。
+
+## 根因及修复边界
+
+旧事件收集正确地发现了 consume([obj]) 和 mutate()，但 field_event 只检查直接实参、
+bound receiver 与表面接收者；没命中便返回 call-without-queried-receiver-dependency。
+缺失的容器路径/词法依赖因此被错误认证为 NO_EFFECT，覆盖清单完整也不能纠正错误结论。
+
+本批保留 EffectCatalog、EffectOutcome、EffectCoverage、Result.requirements 和方法效果机制；
+目录仅新增不被 detail.kind 覆盖的 event_kind 导出字段，没有重写事件收集器。
+新增 python_access.ReceiverAccess 是有限来源/依赖检查，不执行赋值、不应用任意函数效果、
+不维护运行对象堆或类型固定点；未接 CGR、Flow 或另一套节点解析器。
+
+- Access 明确 REACHABLE、NOT_REACHABLE、UNKNOWN，附证据路径与 gaps。
+  已知可达路径不表示必然修改；不可达必须覆盖相关来源，未知/递归/预算不当作 False。
+- 参数共用现有值解析与当前 container_slots。普通 dict 检查键和值；*dict 只运输键，
+  **dict 运输值并验证有限键语义。多层容器、别名及直接/条件修改、逃逸均参与关联。
+  创建字面量不能覆盖后续状态。容器与实例的先前调用共用 history，继续检查传递依赖；
+  可能存在未建模关联更新时 UNKNOWN，而不是只因当前槽/字段没有命中就判独立。
+- 依赖摘要按本次定义身份/version_id 缓存，源引用和调用只在对应执行作用域内检查。
+  调用绑定上下文区分局部/参数、closure/global/nonlocal、默认值、绑定方法及类接收者。
+  捕获按已知调用时点读取，不能拿之后的覆盖证明当前不可达；缺少时点且有重绑定则未知。
+  未调用的内部主体不作为当前执行；传出函数值时检查其捕获/有限传递路径。
+- 真正的目标、入口与依赖检查完毕后，已覆盖的 method_field_effect 或无输入使用摘要可继续
+  提供确定效果。对象可达但效果未支持为 UNKNOWN_EFFECT；未解析目标/来源、传递递归、
+  不支持的返回来源及预算也明确未知。没有为了闭包样例硬算 b。
+- valid_call_no_effect/valid_coverage 对字段调用核对 call_access 的定义版本、入口状态/
+  evidence/gaps，以及 no_effect_basis。无证据标签、UNKNOWN 关联、UNKNOWN 目标或无效摘要
+  不能完整，Jedi 一致也不能绕过。原始 Jedi、未裁决候选和排除依据继续保留。
+
+本批没有用布尔 container_reachable 的 False 为字段无影响认证背书；该旧接口仍供已有
+槽传输适配使用。范围是字段调用认证及所需来源分析，未重建原槽位解析器、真实检索索引或图。
+
+## 正常精度与有限无影响证明
+
+仅创建协程/生成器不执行主体，实参求值仍由既有目录单独处理。恢复与调度保持未知。
+普通同步方法、构造器、保存的 bound alias、继承 classmethod、确定 noop、常量 lambda、
+原 contextmanager/gap/快照保留行为均有原断言或新增对照守护。
+
+“输入回调未知”不自动变成“该调用一定能访问任何新对象”。为了保留既有
+consume(obj.change()) 等精确场景，另有严格的私有分配证明，而非默认 NO_EFFECT：
+callee 必须是未重绑的既有输入，目标是本作用域直接新建的局部实例；构造器须有无发布的
+有限源码证明，全部当前参数不可达，先前调用/写入已处理且无逃逸；潜在闭包单元格的
+后续绑定也必须排除。缺任一项，UNKNOWN。该证明不解析未知回调实现，也不把回调 CALLS
+的未知目标升级为完整；仅证明支持边界内它不能影响该实例的字段。
+
+同样，已验证函数完全不使用的参数/接收者可以通过有效无影响摘要排除；保存 ignored_inputs
+原状态，实际会使用的依赖仍须全部检查。不能把一个 UNKNOWN 输入简单改标签称无影响。
+尚不支持 frame/GC 反射、任意隐式协议、外部并发、完整别名/堆/CFG 或恢复调度。
+这些边界不被合成通过结果掩盖，也不声称对任意 Python 全程序健全。
+
+## 反例、负控制和最终结果
+
+先固定两个 closed_world=False 反例及未调用闭包对照，再修改实现。
+修改前实际 **2 failed、1 passed**，exit 1，原始 before.txt/before.xml 已保留。
+
+| 样例 | 修复后 |
+| --- | --- |
+| mutate 捕获 obj 后修改字段 | 识别 closure-binding；旧 a 只保留为未确认候选，unknown=true/complete=false；不猜 b，不完整排除 Jedi |
+| consume([obj]) | 识别 container-element/direct-argument 可达路径，UNKNOWN_EFFECT；未知传播到最终 CALLS |
+| 只定义而未调用 mutate | obj.run 精确 a，complete=true，无 b |
+| 已验证 noop(obj) | 有效无输入使用摘要，精确 a；没有统一降级 |
+| 私有新实例＋既有输入回调 | 只有逐项所有权/时序证明有效时字段精确；回调本身仍未知 |
+| 已逃逸或潜在延迟捕获 | 私有证明失效，保留 UNKNOWN |
+
+86 项新增正式测试均使用开放输入或独立三态/收据检查，覆盖：
+参数包装/多层别名、dict 键值与解包、传参前状态、捕获独立对象/同名局部/global/nonlocal、
+未调用主体、使用/不使用的默认值、传递调用/构造/容器及对象关联、递归/预算、无效证据/
+匹配信号、lambda 返回值、方法/实例隔离。直接测试三态函数、事件分类和最终 CALLS；
+核对位置/执行作用域、目标/禁止目标、unknown/complete/reasons 与裁决依据。
+未删旧断言、改旧目标或加 xfail。
+
+两项补充组件负控制（传递闭包修改容器、闭包新增实例关联）在开发中也先复现了错误
+NOT_REACHABLE，各 1 failed，保存 transitive-before.txt/object-before.txt；统一历史检查修复后
+均通过，避免“最终字段碰巧未知”遮住组件错误。新增 lambda 返回值守卫也有独立回归。
+
+| 实际验证 | 结果 | exit |
+| --- | --- | --- |
+| 修改前原始 3 项 | 2 failed、1 passed | 1 |
+| 最终相关解析定向 | **321 passed** | 0 |
+| 最终完整 tests/ | **356 passed、1 skipped**，34.36 s | 0 |
+| 冻结输入与独立合成导出 | **39/39 标注、44 节点**，analysis_limited=false | 0 |
+| Ruff check / format --check / diff --check | 通过 | 0 |
+
+JUnit 互斥分组为原有 **270 passed/1 skipped**、新增 **86 passed/0 skipped**。
+既有最终退化 0、最终新增失败 0、缺依赖跳过 0；唯一 skip 仍是 opt-in 真实缓存测试，
+按范围未访问。原冻结 fixtures/truth、storage.py、extract.py、query.py 和依赖/锁文件无差异。
+
+实际完整 tests 共运行 3 次，并非只运行一次：348/1 和 354/1 之后，代码审查/组件反例发现了
+lambda 守卫与历史关联缺口，发生程序修改，故做必要定向及最终完整复验。前两次均不能替代
+最终 356/1。各次约 33–34 秒，均串行；没有无目的重跑或安装/服务重试。
+最终完整运行后程序和正式 tests/ 未再修改，仅整理契约文字、报告和证据。
+一条辅助诊断曾因沙箱临时目录权限失败，使用指定仓库测试权限后成功，不计为解析失败。
+
+summary.json 记录环境/命令/分组；tests.*、parser.* 是最终原始输出；cases.json 保存七个
+开放样例的实际路径、双方证据、覆盖与 CALLS，并显示未知输入回调本身仍未知；frozen.json
+保存精确源字节哈希和冻结校验。baseline_oracles.py 隔离原三个 oracle，可在只读导出的
+36b0ede 源码中复现，预期 2 failed/1 passed，不依赖新模块。没有数据库/索引/向量/密钥。
+
+在仓库根目录，选未使用的临时目录串行复现：
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_call_access.py --basetemp=.tmp/repro-round6-access
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/repro-round6-all
+.venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/repro-round6-frozen.json
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+git diff --check 36b0ede83eb278f2af6079f2d2403493385d5a6b HEAD
+~~~
+
+基线独立复现可用 git archive 将该提交导出到新的 .tmp GUID 目录，将 baseline_oracles.py
+复制为其中 tests/test_round6_baseline.py，创建 .tmp 父目录，再从导出目录用原虚拟环境运行
+该文件。不切换/reset 当前分支，不需另建环境；本批没有再建这种副本，初始真实失败已保存。
+
+## 限制与交付结论
+
+不求解闭包写入的完整效果、任意属性/容器更新、所有传递分派或复杂控制流；无法覆盖时
+明确 UNKNOWN。Source allocation 是有限关联标记，不是运行堆的唯一对象身份；重复工厂/
+循环、动态来源、隐式协议和反射不因本批被宣称已解决。合成测试只支持所列源码模式及
+不确定性契约，不推断三个业务仓库准确率。
+
+未运行：旧选型实验 harness、真实业务 graph/向量/BM25/缓存验证、远程 MCP、
+“小图＋MCP”及远端 CI。冻结导出不等同旧选型实验，也不代表任何未运行项目通过。
+本批机制与回归具备独立审阅条件；不宣称全部 Python 语义或下一阶段已验收。
+提交并仅 push 当前 LCT 分支后停止，等待独立审阅，不 merge。
+
+---
+
+以下为此前各轮历史证据。
+
 # 第五轮：副作用事件目录与独立覆盖认证（2026-10-28）
 
 分支：refactor/cgr-pipeline-integration。启动 HEAD/已审阅基线：

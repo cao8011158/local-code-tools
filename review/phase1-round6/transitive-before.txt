@@ -1,0 +1,20 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______ test_transitive_container_mutation_is_not_a_negative_access_proof ______
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/round6-transitive-before/test_transitive_container_muta0')
+
+    def test_transitive_container_mutation_is_not_a_negative_access_proof(tmp_path):
+        text=HEADER+"def caller(consume):\n obj=C()\n payload=[]\n def fill(): payload.append(obj)\n def relay(): fill()\n relay()\n consume(payload)\n obj.run()\n"
+        a,scope,receiver,event=inspect_call(tmp_path,text)
+        try:
+            result=a.access.reachable(scope,event.node.args[0],receiver,event.node)
+>           assert result.state!=AccessKind.NOT_REACHABLE
+E           AssertionError: assert <AccessKind.NOT_REACHABLE: 'NOT_REACHABLE'> != <AccessKind.NOT_REACHABLE: 'NOT_REACHABLE'>
+E            +  where <AccessKind.NOT_REACHABLE: 'NOT_REACHABLE'> = Access(state=<AccessKind.NOT_REACHABLE: 'NOT_REACHABLE'>, evidence=({'reason': 'value-origins'}, {'reason': 'container...ture:demo.py:function:caller#1.1', 'line': 7, 'column': 9, 'mode': 'value'}, {'reason': 'container-element'}), gaps=()).state
+E            +  and   <AccessKind.NOT_REACHABLE: 'NOT_REACHABLE'> = AccessKind.NOT_REACHABLE
+
+tests\test_python_call_access.py:585: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_python_call_access.py::test_transitive_container_mutation_is_not_a_negative_access_proof
+1 failed in 0.80s
