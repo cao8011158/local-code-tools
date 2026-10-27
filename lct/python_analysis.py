@@ -13,6 +13,7 @@ from pathlib import Path
 import jedi
 
 from .common import canonical, digest
+from .python_effects import EffectCatalog, EffectCoverage, EffectKind, EffectOutcome, valid_coverage
 
 _DYNAMIC = object()
 CALLABLE_KINDS = frozenset(("callable", "class", "context-factory", "async-context-factory"))
@@ -31,11 +32,12 @@ class Atom:
 
 @dataclass(frozen=True)
 class Result:
-    """Known alternatives and unknown origins are independent dimensions."""
+    """Known alternatives, unknown origins and transitive effect obligations are separate."""
 
     atoms: frozenset = frozenset()
     reasons: frozenset = frozenset()
     proofs: frozenset = frozenset()
+    requirements: frozenset = frozenset()
 
     @property
     def unknown(self):
@@ -48,6 +50,7 @@ def union(*results):
         frozenset(a for r in results for a in r.atoms),
         frozenset(x for r in results for x in r.reasons),
         frozenset(p for r in results for p in r.proofs),
+        frozenset(p for r in results for p in r.requirements),
     )
 
 
@@ -64,8 +67,10 @@ def unknown(reason):
 
 
 def certified(result, rule):
-    """Attach a tested semantic justification; unknown reasons are never removed."""
-    return Result(result.atoms, result.reasons, result.proofs | frozenset([rule]))
+    """Attach a rule label only; separate coverage checks govern effect completeness."""
+    return Result(
+        result.atoms, result.reasons, result.proofs | frozenset([rule]), result.requirements
+    )
 
 
 def invalid(rule):
@@ -96,7 +101,9 @@ class Analyzer:
         self.recursions = 0
         self.allocations = {}
         self.coverage = {}
+        self.coverage_models = {}
         self.method_effects = {}
+        self.execution_nodes = {}
         for ident, t in self.modules.items():
             n = nodes[ident]
             path = self.root / n["repository"] / n["path"]
@@ -144,12 +151,15 @@ class Analyzer:
             )
             self.inventory(tree, ident, ident, "module", deferred)
 
+        self.effects = EffectCatalog(trees, self.execution_nodes)
+
     def close(self):
         """Release only this analyzer's private captured sources."""
         self.temp.cleanup()
 
     def inventory(self, obj, lexical, execution, phase, deferred):
         """Record syntax positions and definition-time execution owners."""
+        self.execution_nodes[id(obj)] = (execution, phase)
         if id(obj) in self.owner and not isinstance(obj, ast.Module):
             ident = self.owner[id(obj)]
             if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -185,6 +195,7 @@ class Analyzer:
         if isinstance(obj, (ast.Name, ast.Attribute)) and isinstance(obj.ctx, ast.Load):
             self.references.append((execution, obj, phase))
         if isinstance(obj, ast.AnnAssign):
+            self.inventory(obj.target, lexical, execution, phase, deferred)
             if obj.value:
                 self.inventory(obj.value, lexical, execution, phase, deferred)
             if not deferred and isinstance(self.trees[execution], (ast.Module, ast.ClassDef)):
@@ -491,6 +502,15 @@ class Analyzer:
         finally:
             self.stack.pop()
             self.active.remove(key)
+        if (scope, id(expr)) in self.coverage and not (
+            result.atoms and all(a.kind in ("boundary", "external-value") for a in result.atoms)
+        ):
+            result = Result(
+                result.atoms,
+                result.reasons,
+                result.proofs,
+                result.requirements | {(scope, id(expr))},
+            )
         self.traces[key] = dict(
             scope=scope,
             path=self.nodes[scope]["path"],
@@ -596,7 +616,9 @@ class Analyzer:
                     results.extend(self.resolve(a.target, r) for r in returns)
             if results:
                 return union(
-                    *results, unknown("unknown-call-result") if targets.unknown else Result()
+                    *results,
+                    unknown("unknown-call-result") if targets.unknown else Result(),
+                    Result(requirements=targets.requirements),
                 )
             return self.query(scope, expr)
         return self.query(scope, expr)
@@ -697,7 +719,7 @@ class Analyzer:
                         or kind
                     )
                 atoms.append(Atom(kind, atom.target, atom.bound, atom.receiver, atom.allocation))
-            return Result(frozenset(atoms), value.reasons, value.proofs)
+            return Result(frozenset(atoms), value.reasons, value.proofs, value.requirements)
         if kind == "with":
             stmt, context = item
             receivers = self.resolve(scope, context)
@@ -730,8 +752,8 @@ class Analyzer:
     def attribute(self, scope, expr):
         """Apply descriptor boundaries, instance fields, then nondata class members."""
         receivers = self.resolve(scope, expr.value)
-        receipt = self.coverage.setdefault(
-            (scope, id(expr)), dict(rule="instance-field-coverage", events=[], complete=False)
+        cov = self.coverage_models.setdefault(
+            (scope, id(expr)), EffectCoverage("instance-field-coverage")
         )
         results = []
         for receiver in receivers.atoms:
@@ -741,10 +763,9 @@ class Analyzer:
             if receiver.kind == "instance":
                 guard = self.descriptor_guard(receiver.target, expr.attr, value)
                 if guard:
+                    cov.gaps.append(guard)
                     results.append(union(self.query(scope, expr), unknown(guard)))
                     continue
-                if self.instance_argument_escape(receiver, scope, expr):
-                    results.append(unknown("instance-argument-escape"))
                 field = self.instance_field(receiver, expr.attr, scope, expr)
                 if field is not None:
                     if any(a.kind == "absent-field" for a in field.atoms):
@@ -752,6 +773,7 @@ class Analyzer:
                             frozenset(a for a in field.atoms if a.kind != "absent-field"),
                             field.reasons,
                             field.proofs,
+                            field.requirements,
                         )
                         if value is not None:
                             fallback = frozenset(
@@ -764,7 +786,10 @@ class Analyzer:
                                 )
                                 for a in value.atoms
                             )
-                            field = union(field, Result(fallback, value.reasons, value.proofs))
+                            field = union(
+                                field,
+                                Result(fallback, value.reasons, value.proofs, value.requirements),
+                            )
                     if (
                         "conditional-instance-field-uninitialized" in field.reasons
                         and value is not None
@@ -779,10 +804,17 @@ class Analyzer:
                             )
                             for a in value.atoms
                         )
-                        field = union(field, Result(alternatives, value.reasons, value.proofs))
+                        field = union(
+                            field,
+                            Result(alternatives, value.reasons, value.proofs, value.requirements),
+                        )
                     results.append(certified(field, "python-instance-field-precedence"))
                     continue
             if value is not None:
+                cov.source(
+                    "nondata-member-source",
+                    bool(value.proofs) and not value.unknown and self.requirements_complete(value),
+                )
                 atoms = []
                 for v in value.atoms:
                     obj = self.trees.get(v.target)
@@ -805,16 +837,26 @@ class Analyzer:
                     )
                 results.append(
                     certified(
-                        Result(frozenset(atoms), value.reasons, value.proofs),
+                        Result(frozenset(atoms), value.reasons, value.proofs, value.requirements),
                         "python-nondata-member-lookup",
                     )
                 )
         if results:
             result = union(*results, unknown("unknown-receiver") if receivers.unknown else Result())
-            receipt["complete"] = not result.unknown
+            cov.source(
+                "receiver-origin",
+                bool(receivers.atoms)
+                and not receivers.unknown
+                and self.requirements_complete(receivers),
+            )
+            self.coverage[(scope, id(expr))] = cov.export()
             return result
         result = self.query(scope, expr)
-        return Result(result.atoms, result.reasons | receivers.reasons, result.proofs)
+        cov.gaps.append("unresolved-attribute-source")
+        self.coverage[(scope, id(expr))] = cov.export()
+        return Result(
+            result.atoms, result.reasons | receivers.reasons, result.proofs, result.requirements
+        )
 
     def descriptor_guard(self, owner, name, value):
         """Refuse custom attribute hooks, data descriptors and unverified decorators."""
@@ -881,7 +923,8 @@ class Analyzer:
         if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return "ordinary-call"
         generator = any(
-            isinstance(n, (ast.Yield, ast.YieldFrom)) for n in self.direct_statements(tree)
+            isinstance(e.node, (ast.Yield, ast.YieldFrom))
+            for e in self.effects.by_scope.get(atom.target, [])
         )
         if isinstance(tree, ast.AsyncFunctionDef):
             return "async-generator-create" if generator else "coroutine-create"
@@ -918,7 +961,7 @@ class Analyzer:
             Atom(a.kind, a.target, a.kind == "callable", receiver.target, receiver.allocation)
             for a in member.atoms
         )
-        value = Result(bound, member.reasons, member.proofs)
+        value = Result(bound, member.reasons, member.proofs, member.requirements)
         if field is not None:
             value = union(
                 value,
@@ -926,19 +969,14 @@ class Analyzer:
                     frozenset(a for a in field.atoms if a.kind != "absent-field"),
                     field.reasons,
                     field.proofs,
+                    field.requirements,
                 ),
             )
         return value
 
     def method_field_effect(self, receiver, scope, call, name):
-        """Apply a finite summary only to the actual receiver/target in this call phase.
-
-        There is no dispatch-by-name execution. Coroutine/generator creation has no
-        body effect. Straight-line returns terminate the summary; unsupported control
-        or effects remain unknown rather than walking unreachable statements.
-        """
+        """Check actual dispatch, phase and receiver stability before using a summary."""
         targets = self.method_target(receiver, scope, call)
-        key = (scope, id(call), receiver.allocation, name)
         detail = dict(
             kind="method-effect-applicability",
             scope=scope,
@@ -949,275 +987,342 @@ class Analyzer:
             decision="unsupported",
             unknown_reasons=sorted(targets.reasons),
         )
-        self.method_effects[key] = detail
-        if targets.unknown or len(targets.atoms) != 1:
-            return union(
-                unknown("unproven-callsite-method-target"), Result(reasons=targets.reasons)
+        self.method_effects[(scope, id(call), receiver.allocation, name)] = detail
+
+        def outcome(kind, reason, value=None):
+            return EffectOutcome(kind, reason, value, detail)
+
+        if targets.unknown or len(targets.atoms) != 1 or not self.requirements_complete(targets):
+            return outcome(
+                EffectKind.UNKNOWN_EFFECT,
+                "unproven-callsite-method-target",
+                union(unknown("unproven-callsite-method-target"), Result(reasons=targets.reasons)),
             )
         atom = next(iter(targets.atoms))
         phase = self.invocation_phase(atom)
         detail["invocation_phase"] = phase
         if phase != "ordinary-call":
             detail["decision"] = "deferred-body-not-executed"
-            return None
+            return outcome(EffectKind.NO_EFFECT, "deferred-body-not-executed")
+        if atom.bound and atom.allocation and atom.allocation != receiver.allocation:
+            detail["decision"] = "other-receiver-body-summary"
+            return outcome(EffectKind.NO_EFFECT, "independent-receiver")
         tree = self.trees.get(atom.target)
         if atom.kind != "callable" or not isinstance(tree, ast.FunctionDef) or tree.decorator_list:
-            return unknown("unsupported-receiver-method-effects")
+            return outcome(EffectKind.UNKNOWN_EFFECT, "unsupported-receiver-method-effects")
         if "constructor-field-origin" in targets.proofs:
-            return unknown("constructor-shadowed-receiver-method-effects")
+            return outcome(
+                EffectKind.UNKNOWN_EFFECT, "constructor-shadowed-receiver-method-effects"
+            )
         params = tree.args.posonlyargs + tree.args.args + tree.args.kwonlyargs
-        self_name = params[0].arg if params and atom.bound else None
-        other_params = {a.arg for a in params if a.arg != self_name}
-        same_receiver = not atom.bound or atom.allocation == receiver.allocation
+        receiver_name = params[0].arg if params and atom.bound else None
+        if atom.bound and (not atom.allocation or not receiver_name):
+            return outcome(EffectKind.UNKNOWN_EFFECT, "unproven-method-receiver-binding")
         detail["body_receiver_allocation"] = atom.allocation
-        detail["decision"] = (
-            "finite-body-summary" if same_receiver else "other-receiver-body-summary"
-        )
-        value = None
-        for statement in tree.body:
-            targets = self.write_targets(statement)
-            if not targets:
-                if isinstance(statement, ast.Return):
-                    if statement.value is None or isinstance(
-                        statement.value, (ast.Constant, ast.Name)
-                    ):
-                        detail["termination_line"] = statement.lineno
-                        detail["decision"] = "return-terminated-summary"
-                        return value if same_receiver else None
-                    return union(value or Result(), unknown("unsupported-method-return-effects"))
-                if isinstance(statement, ast.Pass) or (
-                    isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant)
-                ):
-                    continue
-                return union(value or Result(), unknown("unsupported-receiver-method-effects"))
-            if isinstance(statement, ast.AnnAssign) and statement.value is None:
-                continue
-            rhs = getattr(statement, "value", None)
-            if rhs is not None and not isinstance(rhs, (ast.Name, ast.Constant)):
-                return union(value or Result(), unknown("unsupported-receiver-method-value"))
-            for target in targets:
-                if (
-                    isinstance(target, ast.Attribute)
-                    and isinstance(target.value, ast.Name)
-                    and target.value.id == self_name
-                ):
-                    if target.attr == name:
-                        if isinstance(rhs, ast.Name) and rhs.id in other_params | {self_name}:
-                            return unknown("unsupported-receiver-method-value")
-                        candidate = self.resolve(atom.target, rhs) if rhs else None
-                        value = self.field_update(value, statement, candidate, True, name)
-                elif isinstance(target, ast.Name):
-                    continue
-                elif (
-                    isinstance(target, ast.Subscript)
-                    and isinstance(target.value, ast.Attribute)
-                    and isinstance(target.value.value, ast.Name)
-                    and target.value.value.id == self_name
-                ):
-                    # Container slot mutations are accounted for by subscript(), not a field rebind.
-                    continue
-                else:
-                    return union(value or Result(), unknown("unsupported-receiver-method-target"))
-        return value if same_receiver else None
+        detail["decision"] = "finite-body-summary"
+        cov = EffectCoverage("finite-method-summary")
+        cov.source("verified-call-target-and-phase", True)
+        value = self.field_scope(receiver, name, atom.target, None, receiver_name, cov)
+        detail["summary_coverage"] = cov.export()
+        returns = [
+            e
+            for e in self.effects.by_scope[atom.target]
+            if e.kind == "terminate" and e.reachable and not e.conditional
+        ]
+        if returns:
+            detail["termination_line"] = returns[0].node.lineno
+            detail["decision"] = "return-terminated-summary"
+        if not valid_coverage(detail["summary_coverage"]):
+            reasons = [
+                c["reason"]
+                for c in detail["summary_coverage"]["checks"]
+                if c["outcome"] == EffectKind.UNKNOWN_EFFECT.value
+            ]
+            return outcome(
+                EffectKind.UNKNOWN_EFFECT,
+                reasons[0] if reasons else "incomplete-method-effect-coverage",
+                value,
+            )
+        if value is None:
+            return outcome(EffectKind.NO_EFFECT, "verified-body-without-field-effect")
+        return outcome(EffectKind.KNOWN_EFFECT, "finite-body-summary", value)
 
-    def instance_field(self, receiver, name, scope, anchor):
-        """Join constructor/direct field events and limited same-receiver method effects."""
-        value = None
-        events = self.coverage.setdefault(
-            (scope, id(anchor)), dict(rule="instance-field-coverage", events=[], complete=False)
-        )["events"]
-        initializer = self.member(receiver.target, "__init__")
-        if initializer:
-            for function in initializer.atoms:
-                if function.kind != "callable":
-                    continue
-                tree = self.trees[function.target]
-                args = tree.args.posonlyargs + tree.args.args
-                self_name = args[0].arg if args else None
-                for stmt in self.direct_statements(tree):
-                    if stmt in tree.body and isinstance(stmt, ast.Return):
-                        events.append(
-                            dict(kind="constructor-return", scope=function.target, line=stmt.lineno)
-                        )
-                        break
-                    if (
-                        stmt in tree.body
-                        and isinstance(stmt, (ast.If, ast.Try, ast.With, ast.For, ast.While))
-                        and any(
-                            isinstance(n, (ast.Return, ast.Raise))
-                            for n in self.direct_statements_of(stmt)
-                        )
-                    ):
-                        events.append(
-                            dict(
-                                kind="constructor-termination-unknown",
-                                scope=function.target,
-                                line=stmt.lineno,
-                            )
-                        )
-                        value = unknown("conditional-constructor-termination")
-                        break
-                    if (
-                        scope == function.target
-                        and hasattr(stmt, "lineno")
-                        and (stmt.lineno, stmt.col_offset) >= (anchor.lineno, anchor.col_offset)
-                    ):
-                        continue
-                    call = (
-                        stmt.value
-                        if isinstance(stmt, (ast.Expr, ast.Assign, ast.AnnAssign))
-                        else None
-                    )
-                    effect = None
-                    if isinstance(call, ast.Call):
-                        if (
-                            isinstance(call.func, ast.Attribute)
-                            and isinstance(call.func.value, ast.Name)
-                            and call.func.value.id == self_name
-                        ):
-                            effect = self.method_field_effect(receiver, function.target, call, name)
-                        elif any(
-                            isinstance(n, ast.Name) and n.id == self_name
-                            for arg in call.args + [k.value for k in call.keywords]
-                            for n in ast.walk(arg)
-                        ):
-                            effect = unknown("constructor-receiver-escape")
-                        else:
-                            actual = self.resolve(function.target, call.func)
-                            if any(
-                                a.bound and a.allocation == receiver.allocation
-                                for a in actual.atoms
-                            ):
-                                effect = self.method_field_effect(
-                                    receiver, function.target, call, name
-                                )
-                    if (
-                        isinstance(call, ast.Call)
-                        and (function.target, id(call), receiver.allocation, name)
-                        in self.method_effects
-                    ):
-                        events.append(
-                            dict(
-                                self.method_effects[
-                                    (function.target, id(call), receiver.allocation, name)
-                                ]
-                            )
-                        )
-                    if effect is not None:
-                        events.append(
-                            dict(
-                                kind="constructor-call-effects",
-                                scope=function.target,
-                                line=stmt.lineno,
-                            )
-                        )
-                        if stmt in tree.body and not effect.unknown:
-                            value = effect
-                        else:
-                            value = union(
-                                value or known("absent-field", name),
-                                effect,
-                                unknown("unproven-constructor-effects"),
-                            )
-                    for target in self.write_targets(stmt):
-                        if not (
-                            isinstance(target, ast.Attribute)
-                            and target.attr == name
-                            and isinstance(target.value, ast.Name)
-                            and target.value.id == self_name
-                        ):
-                            continue
-                        events.append(
-                            dict(kind=type(stmt).__name__, scope=function.target, line=stmt.lineno)
-                        )
-                        rhs = getattr(stmt, "value", None)
-                        candidate = (
-                            self.field_value(function.target, rhs, receiver.allocation)
-                            if rhs
-                            else None
-                        )
-                        value = self.field_update(value, stmt, candidate, stmt in tree.body, name)
-                        if value is not None and not (
-                            isinstance(stmt, ast.AnnAssign) and stmt.value is None
-                        ):
-                            value = certified(value, "constructor-field-origin")
-        for stmt in self.direct_statements(self.trees[scope]):
-            if not isinstance(stmt, ast.stmt):
-                continue
-            if (stmt.lineno, stmt.col_offset) >= (anchor.lineno, anchor.col_offset):
-                continue
-            for target in self.write_targets(stmt):
-                if (
-                    not isinstance(target, ast.Attribute)
-                    or target.attr != name
-                    or not receiver.allocation
-                ):
-                    continue
-                owners = self.resolve(scope, target.value)
-                if any(
-                    o.kind == "instance" and o.allocation == receiver.allocation
-                    for o in owners.atoms
-                ):
-                    events.append(dict(kind=type(stmt).__name__, scope=scope, line=stmt.lineno))
-                    rhs = getattr(stmt, "value", None)
-                    candidate = self.resolve(scope, rhs) if rhs else None
-                    direct = stmt in self.statements[scope] and not owners.unknown
-                    value = self.field_update(value, stmt, candidate, direct, name)
-            expression = (
-                stmt.value if isinstance(stmt, (ast.Expr, ast.Assign, ast.AnnAssign)) else None
+    def effect_owners(self, receiver, scope, expr, receiver_name):
+        """Specialize only the stable bound parameter; other values use existing resolution."""
+        if receiver_name and isinstance(expr, ast.Name) and expr.id == receiver_name:
+            return Result(frozenset([receiver]), proofs=frozenset(["bound-receiver-origin"]))
+        return self.resolve(scope, expr)
+
+    def receiver_relation(self, receiver, values):
+        """A missing allocation is an association gap, never proof of independence."""
+        instances = [a for a in values.atoms if a.kind in ("instance", "deferred-result")]
+        supported_reasons = {"deferred-call-result-not-modeled"}
+        if any(a.allocation == receiver.allocation and a.allocation for a in instances):
+            return (
+                "same"
+                if all(a.allocation == receiver.allocation for a in instances)
+                and not (values.reasons - supported_reasons)
+                else "unknown"
             )
-            if isinstance(expression, ast.Await):
-                resumed = self.resolve(scope, expression.value)
-                if any(a.allocation == receiver.allocation for a in resumed.atoms):
-                    events.append(dict(kind="deferred-resumption", scope=scope, line=stmt.lineno))
-                    value = unknown("deferred-method-resumption-not-modeled")
-                continue
-            call = expression
-            if not isinstance(call, ast.Call) or not receiver.allocation:
-                continue
+        if (
+            instances
+            and all(a.allocation for a in instances)
+            and not (values.reasons - supported_reasons)
+        ):
+            return "independent"
+        if not instances and values.atoms and not values.unknown:
+            return "non-receiver"
+        return "unknown"
+
+    def event_bindings(self, node):
+        """Identify implicit binding syntax without evaluating its protocol or values."""
+        targets = []
+        if isinstance(node, (ast.For, ast.AsyncFor)):
+            targets = [node.target]
+        elif isinstance(node, (ast.With, ast.AsyncWith)):
+            targets = [i.optional_vars for i in node.items if i.optional_vars]
+        names = {
+            n.id
+            for t in targets
+            for n in ast.walk(t)
+            if isinstance(n, ast.Name) and isinstance(n.ctx, (ast.Store, ast.Del))
+        }
+        if isinstance(
+            node, (ast.ExceptHandler, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+        ):
+            if node.name:
+                names.add(node.name)
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names.update(a.asname or a.name.split(".")[0] for a in node.names)
+        if isinstance(node, (ast.MatchAs, ast.MatchStar)) and node.name:
+            names.add(node.name)
+        if isinstance(node, ast.MatchMapping) and node.rest:
+            names.add(node.rest)
+        return names
+
+    def field_event(self, event, receiver, name, receiver_name=None):
+        """Classify every inventory event; unsupported relevant operations default unknown."""
+        node, scope = event.node, event.scope
+
+        def no(reason):
+            return EffectOutcome(EffectKind.NO_EFFECT, reason)
+
+        def bad(reason):
+            return EffectOutcome(EffectKind.UNKNOWN_EFFECT, reason)
+
+        if not event.reachable:
+            return no("unreachable-after-termination")
+        if event.kind == "binding":
+            return (
+                bad("receiver-binding-changed")
+                if receiver_name in self.event_bindings(node)
+                else no("binding-does-not-replace-receiver")
+            )
+        if event.kind == "implicit-call":
+            targets = self.resolve(scope, node)
             if any(
-                a.kind == "deferred-result" and a.allocation == receiver.allocation
-                for arg in call.args + [kw.value for kw in call.keywords]
-                for a in self.resolve(
-                    scope, arg.value if isinstance(arg, ast.Starred) else arg
-                ).atoms
+                a.bound and (not a.allocation or a.allocation == receiver.allocation)
+                for a in targets.atoms
             ):
-                events.append(
-                    dict(kind="possible-deferred-resumption", scope=scope, line=stmt.lineno)
-                )
-                value = unknown("deferred-method-resumption-not-modeled")
-            targets = self.resolve(scope, call.func)
-            owners = (
-                self.resolve(scope, call.func.value)
-                if isinstance(call.func, ast.Attribute)
-                else Result()
+                return bad("implicit-decorator-effects-not-modeled")
+            return no("decorator-without-queried-receiver-dependency")
+        if event.kind == "terminate":
+            return (
+                bad("conditional-termination-not-modeled")
+                if event.conditional
+                else no("scope-termination")
             )
-            if not any(
-                o.kind == "instance" and o.allocation == receiver.allocation for o in owners.atoms
-            ) and not any(a.bound and a.allocation == receiver.allocation for a in targets.atoms):
-                continue
-            effect = self.method_field_effect(receiver, scope, call, name)
-            events.append(dict(self.method_effects[(scope, id(call), receiver.allocation, name)]))
-            if effect is None:
-                continue
-            events.append(
-                dict(
-                    kind="receiver-method-call",
-                    method=call.func.attr
-                    if isinstance(call.func, ast.Attribute)
-                    else ast.unparse(call.func),
-                    scope=scope,
-                    line=stmt.lineno,
+        if event.kind == "write":
+            if isinstance(node, ast.AnnAssign) and node.value is None:
+                return no("annotation-without-store")
+            targets = [node.target] if isinstance(node, ast.NamedExpr) else self.write_targets(node)
+            if receiver_name and any(
+                isinstance(n, ast.Name) and n.id == receiver_name
+                for t in targets
+                for n in ast.walk(t)
+                if isinstance(n, ast.Name) and isinstance(n.ctx, (ast.Store, ast.Del))
+            ):
+                return bad("receiver-binding-changed")
+            if receiver_name and (
+                isinstance(node, ast.AugAssign)
+                and any(isinstance(t, ast.Name) for t in targets)
+                or any(isinstance(t, (ast.Tuple, ast.List)) for t in targets)
+            ):
+                return bad("unsupported-summary-binding")
+            for dest in targets:
+                if isinstance(dest, (ast.Tuple, ast.List)):
+                    if any(isinstance(n, (ast.Attribute, ast.Subscript)) for n in ast.walk(dest)):
+                        return bad("unsupported-unpacked-field-write")
+                    continue
+                if not isinstance(dest, ast.Attribute) or dest.attr != name:
+                    continue
+                owners = self.effect_owners(receiver, scope, dest.value, receiver_name)
+                relation = self.receiver_relation(receiver, owners)
+                if relation == "independent" or relation == "non-receiver":
+                    continue
+                if relation != "same":
+                    return bad("unproven-field-write-receiver")
+                if isinstance(node, ast.AugAssign):
+                    return bad("unsupported-instance-augassign")
+                rhs = getattr(node, "value", None)
+                candidate = (
+                    self.field_value(scope, rhs, receiver.allocation)
+                    if receiver_name and rhs
+                    else self.resolve(scope, rhs)
+                    if rhs
+                    else known("absent-field", name)
                 )
+                if isinstance(node, ast.Delete):
+                    candidate = known("absent-field", name)
+                if (
+                    candidate.unknown
+                    or not candidate.proofs
+                    or not self.requirements_complete(candidate)
+                ):
+                    return EffectOutcome(
+                        EffectKind.UNKNOWN_EFFECT, "unproven-field-value", candidate
+                    )
+                return EffectOutcome(
+                    EffectKind.KNOWN_EFFECT, "direct-field-store-or-delete", candidate
+                )
+            return no("write-does-not-rebind-queried-field-or-receiver")
+        if event.kind == "await":
+            resumed = self.resolve(scope, node.value)
+            relation = self.receiver_relation(receiver, resumed)
+            if relation in ("independent", "non-receiver"):
+                return no("independent-deferred-resumption")
+            return bad(
+                "deferred-method-resumption-not-modeled"
+                if relation == "same"
+                else "deferred-receiver-association-gap"
             )
-            if stmt in self.statements[scope] and not owners.unknown and not effect.unknown:
-                value = effect
-            else:
+        if event.kind == "call":
+            # Operand effects have their own preceding events, including for deferred creation.
+            arguments = [a.value if isinstance(a, ast.Starred) else a for a in node.args]
+            arguments += [kw.value for kw in node.keywords]
+            for arg in arguments:
+                values = self.effect_owners(receiver, scope, arg, receiver_name)
+                if any(a.kind == "deferred-result" for a in values.atoms):
+                    relation = self.receiver_relation(receiver, values)
+                    if relation not in ("independent", "non-receiver"):
+                        return bad("deferred-method-resumption-not-modeled")
+                if any(
+                    a.kind == "instance" and a.allocation == receiver.allocation
+                    for a in values.atoms
+                ):
+                    return bad("instance-argument-escape")
+            targets = self.method_target(receiver, scope, node)
+            bound = Result(frozenset(a for a in targets.atoms if a.bound), targets.reasons)
+            relation = self.receiver_relation(
+                receiver,
+                Result(
+                    frozenset(
+                        Atom("instance", a.receiver, allocation=a.allocation) for a in bound.atoms
+                    ),
+                    bound.reasons,
+                ),
+            )
+            if relation == "same":
+                return self.method_field_effect(receiver, scope, node, name)
+            if isinstance(node.func, ast.Attribute):
+                owners = self.effect_owners(receiver, scope, node.func.value, receiver_name)
+                surface = self.receiver_relation(receiver, owners)
+                if surface == "same":
+                    return self.method_field_effect(receiver, scope, node, name)
+                if surface == "unknown":
+                    return bad("unproven-call-receiver-association")
+            return no("call-without-queried-receiver-dependency")
+        if event.kind in ("region", "scope-execution"):
+            # Regions are obligations even when nested events are handled. Dynamic protocols
+            # touching this receiver cannot be proved harmless by a successful child handler.
+            active_scope = self.owner[id(node)] if event.kind == "scope-execution" else scope
+            for child in ast.walk(node):
+                if (
+                    isinstance(child, ast.Name)
+                    and isinstance(child.ctx, ast.Load)
+                    and self.execution_nodes.get(id(child), (None,))[0] == active_scope
+                ):
+                    values = self.effect_owners(receiver, scope, child, receiver_name)
+                    if self.receiver_relation(receiver, values) == "same":
+                        return bad("unsupported-related-syntax-region")
+            return no("region-without-queried-receiver-dependency")
+        return bad("missing-effect-handler")
+
+    def field_scope(self, receiver, name, scope, anchor, receiver_name, coverage, initial=None):
+        """Consume the reused scope catalog, with a disposition for every required event."""
+        value = initial
+        binding_failure = None
+        for event in self.effects.before(scope, anchor):
+            coverage.require(event)
+            if binding_failure:
+                coverage.record(
+                    event,
+                    EffectOutcome(
+                        EffectKind.UNKNOWN_EFFECT if event.reachable else EffectKind.NO_EFFECT,
+                        binding_failure if event.reachable else "unreachable-after-termination",
+                    ),
+                )
+                continue
+            effect = self.field_event(event, receiver, name, receiver_name)
+            if not isinstance(effect, EffectOutcome):
+                effect = EffectOutcome(EffectKind.UNKNOWN_EFFECT, "missing-effect-handler")
+            coverage.record(event, effect)
+            if effect.detail:
+                coverage.events.append(effect.detail)
+            if effect.kind == EffectKind.NO_EFFECT:
+                continue
+            coverage.events.append(dict(event.location(), reason=effect.reason))
+            candidate = effect.value or unknown(effect.reason)
+            if effect.kind == EffectKind.UNKNOWN_EFFECT:
+                if effect.reason.startswith("deferred-"):
+                    value = union(candidate, unknown(effect.reason))
+                else:
+                    value = union(value or Result(), candidate, unknown(effect.reason))
+                if effect.reason in ("receiver-binding-changed", "unsupported-summary-binding"):
+                    # Refuse the remainder; no later write can rely on unstable summary bindings.
+                    coverage.gaps.append(effect.reason)
+                    binding_failure = effect.reason
+            elif event.conditional or not event.ordered:
                 value = union(
                     value or known("absent-field", name),
-                    effect,
-                    unknown("unproven-receiver-method-effects"),
+                    candidate,
+                    unknown("conditional-instance-field"),
                 )
+                coverage.outcomes[event.ident]["outcome"] = EffectKind.UNKNOWN_EFFECT.value
+                coverage.outcomes[event.ident]["reason"] = "conditional-instance-field"
+            else:
+                value = candidate
+        return value
+
+    def instance_field(self, receiver, name, scope, anchor):
+        """Read constructor and callsite effects through the same event/coverage mechanism."""
+        cov = self.coverage_models.setdefault(
+            (scope, id(anchor)), EffectCoverage("instance-field-coverage")
+        )
+        value = None
+        initializer = self.member(receiver.target, "__init__")
+        cov.source("supported-construction-protocol", not initializer or not initializer.unknown)
+        if initializer:
+            for function in initializer.atoms:
+                tree = self.trees.get(function.target)
+                if function.kind != "callable" or not isinstance(tree, ast.FunctionDef):
+                    cov.gaps.append("unsupported-constructor-summary")
+                    value = unknown("unsupported-constructor-summary")
+                    continue
+                args = tree.args.posonlyargs + tree.args.args
+                receiver_name = args[0].arg if args else None
+                initial = self.field_scope(
+                    receiver,
+                    name,
+                    function.target,
+                    anchor if scope == function.target else None,
+                    receiver_name,
+                    cov,
+                )
+                if initial is not None:
+                    value = certified(initial, "constructor-field-origin")
+        value = self.field_scope(receiver, name, scope, anchor, None, cov, value)
+        self.coverage[(scope, id(anchor))] = cov.export()
         if value is None:
             return None
         return Result(
@@ -1233,7 +1338,12 @@ class Analyzer:
             ),
             value.reasons,
             value.proofs,
+            value.requirements,
         )
+
+    def requirements_complete(self, result):
+        """Proof labels do not satisfy unresolved event/source coverage dependencies."""
+        return all(valid_coverage(self.coverage.get(key)) for key in result.requirements)
 
     def field_value(self, function, expr, allocation):
         """Join a direct constructor parameter to the arguments of its creation site."""
@@ -1371,10 +1481,12 @@ class Analyzer:
             return unknown("parameter-without-known-origin")
         return union(*results)
 
-    def container_slots(self, atom, scope, anchor, lookup, seen=None):
+    def container_slots(self, atom, scope, anchor, lookup, seen=None, coverage=None):
         """Read a finite literal/copy snapshot, with ordered writes and explicit coverage."""
+        coverage = coverage if coverage is not None else EffectCoverage("container-state")
         seen = set() if seen is None else seen
         if atom.target in seen:
+            coverage.gaps.append("recursive-dict-expansion")
             return {}, set(), [unknown("recursive-dict-expansion")], []
         seen = seen | {atom.target}
         owner, obj = self.container_exprs[atom.target]
@@ -1389,6 +1501,7 @@ class Analyzer:
                     for stmt in self.trees[origin[0]].body
                 )
             ):
+                coverage.gaps.append("nonunique-instance-container-allocation")
                 return {}, set(), [unknown("nonunique-instance-container-allocation")], events
         sequence = not isinstance(obj, ast.Dict)
         slots, sealed, extra = {}, set(), []
@@ -1404,10 +1517,29 @@ class Analyzer:
             slots = {i: [self.resolve(owner, v)] for i, v in enumerate(obj.elts)}
             sealed = set(slots)
         else:
-            for key, value in zip(obj.keys, obj.values):
+            overrides = (
+                [
+                    i
+                    for i, k in enumerate(obj.keys)
+                    if k is not None and self.literal_key(k) == (True, lookup)
+                ]
+                if lookup is not None
+                else []
+            )
+            last_override = max(overrides, default=-1)
+            for index, (key, value) in enumerate(zip(obj.keys, obj.values)):
                 if key is None:
+                    if index < last_override:
+                        # The queried key is definitely overwritten later in this literal.
+                        continue
                     events.append(dict(kind="DictUnpack", scope=owner, line=value.lineno))
                     origins = self.resolve(owner, value)
+                    coverage.source(
+                        "dict-expansion-origin",
+                        bool(origins.atoms)
+                        and not origins.unknown
+                        and self.requirements_complete(origins),
+                    )
                     if origins.unknown or len(origins.atoms) != 1:
                         uncertain("unknown-or-ambiguous-dict-expansion")
                     for source in origins.atoms:
@@ -1417,7 +1549,7 @@ class Analyzer:
                             uncertain("non-dictionary-expansion-source")
                             continue
                         values, source_sealed, limitations, nested = self.container_slots(
-                            source, owner, value, lookup, seen
+                            source, owner, value, lookup, seen, coverage
                         )
                         events.extend(nested)
                         if _DYNAMIC in values or limitations:
@@ -1447,6 +1579,7 @@ class Analyzer:
                                         ),
                                         copied.reasons,
                                         copied.proofs,
+                                        copied.requirements,
                                     )
                             slots[k] = [copied]
                             # Presence/overwrite information is not permission to erase
@@ -1467,24 +1600,71 @@ class Analyzer:
                         sealed.add(k)
                     else:
                         uncertain("dynamic-literal-dict-key")
-        for function, tree in self.trees.items():
-            if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
-                continue
-            for statement in self.direct_statements(tree):
+        for function in sorted(self.effects.slot_scopes | {scope, owner}):
+            tree = self.trees[function]
+            scoped_events = self.effects.before(function, anchor if function == scope else None)
+            for event in scoped_events:
+                statement = event.node
+                coverage.require(event)
+                coverage.record(
+                    event,
+                    EffectOutcome(
+                        EffectKind.NO_EFFECT,
+                        "no-container-dependency"
+                        if event.reachable
+                        else "unreachable-after-termination",
+                    ),
+                )
+                if not event.reachable:
+                    continue
+                if event.kind not in {
+                    "write",
+                    "call",
+                    "await",
+                    "region",
+                    "terminate",
+                    "binding",
+                    "implicit-call",
+                    "scope-execution",
+                }:
+                    coverage.record(
+                        event, EffectOutcome(EffectKind.UNKNOWN_EFFECT, "missing-effect-handler")
+                    )
+                    extra.append(unknown("missing-effect-handler"))
+                region_scope = (
+                    self.owner[id(statement)] if event.kind == "scope-execution" else function
+                )
+                if event.kind in ("await", "region", "scope-execution") and any(
+                    isinstance(n, ast.Name)
+                    and isinstance(n.ctx, ast.Load)
+                    and self.execution_nodes.get(id(n), (None,))[0] == region_scope
+                    and self.container_reachable(function, n, atom)
+                    for n in ast.walk(statement)
+                ):
+                    coverage.record(
+                        event,
+                        EffectOutcome(
+                            EffectKind.UNKNOWN_EFFECT, "unsupported-related-container-region"
+                        ),
+                    )
+                    extra.append(unknown("unsupported-related-container-region"))
                 if not isinstance(
                     statement, (ast.Assign, ast.AnnAssign, ast.Delete, ast.AugAssign)
                 ):
                     continue
-                if function == scope and (statement.lineno, statement.col_offset) >= (
-                    anchor.lineno,
-                    anchor.col_offset,
-                ):
-                    continue
                 for dest in self.write_targets(statement):
-                    if (
-                        not isinstance(dest, ast.Subscript)
-                        or atom not in self.resolve(function, dest.value).atoms
-                    ):
+                    if not isinstance(dest, ast.Subscript):
+                        continue
+                    owners = self.resolve(function, dest.value)
+                    if atom not in owners.atoms:
+                        if function in (scope, owner) and owners.unknown:
+                            coverage.record(
+                                event,
+                                EffectOutcome(
+                                    EffectKind.UNKNOWN_EFFECT, "unproven-slot-write-receiver"
+                                ),
+                            )
+                            extra.append(unknown("unproven-slot-write-receiver"))
                         continue
                     events.append(
                         dict(kind=type(statement).__name__, scope=function, line=statement.lineno)
@@ -1494,7 +1674,15 @@ class Analyzer:
                     write_fixed, key = self.literal_key(dest.slice)
                     if sequence and write_fixed and isinstance(key, int) and key < 0:
                         key += len(slots)
-                    direct = statement in tree.body and function in (scope, owner)
+                    direct = not event.conditional and event.ordered and function in (scope, owner)
+                    relevant = sequence or lookup is None or not write_fixed or lookup == key
+                    if not relevant:
+                        continue
+                    status = (
+                        EffectKind.KNOWN_EFFECT
+                        if direct and write_fixed and not isinstance(statement, ast.AugAssign)
+                        else EffectKind.UNKNOWN_EFFECT
+                    )
                     if isinstance(statement, ast.Delete):
                         if direct and write_fixed:
                             slots.pop(key, None)
@@ -1524,10 +1712,18 @@ class Analyzer:
                         and isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
                         and function != scope
                     ):
-                        extra.extend(
-                            self.registry_arguments(
-                                function, dest.slice.id, statement.value.id, lookup, atom.allocation
-                            )
+                        associations = self.registry_arguments(
+                            function, dest.slice.id, statement.value.id, lookup, atom.allocation
+                        )
+                        extra.extend(associations)
+                        coverage.record(
+                            event,
+                            EffectOutcome(
+                                EffectKind.UNKNOWN_EFFECT
+                                if any(r.unknown for r in associations)
+                                else EffectKind.KNOWN_EFFECT,
+                                "registry-argument-association",
+                            ),
                         )
                     elif direct and write_fixed:
                         slots[key] = [self.resolve(function, statement.value)]
@@ -1549,23 +1745,39 @@ class Analyzer:
                                 unknown("conditional-or-dynamic-slot-write"),
                             ]
                         )
-            for site in self.sites:
-                if site["execution_owner"] != function or site["_call"] is None:
+                    registry = (
+                        isinstance(dest.slice, ast.Name)
+                        and isinstance(getattr(statement, "value", None), ast.Name)
+                        and isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        and function != scope
+                        and not isinstance(statement, (ast.Delete, ast.AugAssign))
+                    )
+                    if not registry:
+                        coverage.record(
+                            event,
+                            EffectOutcome(
+                                status,
+                                "ordered-slot-update"
+                                if status == EffectKind.KNOWN_EFFECT
+                                else "conditional-or-unsupported-slot-update",
+                            ),
+                        )
+            for event in scoped_events:
+                if event.kind != "call" or not event.reachable:
                     continue
-                if function == scope and (site["line"], site["column"]) >= (
-                    anchor.lineno,
-                    anchor.col_offset,
-                ):
-                    continue
-                callee, call = site["_expr"], site["_call"]
+                call, callee = event.node, event.node.func
                 uses = (
                     ([callee.value] if isinstance(callee, ast.Attribute) else [])
                     + call.args
                     + [kw.value for kw in call.keywords]
                 )
                 if any(self.container_reachable(function, use, atom) for use in uses):
-                    events.append(dict(kind="container-escape", scope=function, line=site["line"]))
+                    events.append(dict(kind="container-escape", scope=function, line=call.lineno))
                     extra.append(unknown("container-mutation-or-escape"))
+                    coverage.record(
+                        event,
+                        EffectOutcome(EffectKind.UNKNOWN_EFFECT, "container-mutation-or-escape"),
+                    )
         return slots, sealed, extra, events
 
     def subscript(self, scope, expr):
@@ -1573,11 +1785,19 @@ class Analyzer:
         containers = self.resolve(scope, expr.value)
         fixed, key = self.literal_key(expr.slice)
         results, events = [], []
+        cov = EffectCoverage("container-write-source-coverage")
+        cov.source(
+            "finite-container-origin",
+            bool(containers.atoms)
+            and not containers.unknown
+            and all(a.kind == "container" for a in containers.atoms)
+            and self.requirements_complete(containers),
+        )
         for atom in containers.atoms:
             if atom.kind != "container":
                 continue
             slots, sealed, extra, observed = self.container_slots(
-                atom, scope, expr, key if fixed else None
+                atom, scope, expr, key if fixed else None, coverage=cov
             )
             events.extend(observed)
             sequence = not isinstance(self.container_exprs[atom.target][1], ast.Dict)
@@ -1593,6 +1813,13 @@ class Analyzer:
                 if not fixed or k == lookup or k is _DYNAMIC and lookup not in sealed
                 for r in rs
             ]
+            for candidate in chosen:
+                cov.source(
+                    "selected-literal-slot-value",
+                    bool(candidate.proofs)
+                    and not candidate.unknown
+                    and self.requirements_complete(candidate),
+                )
             results.append(
                 certified(union(*chosen, *extra), "literal-slot-state")
                 if chosen or extra
@@ -1601,9 +1828,8 @@ class Analyzer:
         if containers.unknown:
             results.append(unknown("unknown-container-origin"))
         result = union(*results) if results else unknown("unresolved-container-slot")
-        self.coverage[(scope, id(expr))] = dict(
-            rule="container-write-source-coverage", events=events, complete=not result.unknown
-        )
+        cov.events.extend(events)
+        self.coverage[(scope, id(expr))] = cov.export()
         return result
 
     def literal_key(self, expr):
@@ -1828,6 +2054,32 @@ class Analyzer:
             return certified(union(*values), "single-straight-line-contextlib-yield")
         return union(*values, unknown("complex-generator-context-protocol"))
 
+    def coverage_receipt(self, scope, expr, result):
+        """Combine explicit source obligations, including those inherited through aliases."""
+        keys = set(result.requirements)
+        if (scope, id(expr)) in self.coverage and isinstance(expr, (ast.Attribute, ast.Subscript)):
+            if not (
+                result.atoms and all(a.kind in ("boundary", "external-value") for a in result.atoms)
+            ):
+                keys.add((scope, id(expr)))
+        if not keys:
+            return None
+        receipts = [self.coverage.get(k) for k in keys]
+        if len(receipts) == 1 and receipts[0] is not None:
+            return receipts[0]
+        return dict(
+            rule="transitive-write-source-coverage",
+            complete=all(valid_coverage(r) for r in receipts),
+            events=[e for r in receipts if r for e in r["events"]],
+            dependencies=[
+                r if r else dict(complete=False, gaps=["missing-coverage"]) for r in receipts
+            ],
+        )
+
+    def complete(self, result):
+        """Public completeness requires both source proof and all effect obligations."""
+        return bool(result.proofs) and not result.unknown and self.requirements_complete(result)
+
     def adjudicate(self, scope, expr, result, signal):
         """Require explicit proof, and explain every choice between LCT and Jedi signals."""
         chosen = {a.target for a in result.atoms if a.kind in CALLABLE_KINDS}
@@ -1845,15 +2097,20 @@ class Analyzer:
             "single-straight-line-contextlib-yield",
             "bound-receiver-origin",
         }
-        receipt = self.coverage.get((scope, id(expr)))
-        needs_coverage = (
+        receipt = self.coverage_receipt(scope, expr, result)
+        derived_rules = {
+            "literal-slot-state",
+            "python-instance-field-precedence",
+            "python-nondata-member-lookup",
+        }
+        needs_coverage = bool(result.requirements or result.proofs & derived_rules) or (
             isinstance(expr, ast.Subscript) or isinstance(expr, ast.Attribute) and bool(chosen)
         )
-        if needs_coverage and not (receipt and receipt["complete"]) and not result.unknown:
+        if needs_coverage and not valid_coverage(receipt) and not result.unknown:
             result = union(result, unknown("missing-write-source-coverage"))
         justified = bool(result.proofs & decisive)
-        if isinstance(expr, (ast.Attribute, ast.Subscript)):
-            justified = bool(receipt and receipt["complete"])
+        if needs_coverage:
+            justified = valid_coverage(receipt)
         conflict = bool(inferred and chosen != inferred)
         reason = (
             "matching-signals"
@@ -1896,30 +2153,3 @@ class Analyzer:
             excluded_lct_targets=sorted(chosen - {a.target for a in result.atoms}),
         )
         return result, decision
-
-    def instance_argument_escape(self, receiver, scope, anchor):
-        """Do not certify a field after its receiver is passed to another call."""
-        if not receiver.allocation:
-            return False
-        for site in self.sites:
-            if site["execution_owner"] != scope or site["_call"] is None:
-                continue
-            if (site["line"], site["column"]) >= (anchor.lineno, anchor.col_offset):
-                continue
-            call = site["_call"]
-            for arg in call.args + [kw.value for kw in call.keywords]:
-                values = self.resolve(scope, arg.value if isinstance(arg, ast.Starred) else arg)
-                if any(
-                    a.kind == "instance" and a.allocation == receiver.allocation
-                    for a in values.atoms
-                ):
-                    return True
-        return False
-
-    def direct_statements_of(self, statement):
-        """Inspect one constructor control statement without entering nested declarations."""
-        yield statement
-        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
-            return
-        for child in ast.iter_child_nodes(statement):
-            yield from self.direct_statements_of(child)

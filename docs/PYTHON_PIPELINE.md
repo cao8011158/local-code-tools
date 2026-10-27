@@ -121,12 +121,46 @@ executes_body=false；不应用未执行的主体或 return 值。context-manage
 前序动态不确定性，其他键不被无条件污染。纯字典复制不继续引用源的后续槽替换。
 复杂来源、逃逸或无法覆盖的写入保留原因，不把缺少候选变成缺失键证明。
 
-Jedi 与 LCT 不简单合并。对于捕获范围内的字段/槽位，完整性与排除冲突候选必须有本次访问的 write_source_coverage：
-完整标志和逐位置事件覆盖当前相关写入、展开来源和逃逸。继承的 literal-slot-state/
-字段规则标签单独不足以证明完整。已识别的外部 boundary 仍沿用符号边界契约，
-不据此声称验证了外部实现的写入/主体。完整有限规则及覆盖记录可以排除候选，记录具体依据；
-部分关联的冲突保留未知及未裁决的 Jedi 候选。无决定性依据时不把任一方自动升级为真值。
-原始 Jedi 记录、LCT 关联轨迹和实际采用/排除理由分别保留，便于独立复核。
+副作用事件目录在同一 AST inventory 的 execution owner/phase 基础上每个快照构造一次。
+python_effects.EffectCatalog 按作用域保存 Call、Await、普通/标注/增强赋值、NamedExpr、
+Delete、隐式名称绑定、装饰器应用、终止及不支持的语法区域。发现事件不依赖效果处理器是否
+支持它；字段查询使用相关构造器/方法及读取前的作用域目录，槽查询使用目录中的槽依赖范围，
+不再逐查询遍历全仓库 AST。类定义主体以独立执行作用域依赖表示，相关效果未特化时保持未知，
+但类中尚未调用的方法主体不当成已执行。名称/值解析仍由既有 AST reaching 与 Jedi 提供，没有新执行器。
+
+目录递归访问表达式，Call/Await 在条件、参数、元组、容器、短路表达式中仍独立存在。
+支持的直线顺序为操作数先于操作、赋值 RHS 先于写入、字典键/值交错、调用 callee/实参先于
+调用；事件序号只在同一 scope 内有效。分支、短路后项和链式比较的后续 comparator 标 conditional，循环、异常和未建模
+协议标 ordered=false/region；这些标记不是运行路径或通用 CFG。定义头沿用既有 definition/
+annotation owner，嵌套函数/lambda 主体在独立目录内，不能当成外层正在执行的操作。
+
+每个必需事件在处理前进入覆盖义务；结论是 NO_EFFECT、KNOWN_EFFECT 或 UNKNOWN_EFFECT，
+带源码位置、原因及调用目标/接收者/阶段依据。缺失处理器或无法确认相关性默认为未知；
+UNKNOWN_EFFECT 不能因其他依赖再次得到 NO_EFFECT 而消失。无法处理的次序、关联、区域和预算
+缺口阻止认证。普通同步方法与构造器共用 field_scope/field_event，而不是两套扫描规则。
+有限摘要以实际调用目标、稳定绑定 receiver、普通执行阶段为前提；对实际接收者参数名的
+重绑定/删除、有值注解、解包或隐式绑定拒绝剩余摘要，记录 receiver-binding-changed。
+其他不支持的局部绑定也会拒绝摘要；纯注解无写入。直线 return 后事件不可达，不能贡献效果。
+
+Await 和延迟对象传递从同一目录处理，包括先保存 pending 后等待。这里只保留恢复事件和
+接收者关联，不模拟恢复主体：可能涉及当前对象时产生 deferred-method-resumption-not-modeled；
+关联不明记录 deferred-receiver-association-gap，不能因没有 allocation 匹配而判定无影响。
+有明确独立创建位置的另一对象不污染当前对象。仅创建协程/生成器不执行主体，实参中自身的
+调用仍先独立求值。复杂控制流、隐式动态协议和无法特化的摘要仍可能未知。
+
+Jedi 与 LCT 不简单合并。write_source_coverage 包含 required_events、逐事件 checks/outcome、
+sources 和 gaps；complete 是独立覆盖检查的结果，不从最终 Result 没有 unknown 反推。
+认证要求所有必需事件都有确定结论、来源属于支持范围且没有未解决缺口；已处理但结论未知
+仍不完整。valid_coverage 再核对义务与结论及来源，裸 complete=true、proof 字符串或 signals
+一致不能替代它。certified 仅附规则标签。Result.requirements 保留字段/槽位来源义务，union、
+绑定、字典复制和变量别名读取不能抹去；Graph 的完整性和 adjudicate 排除候选共用这一门槛。
+
+字典复制仍保留候选、未知来源、可能缺失及从左至右覆盖。为固定键做相关性覆盖时，后续
+明确键值可以屏蔽前序展开的槽来源依赖，但不能跳过其表达式自身的调用事件；源复制完成后的
+替换不回流副本。不能仅凭 sealed/literal-slot-state 认证；来源和相关操作也须覆盖。
+原始 Jedi 记录、LCT 轨迹及排除/未裁决理由分别保留。只有完整且有效的覆盖和具体语义规则
+才能排除冲突候选；否则保留部分关联及未裁决 Jedi 候选，明确 unknown/complete=false。
+没有把双方候选简单并集后标完整，也没有把正常直线方法或确定字典复制统一降级。
 
 这些规则覆盖测试中的有限模式；复杂多继承、反射、任意装饰器替换、复杂控制流写入和
 变参运输仍可能未知，不声称全库健全性。

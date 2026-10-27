@@ -127,7 +127,7 @@ class Graph:
                 reasons = sorted(result.reasons)
                 if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
                     reasons.append("dependency-version-unmatched")
-                complete = not reasons and bool(result.proofs)
+                complete = not reasons and analyzer.complete(result)
                 record = {k: v for k, v in item.items() if not k.startswith("_")}
                 record.update(
                     targets=targets,
@@ -275,6 +275,7 @@ class Graph:
                     )
             for scope, statement, context in analyzer.context_sites:
                 receivers = analyzer.resolve(scope, context)
+                context_complete = analyzer.complete(receivers)
                 expected = (
                     "async-context-manager"
                     if isinstance(statement, ast.AsyncWith)
@@ -287,15 +288,21 @@ class Graph:
                         scope,
                         receiver.target,
                         "CONTEXT_ENTERS",
-                        "possible" if receivers.unknown else "resolved",
+                        "resolved" if context_complete else "possible",
                         "context entry resumes the wrapped generator, separate from factory creation",
                         context.lineno,
                         context.col_offset,
                         ast.unparse(context),
                         invocation_phase="generator-resume",
                         executes_body=True,
-                        complete=not receivers.unknown,
-                        unknown_origin=receivers.unknown,
+                        complete=context_complete,
+                        unknown_origin=not context_complete,
+                        unresolved_reasons=sorted(receivers.reasons)
+                        + (
+                            ["missing-write-source-coverage"]
+                            if not analyzer.requirements_complete(receivers)
+                            else []
+                        ),
                     )
             for scope, expr, phase in analyzer.references:
                 result = analyzer.resolve(scope, expr)
