@@ -1,3 +1,133 @@
+# Python 解析第一阶段：独立审阅修复批次
+
+本批基线为 c1785038492a6955bbd140a31afc1a3867df3314。
+六个审阅反例、原有两项 gap 以及本批新增控制均通过；最终仓库测试
+**135 passed、1 skipped**，冻结实验 harness **7 passed**。
+结论只适用于下列受测范围，不推断三个业务仓库的全库准确率或所有动态 Python 的健全性。
+
+## 当前版本与范围
+
+- 目录：D:\Projects\agentic-trpg\local-code-tools。
+- 分支一直是 refactor/cgr-pipeline-integration；检查时 HEAD 与指定基线相同，
+  工作区仅有未跟踪 code_graph/。未发现 LCT/祖先目录的额外适用 AGENTS.md。
+- 最终程序与测试提交：521d6789f869eebaef21df727aa743e377012662。
+  随后的报告提交仅保存报告/合成证据和日志空白规则；最终交付 SHA 见交付消息，
+  或 git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md。
+- 没有新分支、回退、merge、reset/stash/rebase/force-push。只推送当前 LCT 分支。
+  code_graph/ 未读取、采用、删除、移动或暂存；没有操作真实数据库、图、向量、缓存和备份。
+  没有修改 CGR/三个业务仓库，也未扫描它们建索引。
+- 复用既有根 .venv 和实验 experiments/python_graph/.venv；没有安装或下载依赖。
+  Jedi 仍为 0.20.1，Python 3.12.14。测试串行，无 Docker/Neo4j/JVM/常驻服务或系统设置变更。
+  没有付费 Embedding/LLM 请求，无新增 MCP、正式图、增量或发布协调实现。
+
+## 六个反例与扩展控制
+
+修改实现前，先加入六个 closed_world=False 正式测试，实际得到 6 failed、exit 1，
+见 phase1-review/before-six.txt 和 XML；失败来自目标或完整性断言。
+初始默认 lambda 的位置 helper 后来补正为显式调用行 2，避免误匹配声明行；
+修复前其目标断言已经失败，没有改变目标、禁止目标、作用域或完整性答案。
+
+| 审阅项 | 修复与严格断言 | 状态 |
+| --- | --- | --- |
+| 实例字段覆盖方法 | 普通实例字段优先于非数据类成员，实例保存的函数不绑定 self；目标 target，禁止 C.run。数据描述符/动态访问/构造协议不能用该规则证明 | 通过 |
+| 默认参数 lambda | 语法 parent/qualname 不改为“修复”手段；新增 resolution_parent。定义头按外层解析，lambda body 仍独立执行；目标模块 target，禁止 f.target | 通过 |
+| NamedExpr | 明确顺序 store 生效，cb→a；短路/条件 store 有候选且 unknown；真正未绑定局部仍无全局回退 | 通过 |
+| 删除槽位 | 直接删除移除旧值，缺失槽有无有效目标证明；条件/动态删除 unknown，重写及无关槽分别处理 | 通过 |
+| 关键字容器逃逸 | 覆盖位置/关键字/*/** 及显式嵌套容器；a 保留但 complete=false。无关容器传递不污染完整性 | 通过 |
+| 负字面下标 | Constant 与 UnaryOp 正负整数按有限序列归一化，无 eval；-1 只选 b，禁止 a；正/负边界、越界、动态下标均检查 | 通过 |
+
+新增控制包括不同实例、未知构造参数、普通方法未覆盖、实例直接写入、property/数据描述符、
+非数据描述符、动态 __getattribute__/__setattr__、嵌套/装饰器参数/类中默认 lambda、
+条件 walrus、删除后重写、关键字及解包对照。正式 review 测试共 44 例，
+其中开放输入反例/控制没有被统一降级为 unknown；简单确定场景仍 complete=true。
+
+额外发现并先复现了“实例通过关键字传给未知函数后字段仍完整”的问题，exit 1，
+见 escape-before.txt；用有限实参逃逸守卫修复，字段原候选仍在，完整性降为 unknown。
+该修复发生在最终全套之前。
+
+## 原两项 gap
+
+| 原 gap | 当前行为及边界 | 状态 |
+| --- | --- | --- |
+| generator contextmanager | 按 Jedi 外部定义核对 contextlib.contextmanager/asynccontextmanager，捕获内同名函数不算标准包装；单层直线 yield 建立协议证明。支持别名和 async with；多 yield/分支/异常控制流/await 等复杂协议保留未知 | 原 oracle 通过 |
+| separate instance registries | 保存 AST 创建位置、构造参数和绑定接收者 origin，注册 key/value 只与同一 receiver 关联；first.dispatch 保留 a，禁止 second 的 b。闭合 fixture 完整；开放输入保留 a+未知 | 原 oracle 通过 |
+
+tests/test_python_pipeline_gaps.py 只更新了过时说明，未改任何正确答案、fixture 或断言，
+未 xfail/skip。review-cases.json 导出两项在 closed_world=True/False 的实际结果。
+实例关联是有限源码位置连接，没有通用对象堆；工厂复用、循环或函数内多次创建不能据此证明
+实例容器唯一性，明确 unknown/nonunique-instance-container-allocation，避免合并成确定目标。
+
+## 完整性及 Jedi/LCT 冲突规则
+
+Result 现在携带语义证明。complete 同时要求无未知原因且有具体证明；
+空 Result、唯一候选、工具无异常都不构成证明。新增 resolution_kind 区分：
+
+- proven-targets：有依据的完整目标集合。
+- partial-targets：有候选，也有未知来源。
+- proven-no-target：未绑定局部、删除后缺失字面槽、越界等明确无有效目标。
+- unsupported-or-unknown：缺证明、工具失败或尚未支持。
+
+每处保留原始 Jedi 映射、LCT 关联轨迹、双方候选及 resolution_decision。
+本批六个修复后双方候选一致；曾被 LCT 错误覆盖的正确信号不再被错误规则替代。
+如果双方不同：仅完整的已测试有限语义规则可排除候选，并列出 semantic_rules/
+excluded_jedi_targets；部分关联冲突保留未知及 unresolved_jedi_targets。
+没有决定性依据时保持冲突，不按一方优先，也不简单并集。模拟空适配结果的负控制检查
+Jedi 仍有候选时不能输出“空且完整”。来源目录、关系和检索仍共用同一节点提取器。
+
+## 最终验证与回归
+
+| 范围 | 结果 | exit |
+| --- | --- | --- |
+| 新增六反例，修改实现前 | 6 failed | 1 |
+| 额外实例逃逸反例，修复前 | 1 failed | 1 |
+| 新增 review 定向用例 | 44 passed | 0 |
+| 最终完整 tests/ | 135 passed、1 skipped、0 failed | 0 |
+| 冻结解析实验 harness | 7 passed | 0 |
+| 冻结合成导出 | 39/39 标注、44/44 节点，analysis_limited=false | 0 |
+| Ruff check / format --check | 通过 / 通过 | 0 / 0 |
+| diff whitespace/文档链接及围栏/暂存文件审计 | 通过 | 0 |
+
+135 个通过项包括既有回归、原两 gap 和新 review 控制。
+跳过仍是已有 opt-in 真实缓存兼容测试，缺依赖跳过 0。
+本轮修改前的完整基线 89 pass/2 fail/1 skip 来自独立审阅及首轮留存证据；
+本轮修改实现前实际重跑的是新增六反例，不能冒称重新跑过旧全套。
+最终新增失败 0，剩余强制验收失败 0。修复过程中曾出现单实例、未观察 dispatch 调用的
+旧注册表回归，已恢复有限构造来源，最终原测试通过。
+
+首次全套为 134 pass/1 skip；之后加入上面的实例逃逸修复，再最终运行 135 pass/1 skip。
+**最终完整 tests/ 与 harness 之后没有程序修改**，只生成证据和编辑本报告。
+两个进程按 JUnit 时间戳不重叠。原 truth/truth-freeze/real_truth 和冻结 fixtures 字节未改，
+harness 继续检查冻结哈希及禁止目标；合成调用指标仍 TP/FP/FN=34/0/0、虚假确定 0。
+这些不是业务仓库的 precision/recall，也不是独立审阅通过或远端 CI 通过。
+
+## 复现与剩余限制
+
+以下在 LCT 根目录串行执行；复用已有环境，输出目录选择尚未使用的名字。
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_review_regressions.py tests/test_python_pipeline_gaps.py --basetemp=.tmp/reproduce-review-focused
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/reproduce-review-all
+experiments/python_graph/.venv/Scripts/python.exe -m pytest -q experiments/python_graph/tests --basetemp=.tmp/reproduce-review-harness
+.venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/reproduce-review-frozen.json
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+git diff --check c1785038492a6955bbd140a31afc1a3867df3314..HEAD
+~~~
+
+无既有环境的独立审阅可按根/实验各自 uv.lock 安装；本轮没有执行安装。
+所有受测模式已通过，但复杂动态描述符/属性、任意装饰器、复杂 MRO、控制流写入、
+重用创建位置的实例容器、一般变参/逃逸关联仍有限。支持的有限规则与未解析原因见
+[节点与关系契约](../docs/PYTHON_PIPELINE.md)。没有恢复 CGR Flow、通用执行器或堆模拟器。
+后续 Neo4j/增量/检索迁移仍须使用同一 version_id/site_id、作用域、证明及未知信息，
+本轮没有提前实施或重建真实索引。
+
+---
+
+# 历史记录：首轮第一阶段交付
+
+以下保留 c1785038492a6955bbd140a31afc1a3867df3314 的首轮报告原文。
+其中“本轮失败两项”等措辞仅代表当时历史状态，不代表上面的独立审阅修复批次。
+
 # Python 节点与调用关系第一阶段审阅报告
 
 本轮交付程序、测试及可复现证据，**完整语义验收仍失败 2 项**。

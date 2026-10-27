@@ -1,0 +1,2741 @@
+{
+  "baseline": "c1785038492a6955bbd140a31afc1a3867df3314",
+  "source_commit": "521d6789f869eebaef21df727aa743e377012662",
+  "before": "before-six.txt / before-six.xml: 6 failures before implementation",
+  "cases": [
+    {
+      "id": "instance_override",
+      "closed_world": false,
+      "source": "def target(): pass\nclass C:\n def __init__(self): self.run=target\n def run(self): pass\ndef caller(): C().run()\n",
+      "expected_targets": [
+        "target"
+      ],
+      "forbidden": [
+        "C.run"
+      ],
+      "expected_unknown": false,
+      "actual_targets": [
+        "target"
+      ],
+      "site": {
+        "site_id": "be0534afd368d73159c69cef1f85dc64e6408a9cb1025149ef029156c015dd6b",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 5,
+        "column": 14,
+        "end_line": 5,
+        "end_column": 21,
+        "expression": "C().run",
+        "targets": [
+          "fixture:demo.py:function:target#1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "python-instance-field-precedence",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "python-instance-field-precedence",
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "target",
+                "full_name": "demo.target",
+                "type": "function",
+                "line": 1,
+                "column": 4,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "179f45eabb89e943db8c3a1be57cb93f7898b652e9aa75b868c9de113a8161ee",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:target#1.1",
+                "version_id": "70033e97a4781e4cc8ea11429bf6c4146fcc1c93e0a084e3793e4d9bc4c54bd2",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 14,
+                  "expression": "C().run",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:target#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-instance-field-precedence",
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 14,
+                  "expression": "C()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:C#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:function:caller#1.1:5:14"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 14,
+                  "expression": "C",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:C#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 30,
+                  "expression": "target",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:target#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "python-instance-field-precedence",
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "caller",
+      "execution_owner": "caller",
+      "passed": true
+    },
+    {
+      "id": "default_lambda",
+      "closed_world": false,
+      "source": "def target(): pass\ndef f(cb=lambda: target()):\n def target(): pass\n cb()\nf()\n",
+      "expected_targets": [
+        "target"
+      ],
+      "forbidden": [
+        "f.target"
+      ],
+      "expected_unknown": false,
+      "actual_targets": [
+        "target"
+      ],
+      "site": {
+        "site_id": "fac82ed9b64521803eac08d9d7e2bd7a1bc3688b9af78ce9375e31fefbab04c6",
+        "lexical_owner": "fixture:demo.py:function:f.<lambda>#1.1.1",
+        "execution_owner": "fixture:demo.py:function:f.<lambda>#1.1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 2,
+        "column": 17,
+        "end_line": 2,
+        "end_column": 23,
+        "expression": "target",
+        "targets": [
+          "fixture:demo.py:function:target#1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:target#1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "target",
+                "full_name": "demo.target",
+                "type": "function",
+                "line": 1,
+                "column": 4,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "efa1686b0ca41aec28cb6bdb4e190777605b58c86331797e4c2c9525015748f7",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:target#1.1",
+                "version_id": "f1b199cae7afa5661b811ca063e248e3f7acd62d1f5605fd333907dd0de31d67",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:f.<lambda>#1.1.1",
+                  "path": "demo.py",
+                  "line": 2,
+                  "column": 17,
+                  "expression": "target",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:target#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:target#1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "f.<lambda>",
+      "execution_owner": "f.<lambda>",
+      "passed": true
+    },
+    {
+      "id": "named_expression",
+      "closed_world": false,
+      "source": "def a(): pass\ndef caller():\n (cb:=a)\n cb()\n",
+      "expected_targets": [
+        "a"
+      ],
+      "forbidden": [],
+      "expected_unknown": false,
+      "actual_targets": [
+        "a"
+      ],
+      "site": {
+        "site_id": "32f34825bd7967571c96a7d637e4bf3d4fe1dc78ee83c30a89c6746b05b36e50",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 4,
+        "column": 1,
+        "end_line": 4,
+        "end_column": 3,
+        "expression": "cb",
+        "targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "a",
+                "full_name": "demo.a",
+                "type": "function",
+                "line": 1,
+                "column": 4,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "aaa73e48aa551e197ac04711e57fce82cf2190752f1eafb711a3a9eff5759214",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:a#1.1",
+                "version_id": "cd92976ba947dba86a6aebb149990d9d562ea41b58b08f1b3c79613cef7f6bf5",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 1,
+                  "expression": "cb",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 6,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "caller",
+      "execution_owner": "caller",
+      "passed": true
+    },
+    {
+      "id": "deleted_slot",
+      "closed_world": false,
+      "source": "def a(): pass\ndef caller():\n table={\"x\":a}\n del table[\"x\"]\n table[\"x\"]()\n",
+      "expected_targets": [],
+      "forbidden": [
+        "a"
+      ],
+      "expected_unknown": false,
+      "actual_targets": [],
+      "site": {
+        "site_id": "498b704a4b6a323ad9c426ce420b8c204088fdeb8f13bbf9d1ef0230dacaaf01",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 5,
+        "column": 1,
+        "end_line": 5,
+        "end_column": 11,
+        "expression": "table['x']",
+        "targets": [],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "missing-literal-slot"
+        ],
+        "resolution_kind": "proven-no-target",
+        "resolution_decision": {
+          "jedi_targets": [],
+          "lct_targets": [],
+          "selected_targets": [],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "missing-literal-slot"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": []
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table['x']",
+                  "rule": "Subscript",
+                  "alternatives": [],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "missing-literal-slot"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 7,
+                  "expression": "{'x': a}",
+                  "rule": "Dict",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 12,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 5,
+                  "expression": "table",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:container"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [],
+              "lct_targets": [],
+              "selected_targets": [],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "missing-literal-slot"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "caller",
+      "execution_owner": "caller",
+      "passed": true
+    },
+    {
+      "id": "keyword_escape",
+      "closed_world": false,
+      "source": "def a(): pass\ndef caller(modify):\n table={\"x\":a}\n modify(table=table)\n table[\"x\"]()\n",
+      "expected_targets": [
+        "a"
+      ],
+      "forbidden": [],
+      "expected_unknown": true,
+      "actual_targets": [
+        "a"
+      ],
+      "site": {
+        "site_id": "267e1aa0c5e573c58d5a5f0e2c679c7fc6794215e90486f4acf7912dd8a9205d",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 5,
+        "column": 1,
+        "end_line": 5,
+        "end_column": 11,
+        "expression": "table['x']",
+        "targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "unknown_origin": true,
+        "complete": false,
+        "completeness_basis": null,
+        "resolution_kind": "partial-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "literal-slot-state",
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [
+          "container-mutation-or-escape"
+        ],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "a",
+                "full_name": "demo.a",
+                "type": "function",
+                "line": 1,
+                "column": 4,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "4beca3c17dc57a60c6d5714fd6ee5ca0c969486b8309bc98ea59a25f532db621",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:a#1.1",
+                "version_id": "3a8c5bbb365437ffde7ef2bf1884575315c164e433808a5208f32ded598162e9",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table['x']",
+                  "rule": "Subscript",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "container-mutation-or-escape"
+                  ],
+                  "proofs": [
+                    "literal-slot-state",
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 7,
+                  "expression": "{'x': a}",
+                  "rule": "Dict",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 3,
+                  "column": 12,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 14,
+                  "expression": "table",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:3:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:container"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "literal-slot-state",
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "caller",
+      "execution_owner": "caller",
+      "passed": true
+    },
+    {
+      "id": "negative_index",
+      "closed_world": false,
+      "source": "def a(): pass\ndef b(): pass\ndef caller():\n table=[a,b]\n table[-1]()\n",
+      "expected_targets": [
+        "b"
+      ],
+      "forbidden": [
+        "a"
+      ],
+      "expected_unknown": false,
+      "actual_targets": [
+        "b"
+      ],
+      "site": {
+        "site_id": "2f5ba21bbefd241053b1a8dea42970872110a8f915ec54dbfaeb5cad0e8850e8",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 5,
+        "column": 1,
+        "end_line": 5,
+        "end_column": 10,
+        "expression": "table[-1]",
+        "targets": [
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "literal-slot-state",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:b#1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:b#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:b#1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "literal-slot-state",
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "b",
+                "full_name": "demo.b",
+                "type": "function",
+                "line": 2,
+                "column": 4,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "5554e89dc2489482e8b5b33503788560374ee883d01fe4248f4673578c52eee8",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:b#1.1",
+                "version_id": "9b963827940184ad444c7fc1eaa599347071ffdb2697a351346c903c5cc255f5",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table[-1]",
+                  "rule": "Subscript",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:b#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "literal-slot-state",
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 5,
+                  "column": 1,
+                  "expression": "table",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:4:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 7,
+                  "expression": "[a, b]",
+                  "rule": "List",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:caller#1.1:4:7",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 8,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 4,
+                  "column": 10,
+                  "expression": "b",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:b#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:b#1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:b#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:b#1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "literal-slot-state",
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      },
+      "lexical_owner": "caller",
+      "execution_owner": "caller",
+      "passed": true
+    }
+  ],
+  "former_gaps": [
+    {
+      "fixture": "generator_context.py",
+      "closed_world": true,
+      "targets": [
+        "Resource.work"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "site": {
+        "site_id": "0c9c1abe3b0375b916912bc8c955efd02cb0c2d9b8e096dcbbc227c0ae41c11e",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 18,
+        "column": 8,
+        "end_line": 18,
+        "end_column": 21,
+        "expression": "resource.work",
+        "targets": [
+          "fixture:demo.py:function:Resource.work#1.1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "python-nondata-member-lookup",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "python-nondata-member-lookup",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "work",
+                "full_name": "demo.Resource.work",
+                "type": "function",
+                "line": 7,
+                "column": 8,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "44199e5df74446f4beeb83757e5f5268b9c0beffd2ac73189e3a470fb53b2932",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:Resource.work#1.1.1",
+                "version_id": "e5ebd13f9e83492b23c6064eae5b35b0602ba9e34e3be6504d5285f126907424",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 18,
+                  "column": 8,
+                  "expression": "resource.work",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Resource.work#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Resource#1.1",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 18,
+                  "column": 8,
+                  "expression": "resource",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding",
+                    "single-straight-line-contextlib-yield"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 17,
+                  "column": 9,
+                  "expression": "acquire()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "context-manager",
+                      "target": "fixture:demo.py:function:acquire#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:context-manager",
+                    "verified-contextlib-wrapper"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 17,
+                  "column": 9,
+                  "expression": "acquire",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "context-factory",
+                      "target": "fixture:demo.py:function:acquire#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:context-factory",
+                    "verified-contextlib-decorator-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:acquire#1.1",
+                  "path": "demo.py",
+                  "line": 13,
+                  "column": 10,
+                  "expression": "Resource()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:acquire#1.1",
+                  "path": "demo.py",
+                  "line": 13,
+                  "column": 10,
+                  "expression": "Resource",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "python-nondata-member-lookup",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "generator_context.py",
+      "closed_world": false,
+      "targets": [
+        "Resource.work"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "site": {
+        "site_id": "0c9c1abe3b0375b916912bc8c955efd02cb0c2d9b8e096dcbbc227c0ae41c11e",
+        "lexical_owner": "fixture:demo.py:function:caller#1.1",
+        "execution_owner": "fixture:demo.py:function:caller#1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 18,
+        "column": 8,
+        "end_line": 18,
+        "end_column": 21,
+        "expression": "resource.work",
+        "targets": [
+          "fixture:demo.py:function:Resource.work#1.1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "python-nondata-member-lookup",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "lct_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:Resource.work#1.1.1"
+          ],
+          "conflict": false,
+          "reason": "matching-signals",
+          "semantic_rules": [
+            "python-nondata-member-lookup",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": [
+              {
+                "name": "work",
+                "full_name": "demo.Resource.work",
+                "type": "function",
+                "line": 7,
+                "column": 8,
+                "module_path": "fixture/demo.py",
+                "source_sha256": "44199e5df74446f4beeb83757e5f5268b9c0beffd2ac73189e3a470fb53b2932",
+                "mapping": "exact-captured-definition",
+                "target": "fixture:demo.py:function:Resource.work#1.1.1",
+                "version_id": "e5ebd13f9e83492b23c6064eae5b35b0602ba9e34e3be6504d5285f126907424",
+                "repository": "fixture"
+              }
+            ]
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 18,
+                  "column": 8,
+                  "expression": "resource.work",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Resource.work#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Resource#1.1",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 18,
+                  "column": 8,
+                  "expression": "resource",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding",
+                    "single-straight-line-contextlib-yield"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 17,
+                  "column": 9,
+                  "expression": "acquire()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "context-manager",
+                      "target": "fixture:demo.py:function:acquire#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:context-manager",
+                    "verified-contextlib-wrapper"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:caller#1.1",
+                  "path": "demo.py",
+                  "line": 17,
+                  "column": 9,
+                  "expression": "acquire",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "context-factory",
+                      "target": "fixture:demo.py:function:acquire#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:context-factory",
+                    "verified-contextlib-decorator-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:acquire#1.1",
+                  "path": "demo.py",
+                  "line": 13,
+                  "column": 10,
+                  "expression": "Resource()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:function:acquire#1.1:13:10"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:acquire#1.1",
+                  "path": "demo.py",
+                  "line": 13,
+                  "column": 10,
+                  "expression": "Resource",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Resource#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "lct_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:Resource.work#1.1.1"
+              ],
+              "conflict": false,
+              "reason": "matching-signals",
+              "semantic_rules": [
+                "python-nondata-member-lookup",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": true
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "instance_registries.py",
+      "closed_world": true,
+      "targets": [
+        "a"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "site": {
+        "site_id": "36b617da2ce51e7078458d8b4cb08eb1c0f9113ef7149caa36316aa350304f2c",
+        "lexical_owner": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+        "execution_owner": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 12,
+        "column": 8,
+        "end_line": 12,
+        "end_column": 27,
+        "expression": "self.handlers['go']",
+        "targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "unknown_origin": false,
+        "complete": true,
+        "completeness_basis": [
+          "literal-slot-state",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "resolution_kind": "proven-targets",
+        "resolution_decision": {
+          "jedi_targets": [],
+          "lct_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "conflict": false,
+          "reason": "finite-association-with-missing-jedi-signal",
+          "semantic_rules": [
+            "literal-slot-state",
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": []
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self.handlers['go']",
+                  "rule": "Subscript",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "literal-slot-state",
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self.handlers",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-instance-field-precedence",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "bound-receiver-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 27,
+                  "column": 0,
+                  "expression": "first.dispatch",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 27,
+                  "column": 0,
+                  "expression": "first",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 23,
+                  "column": 8,
+                  "expression": "Registry()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 23,
+                  "column": 8,
+                  "expression": "Registry",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 15,
+                  "expression": "'go'",
+                  "rule": "Constant",
+                  "alternatives": [
+                    {
+                      "kind": "literal",
+                      "target": "'go'",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:literal"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 21,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 16,
+                  "expression": "'go'",
+                  "rule": "Constant",
+                  "alternatives": [
+                    {
+                      "kind": "literal",
+                      "target": "'go'",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:literal"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 22,
+                  "expression": "b",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:b#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.__init__#1.1.1",
+                  "path": "demo.py",
+                  "line": 6,
+                  "column": 24,
+                  "expression": "{}",
+                  "rule": "Dict",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 0,
+                  "expression": "first",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 0,
+                  "expression": "second",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 24,
+                  "column": 9,
+                  "expression": "Registry()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 24,
+                  "column": 9,
+                  "expression": "Registry",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.register#1.1.1",
+                  "path": "demo.py",
+                  "line": 9,
+                  "column": 8,
+                  "expression": "self.handlers",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    },
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-instance-field-precedence",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.register#1.1.1",
+                  "path": "demo.py",
+                  "line": 9,
+                  "column": 8,
+                  "expression": "self",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    },
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "bound-receiver-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 0,
+                  "expression": "first.register",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.register#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 0,
+                  "expression": "second.register",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.register#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [],
+              "lct_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "conflict": false,
+              "reason": "finite-association-with-missing-jedi-signal",
+              "semantic_rules": [
+                "literal-slot-state",
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": false
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "instance_registries.py",
+      "closed_world": false,
+      "targets": [
+        "a"
+      ],
+      "complete": false,
+      "unknown_origin": true,
+      "site": {
+        "site_id": "36b617da2ce51e7078458d8b4cb08eb1c0f9113ef7149caa36316aa350304f2c",
+        "lexical_owner": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+        "execution_owner": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+        "phase": "body",
+        "kind": "call",
+        "line": 12,
+        "column": 8,
+        "end_line": 12,
+        "end_column": 27,
+        "expression": "self.handlers['go']",
+        "targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "unknown_origin": true,
+        "complete": false,
+        "completeness_basis": null,
+        "resolution_kind": "partial-targets",
+        "resolution_decision": {
+          "jedi_targets": [],
+          "lct_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "selected_targets": [
+            "fixture:demo.py:function:a#1.1"
+          ],
+          "conflict": false,
+          "reason": "finite-association-with-missing-jedi-signal",
+          "semantic_rules": [
+            "literal-slot-state",
+            "reaching-lexical-binding",
+            "source-value:callable"
+          ],
+          "excluded_jedi_targets": [],
+          "unresolved_jedi_targets": [],
+          "excluded_lct_targets": []
+        },
+        "unresolved_reasons": [
+          "open-registry-writes",
+          "unknown-container-origin"
+        ],
+        "boundaries": [],
+        "evidence": [
+          {
+            "tool": "ast",
+            "role": "site and execution phase"
+          },
+          {
+            "tool": "jedi",
+            "version": "0.20.1",
+            "role": "definition signal",
+            "raw": []
+          },
+          {
+            "tool": "lct",
+            "role": "validated binding/argument/container association",
+            "association_trace": {
+              "steps": [
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self.handlers['go']",
+                  "rule": "Subscript",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "open-registry-writes",
+                    "unknown-container-origin"
+                  ],
+                  "proofs": [
+                    "literal-slot-state",
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self.handlers",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "unknown-receiver"
+                  ],
+                  "proofs": [
+                    "python-instance-field-precedence",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                  "path": "demo.py",
+                  "line": 12,
+                  "column": 8,
+                  "expression": "self",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "open-receiver-input"
+                  ],
+                  "proofs": [
+                    "bound-receiver-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 27,
+                  "column": 0,
+                  "expression": "first.dispatch",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.dispatch#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 27,
+                  "column": 0,
+                  "expression": "first",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 23,
+                  "column": 8,
+                  "expression": "Registry()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 23,
+                  "column": 8,
+                  "expression": "Registry",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 15,
+                  "expression": "'go'",
+                  "rule": "Constant",
+                  "alternatives": [
+                    {
+                      "kind": "literal",
+                      "target": "'go'",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:literal"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 21,
+                  "expression": "a",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:a#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 16,
+                  "expression": "'go'",
+                  "rule": "Constant",
+                  "alternatives": [
+                    {
+                      "kind": "literal",
+                      "target": "'go'",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:literal"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 22,
+                  "expression": "b",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:b#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.__init__#1.1.1",
+                  "path": "demo.py",
+                  "line": 6,
+                  "column": 24,
+                  "expression": "{}",
+                  "rule": "Dict",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 0,
+                  "expression": "first",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 0,
+                  "expression": "second",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site",
+                    "reaching-lexical-binding"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 24,
+                  "column": 9,
+                  "expression": "Registry()",
+                  "rule": "Call",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "explicit-construction-site"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 24,
+                  "column": 9,
+                  "expression": "Registry",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "class",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": ""
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "reaching-lexical-binding",
+                    "source-value:class"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.register#1.1.1",
+                  "path": "demo.py",
+                  "line": 9,
+                  "column": 8,
+                  "expression": "self.handlers",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    },
+                    {
+                      "kind": "container",
+                      "target": "fixture:demo.py:function:Registry.__init__#1.1.1:6:24",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "unknown-receiver"
+                  ],
+                  "proofs": [
+                    "python-instance-field-precedence",
+                    "source-value:container"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:function:Registry.register#1.1.1",
+                  "path": "demo.py",
+                  "line": 9,
+                  "column": 8,
+                  "expression": "self",
+                  "rule": "Name",
+                  "alternatives": [
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    },
+                    {
+                      "kind": "instance",
+                      "target": "fixture:demo.py:class:Registry#1.1",
+                      "bound": false,
+                      "receiver": "",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [
+                    "open-receiver-input"
+                  ],
+                  "proofs": [
+                    "bound-receiver-origin"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 25,
+                  "column": 0,
+                  "expression": "first.register",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.register#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:23:8"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                },
+                {
+                  "scope": "fixture:demo.py:module:demo#1",
+                  "path": "demo.py",
+                  "line": 26,
+                  "column": 0,
+                  "expression": "second.register",
+                  "rule": "Attribute",
+                  "alternatives": [
+                    {
+                      "kind": "callable",
+                      "target": "fixture:demo.py:function:Registry.register#1.1.1",
+                      "bound": true,
+                      "receiver": "fixture:demo.py:class:Registry#1.1",
+                      "allocation": "fixture:demo.py:module:demo#1:24:9"
+                    }
+                  ],
+                  "unknown_reasons": [],
+                  "proofs": [
+                    "python-nondata-member-lookup",
+                    "source-value:callable"
+                  ]
+                }
+              ],
+              "truncated": false
+            },
+            "decision": {
+              "jedi_targets": [],
+              "lct_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "selected_targets": [
+                "fixture:demo.py:function:a#1.1"
+              ],
+              "conflict": false,
+              "reason": "finite-association-with-missing-jedi-signal",
+              "semantic_rules": [
+                "literal-slot-state",
+                "reaching-lexical-binding",
+                "source-value:callable"
+              ],
+              "excluded_jedi_targets": [],
+              "unresolved_jedi_targets": [],
+              "excluded_lct_targets": []
+            },
+            "signal_agrees": false
+          }
+        ]
+      }
+    }
+  ],
+  "paid_requests": 0,
+  "scope": "source-only synthetic"
+}

@@ -1,0 +1,36 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________ test_instance_keyword_escape_retains_field_uncertainty ____________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/escape-before/test_instance_keyword_escape_r0')
+
+    def test_instance_keyword_escape_retains_field_uncertainty(tmp_path):
+        r=analyze(tmp_path,{"demo.py":"""def a(): pass
+    class C:
+     def __init__(self): self.run=a
+     def run(self): pass
+    def caller(modify):
+     obj=C()
+     modify(obj=obj)
+     obj.run()
+    """},closed=False)
+>       expect(r,"obj.run","caller",{"a"},forbidden={"C.run"},unknown=True,complete=False)
+
+tests\test_python_review_regressions.py:522: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = True
+complete = False, forbidden = {'C.run'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+>       assert s["unknown_origin"] is unknown
+E       assert False is True
+
+tests\test_python_pipeline.py:52: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_python_review_regressions.py::test_instance_keyword_escape_retains_field_uncertainty
+1 failed in 1.46s

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="1.040" timestamp="2026-10-27T22:17:52.877516+08:00" hostname="DESKTOP-CDCCU1M"><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[instance_override]" time="0.505"><failure message="AssertionError: assert {'C.run'} == {'target'}&#10;  &#10;  Extra items in the left set:&#10;  'C.run'&#10;  Extra items in the right set:&#10;  'target'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w0')
+case = ('instance_override', 'def target(): pass\nclass C:\n def __init__(self): self.run=target\n def run(self): pass\ndef caller(): C().run()\n', 'C().run', 'caller', {'target'}, {'C.run'}, ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 2, ...})
+expression = 'C().run', owner = 'caller', targets = {'target'}, unknown = False
+complete = True, forbidden = {'C.run'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'C.run'} == {'target'}
+E         
+E         Extra items in the left set:
+E         'C.run'
+E         Extra items in the right set:
+E         'target'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[default_lambda]" time="0.022"><failure message="AssertionError: assert {'f.target'} == {'target'}&#10;  &#10;  Extra items in the left set:&#10;  'f.target'&#10;  Extra items in the right set:&#10;  'target'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w1')
+case = ('default_lambda', 'def target(): pass\ndef f(cb=lambda: target()):\n def target(): pass\n cb()\nf()\n', 'target', 'f.&lt;lambda&gt;', {'target'}, {'f.target'}, ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...py:module:demo#1', 'execution_owner': 'fixture:demo.py:module:demo#1', 'phase': 'module', ...}], 'call_sites': 3, ...})
+expression = 'target', owner = 'f.&lt;lambda&gt;', targets = {'target'}
+unknown = False, complete = True, forbidden = {'f.target'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'f.target'} == {'target'}
+E         
+E         Extra items in the left set:
+E         'f.target'
+E         Extra items in the right set:
+E         'target'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[named_expression]" time="0.018"><failure message="AssertionError: assert set() == {'a'}&#10;  &#10;  Extra items in the right set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w2')
+case = ('named_expression', 'def a(): pass\ndef caller():\n (cb:=a)\n cb()\n', 'cb', 'caller', {'a'}, set(), ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = 'cb', owner = 'caller', targets = {'a'}, unknown = False
+complete = True, forbidden = set()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'a'}
+E         
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[deleted_slot]" time="0.018"><failure message="AssertionError: assert {'a'} == set()&#10;  &#10;  Extra items in the left set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w3')
+case = ('deleted_slot', 'def a(): pass\ndef caller():\n table={"x":a}\n del table["x"]\n table["x"]()\n', "table['x']", 'caller', set(), {'a'}, ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = "table['x']", owner = 'caller', targets = set(), unknown = False
+complete = True, forbidden = {'a'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'a'} == set()
+E         
+E         Extra items in the left set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[keyword_escape]" time="0.021"><failure message="assert False is True">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w4')
+case = ('keyword_escape', 'def a(): pass\ndef caller(modify):\n table={"x":a}\n modify(table=table)\n table["x"]()\n', "table['x']", 'caller', {'a'}, set(), ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 2, ...})
+expression = "table['x']", owner = 'caller', targets = {'a'}, unknown = True
+complete = False, forbidden = set()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+&gt;       assert s["unknown_origin"] is unknown
+E       assert False is True
+
+tests\test_python_pipeline.py:52: AssertionError</failure></testcase><testcase classname="tests.test_python_review_regressions" name="test_independent_review_open_world[negative_index]" time="0.017"><failure message="AssertionError: assert {'a', 'b'} == {'b'}&#10;  &#10;  Extra items in the left set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-review/before-six/test_independent_review_open_w5')
+case = ('negative_index', 'def a(): pass\ndef b(): pass\ndef caller():\n table=[a,b]\n table[-1]()\n', 'table[-1]', 'caller', {'b'}, {'a'}, ...)
+
+    @pytest.mark.parametrize("case", CASES, ids=lambda c:c[0])
+    def test_independent_review_open_world(tmp_path,case):
+        _,source,expression,owner,targets,forbidden,unknown=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=expect(result,expression,owner,targets,forbidden=forbidden,
+                 unknown=unknown,complete=not unknown)
+
+tests\test_python_review_regressions.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = 'table[-1]', owner = 'caller', targets = {'b'}, unknown = False
+complete = True, forbidden = {'a'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'a', 'b'} == {'b'}
+E         
+E         Extra items in the left set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase></testsuite></testsuites>
