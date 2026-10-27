@@ -203,6 +203,36 @@ valid_call_no_effect/valid_coverage 对字段调用拒绝缺证明、未知目�
 提供独立不可访问证明。不适用于未知来源参数、已逃逸对象、捕获的局部绑定、复杂
 构造器或缺失历史。证据逐项输出，缺一则 UNKNOWN；不假设任意反射/frame/GC 路径安全。
 
+## 隐式执行的认证边界
+
+普通 ast.Call 继续使用原 ReceiverAccess/方法效果摘要。装饰器应用属于 implicit-call，
+不能用普通函数没有 bound receiver 或没有直接对象名证明无影响；本轮没有装饰器效果证明，
+所有可达应用都返回 implicit-decorator-effects-not-modeled，阻止字段/槽位完整性认证。
+仅定义未应用的普通函数不产生该事件。不可达事件继续使用目录的不可达事实。
+
+With/AsyncWith、循环、异常、生成器/推导式等尚未建模 region 返回
+unsupported-protocol-region。子调用成功不代表进入/退出或其他隐式协议
+已覆盖。scope-execution 只有一个有限安全规则：无 bases/keywords/装饰器/type parameters，
+类体仅 Pass、常量表达式及普通/异步函数定义；函数无装饰器/类型参数，定义头 AST 仅允许
+arguments、arg、Constant，不检查方法主体。赋值、名称、属性、调用等其他结构不通过。
+不满足时为 unsupported-class-definition-effects，不按名称未命中判断无影响。
+该 NO_EFFECT 只指不会修改当前查询的既有实例字段，不代表类定义完全没有运行行为。
+本轮不精算任何隐式执行写入的新字段值，不新建控制流/协议求解器。
+
+valid_coverage 对 implicit-call、region、scope-execution 按事件类型检查证据，不套用 ast.Call
+参数模型。无已支持规则就拒绝 NO_EFFECT，KNOWN_EFFECT 标签也不能冒充新支持。
+局部无害类规则的 execution_evidence 包含实际语法源码、事件身份及原行列；验证核对事件类型、
+行列，重新检查有限语法条件并匹配
+捕获 AST 的 syntax_digest。proof=true、supported=true、原因标签或其他类的源码不能替代。
+事件类型、可达性、位置及语法摘要由目录保持权威，不允许效果 detail 覆盖它们。
+隐式未知保留“字段可能仍不存在”的原状态，使已有类成员可作为不完整候选；既不伪装唯一
+确定目标，也不凭空推导新目标。覆盖失败沿 Result.requirements 传到最终 CALLS，Jedi 一致
+也不能绕过。无害类定义中的未调用方法仍不算当前副作用。
+
+保护范围是已进入当前读取覆盖义务的执行事件。现有目录按区域结束记录 region；区域内部读取
+对进入阶段的时序覆盖属于另外的目录审阅问题，本轮按指定范围未调整，也不宣称已完整支持
+任意 with 内部读取/进入阶段或上下文协议。后续应独立复核此已记录边界。
+
 以上完整性受有限显式源语义约束，不证明任意 Python 隐式协议、反射、原生扩展或外部并发
 修改的健全性。没有执行被分析源码来求值，不将同一创建位置等同于通用运行堆身份。
 

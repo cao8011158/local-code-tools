@@ -14,7 +14,14 @@ import jedi
 
 from .common import canonical, digest
 from .python_access import AccessKind, ReceiverAccess, access, combine
-from .python_effects import EffectCatalog, EffectCoverage, EffectKind, EffectOutcome, valid_coverage
+from .python_effects import (
+    EffectCatalog,
+    EffectCoverage,
+    EffectKind,
+    EffectOutcome,
+    implicit_execution_effect,
+    valid_coverage,
+)
 
 _DYNAMIC = object()
 CALLABLE_KINDS = frozenset(("callable", "class", "context-factory", "async-context-factory"))
@@ -1338,13 +1345,7 @@ class Analyzer:
                 else no("binding-does-not-replace-receiver")
             )
         if event.kind == "implicit-call":
-            targets = self.resolve(scope, node)
-            if any(
-                a.bound and (not a.allocation or a.allocation == receiver.allocation)
-                for a in targets.atoms
-            ):
-                return bad("implicit-decorator-effects-not-modeled")
-            return no("decorator-without-queried-receiver-dependency")
+            return bad("implicit-decorator-effects-not-modeled")
         if event.kind == "terminate":
             return (
                 bad("conditional-termination-not-modeled")
@@ -1419,20 +1420,10 @@ class Analyzer:
             effect = self.call_field_effect(event, receiver, name, receiver_name)
             self.access.call_records[(scope, id(event.node), receiver.allocation)] = effect
             return effect
-        if event.kind in ("region", "scope-execution"):
-            # Regions are obligations even when nested events are handled. Dynamic protocols
-            # touching this receiver cannot be proved harmless by a successful child handler.
-            active_scope = self.owner[id(node)] if event.kind == "scope-execution" else scope
-            for child in ast.walk(node):
-                if (
-                    isinstance(child, ast.Name)
-                    and isinstance(child.ctx, ast.Load)
-                    and self.execution_nodes.get(id(child), (None,))[0] == active_scope
-                ):
-                    values = self.effect_owners(receiver, scope, child, receiver_name)
-                    if self.receiver_relation(receiver, values) == "same":
-                        return bad("unsupported-related-syntax-region")
-            return no("region-without-queried-receiver-dependency")
+        if event.kind == "region":
+            return bad("unsupported-protocol-region")
+        if event.kind == "scope-execution":
+            return implicit_execution_effect(event)
         return bad("missing-effect-handler")
 
     def field_scope(self, receiver, name, scope, anchor, receiver_name, coverage, initial=None):
@@ -1461,6 +1452,14 @@ class Analyzer:
             coverage.events.append(dict(event.location(), reason=effect.reason))
             candidate = effect.value or unknown(effect.reason)
             if effect.kind == EffectKind.UNKNOWN_EFFECT:
+                if value is None and effect.reason in {
+                    "implicit-decorator-effects-not-modeled",
+                    "unsupported-protocol-region",
+                    "unsupported-class-definition-effects",
+                }:
+                    # Unsupported execution may leave the absent instance field unchanged.
+                    # Retain the existing class-member fallback as a partial alternative.
+                    value = known("absent-field", name)
                 if effect.reason.startswith("deferred-"):
                     value = union(candidate, unknown(effect.reason))
                 else:
@@ -1804,6 +1803,11 @@ class Analyzer:
                 )
                 if not event.reachable:
                     continue
+                if event.kind in ("implicit-call", "region", "scope-execution"):
+                    effect = implicit_execution_effect(event)
+                    coverage.record(event, effect)
+                    if effect.kind == EffectKind.UNKNOWN_EFFECT:
+                        extra.append(unknown(effect.reason))
                 if event.kind not in {
                     "write",
                     "call",

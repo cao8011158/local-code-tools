@@ -5,6 +5,7 @@ kept even when no effect handler supports them; deferred bodies have their own s
 """
 
 import ast
+import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -47,7 +48,7 @@ class EffectEvent:
 
     def location(self):
         """Export public evidence without the internal AST object."""
-        return dict(
+        location = dict(
             event_id=self.ident,
             kind=self.kind,
             event_kind=self.kind,
@@ -60,6 +61,9 @@ class EffectEvent:
             reachable=self.reachable,
             phase=self.phase,
         )
+        if isinstance(self.node, ast.ClassDef):
+            location["syntax_digest"] = class_syntax_digest(self.node)
+        return location
 
 
 class EffectCatalog:
@@ -234,6 +238,101 @@ class EffectCatalog:
         return [e for e in self.by_scope.get(scope, []) if e.order < limit]
 
 
+def class_syntax_digest(node):
+    """Bind the local class proof to captured syntax, ignoring only source offsets."""
+    return hashlib.sha256(ast.dump(node, include_attributes=False).encode("utf-8")).hexdigest()
+
+
+def inert_class_definition(node):
+    """Recognize only baseless, undecorated classes with inert declaration headers.
+
+    Method bodies are deliberately not inspected: defining them does not run them.
+    No metaclass, descriptor, annotation-name or default-call effects are inferred.
+    """
+    if (
+        not isinstance(node, ast.ClassDef)
+        or node.bases
+        or node.keywords
+        or node.decorator_list
+        or getattr(node, "type_params", [])
+    ):
+        return False
+
+    for statement in node.body:
+        if (
+            isinstance(statement, ast.Pass)
+            or isinstance(statement, ast.Expr)
+            and isinstance(statement.value, ast.Constant)
+        ):
+            continue
+        if not isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return False
+        if statement.decorator_list or getattr(statement, "type_params", []):
+            return False
+        headers = [statement.args] + ([statement.returns] if statement.returns is not None else [])
+        if any(
+            not isinstance(part, (ast.arguments, ast.arg, ast.Constant))
+            for header in headers
+            for part in ast.walk(header)
+        ):
+            return False
+    return True
+
+
+def implicit_execution_effect(event):
+    """Unsupported implicit execution is unknown, never disproved by missing references."""
+    if event.kind == "scope-execution" and inert_class_definition(event.node):
+        proof = dict(
+            rule="inert-class-definition",
+            event_id=event.ident,
+            source=ast.unparse(event.node),
+            line=event.node.lineno,
+            column=event.node.col_offset,
+        )
+        return EffectOutcome(
+            EffectKind.NO_EFFECT, "inert-class-definition", detail=dict(execution_evidence=proof)
+        )
+    reason = (
+        "implicit-decorator-effects-not-modeled"
+        if event.kind == "implicit-call"
+        else "unsupported-protocol-region"
+        if event.kind == "region"
+        else "unsupported-class-definition-effects"
+    )
+    return EffectOutcome(EffectKind.UNKNOWN_EFFECT, reason)
+
+
+def valid_implicit_no_effect(check):
+    """Only an unreachable event or the exact local inert-class rule has a No-effect proof."""
+    if not check.get("reachable", True):
+        return True
+    if (
+        check.get("event_kind", check.get("kind")) != "scope-execution"
+        or check.get("syntax") != "ClassDef"
+    ):
+        return False
+    proof = check.get("execution_evidence", {})
+    if not isinstance(proof, dict):
+        return False
+    if (
+        proof.get("rule") != "inert-class-definition"
+        or proof.get("event_id") != check.get("event_id")
+        or proof.get("line") != check.get("line")
+        or proof.get("column") != check.get("column")
+        or not isinstance(proof.get("source"), str)
+    ):
+        return False
+    try:
+        parsed = ast.parse(proof["source"]).body
+    except (SyntaxError, ValueError, TypeError):
+        return False
+    return (
+        len(parsed) == 1
+        and inert_class_definition(parsed[0])
+        and class_syntax_digest(parsed[0]) == check.get("syntax_digest")
+    )
+
+
 def valid_call_no_effect(check):
     """A field-call NO_EFFECT needs checked access, phase, summary or creation evidence."""
     if not check.get("reachable", True):
@@ -337,6 +436,11 @@ def valid_coverage(receipt):
         )
         and all(s.get("supported") is True for s in sources)
         and all(
+            c.get("outcome") == EffectKind.NO_EFFECT.value and valid_implicit_no_effect(c)
+            for c in checks
+            if c.get("event_kind", c.get("kind")) in ("implicit-call", "region", "scope-execution")
+        )
+        and all(
             valid_call_no_effect(c)
             for c in checks
             if receipt.get("rule") in ("instance-field-coverage", "finite-method-summary")
@@ -373,13 +477,17 @@ class EffectCoverage:
 
     def export(self):
         """Certify only covered events and supported sources, with no unresolved gaps."""
-        checks = [
-            dict(
-                e,
-                **self.outcomes.get(i, dict(outcome="UNHANDLED", reason="missing-effect-handler")),
+        checks = []
+        for ident, location in self.required.items():
+            check = dict(
+                location,
+                **self.outcomes.get(
+                    ident, dict(outcome="UNHANDLED", reason="missing-effect-handler")
+                ),
             )
-            for i, e in self.required.items()
-        ]
+            # Handler details may describe a method; they cannot rewrite event reachability/type.
+            check.update({k: v for k, v in location.items() if k != "kind"})
+            checks.append(check)
         complete = (
             bool(self.sources)
             and all(s["supported"] for s in self.sources)

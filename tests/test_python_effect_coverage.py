@@ -309,7 +309,14 @@ def test_unrelated_nested_body_in_region_does_not_resume(tmp_path):
     text = source(
         "receiver.run=b", "for _ in ():\n  async def nested():\n   await obj.change()", True
     )
-    check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a"}, {"b"})
+    result = analyze(tmp_path, {"demo.py": text}, closed=False)
+    s = check(result, "obj.run", {"a"}, {"b"}, True)
+    assert "unsupported-protocol-region" in s["unresolved_reasons"]
+    assert not any("deferred-" in r for r in s["unresolved_reasons"])
+    owners = {n["node_id"]: n["qualname"] for n in result[0]}
+    assert {
+        owners[t["execution_owner"]] for t in result[2]["sites"] if t["expression"] == "obj.change"
+    } == {"caller.nested"}
 
 
 @pytest.mark.parametrize(
@@ -454,7 +461,7 @@ def test_chained_comparison_resumption_is_conditional(tmp_path, operation):
 def test_executed_class_body_is_an_explicit_scope_dependency(tmp_path):
     text = source("receiver.run=b", "class Nested:\n  obj.run=b")
     s = check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a"}, {"b"}, True)
-    assert "unsupported-related-syntax-region" in s["unresolved_reasons"]
+    assert "unsupported-class-definition-effects" in s["unresolved_reasons"]
 
 
 def test_uninvoked_class_method_body_is_not_an_executed_class_dependency(tmp_path):
