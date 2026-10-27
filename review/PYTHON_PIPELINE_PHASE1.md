@@ -1,3 +1,84 @@
+# 第七轮：隐式执行认证收敛修复
+
+分支 refactor/cgr-pipeline-integration；启动 HEAD 与审阅基线均为
+10542de7c53bd3a825f0c016fe3d20d5db7d6fb9，未前进。无已跟踪修改，只有未跟踪 code_graph/。
+已读适用指引检查（目标及父目录无额外 AGENTS.md）、当前契约及最新记录。
+源码/测试提交：**e21cb68ecf273039f4b00993b454e48e03d349e9**。
+最终报告提交 SHA 由交付消息及 `git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md` 给出。
+
+本批按用户确认的收敛方案结束，没有重新设计普通调用。python_access.py、Graph、storage、
+extract、query 及依赖/锁文件未修改；未新建分支/reset/merge，未读取/清理 code_graph/ 或真实
+graph/数据库/索引/向量/BM25/缓存/备份，未改其他仓库、安装依赖、启动服务或调用付费 API。
+所有实际测试串行使用现有环境与合成源码/临时数据。
+
+## 最终规则
+
+- field_event 的可达 implicit-call 直接 UNKNOWN_EFFECT：
+  implicit-decorator-effects-not-modeled；region 直接 unsupported-protocol-region。
+  不做装饰器闭包或上下文协议效果推导，不用名称未命中证明无影响。
+- scope-execution 仅接受有限无害类：无 bases/keywords/装饰器/type parameters；类体只含 Pass、
+  常量表达式、普通/异步函数定义；函数无装饰器/type parameters，头部节点仅 arguments、arg、
+  Constant。其他为 unsupported-class-definition-effects。没有赋值/继承/元类/复杂头部规则。
+  方法体不参与安全判定；NO_EFFECT 只针对既有实例字段，不表示类定义没有运行行为。
+- valid_coverage 对可能执行的隐式事件按类型分派。无规则的 implicit-call/region 不接受
+  NO_EFFECT；scope-execution 重检实际源码语法结构、事件类型、原行列及 syntax_digest。
+  缺证据、标志/原因标签、更换事件元数据均不能认证。不可达事件保留原规则。
+  普通 call 继续原 valid_call_no_effect，没有把其参数模型套用到隐式事件。
+- field_scope 的三个 UNKNOWN 原因在 value=None 时复用 absent-field，合入原类成员候选，
+  未知原因保留。没有重写 attribute；second.work 的 R.work 候选及原未知断言继续通过。
+
+## 实际验证
+
+修改前固定两个 Graph.build 反例、两个未应用定义对照及三种无依据证据检查，
+closed_world=False：**5 failed、2 passed**，原始 before.* 保留。两个程序反例都曾错误完整；
+三个标签认证也都错误通过。修复后两个程序均保留 a 为不完整候选，禁止精确推导 b，
+unknown_origin=true/complete=false，原因明确，无完整排除 Jedi 候选。删除应用/with 的对照
+仍精确为 a。最终新增 **41 项通过**，包含原七项、类规则、行列/语法篡改、元数据伪造、
+不可达、最终 CALLS 传播及匹配 Jedi 的负控制，没有 xfail。
+
+| 本地实际命令范围 | 结果 |
+| --- | --- |
+| 原七项，修改前 | 5 failed、2 passed，exit 1 |
+| 收敛后新增＋旧覆盖＋原复杂 contextlib 回归 | **109 passed**，exit 0 |
+| 收敛后一次完整 tests | **397 passed、1 skipped**，69.72 s，exit 0 |
+| Ruff check / format --check / git diff --check | 通过 |
+
+最终完整分组为原 356 passed/1 skipped，加新增 41 passed。唯一 skip 仍为 opt-in 真实缓存，
+未访问真实缓存；缺依赖跳过 0。旧普通调用、闭包、嵌套容器、方法效果等全部由全套覆盖。
+用户提供的独立基线 363/1 与历史 26 passed 属外部审阅证据，未当作本批本地执行计数。
+未重跑外部历史 26、旧选型 harness、冻结导出器、真实业务验证、MCP/E2E 或远端 CI。
+
+仅两处旧断言调整：
+1. test_unrelated_nested_body_in_region_does_not_resume：空 for 没有安全证明，完整降为未知；
+   仍保留 a/禁止 b、位置/作用域检查，原因 unsupported-protocol-region，无 deferred 原因；
+   obj.change 归属 caller.nested，不能归 caller。未新增空循环分析。
+2. test_executed_class_body_is_an_explicit_scope_dependency：只改原因字符串为
+   unsupported-class-definition-effects，原候选和未知状态不变。
+
+test_contextlib_alias_and_complex_generator 未改。为解决其候选丢失，使用既有 absent-field
+回退，没有放宽目标或删除断言。中间三项新测试一度因缺 Analyzer 导入失败，已修复并通过；
+没有把测试构造错误计为语义通过。收敛前较宽规则曾运行 394/1；用户澄清后收紧规则并更换
+原因，故该旧结果不作为最终验收。最终源码验证后仅整理契约文字与证据，没有再运行解析实验。
+
+精简证据在 phase1-round7/：before.*、targeted.*、tests.*、summary.json。只复制已有输出，
+没有为报告重跑测试。复现时选新的临时目录：
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_implicit_effects.py tests/test_python_effect_coverage.py tests/test_python_review_regressions.py::test_contextlib_alias_and_complex_generator --basetemp=.tmp/repro-round7-targeted
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/repro-round7-all
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+~~~
+
+范围边界：没有精确支持装饰器/with 协议的新字段效果。既有目录在区域结束记录 region，
+区域内部读取的进入阶段时序覆盖问题已静态记录，未在本批扩展目录或协议分析，需独立复核；
+不声称该范围已验证。合成通过不等于全库准确率或通用 Python 健全性。
+完成本批 commit/push 后停止，等待独立审阅，不进入“小图＋MCP”。
+
+---
+
+以下为历史记录。
+
 # 第六轮：调用三态关联与 NO_EFFECT 依据（2026-10-28）
 
 分支：refactor/cgr-pipeline-integration。启动/已审阅 HEAD：

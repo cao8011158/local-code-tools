@@ -1,0 +1,62 @@
+{
+  "baseline": "10542de7c53bd3a825f0c016fe3d20d5db7d6fb9",
+  "source_commit": "e21cb68ecf273039f4b00993b454e48e03d349e9",
+  "branch": "refactor/cgr-pipeline-integration",
+  "before": {
+    "passed": 2,
+    "failed": 5,
+    "skipped": 0
+  },
+  "targeted": {
+    "passed": 109,
+    "failed": 0,
+    "skipped": 0
+  },
+  "final": {
+    "passed": 397,
+    "failed": 0,
+    "skipped": 1
+  },
+  "new_tests": 41,
+  "source_sha256": {
+    "lct/python_analysis.py": "fcdf17259e4db22de460f73a8bad94429622bdfd005c42c477e0ccbe9e21ed46",
+    "lct/python_effects.py": "6f2460fb15a28f770fc41e80a5823d49e335624452ec9a6e682c274fadb4f71c",
+    "lct/python_access.py": "fc472c6fd005bb7239be21e9b952fe8aa54e871491b61ce29e3a6e33a769c6f2",
+    "tests/test_python_implicit_effects.py": "3c93c19762acc741613952e51579fbfbe9c91ff286df9fd51d2b3b974585c3ba",
+    "tests/test_python_effect_coverage.py": "a06f8e74a978475e68d068dc373d263441f0999bc5fafcacf99448cf858f1f74"
+  },
+  "skip_reasons": [
+    "optional existing real-cache test; use --run-local-index"
+  ],
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_python_implicit_effects.py --basetemp=.tmp/round7-before --junitxml=.tmp/round7-before.xml",
+      "exit": 1,
+      "scope": "original seven entry checks before changes"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_python_implicit_effects.py tests/test_python_effect_coverage.py tests/test_python_review_regressions.py::test_contextlib_alias_and_complex_generator --basetemp=.tmp/round7-converged --junitxml=.tmp/round7-converged.xml",
+      "exit": 0
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/round7-final-all --junitxml=.tmp/round7-final-all.xml",
+      "exit": 0
+    },
+    {
+      "command": ".venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py",
+      "exit": 0
+    },
+    {
+      "command": ".venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py",
+      "exit": 0
+    }
+  ],
+  "not_run": [
+    "external independent 26-case regression",
+    "legacy selection harness",
+    "frozen exporter rerun",
+    "business index/cache",
+    "small graph + MCP",
+    "remote CI"
+  ]
+}

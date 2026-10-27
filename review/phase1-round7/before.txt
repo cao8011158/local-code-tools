@@ -1,0 +1,106 @@
+FF..FFF                                                                  [100%]
+================================== FAILURES ===================================
+___________________ test_review_counterexamples[decorator] ____________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/round7-before/test_review_counterexamples_de0')
+body = 'def caller():\n obj=C()\n def decorate(fn):\n  obj.run=b\n  return fn\n @decorate\n def unused(): pass\n obj.run()\n'
+
+    @pytest.mark.parametrize("body",[DECORATOR,MANAGER],ids=["decorator","with-enter"])
+    def test_review_counterexamples(tmp_path,body):
+        text=HEADER+body
+>       s=check(analyze(tmp_path,{'demo.py':text},closed=False),'obj.run',{'a'},{'b'},True)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_implicit_effects.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = True
+complete = False, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+>       assert s["unknown_origin"] is unknown
+E       assert False is True
+
+tests\test_python_pipeline.py:52: AssertionError
+___________________ test_review_counterexamples[with-enter] ___________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/round7-before/test_review_counterexamples_wi0')
+body = 'def caller():\n obj=C()\n class Manager:\n  def __enter__(self): obj.run=b\n  def __exit__(self,*args): pass\n with Manager(): pass\n obj.run()\n'
+
+    @pytest.mark.parametrize("body",[DECORATOR,MANAGER],ids=["decorator","with-enter"])
+    def test_review_counterexamples(tmp_path,body):
+        text=HEADER+body
+>       s=check(analyze(tmp_path,{'demo.py':text},closed=False),'obj.run',{'a'},{'b'},True)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_implicit_effects.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = True
+complete = False, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+>       assert s["unknown_origin"] is unknown
+E       assert False is True
+
+tests\test_python_pipeline.py:52: AssertionError
+_____ test_no_effect_label_is_not_execution_proof[implicit-call-decorate] _____
+
+kind = 'implicit-call', source = 'decorate'
+
+    @pytest.mark.parametrize('kind,source',[('implicit-call','decorate'),('region','with manager: pass'),('scope-execution','class Empty: pass')])
+    def test_no_effect_label_is_not_execution_proof(kind,source):
+        node=ast.parse(source).body[0]
+        if isinstance(node,ast.Expr): node=node.value
+        r=receipt(node,kind)
+>       assert not r['complete']
+E       assert not True
+
+tests\test_python_implicit_effects.py:65: AssertionError
+___ test_no_effect_label_is_not_execution_proof[region-with manager: pass] ____
+
+kind = 'region', source = 'with manager: pass'
+
+    @pytest.mark.parametrize('kind,source',[('implicit-call','decorate'),('region','with manager: pass'),('scope-execution','class Empty: pass')])
+    def test_no_effect_label_is_not_execution_proof(kind,source):
+        node=ast.parse(source).body[0]
+        if isinstance(node,ast.Expr): node=node.value
+        r=receipt(node,kind)
+>       assert not r['complete']
+E       assert not True
+
+tests\test_python_implicit_effects.py:65: AssertionError
+_ test_no_effect_label_is_not_execution_proof[scope-execution-class Empty: pass] _
+
+kind = 'scope-execution', source = 'class Empty: pass'
+
+    @pytest.mark.parametrize('kind,source',[('implicit-call','decorate'),('region','with manager: pass'),('scope-execution','class Empty: pass')])
+    def test_no_effect_label_is_not_execution_proof(kind,source):
+        node=ast.parse(source).body[0]
+        if isinstance(node,ast.Expr): node=node.value
+        r=receipt(node,kind)
+>       assert not r['complete']
+E       assert not True
+
+tests\test_python_implicit_effects.py:65: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_python_implicit_effects.py::test_review_counterexamples[decorator]
+FAILED tests/test_python_implicit_effects.py::test_review_counterexamples[with-enter]
+FAILED tests/test_python_implicit_effects.py::test_no_effect_label_is_not_execution_proof[implicit-call-decorate]
+FAILED tests/test_python_implicit_effects.py::test_no_effect_label_is_not_execution_proof[region-with manager: pass]
+FAILED tests/test_python_implicit_effects.py::test_no_effect_label_is_not_execution_proof[scope-execution-class Empty: pass]
+5 failed, 2 passed in 1.62s
