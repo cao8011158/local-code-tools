@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="1.605" timestamp="2026-10-28T00:08:00.154784+08:00" hostname="DESKTOP-CDCCU1M"><testcase classname="tests.test_python_review_round4" name="test_review_counterexample[coroutine_creation]" time="0.635"><failure message="AssertionError: assert {'b'} == {'a'}&#10;  &#10;  Extra items in the left set:&#10;  'b'&#10;  Extra items in the right set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round4/before/test_review_counterexample_cor0')
+case = ('coroutine_creation', 'def a(): pass\ndef b(): pass\nclass C:\n def __init__(self): self.run=a\n async def change(self): self.run=b\ndef caller():\n obj=C()\n obj.change()\n obj.run()\n', 'obj.run', {'a'}, {'b'}, False)
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_counterexample(tmp_path,case):
+        _,source,expression,targets,forbidden,uncertain=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=check(result,expression,targets,forbidden,uncertain)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round4.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = False
+complete = True, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'b'} == {'a'}
+E         
+E         Extra items in the left set:
+E         'b'
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_round4" name="test_review_counterexample[unreachable_store]" time="0.029"><failure message="AssertionError: assert {'b'} == {'a'}&#10;  &#10;  Extra items in the left set:&#10;  'b'&#10;  Extra items in the right set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round4/before/test_review_counterexample_unr0')
+case = ('unreachable_store', 'def a(): pass\ndef b(): pass\nclass C:\n def __init__(self): self.run=a\n def change(self):\n  return\n  self.run=b\ndef caller():\n obj=C()\n obj.change()\n obj.run()\n', 'obj.run', {'a'}, {'b'}, False)
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_counterexample(tmp_path,case):
+        _,source,expression,targets,forbidden,uncertain=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=check(result,expression,targets,forbidden,uncertain)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round4.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = False
+complete = True, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'b'} == {'a'}
+E         
+E         Extra items in the left set:
+E         'b'
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_round4" name="test_review_counterexample[callsite_method_shadow]" time="0.034"><failure message="AssertionError: assert {'b'} == {'a'}&#10;  &#10;  Extra items in the left set:&#10;  'b'&#10;  Extra items in the right set:&#10;  'a'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round4/before/test_review_counterexample_cal0')
+case = ('callsite_method_shadow', 'def a(): pass\ndef b(): pass\ndef noop(): pass\nclass C:\n def __init__(self): self.run=a\...): self.run=b\ndef caller():\n obj=C()\n obj.change=noop\n obj.change()\n obj.run()\n', 'obj.run', {'a'}, {'b'}, False)
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_counterexample(tmp_path,case):
+        _,source,expression,targets,forbidden,uncertain=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=check(result,expression,targets,forbidden,uncertain)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round4.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 3, ...})
+expression = 'obj.run', owner = 'caller', targets = {'a'}, unknown = False
+complete = True, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'b'} == {'a'}
+E         
+E         Extra items in the left set:
+E         'b'
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_round4" name="test_review_counterexample[conditional_source_copy]" time="0.029"><failure message="AssertionError: assert {'a'} == {'a', 'b'}&#10;  &#10;  Extra items in the right set:&#10;  'b'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round4/before/test_review_counterexample_con0')
+case = ('conditional_source_copy', 'def a(): pass\ndef b(): pass\ndef caller(flag):\n original={"go":a}\n if flag:\n  original["go"]=b\n copied={**original}\n copied["go"]()\n', "copied['go']", {'a', 'b'}, {'caller'}, True)
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_counterexample(tmp_path,case):
+        _,source,expression,targets,forbidden,uncertain=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=check(result,expression,targets,forbidden,uncertain)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round4.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 1, ...})
+expression = "copied['go']", owner = 'caller', targets = {'a', 'b'}
+unknown = True, complete = False, forbidden = {'caller'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+&gt;       assert s["names"] == set(targets)
+E       AssertionError: assert {'a'} == {'a', 'b'}
+E         
+E         Extra items in the right set:
+E         'b'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError</failure></testcase><testcase classname="tests.test_python_review_round4" name="test_review_counterexample[escaped_source_copy]" time="0.028"><failure message="assert False is True">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1-round4/before/test_review_counterexample_esc0')
+case = ('escaped_source_copy', 'def a(): pass\ndef caller(mutate):\n original={"go":a}\n mutate(original)\n copied={**original}\n copied["go"]()\n', "copied['go']", {'a'}, {'caller'}, True)
+
+    @pytest.mark.parametrize("case",CASES,ids=lambda c:c[0])
+    def test_review_counterexample(tmp_path,case):
+        _,source,expression,targets,forbidden,uncertain=case
+        result=analyze(tmp_path,{"demo.py":source},closed=False)
+&gt;       s=check(result,expression,targets,forbidden,uncertain)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_review_round4.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 2, ...})
+expression = "copied['go']", owner = 'caller', targets = {'a'}, unknown = True
+complete = False, forbidden = {'caller'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+&gt;       assert s["unknown_origin"] is unknown
+E       assert False is True
+
+tests\test_python_pipeline.py:52: AssertionError</failure></testcase></testsuite></testsuites>

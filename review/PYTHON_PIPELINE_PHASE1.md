@@ -1,3 +1,137 @@
+# 第四轮审阅修复：方法效果适用条件与字典复制的不确定性
+
+审阅基线：3994134c51a9b5ab7f178a12ecb480e0df6e2905。
+最终程序/测试提交：86e92a406e6bab148540cf8b04a3478067f8fa7b。
+最终完整 tests/：**203 passed、1 skipped、0 failed**；本批五个反例和正常对照均通过。
+没有运行旧选型实验 harness，不将历史的 7 passed 当成本批结果。
+
+## 边界与工作区
+
+启动时当前分支 refactor/cgr-pipeline-integration、HEAD 均符合用户指定，未前进到其他提交；
+工作区仅有未跟踪 code_graph/。已读适用指引检查、docs/PYTHON_PIPELINE.md 及最新报告，
+未发现额外 AGENTS.md。沿原分支修改，未新建分支、reset、merge 或覆盖用户工作。
+code_graph/ 未读取、采用、移动、删除或暂存。未修改 CGR 或其他业务仓库，未访问/清理真实
+索引，未生成真实 graph/向量/BM25，未启动 Neo4j/Docker/JVM/MCP 或长期后台服务。
+付费 API 请求 0，根既有环境复用，无安装/下载依赖。解析保持 AST/Jedi 0.20.1/有限 LCT
+关联，没有执行被分析源码，没有恢复通用执行器、Flow 或异步调度器。
+
+本批只改方法效果和复制传播及相应 CALLS 阶段说明。原字段、槽位、contextmanager、
+快照激活链等由既有测试守护；lct/storage.py、lct/query.py、lct/extract.py 均未修改。
+之后的报告提交只保存本报告、日志空白规则及精简证据；交付 SHA 见最终消息，
+或 git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md。
+
+## 先固定反例并复现
+
+先加入五个 closed_world=False 的正确目标/禁止目标/完整性 oracle，再修改程序。
+修复前实际 **5 failed，exit 1**，TXT/JUnit 在 phase1-round4/before.*。
+测试复用严格 check：校验调用行列、caller 词法/执行作用域、目标集合、禁止目标、
+complete/unknown_origin/unresolved_reasons、最终 CALLS 及冲突排除依据。
+未修改现有 oracle 或冻结答案，未删断言、xfail、跳过新反例。
+
+| 反例 | 修复前问题 | 修复后严格结果 |
+| --- | --- | --- |
+| A 未等待的异步 change | 错用主体赋值 b | obj.run → a，禁止 b，完整；change 为 coroutine-create，主体未执行 |
+| B return 后赋值 | 继续读取不可达 b | obj.run → a，禁止 b，完整；摘要在 return 截断 |
+| C 调用前覆盖方法 | 按 C.change 套用 b | 实际 callee 为 noop，obj.run → a，禁止 b，完整 |
+| D 条件修改后复制 | 丢 b 及来源限制 | 保留 a、b，unknown=true、complete=false，条件来源不伪装穷尽证明 |
+| E 逃逸来源后复制 | events 有逃逸但值重新封闭 | 保留 a，同时 unknown=true、complete=false，逃逸原因传播到最终槽及 CALLS |
+
+D 的部分状态沿用有限条件写入的支持边界，不把已知 a/b 候选降成零目标；
+A/B/C、普通同步 change、确定字典复制和明确覆盖等正常场景仍完整。
+
+## 方法效果适用与执行阶段
+
+method_field_effect 不再按类中方法名字直接采用声明。普通调用解析该位置的实际目标、
+字段覆盖、绑定接收对象和创建位置；构造器内 self 调用按已知 receiver 特化，并只看调用前
+可达的字段。直接覆盖在调用之前/之后分别处理；保存的 bound method 保留旧目标和 receiver，
+表面对象不替换方法真实的 body receiver。跨对象绑定别名只更新真实接收对象。
+
+仅同步、已识别的有限直线主体可提供字段效果。bare/简单 return 保留之前的有效 store，
+截断之后的语句；构造器直线 return 同样不采用后续调用/赋值。条件终止、复杂控制流、
+未特化参数或未知目标保留未知，没有引入通用 CFG 或跨过程执行状态。
+构造器内来自字段覆盖/别名的调用仍可能保守未知，不假装执行原类方法。
+
+统一 invocation_phase 识别 ordinary-call、coroutine-create、generator-create、
+async-generator-create 及原有 context-manager-create。延迟对象创建的 CALLS 保留原函数目标，
+executes_body=false，不能同时套用主体字段效果或未执行的 return 结果。
+await、next 等实际恢复阶段本批不模拟；若影响该 receiver，字段明确返回
+deferred-method-resumption-not-modeled，而不是保留旧字段的完整性。
+延迟 initializer 协议同样不取得普通构造器主体证明。
+
+write_source_coverage.events 记录实际 targets、body receiver allocation、创建阶段、
+deferred-body-not-executed 或 return-terminated-summary/终止行等适用依据。
+最终裁决仍分别保存 Jedi 原始候选、LCT 结果、选中/排除/未裁决候选；只有当前结果完整且有
+具体覆盖证明才排除冲突项，不简单并集、不无条件优先一方。
+
+## 字典复制规则
+
+container_slots 现在把固定条件写入/删除的候选及 possible-missing-slot 直接放进每键 Result，
+避免把 b 只留在复制层会遗失的限制列表中。展开把来源 limitations 的候选和原因一起加入
+复制值/动态槽；sealed 只能在复制值本身无未知、且覆盖/存在性有依据时重新建立。
+来源不完整不会因后面的具体槽遍历而变完整。
+
+可能缺失的源键保留展开前的目标键候选；例如条件插入 b 时，左侧已存在 a 不会被错误删除。
+源码顺序仍有效：未知展开后的明确 go=b 可确定覆盖 go；go=b 后的未知展开可再次影响它。
+其他键的条件限制不无条件污染确定的 go。复制完成后的源槽替换不反向改变副本。
+内部缺失标记不是伪造代码节点或 CALLS 目标。有限普通复制仍精确；动态来源、逃逸、
+条件分支等在无法证明完整时保留部分结果/原因，不把零候选当成缺失键证明。
+
+## 对照与最终验证
+
+新增正式测试共 30 项：五个反例、同步/协程/生成器/异步生成器创建、return 前后有效写入、
+覆盖时序、保存的 bound alias、真实 receiver 隔离、构造器 return、显式恢复未知、
+条件插入/删除及缺失、逃逸、明确键覆盖、无关键隔离和复制后源替换等。
+同一组 source-only 小样例串行执行，不运行源码来确认答案。
+
+| 本批实际执行 | 结果 | exit |
+| --- | --- | --- |
+| 修改前五反例 | 5 failed | 1 |
+| 两个复制反例定向 | 2 passed | 0 |
+| 方法及相关旧回归定向 | 11 passed | 0 |
+| 中间组合回归 | 89 passed / 112 passed | 0 |
+| 最终新增定向 | 30 passed | 0 |
+| 一次完整 tests/ | 203 passed、1 skipped | 0 |
+| 冻结输入哈希和独立合成导出 | 39/39 标注、44/44 节点，analysis_limited=false | 0 |
+| Ruff check / format --check / diff --check | 通过 | 0 |
+
+此前完整基线 173 passed/1 skipped 来自已审阅批次；本批修改前实际重跑了新增五例，
+不冒称重新执行过旧全套。完整 tests/ 包含所有原测试与冻结答案断言，无既有回归或本批剩余
+失败。1 skip 仍为原有 opt-in 真实缓存测试，缺依赖跳过 0。没有修改 frozen fixture/truth。
+最终完整运行后程序和测试断言未再修改；只整理报告/证据。没有无目的重复完整测试。
+
+未运行：旧选型实验 harness（含 Jedi/Pyan 对比及 cross-version 子实验）、真实业务 graph/
+索引验证、远程 MCP、“小图＋MCP”E2E、远端 CI；不推断它们本批通过。
+冻结导出仅是 LCT 在冻结合成 oracle 上的校验，不等同旧候选选型实验通过，
+也不构成三个业务仓库的全库准确率或任意 Python 动态语义健全性证明。
+
+## 复现、限制与交付
+
+在 LCT 根目录串行执行，输出路径选择未使用的名字；Python 3.12 与既有锁定环境。
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_review_round4.py --basetemp=.tmp/reproduce-round4
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/reproduce-round4-all
+.venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/reproduce-round4-frozen.json
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+git diff --check 3994134c51a9b5ab7f178a12ecb480e0df6e2905..HEAD
+~~~
+
+仍有限制：未提供通用异步/生成器执行、完整跨过程/路径分析；复杂方法、构造器别名或覆盖、
+动态属性/反射和复杂字典来源继续可能未知。条件复制只保证已识别候选与未知传播，
+不将有界静态结果当作运行时无异常证明。
+
+精简证据在 phase1-round4/：实际失败/定向/全套 TXT 与 JUnit、evidence.json 中的五例源码、
+最终 CALLS 和裁决/覆盖信息、冻结哈希摘要与源码指纹。没有数据库、索引、向量、缓存、
+虚拟环境、密钥或大型临时产物。只正常提交/push 当前分支，不 merge。
+本批具备提交独立审阅的条件，交付后停止，等待审阅；通过前不进入“小图＋MCP”。
+
+---
+
+# 历史记录：3994134 第三轮审阅修复
+
+以下保留旧报告，173 passed 和旧 harness 等数字只代表当时状态，不代表本批运行记录。
+
 # 第三轮审阅修复：字段更新、字典来源、工厂阶段与快照顺序
 
 本批审阅基线：0b35a984ec8335f3cfefc9dc198f8d337b93bd05。

@@ -1,0 +1,440 @@
+{
+  "branch": "refactor/cgr-pipeline-integration",
+  "baseline": "3994134c51a9b5ab7f178a12ecb480e0df6e2905",
+  "source_commit": "86e92a406e6bab148540cf8b04a3478067f8fa7b",
+  "tests": {
+    "before": {
+      "total": 5,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-28T00:08:00.154784+08:00",
+      "seconds": "1.605"
+    },
+    "focused": {
+      "total": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-28T00:24:07.652627+08:00",
+      "seconds": "2.417"
+    },
+    "final-all": {
+      "total": 204,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "timestamp": "2026-10-28T00:26:56.541607+08:00",
+      "seconds": "53.202"
+    }
+  },
+  "exit_codes": {
+    "before": 1,
+    "focused": 0,
+    "final_all": 0,
+    "ruff_check": 0,
+    "ruff_format": 0,
+    "frozen_export": 0
+  },
+  "cases": [
+    {
+      "id": "coroutine_creation",
+      "source": "def a(): pass\ndef b(): pass\nclass C:\n def __init__(self): self.run=a\n async def change(self): self.run=b\ndef caller():\n obj=C()\n obj.change()\n obj.run()\n",
+      "expression": "obj.run",
+      "line": 9,
+      "scope": "caller",
+      "targets": [
+        "a"
+      ],
+      "forbidden": [
+        "b"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "unresolved_reasons": [],
+      "decision": {
+        "jedi_targets": [
+          "fixture:demo.py:function:a#1.1",
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "lct_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "selected_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "conflict": true,
+        "reason": "tested-semantic-rule",
+        "semantic_rules": [
+          "constructor-field-origin",
+          "python-instance-field-precedence",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "write_source_coverage": {
+          "rule": "instance-field-coverage",
+          "events": [
+            {
+              "kind": "Assign",
+              "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+              "line": 4
+            },
+            {
+              "kind": "method-effect-applicability",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 8,
+              "receiver": "fixture:demo.py:class:C#1.1",
+              "allocation": "fixture:demo.py:function:caller#1.1:7:5",
+              "targets": [
+                "fixture:demo.py:function:C.change#1.1.1"
+              ],
+              "decision": "deferred-body-not-executed",
+              "unknown_reasons": [],
+              "invocation_phase": "coroutine-create"
+            }
+          ],
+          "complete": true
+        },
+        "excluded_jedi_targets": [
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "unresolved_jedi_targets": [],
+        "excluded_lct_targets": []
+      },
+      "calls": [
+        {
+          "target": "a",
+          "source": "caller",
+          "line": 9,
+          "column": 1,
+          "complete": true,
+          "unknown_origin": false
+        }
+      ]
+    },
+    {
+      "id": "unreachable_store",
+      "source": "def a(): pass\ndef b(): pass\nclass C:\n def __init__(self): self.run=a\n def change(self):\n  return\n  self.run=b\ndef caller():\n obj=C()\n obj.change()\n obj.run()\n",
+      "expression": "obj.run",
+      "line": 11,
+      "scope": "caller",
+      "targets": [
+        "a"
+      ],
+      "forbidden": [
+        "b"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "unresolved_reasons": [],
+      "decision": {
+        "jedi_targets": [
+          "fixture:demo.py:function:a#1.1",
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "lct_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "selected_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "conflict": true,
+        "reason": "tested-semantic-rule",
+        "semantic_rules": [
+          "constructor-field-origin",
+          "python-instance-field-precedence",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "write_source_coverage": {
+          "rule": "instance-field-coverage",
+          "events": [
+            {
+              "kind": "Assign",
+              "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+              "line": 4
+            },
+            {
+              "kind": "method-effect-applicability",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 10,
+              "receiver": "fixture:demo.py:class:C#1.1",
+              "allocation": "fixture:demo.py:function:caller#1.1:9:5",
+              "targets": [
+                "fixture:demo.py:function:C.change#1.1.1"
+              ],
+              "decision": "return-terminated-summary",
+              "unknown_reasons": [],
+              "invocation_phase": "ordinary-call",
+              "body_receiver_allocation": "fixture:demo.py:function:caller#1.1:9:5",
+              "termination_line": 6
+            }
+          ],
+          "complete": true
+        },
+        "excluded_jedi_targets": [
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "unresolved_jedi_targets": [],
+        "excluded_lct_targets": []
+      },
+      "calls": [
+        {
+          "target": "a",
+          "source": "caller",
+          "line": 11,
+          "column": 1,
+          "complete": true,
+          "unknown_origin": false
+        }
+      ]
+    },
+    {
+      "id": "callsite_method_shadow",
+      "source": "def a(): pass\ndef b(): pass\ndef noop(): pass\nclass C:\n def __init__(self): self.run=a\n def change(self): self.run=b\ndef caller():\n obj=C()\n obj.change=noop\n obj.change()\n obj.run()\n",
+      "expression": "obj.run",
+      "line": 11,
+      "scope": "caller",
+      "targets": [
+        "a"
+      ],
+      "forbidden": [
+        "b"
+      ],
+      "complete": true,
+      "unknown_origin": false,
+      "unresolved_reasons": [],
+      "decision": {
+        "jedi_targets": [
+          "fixture:demo.py:function:a#1.1",
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "lct_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "selected_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "conflict": true,
+        "reason": "tested-semantic-rule",
+        "semantic_rules": [
+          "constructor-field-origin",
+          "python-instance-field-precedence",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "write_source_coverage": {
+          "rule": "instance-field-coverage",
+          "events": [
+            {
+              "kind": "Assign",
+              "scope": "fixture:demo.py:function:C.__init__#1.1.1",
+              "line": 5
+            },
+            {
+              "kind": "method-effect-applicability",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 10,
+              "receiver": "fixture:demo.py:class:C#1.1",
+              "allocation": "fixture:demo.py:function:caller#1.1:8:5",
+              "targets": [
+                "fixture:demo.py:function:noop#1.1"
+              ],
+              "decision": "finite-body-summary",
+              "unknown_reasons": [],
+              "invocation_phase": "ordinary-call",
+              "body_receiver_allocation": ""
+            }
+          ],
+          "complete": true
+        },
+        "excluded_jedi_targets": [
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "unresolved_jedi_targets": [],
+        "excluded_lct_targets": []
+      },
+      "calls": [
+        {
+          "target": "a",
+          "source": "caller",
+          "line": 11,
+          "column": 1,
+          "complete": true,
+          "unknown_origin": false
+        }
+      ]
+    },
+    {
+      "id": "conditional_source_copy",
+      "source": "def a(): pass\ndef b(): pass\ndef caller(flag):\n original={\"go\":a}\n if flag:\n  original[\"go\"]=b\n copied={**original}\n copied[\"go\"]()\n",
+      "expression": "copied['go']",
+      "line": 8,
+      "scope": "caller",
+      "targets": [
+        "a",
+        "b"
+      ],
+      "forbidden": [
+        "caller"
+      ],
+      "complete": false,
+      "unknown_origin": true,
+      "unresolved_reasons": [
+        "conditional-or-dynamic-slot-write"
+      ],
+      "decision": {
+        "jedi_targets": [],
+        "lct_targets": [
+          "fixture:demo.py:function:a#1.1",
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "selected_targets": [
+          "fixture:demo.py:function:a#1.1",
+          "fixture:demo.py:function:b#1.1"
+        ],
+        "conflict": false,
+        "reason": "finite-association-with-missing-jedi-signal",
+        "semantic_rules": [
+          "literal-slot-state",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "write_source_coverage": {
+          "rule": "container-write-source-coverage",
+          "events": [
+            {
+              "kind": "DictUnpack",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 7
+            },
+            {
+              "kind": "Assign",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 6
+            }
+          ],
+          "complete": false
+        },
+        "excluded_jedi_targets": [],
+        "unresolved_jedi_targets": [],
+        "excluded_lct_targets": []
+      },
+      "calls": [
+        {
+          "target": "a",
+          "source": "caller",
+          "line": 8,
+          "column": 1,
+          "complete": false,
+          "unknown_origin": true
+        },
+        {
+          "target": "b",
+          "source": "caller",
+          "line": 8,
+          "column": 1,
+          "complete": false,
+          "unknown_origin": true
+        }
+      ]
+    },
+    {
+      "id": "escaped_source_copy",
+      "source": "def a(): pass\ndef caller(mutate):\n original={\"go\":a}\n mutate(original)\n copied={**original}\n copied[\"go\"]()\n",
+      "expression": "copied['go']",
+      "line": 6,
+      "scope": "caller",
+      "targets": [
+        "a"
+      ],
+      "forbidden": [
+        "caller"
+      ],
+      "complete": false,
+      "unknown_origin": true,
+      "unresolved_reasons": [
+        "container-mutation-or-escape",
+        "incomplete-dict-expansion"
+      ],
+      "decision": {
+        "jedi_targets": [],
+        "lct_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "selected_targets": [
+          "fixture:demo.py:function:a#1.1"
+        ],
+        "conflict": false,
+        "reason": "finite-association-with-missing-jedi-signal",
+        "semantic_rules": [
+          "literal-slot-state",
+          "reaching-lexical-binding",
+          "source-value:callable",
+          "source-value:possible-missing-slot"
+        ],
+        "write_source_coverage": {
+          "rule": "container-write-source-coverage",
+          "events": [
+            {
+              "kind": "DictUnpack",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 5
+            },
+            {
+              "kind": "container-escape",
+              "scope": "fixture:demo.py:function:caller#1.1",
+              "line": 4
+            }
+          ],
+          "complete": false
+        },
+        "excluded_jedi_targets": [],
+        "unresolved_jedi_targets": [],
+        "excluded_lct_targets": []
+      },
+      "calls": [
+        {
+          "target": "a",
+          "source": "caller",
+          "line": 6,
+          "column": 1,
+          "complete": false,
+          "unknown_origin": true
+        }
+      ]
+    }
+  ],
+  "new_tests": 30,
+  "remaining_required_failures": 0,
+  "post_final_program_changes": false,
+  "dependency_skips": 0,
+  "optional_cache_skips": 1,
+  "paid_requests": 0,
+  "frozen": {
+    "passed": 39,
+    "total": 39,
+    "node_count": 44,
+    "analysis_limited": false,
+    "input_sha256": {
+      "truth.json": "aac067382d6bfc49f938040674d1de1d40af2fc6c63cf3f11a5869a5642fafe8",
+      "real_truth.json": "9d028897a8c1187238bf5cb71e0d3c960c17ba2f4ac3f786d90dbfa2a40b6b5c",
+      "fixtures/cross/evaluation.py": "e97ad06bfd1f0e244f30489ba09ca326e92e3f58884ce3d2cd700a17a1407115",
+      "fixtures/cross/sm_client.py": "93c9dc764efa6f65d2b9efe54ac7008ee7b5bc90dea50cf1c0d24a3b3b404186",
+      "fixtures/helpers.py": "dc890f04b9fed36e34e7bdf3386d361c0852078ce0e109a7d6a88284ba1ff516",
+      "fixtures/registry.py": "f3e6dfe9cbc48fe3e3fc04416cedc0b8c32872d255ba298bfbf060077884dbca",
+      "fixtures/sample.py": "b7bf389eedaa6fc05223c38b9bfcb3681c971f6bdc28fec60e46862a290933f1"
+    }
+  },
+  "not_run": [
+    "legacy analyzer selection experiment harness",
+    "real business graph/index",
+    "remote MCP / small-graph-plus-MCP end-to-end"
+  ],
+  "fingerprints": {
+    "lct/python_analysis.py": "75a06701d14095a8eb04aa8abaf7251ffdcec2d5acea164c3f358da5594ae391",
+    "lct/graph.py": "c73fe5c5dd03a5b71fadeab346f02550aea34018ca5ccbbd7dc4119e5a257161",
+    "tests/test_python_review_round4.py": "69f95637f63eb8ad6835991ab415cef0302d233667f3953b09d48e4284adb4b2",
+    "tools/review_python_pipeline.py": "9f45267af22fd78fb0e273f1420438a7e8ad3d3cca78d777475f5821802f0221"
+  }
+}

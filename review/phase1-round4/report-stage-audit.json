@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 932,
+      "sha256": "d18b04a1e477604a06906637e66bee5398c9aae1bcbe54147ac49be192f6611b"
+    },
+    {
+      "path": "review/PYTHON_PIPELINE_PHASE1.md",
+      "bytes": 41127,
+      "sha256": "2e9ce400c8737a71bddfe994b7a783716ed7c9637553dcc0f49d95b1090264de"
+    },
+    {
+      "path": "review/phase1-round4/before.txt",
+      "bytes": 10082,
+      "sha256": "bbe51cf8b23328ba0041a7f50c59b98cf401ae37eda5884df92954343bf63675"
+    },
+    {
+      "path": "review/phase1-round4/before.xml",
+      "bytes": 10671,
+      "sha256": "bfe172a9a492de646b403bb89ddadd0eea10f2f570134baf09788d2e0d90a3f7"
+    },
+    {
+      "path": "review/phase1-round4/evidence.json",
+      "bytes": 13317,
+      "sha256": "96438ce75ccab71d0ed504c0c53635f12332a021ab79935d697226197da74ec8"
+    },
+    {
+      "path": "review/phase1-round4/final-all.txt",
+      "bytes": 276,
+      "sha256": "0871e094109e21b58c50f247185b0fb2be56f667ec04c3cd452ec623fdd0f8b3"
+    },
+    {
+      "path": "review/phase1-round4/final-all.xml",
+      "bytes": 27135,
+      "sha256": "b483250d0a3758361a32746aa57622f8ccbc1127d5c1d7851766c92972094d59"
+    },
+    {
+      "path": "review/phase1-round4/focused.txt",
+      "bytes": 101,
+      "sha256": "44080e032e11b73196c5884d26413b3f293e0061853e7880da6d24bc265bf7de"
+    },
+    {
+      "path": "review/phase1-round4/focused.xml",
+      "bytes": 5246,
+      "sha256": "ab73151005a8a56a30542b2a6c3b9c44ee5685814d0a311016a7a7d6b134d9a1"
+    },
+    {
+      "path": "review/phase1-round4/ruff-check.txt",
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "path": "review/phase1-round4/ruff-format.txt",
+      "bytes": 28,
+      "sha256": "577256fabd692c8ad6243464be36aee0efb40ef52093c3aa0b763d2880961278"
+    },
+    {
+      "path": "review/phase1-round4/source-stage-audit.json",
+      "bytes": 1143,
+      "sha256": "383bce2a431eb563f90a1e9cd57bc19aa575c26c0e76ff5edd604079ad103182"
+    }
+  ],
+  "staged_bytes": 110078,
+  "known_environment_secrets_absent": true,
+  "no_database_index_cache_vector_or_environment": true,
+  "code_graph_untracked": true
+}
