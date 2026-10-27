@@ -58,13 +58,20 @@ Jedi infer 单独输出不证明穷尽；项目输入默认开放。closed_world
 | --- | --- |
 | CONTAINS | 目录中的词法包含，不表示执行 |
 | REFERENCES | AST 的值引用；存入变量、容器或 return 本身不执行被引用函数 |
-| CALLS | 某个显式调用或装饰器隐式应用位置的候选投影，带 site_id |
+| CALLS | 显式调用或装饰器应用的候选投影，带 site_id；装饰后的上下文工厂也有创建调用 |
+| WRAPS | 已验证 contextlib 装饰器对捕获生成器声明的包装关系，源为标准库 boundary，目标为原声明 |
+| CONTEXT_ENTERS | with/async with 进入协议恢复原生成器，独立于工厂创建 CALLS |
 | IMPORTS | import token 按精确捕获定义映射；可指向重导出后的实际定义 |
 | INHERITS | 显式 AST 基类关联 |
 
 旧 status 仅是兼容投影：唯一完整目标为 resolved，多候选或部分已知为 possible，
 外部为 boundary，无 callable 目标保留 unresolved 位置。unresolved 并不总表示未知来源。
-每条边另带 source_version_id/target_version_id，内部身份验证仍以节点目录为准。
+图输出 schema=3。每条边带 source_version_id/target_version_id，内部身份仍以节点目录为准。
+工厂 CALLS 指向同一声明节点，target_role=decorated-factory、
+invocation_phase=context-manager-create、executes_body=false；不声称立即执行 yield/body。
+WRAPS 保留 wrapper_origin；CONTEXT_ENTERS 的 invocation_phase=generator-resume 表示进入时
+恢复主体。普通 CALLS 的 executes_body=null 不对 class/函数执行协议作新增保证。
+新增关系可由现有查询核心显式过滤；默认关系集合不变，本轮未运行 MCP 端到端验证。
 外部没有伪造的内部节点或 version_id；捕获范围缺失和工具错误不能静默变成“没有调用”。
 
 默认参数、装饰器表达式及应用发生在定义阶段。Python 3.12 eager annotations 记录为
@@ -91,7 +98,18 @@ allocation 源码创建位置关联，不建立运行对象堆；工厂复用/�
 条件/动态删除保留未知；重写和无关槽分别处理。有符号字面整数按序列范围归一化，
 不使用 eval。容器逃逸检查覆盖位置参数、关键字、星号、双星号及显式嵌套容器。
 
-Jedi 与 LCT 不简单合并。完整的有限语义规则可以排除冲突候选，记录具体证明；
+AnnAssign 有值才是写入，纯注解不覆盖字段或槽位；Delete 会移除字段/槽位。
+字段删除可回退非数据类成员。直接同一 receiver 的简单方法仅识别直线 self 字段
+引用/常量 store/delete；复杂调用、分支、参数值或被实例覆盖的方法保留未知，
+不执行方法，也不模拟跨过程通用状态。其他创建位置的对象不受该事件污染。
+
+字典展开按源码顺序复制有限源槽状态，支持此前 store 和 AnnAssign 更新。
+后续显式键覆盖前面的展开；后续未知展开使已有值部分未知。纯字典复制不继续引用源的
+后续槽替换。复杂来源、逃逸或无法覆盖的写入保留原因，不把缺少候选变成缺失键证明。
+
+Jedi 与 LCT 不简单合并。对于 Attribute/Subscript，排除冲突候选还必须有本次访问的 write_source_coverage：
+完整标志和逐位置事件覆盖当前相关写入、展开来源和逃逸。继承的 literal-slot-state/
+字段规则标签单独不足以证明完整。完整有限规则及覆盖记录可以排除候选，记录具体依据；
 部分关联的冲突保留未知及未裁决的 Jedi 候选。无决定性依据时不把任一方自动升级为真值。
 原始 Jedi 记录、LCT 关联轨迹和实际采用/排除理由分别保留，便于独立复核。
 

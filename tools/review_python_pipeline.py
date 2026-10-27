@@ -144,6 +144,8 @@ def main():
         "tests/test_python_pipeline.py",
         "tests/test_python_pipeline_gaps.py",
         "tests/test_python_review_regressions.py",
+        "tests/test_python_review_round3.py",
+        "lct/query.py",
         "experiments/python_graph/worker.py",
         "experiments/python_graph/tests/test_experiment.py",
     ]
@@ -166,7 +168,7 @@ def main():
         passed=sum(r["passed"] for r in records),
         total=len(records),
         frozen_contract_complete=all(r["passed"] for r in records),
-        review_baseline="c1785038492a6955bbd140a31afc1a3867df3314",
+        review_baseline="0b35a984ec8335f3cfefc9dc198f8d337b93bd05",
         former_gap_regressions="tests/test_python_pipeline_gaps.py; not inferred from frozen-only export",
         requests=dict(embedding=0, llm=0),
         scope="frozen synthetic only",

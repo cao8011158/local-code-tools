@@ -441,7 +441,14 @@ class Query:
                 "Invalid traversal caps/direction; depth<=4, nodes<=500, edges<=1000, bytes<=200000"
             )
         types = relation_types or ["CONTAINS", "IMPORTS", "CALLS", "INHERITS"]
-        if not set(types) <= {"CONTAINS", "IMPORTS", "CALLS", "INHERITS"}:
+        if not set(types) <= {
+            "CONTAINS",
+            "IMPORTS",
+            "CALLS",
+            "INHERITS",
+            "WRAPS",
+            "CONTEXT_ENTERS",
+        }:
             raise ToolError("Invalid relation type")
         folder, m = self.snapshot(version)
         visited = set(node_ids)

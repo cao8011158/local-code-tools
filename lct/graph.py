@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
-from .python_analysis import Analyzer
+from .python_analysis import CALLABLE_KINDS, Analyzer
 
 
 class Graph:
@@ -122,9 +122,7 @@ class Graph:
                     # Factory application calls its returned decorator, not the factory again.
                     result = analyzer.resolve(scope, expr)
                 result, decision = analyzer.adjudicate(scope, expr, result, signal)
-                targets = sorted(
-                    {a.target for a in result.atoms if a.kind in ("callable", "class")}
-                )
+                targets = sorted({a.target for a in result.atoms if a.kind in CALLABLE_KINDS})
                 boundaries = sorted({a.target for a in result.atoms if a.kind == "boundary"})
                 reasons = sorted(result.reasons)
                 if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
@@ -173,9 +171,7 @@ class Graph:
                             association_trace=analyzer.explain(scope, expr),
                             decision=decision,
                             signal_agrees=targets
-                            == sorted(
-                                a.target for a in signal.atoms if a.kind in ("callable", "class")
-                            ),
+                            == sorted(a.target for a in signal.atoms if a.kind in CALLABLE_KINDS),
                         ),
                     ],
                 )
@@ -196,6 +192,27 @@ class Graph:
                         site_id=item["site_id"],
                         complete=complete,
                         unknown_origin=bool(reasons),
+                        target_role="decorated-factory"
+                        if any(
+                            a.target == target
+                            and a.kind in ("context-factory", "async-context-factory")
+                            for a in result.atoms
+                        )
+                        else "definition",
+                        invocation_phase="context-manager-create"
+                        if any(
+                            a.target == target
+                            and a.kind in ("context-factory", "async-context-factory")
+                            for a in result.atoms
+                        )
+                        else "ordinary-call",
+                        executes_body=False
+                        if any(
+                            a.target == target
+                            and a.kind in ("context-factory", "async-context-factory")
+                            for a in result.atoms
+                        )
+                        else None,
                     )
                 for boundary in boundaries:
                     target = "boundary:" + (
@@ -230,10 +247,60 @@ class Graph:
                         complete=complete,
                         unknown_origin=bool(reasons),
                     )
+            for ident, tree in self.asts.items():
+                if (
+                    not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    or len(tree.decorator_list) != 1
+                ):
+                    continue
+                wrapper = analyzer.context_wrapper(
+                    self.nodes[ident]["parent"], tree.decorator_list[0]
+                )
+                if wrapper:
+                    origin = (
+                        "contextlib.asynccontextmanager"
+                        if wrapper == "async-context-factory"
+                        else "contextlib.contextmanager"
+                    )
+                    self.add_edge(
+                        "boundary:external-or-excluded:" + origin,
+                        ident,
+                        "WRAPS",
+                        "resolved",
+                        "verified contextlib decorator binds a generator factory",
+                        tree.lineno,
+                        tree.col_offset,
+                        wrapper_origin=origin,
+                        wrapped_body_phase="generator-resume",
+                    )
+            for scope, statement, context in analyzer.context_sites:
+                receivers = analyzer.resolve(scope, context)
+                expected = (
+                    "async-context-manager"
+                    if isinstance(statement, ast.AsyncWith)
+                    else "context-manager"
+                )
+                for receiver in receivers.atoms:
+                    if receiver.kind != expected:
+                        continue
+                    self.add_edge(
+                        scope,
+                        receiver.target,
+                        "CONTEXT_ENTERS",
+                        "possible" if receivers.unknown else "resolved",
+                        "context entry resumes the wrapped generator, separate from factory creation",
+                        context.lineno,
+                        context.col_offset,
+                        ast.unparse(context),
+                        invocation_phase="generator-resume",
+                        executes_body=True,
+                        complete=not receivers.unknown,
+                        unknown_origin=receivers.unknown,
+                    )
             for scope, expr, phase in analyzer.references:
                 result = analyzer.resolve(scope, expr)
                 for a in result.atoms:
-                    if a.kind in ("callable", "class", "module"):
+                    if a.kind in CALLABLE_KINDS or a.kind == "module":
                         self.add_edge(
                             scope,
                             a.target,
@@ -295,7 +362,7 @@ class Graph:
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
             return self.edges, dict(
                 engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
-                schema=2,
+                schema=3,
                 sites=sites,
                 call_sites=len(sites),
                 analysis_limited=analyzer.limited,

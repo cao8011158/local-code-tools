@@ -128,7 +128,8 @@ connectivity=32、expansion_add=128、expansion_search=128；按 repository/kind
 ## 图关系与可信边界
 
 图使用 Python 标准库 AST 和有界 points-to 数据流，不导入或执行 SM/RE 模块。
-记录 CONTAINS、IMPORTS、CALLS、INHERITS 和 REFERENCES。AST 提取统一节点和调用位置；
+记录 CONTAINS、IMPORTS、CALLS、INHERITS、REFERENCES；schema 3 还区分上下文工厂
+创建 CALLS、WRAPS 包装和 CONTEXT_ENTERS 进入阶段，不将工厂创建算作生成器主体执行。AST 提取统一节点和调用位置；
 Jedi 0.20.1 在私有捕获源码副本中解析名称；LCT 按源码定义位置验证映射，并处理有限的
 顺序赋值、分支候选、绑定方法、显式回调实参和字面容器关联。没有单调 fixed-point/Flow 执行器。
 
@@ -164,6 +165,20 @@ SM 的 RE pin 与旁边 RE checkout 分开核对。不匹配时保留带原因�
 & $py $entry restore '<backup.zip>' '<不存在的新目录>'
 & $py $entry gc
 ```
+
+快照名中的秒时间/随机 UUID 只作唯一标识，不参与新旧排序。
+build/recover 在已有 update.lock 内，原子写 current.json 的 version、previous、
+history_schema=1 和有界 history。history 是最近成功激活的不同版本，最新在前；
+默认保留当前和它的有效上一激活版本，retained_versions 至少为 2。
+recover 将指定版本移到链首，并保留原 current；恢复当前版本为 no-op。
+恢复后再 build 的上一版是恢复得到的 current，而非 UUID 最大的目录。
+
+完成 manifest 不等于已发布；只有原子指针证明激活。prune 从指针 history 选择保留对象，
+不把失败候选或 build-state 时间/失败标记当作发布顺序。未完成候选可删除；
+历史充分时删除未引用的完成候选/过期版本。老指针只有 version/previous 时直接采用这两个
+有依据的顺序；若不足以满足更大的保留数，保守保留其他完成目录，直到新激活链充分。
+不按 UUID 猜测旧顺序，也不自动重建旧索引。提高保留数不能恢复已删除的快照。
+本轮只在合成临时目录测试这些规则，没有访问/迁移/清理用户真实索引。
 
 默认保留当前及至少一个完整旧版本，备份最多两份；`gc` 清理不被保留版本引用的文档向量，
 查询向量最多保留512项。失败重跑复用已落盘向量；恢复前校验所有文件哈希。

@@ -311,7 +311,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
             validate_folder(folder, m)
             if fail_at == "before_publish":
                 raise ToolError("Injected interruption before atomic pointer publication")
-            atomic(data / "current.json", dict(version=ident, previous=previous))
+            activate(c, ident)
             atomic(
                 data / "freshness.json",
                 dict(
@@ -332,31 +332,77 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
             cache.close()
 
 
-def prune(c):
-    """Bound complete and failed versions; keep current plus one recoverable predecessor."""
-    data = Path(c["data"])
-    active = current(c)
-    complete = []
-    failed = []
-    for p in (data / "versions").iterdir():
-        if not p.is_dir():
+def activation_history(c):
+    """Read authoritative activation order, with a conservative legacy pointer fallback."""
+    path = Path(c["data"]) / "current.json"
+    if not path.exists():
+        return []
+    pointer = load(path)
+    ordered = [pointer.get("version"), pointer.get("previous")] + pointer.get("history", [])
+    result = []
+    for version in ordered:
+        if not version or version in result:
             continue
-        if (p / "manifest.json").exists() and load(p / "manifest.json").get("state") == "complete":
-            complete.append(p)
-        else:
-            failed.append(p)
-    keep = {active}
-    keep.update(
-        p.name
-        for p in sorted(complete, key=lambda p: p.name, reverse=True)[
-            : max(2, c.get("retained_versions", 2))
-        ]
+        if not isinstance(version, str) or "/" in version or "\\" in version or ".." in version:
+            raise ToolError("Invalid publication history")
+        result.append(version)
+    return result
+
+
+def activate(c, version):
+    """Atomically publish one bounded activation chain under the existing update lock.
+
+    The pointer is the sole publication record. Completed-but-unpublished manifests
+    and diagnostic build-state timestamps never participate in retention ordering.
+    """
+    data = Path(c["data"])
+    previous = current(c)
+    limit = max(2, c.get("retained_versions", 2))
+    history = [version] + [v for v in activation_history(c) if v != version]
+    atomic(
+        data / "current.json",
+        dict(version=version, previous=previous, history=history[:limit], history_schema=1),
     )
-    for p in complete:
-        if p.name not in keep:
-            shutil.rmtree(p)
-    for p in sorted(failed, key=lambda p: p.name, reverse=True)[1:]:
-        shutil.rmtree(p)
+
+
+def prune(c):
+    """Keep current plus recent distinct activations; never sort random version names.
+
+    Callers hold update.lock. Legacy complete snapshots of uncertain age are preserved
+    until enough explicit pointer history exists. Incomplete candidates are removed;
+    completed unlisted candidates are removed once history is sufficient. Pointer-
+    referenced versions survive even a stale build-state marker.
+    """
+    data = Path(c["data"])
+    versions = data / "versions"
+    history = activation_history(c)
+    if not history:
+        return
+    limit = max(2, c.get("retained_versions", 2))
+    keep = set(history[:limit])
+    valid_history = []
+    for version in history[:limit]:
+        folder = versions / version
+        if (folder / "manifest.json").is_file() and load(folder / "manifest.json").get(
+            "state"
+        ) == "complete":
+            valid_history.append(version)
+    # With insufficient legacy history, deleting an unlisted completed publication
+    # could discard a required predecessor. Keep it until the chain proves enough.
+    sufficient = len(valid_history) >= limit
+    for folder in versions.iterdir():
+        if not folder.is_dir() or folder.name in keep:
+            continue
+        if folder.is_symlink() or folder.resolve().parent != versions.resolve():
+            raise ToolError("Unsafe version cleanup target")
+        complete = (folder / "manifest.json").is_file() and load(folder / "manifest.json").get(
+            "state"
+        ) == "complete"
+        # A legacy failed marker may have been written after pointer publication.
+        # Without sufficient history, do not use that marker to discard a complete
+        # snapshot whose older activation order can no longer be established.
+        if not complete or sufficient:
+            shutil.rmtree(folder)
 
 
 def recover(c, version):
@@ -365,9 +411,12 @@ def recover(c, version):
         folder, m = manifest(c, version)
         validate_folder(folder, m)
         previous = current(c)
-        atomic(Path(c["data"]) / "current.json", dict(version=version, previous=previous))
+        if previous == version:
+            return {"recovered": version, "previous": previous}
+        activate(c, version)
         atomic(
             Path(c["data"]) / "freshness.json",
             dict(version=version, status="unchecked_after_recovery", checked_at=None),
         )
+        prune(c)
         return {"recovered": version, "previous": previous}
