@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="9" time="0.379" timestamp="2026-10-27T21:19:16.187522+08:00" hostname="DESKTOP-CDCCU1M"><testcase classname="tests.test_python_pipeline" name="test_identity_spans_versions_and_lambda" time="0.083"><failure message="KeyError: 'version_id'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_identity_spans_versions_a0')
+
+    def test_identity_spans_versions_and_lambda(tmp_path):
+        text = "def f():\n def x(): pass\n return x\ndef f():\n def x(): pass\na,b = (lambda: 1), (lambda: 2)\n"
+        nodes, _, _ = analyze(tmp_path, {"src/demo.py": text})
+        assert len(nodes) == len({n["node_id"] for n in nodes})
+&gt;       assert len(nodes) == len({n["version_id"] for n in nodes})
+                                  ^^^^^^^^^^^^^^^
+E       KeyError: 'version_id'
+
+tests\test_python_pipeline.py:56: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_imports_src_relative_and_reexport" time="0.004"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_imports_src_relative_and_0')
+
+    def test_imports_src_relative_and_reexport(tmp_path):
+        r = analyze(tmp_path, {"src/pkg/__init__.py": "from .impl import work as run\n",
+           "src/pkg/impl.py": "def work(): pass\n",
+           "src/pkg/client.py": "from . import run as alias\ndef caller(): alias()\n"})
+&gt;       expect(r, "alias", "caller", {"work"})
+
+tests\test_python_pipeline.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:src/pkg/__init__.py:module:pkg#1', 'repository': 'fixture', 'path': 'src/pkg/__init__.py', 'kin...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'alias', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_overwrite_branch_and_python_scope" time="0.004"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_overwrite_branch_and_pyth0')
+
+    def test_overwrite_branch_and_python_scope(tmp_path):
+        r = analyze(tmp_path, {"demo.py": """def a(): pass
+    def b(): pass
+    def work(): pass
+    def overwrite():
+     cb=a
+     cb=b
+     cb()
+    def branch(flag):
+     if flag: cb=a
+     else: cb=b
+     cb()
+    def unbound():
+     work()
+     work=b
+    class C:
+     def ghost(self): pass
+     def caller(self): ghost()
+     def run(self): pass
+     run=b
+    def driver(): C().run()
+    """})
+&gt;       expect(r, "cb", "overwrite", {"b"}, forbidden={"a"})
+
+tests\test_python_pipeline.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'overwrite', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_bound_receiver_static_class_and_super" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_bound_receiver_static_cla0')
+
+    def test_bound_receiver_static_class_and_super(tmp_path):
+        r = analyze(tmp_path, {"demo.py": """def target(): pass
+    class Base:
+     def run(self): pass
+    class C(Base):
+     def invoke(self, cb): cb()
+     @staticmethod
+     def static(cb): cb()
+     @classmethod
+     def construct(cls): return cls()
+     def run(self): super().run()
+    def driver():
+     obj=C()
+     callback=obj.invoke
+     callback(target)
+     C.static(target)
+     C.construct()
+    """})
+&gt;       expect(r, "cb", "C.invoke", {"target"})
+
+tests\test_python_pipeline.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'C.invoke', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_containers_registry_and_no_reference_calls" time="0.004"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_containers_registry_and_n0')
+
+    def test_containers_registry_and_no_reference_calls(tmp_path):
+        r = analyze(tmp_path, {"src/registry.py": "handlers={}\ndef register(key,cb): handlers[key]=cb\n",
+         "src/demo.py": """from registry import register,handlers
+    def a(): pass
+    def b(): pass
+    register('go',a)
+    def dispatch(k):
+     table={'a':a,'b':b}
+     table['a']()
+     table[k]()
+     values=[a,b]
+     values[1]()
+     values[k]()
+     handlers['go']()
+    def references():
+     cb=a
+     refs=[a,b]
+     return b
+    """})
+&gt;       expect(r, "table['a']", "dispatch", {"a"}, forbidden={"b"})
+
+tests\test_python_pipeline.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:src/registry.py:module:registry#1', 'repository': 'fixture', 'path': 'src/registry.py', 'kind':...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "table['a']", owner = 'dispatch', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_known_mixed_and_open_callbacks" time="0.003"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_known_mixed_and_open_call0')
+
+    def test_known_mixed_and_open_callbacks(tmp_path):
+        text="""def target(): pass
+    def invoke(cb): cb()
+    def mixed(cb): cb()
+    def driver(unknown):
+     invoke(target)
+     mixed(target)
+     mixed(unknown)
+    """
+        r=analyze(tmp_path,{"demo.py":text})
+&gt;       expect(r,"cb","invoke",{"target"})
+
+tests\test_python_pipeline.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'invoke', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_returns_chains_with_and_async_with" time="0.004"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_returns_chains_with_and_a0')
+
+    def test_returns_chains_with_and_async_with(tmp_path):
+        r=analyze(tmp_path,{"demo.py":"""def target(): pass
+    class C:
+     def work(self): pass
+     def chain(self): return self
+     def __enter__(self): return self
+     def __exit__(self,*args): pass
+     async def __aenter__(self): return self
+     async def __aexit__(self,*args): pass
+    def factory(): return target
+    def object_factory(): return C()
+    def driver():
+     factory()()
+     object_factory().chain().work()
+     with C() as obj: obj.work()
+    async def async_driver():
+     async with C() as obj: obj.work()
+    """})
+&gt;       expect(r,"factory()","driver",{"target"})
+
+tests\test_python_pipeline.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'factory()', owner = 'driver', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_execution_ownership_defaults_decorators_annotations" time="0.003"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_execution_ownership_defau0')
+
+    def test_execution_ownership_defaults_decorators_annotations(tmp_path):
+        text="""def target(): pass
+    def make(): return int
+    def decorate(fn): return fn
+    @decorate
+    def outer(x=make(), y: make()=None) -&gt; make():
+     def inner(): target()
+     value=lambda: target()
+     return value
+    """
+        r=analyze(tmp_path,{"demo.py":text})
+&gt;       inner=expect(r,"target","outer.inner",{"target"})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_pipeline.py:210: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:42: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'target', owner = 'outer.inner', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+&gt;       matches = [s for s in info["sites"] if s["expression"] == expression
+                              ^^^^^^^^^^^^^
+                   and byid[s["execution_owner"]]["qualname"] == owner
+                   and (line is None or s["line"] == line)]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:29: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics" time="0.018"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-new/test_frozen_answer_semantics0')
+
+    def test_frozen_answer_semantics(tmp_path):
+        root=Path(__file__).resolve().parents[1]/"experiments/python_graph"
+        truth=json.loads((root/"truth.json").read_text())
+        sources={"src/"+p.name:p.read_text() for p in (root/"fixtures").glob("*.py")}
+        r=analyze(tmp_path,sources)
+        byid={n["node_id"]:n for n in r[0]}
+        def label(ident):
+            n=byid[ident]
+            mod=Path(n["path"]).stem
+            return mod+":"+("&lt;module&gt;" if n["node_type"]=="module" else n["qualname"])
+        for expected in truth["sites"]:
+            if expected["kind"]=="reference": continue
+            lines=sources["src/"+expected["file"]].splitlines()
+            line=next(i+1 for i,t in enumerate(lines) if "case:"+expected["id"] in t)
+&gt;           matches=[s for s in r[2]["sites"] if byid[s["execution_owner"]]["path"]=="src/"+expected["file"]
+                                ^^^^^^^^^^^^^
+                     and s["line"]==line and (not expected["expression"] or s["expression"]==expected["expression"])]
+E           KeyError: 'sites'
+
+tests\test_python_pipeline.py:239: KeyError</failure></testcase></testsuite></testsuites>

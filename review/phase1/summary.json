@@ -1,0 +1,80 @@
+{
+  "branch": "refactor/cgr-pipeline-integration",
+  "baseline": "9d5a54f9f8ecdd6f5ce6349a916c03522a1453a7",
+  "final_source_commit": "542100e1f9b6150aa34b95f480469c30464d5b66",
+  "final_delivery_commit": "resolve git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md",
+  "checks": {
+    "baseline-tests": {
+      "total": 36,
+      "failed": 0,
+      "skipped": 1,
+      "errors": 0
+    },
+    "baseline-new": {
+      "total": 9,
+      "failed": 9,
+      "skipped": 0,
+      "errors": 0
+    },
+    "baseline-parser": {
+      "total": 81,
+      "failed": 56,
+      "skipped": 1,
+      "errors": 0
+    },
+    "baseline-final-scope": {
+      "total": 92,
+      "failed": 57,
+      "skipped": 1,
+      "errors": 0
+    },
+    "baseline-harness": {
+      "total": 7,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0
+    },
+    "final-all": {
+      "total": 92,
+      "failed": 2,
+      "skipped": 1,
+      "errors": 0
+    },
+    "final-harness": {
+      "total": 7,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0
+    }
+  },
+  "exit_codes": {
+    "baseline_tests": 0,
+    "baseline_new": 1,
+    "baseline_parser": 1,
+    "baseline_final_scope": 1,
+    "baseline_harness": 0,
+    "final_all": 1,
+    "final_harness": 0,
+    "ruff_check": 0,
+    "ruff_format": 0,
+    "import_final": 0,
+    "frozen_export": 0,
+    "diff_check": 0,
+    "mapping_final": 0
+  },
+  "baseline_infrastructure_failures": 1,
+  "preexisting_product_test_failures": 0,
+  "new_unmet_acceptance": 2,
+  "dependency_skips": 0,
+  "optional_existing_cache_skips": 1,
+  "final_all_subsequent_change": "IMPORTS projection: 4 passed; unlocatable Jedi mapping: 2 passed; Graph original newline format restored",
+  "scope": "synthetic offline only",
+  "paid_requests": 0,
+  "services_started": 0,
+  "commands": {
+    "initial_baseline": ".venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/phase1/baseline-tests --junitxml=review/phase1/baseline-tests.xml",
+    "parser_baseline": ".venv/Scripts/python.exe tools/run_python_pipeline_baseline.py --parser-only --output .tmp/phase1/baseline-parser",
+    "final_all": ".venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/phase1/final-all --junitxml=review/phase1/final-all.xml",
+    "final_harness": "uv run --offline --locked --project experiments/python_graph python -m pytest -q experiments/python_graph/tests --basetemp=.tmp/phase1/final-harness --junitxml=review/phase1/final-harness.xml"
+  }
+}

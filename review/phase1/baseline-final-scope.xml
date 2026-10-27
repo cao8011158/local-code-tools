@@ -1,0 +1,1782 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="57" skipped="1" tests="92" time="21.329" timestamp="2026-10-27T21:45:16.558919+08:00" hostname="DESKTOP-CDCCU1M"><testcase classname="tests.test_core" name="test_direct_and_alias" time="0.010" /><testcase classname="tests.test_core" name="test_import_alias" time="0.001" /><testcase classname="tests.test_core" name="test_method_constructor_annotation" time="0.002" /><testcase classname="tests.test_core" name="test_callback_flow" time="0.002" /><testcase classname="tests.test_core" name="test_dict_possible_is_not_unknown" time="0.002" /><testcase classname="tests.test_core" name="test_registry_flow" time="0.001" /><testcase classname="tests.test_core" name="test_unknown_is_retained_no_same_name_guess" time="0.001" /><testcase classname="tests.test_core" name="test_inheritance" time="0.001" /><testcase classname="tests.test_core" name="test_external_boundary" time="0.001" /><testcase classname="tests.test_core" name="test_cross_version_boundary" time="0.006" /><testcase classname="tests.test_core" name="test_nested_duplicates_unique_and_line_shift" time="0.002" /><testcase classname="tests.test_core" name="test_does_not_execute_source" time="0.003" /><testcase classname="tests.test_core" name="test_templates_no_repeated_function_docstring" time="0.001" /><testcase classname="tests.test_core" name="test_long_function_chunks_keep_node" time="0.015" /><testcase classname="tests.test_core" name="test_markdown_fences_tables_and_categories" time="0.001" /><testcase classname="tests.test_core" name="test_tokenizer[\u5bb9\u5668\u91cd\u91cf-expected0]" time="0.001" /><testcase classname="tests.test_core" name="test_tokenizer[SessionMemory.resolve_field-expected1]" time="0.000" /><testcase classname="tests.test_core" name="test_tokenizer[OCC\u56de\u6eda-expected2]" time="0.000" /><testcase classname="tests.test_core" name="test_postings_filter_before_limit" time="0.005" /><testcase classname="tests.test_core" name="test_historical_cache_key" time="0.002" /><testcase classname="tests.test_core" name="test_concurrent_writer_lock" time="0.005" /><testcase classname="tests.test_core" name="test_unknown_local_shadows_global" time="0.001" /><testcase classname="tests.test_core" name="test_registry_via_method" time="0.002" /><testcase classname="tests.test_core" name="test_real_compatible_cache_reuse_without_network" time="0.000"><skipped type="pytest.skip" message="optional existing real-cache test; use --run-local-index">D:\Projects\agentic-trpg\local-code-tools\tests\test_core.py:234: optional existing real-cache test; use --run-local-index</skipped></testcase><testcase classname="tests.test_core" name="test_per_package_pin_and_untracked_python_are_fail_closed" time="0.615" /><testcase classname="tests.test_lifecycle" name="test_mutations_cursor_failure_recovery" time="3.280" /><testcase classname="tests.test_lifecycle" name="test_program_format_freshness_and_missing" time="1.483" /><testcase classname="tests.test_lifecycle" name="test_no_dense_fabrication" time="1.044" /><testcase classname="tests.test_lifecycle" name="test_backup_restore_and_corruption" time="1.278" /><testcase classname="tests.test_lifecycle" name="test_graph_direction_and_output_caps" time="1.137" /><testcase classname="tests.test_lifecycle" name="test_actual_process_interruption_leaves_old_version" time="2.350" /><testcase classname="tests.test_lifecycle" name="test_registration_preserves_others_and_is_idempotent" time="0.115"><failure message="subprocess.CalledProcessError: Command '['D:\\Projects\\agentic-trpg\\local-code-tools\\.venv\\Scripts\\python.exe', 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1\\baseline-complete\\source\\register_mcp.py', '--codex-config', 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1\\baseline-complete\\pytest\\test_registration_preserves_ot0\\codex-config.toml']' returned non-zero exit status 1.">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_registration_preserves_ot0')
+
+    def test_registration_preserves_others_and_is_idempotent(tmp_path):
+        import sys
+        import tomllib
+    
+        dest = tmp_path / "codex-config.toml"
+        dest.write_text(
+            'model="unchanged"\n[mcp_servers.other]\ncommand="other-command"\n', encoding="utf-8"
+        )
+        command = [sys.executable, str(ROOT / "register_mcp.py"), "--codex-config", str(dest)]
+&gt;       first = subprocess.run(command, capture_output=True, text=True, check=True)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_lifecycle.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+input = None, capture_output = True, timeout = None, check = True
+popenargs = (['D:\\Projects\\agentic-trpg\\local-code-tools\\.venv\\Scripts\\python.exe', 'D:\\Projects\\agentic-trpg\\local-code-...trpg\\local-code-tools\\.tmp\\phase1\\baseline-complete\\pytest\\test_registration_preserves_ot0\\codex-config.toml'],)
+kwargs = {'text': True, 'stdout': -1, 'stderr': -1}
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output &amp; stderr attributes if those streams
+        were captured.
+    
+        If timeout (seconds) is given and the process takes too long,
+         a TimeoutExpired exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+&gt;               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['D:\\Projects\\agentic-trpg\\local-code-tools\\.venv\\Scripts\\python.exe', 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1\\baseline-complete\\source\\register_mcp.py', '--codex-config', 'D:\\Projects\\agentic-trpg\\local-code-tools\\.tmp\\phase1\\baseline-complete\\pytest\\test_registration_preserves_ot0\\codex-config.toml']' returned non-zero exit status 1.
+
+C:\Users\lenovo\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py:571: CalledProcessError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_identity_spans_versions_and_lambda" time="0.005"><failure message="KeyError: 'version_id'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_identity_spans_versions_a0')
+
+    def test_identity_spans_versions_and_lambda(tmp_path):
+        text = "def f():\n def x(): pass\n return x\ndef f():\n def x(): pass\na,b = (lambda: 1), (lambda: 2)\n"
+        nodes, _, _ = analyze(tmp_path, {"src/demo.py": text})
+        assert len(nodes) == len({n["node_id"] for n in nodes})
+&gt;       assert len(nodes) == len({n["version_id"] for n in nodes})
+                                  ^^^^^^^^^^^^^^^
+E       KeyError: 'version_id'
+
+tests\test_python_pipeline.py:63: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_imports_src_relative_and_reexport" time="0.009"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_imports_src_relative_and_0')
+
+    def test_imports_src_relative_and_reexport(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "src/pkg/__init__.py": "from .impl import work as run\n",
+                "src/pkg/impl.py": "def work(): pass\n",
+                "src/pkg/client.py": "from . import run as alias\ndef caller(): alias()\n",
+            },
+        )
+&gt;       expect(r, "alias", "caller", {"work"})
+
+tests\test_python_pipeline.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:src/pkg/__init__.py:module:pkg#1', 'repository': 'fixture', 'path': 'src/pkg/__init__.py', 'kin...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'alias', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_overwrite_branch_and_python_scope" time="0.007"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_overwrite_branch_and_pyth0')
+
+    def test_overwrite_branch_and_python_scope(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def a(): pass
+    def b(): pass
+    def work(): pass
+    def overwrite():
+     cb=a
+     cb=b
+     cb()
+    def branch(flag):
+     if flag: cb=a
+     else: cb=b
+     cb()
+    def unbound():
+     work()
+     work=b
+    class C:
+     def ghost(self): pass
+     def caller(self): ghost()
+     def run(self): pass
+     run=b
+    def driver(): C().run()
+    """
+            },
+        )
+&gt;       expect(r, "cb", "overwrite", {"b"}, forbidden={"a"})
+
+tests\test_python_pipeline.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'overwrite', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_bound_receiver_static_class_and_super" time="0.007"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_bound_receiver_static_cla0')
+
+    def test_bound_receiver_static_class_and_super(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def target(): pass
+    class Base:
+     def run(self): pass
+    class C(Base):
+     def invoke(self, cb): cb()
+     @staticmethod
+     def static(cb): cb()
+     @classmethod
+     def construct(cls): return cls()
+     def run(self): super().run()
+    def driver():
+     obj=C()
+     callback=obj.invoke
+     callback(target)
+     C.static(target)
+     C.construct()
+    """
+            },
+        )
+&gt;       expect(r, "cb", "C.invoke", {"target"})
+
+tests\test_python_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'C.invoke', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_containers_registry_and_no_reference_calls" time="0.006"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_containers_registry_and_n0')
+
+    def test_containers_registry_and_no_reference_calls(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "src/registry.py": "handlers={}\ndef register(key,cb): handlers[key]=cb\n",
+                "src/demo.py": """from registry import register,handlers
+    def a(): pass
+    def b(): pass
+    register('go',a)
+    def dispatch(k):
+     table={'a':a,'b':b}
+     table['a']()
+     table[k]()
+     values=[a,b]
+     values[1]()
+     values[k]()
+     handlers['go']()
+    def references():
+     cb=a
+     refs=[a,b]
+     return b
+    """,
+            },
+        )
+&gt;       expect(r, "table['a']", "dispatch", {"a"}, forbidden={"b"})
+
+tests\test_python_pipeline.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:src/registry.py:module:registry#1', 'repository': 'fixture', 'path': 'src/registry.py', 'kind':...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "table['a']", owner = 'dispatch', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_known_mixed_and_open_callbacks" time="0.007"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_known_mixed_and_open_call0')
+
+    def test_known_mixed_and_open_callbacks(tmp_path):
+        text = """def target(): pass
+    def invoke(cb): cb()
+    def mixed(cb): cb()
+    def driver(unknown):
+     invoke(target)
+     mixed(target)
+     mixed(unknown)
+    """
+        r = analyze(tmp_path, {"demo.py": text})
+&gt;       expect(r, "cb", "invoke", {"target"})
+
+tests\test_python_pipeline.py:199: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'invoke', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_returns_chains_with_and_async_with" time="0.007"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_returns_chains_with_and_a0')
+
+    def test_returns_chains_with_and_async_with(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def target(): pass
+    class C:
+     def work(self): pass
+     def chain(self): return self
+     def __enter__(self): return self
+     def __exit__(self,*args): pass
+     async def __aenter__(self): return self
+     async def __aexit__(self,*args): pass
+    def factory(): return target
+    def object_factory(): return C()
+    def driver():
+     factory()()
+     object_factory().chain().work()
+     with C() as obj: obj.work()
+    async def async_driver():
+     async with C() as obj: obj.work()
+    """
+            },
+        )
+&gt;       expect(r, "factory()", "driver", {"target"})
+
+tests\test_python_pipeline.py:228: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'factory()', owner = 'driver', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_execution_ownership_defaults_decorators_annotations" time="0.006"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_execution_ownership_defau0')
+
+    def test_execution_ownership_defaults_decorators_annotations(tmp_path):
+        text = """def target(): pass
+    def make(): return int
+    def decorate(fn): return fn
+    @decorate
+    def outer(x=make(), y: make()=None) -&gt; make():
+     def inner(): target()
+     value=lambda: target()
+     return value
+    """
+        r = analyze(tmp_path, {"demo.py": text})
+&gt;       inner = expect(r, "target", "outer.inner", {"target"})
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_pipeline.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'target', owner = 'outer.inner', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[direct]" time="0.013"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'direct', 'file': 'sample.py', 'context': 'sample:direct', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[alias]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'alias', 'file': 'sample.py', 'context': 'sample:alias', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[string]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'string', 'file': 'sample.py', 'context': 'sample:string_value', 'targets': [], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[callback_known]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'callback_known', 'file': 'sample.py', 'context': 'sample:invoke', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[known_driver]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'known_driver', 'file': 'sample.py', 'context': 'sample:known_driver', 'targets': ['sample:invoke'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[callback_mixed]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'callback_mixed', 'file': 'sample.py', 'context': 'sample:mixed', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[mixed_known_driver]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'mixed_known_driver', 'file': 'sample.py', 'context': 'sample:mixed_driver', 'targets': ['sample:mixed'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[mixed_unknown_driver]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'mixed_unknown_driver', 'file': 'sample.py', 'context': 'sample:mixed_driver', 'targets': ['sample:mixed'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[dict_fixed]" time="0.004"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'dict_fixed', 'file': 'sample.py', 'context': 'sample:dispatch_fixed', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[dict_dynamic]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'dict_dynamic', 'file': 'sample.py', 'context': 'sample:dispatch_dynamic', 'targets': ['sample:target', 'sample:other'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[register]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'register', 'file': 'sample.py', 'context': 'sample:&lt;module&gt;', 'targets': ['registry:register'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[registry]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'registry', 'file': 'sample.py', 'context': 'sample:registered', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[import_alias]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'import_alias', 'file': 'sample.py', 'context': 'sample:imported', 'targets': ['helpers:work'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[shadow]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'shadow', 'file': 'sample.py', 'context': 'sample:shadow', 'targets': [], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[bare]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'bare', 'file': 'sample.py', 'context': 'sample:A.bare', 'targets': [], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[staticmethod_callback]" time="0.004"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'staticmethod_callback', 'file': 'sample.py', 'context': 'sample:A.invoke', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[classmethod_body]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'classmethod_body', 'file': 'sample.py', 'context': 'sample:A.construct', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[instance]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'instance', 'file': 'sample.py', 'context': 'sample:method_driver', 'targets': ['sample:A.work'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[class_attribute]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'class_attribute', 'file': 'sample.py', 'context': 'sample:method_driver', 'targets': ['sample:A.work'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[staticmethod_driver]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'staticmethod_driver', 'file': 'sample.py', 'context': 'sample:method_driver', 'targets': ['sample:A.invoke'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[classmethod_driver]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'classmethod_driver', 'file': 'sample.py', 'context': 'sample:method_driver', 'targets': ['sample:A.construct'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[super]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'super', 'file': 'sample.py', 'context': 'sample:Child.run', 'targets': ['sample:Base.run'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[inherited]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'inherited', 'file': 'sample.py', 'context': 'sample:inherited', 'targets': ['sample:Child.run'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[closure_body]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'closure_body', 'file': 'sample.py', 'context': 'sample:outer.inner', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[nested]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'nested', 'file': 'sample.py', 'context': 'sample:outer', 'targets': ['sample:outer.inner'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[factory]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'factory', 'file': 'sample.py', 'context': 'sample:returned', 'targets': ['sample:factory'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[returned]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'returned', 'file': 'sample.py', 'context': 'sample:returned', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[lambda_body]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'lambda_body', 'file': 'sample.py', 'context': 'sample:lambda_factory.&lt;lambda&gt;', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[lambda_factory]" time="0.004"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'lambda_factory', 'file': 'sample.py', 'context': 'sample:lambda_driver', 'targets': ['sample:lambda_factory'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[lambda_call]" time="0.004"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'lambda_call', 'file': 'sample.py', 'context': 'sample:lambda_driver', 'targets': ['sample:lambda_factory.&lt;lambda&gt;'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[decorator_implicit]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'decorator_implicit', 'file': 'sample.py', 'context': 'sample:&lt;module&gt;', 'targets': ['sample:decorate'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[default]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'default', 'file': 'sample.py', 'context': 'sample:&lt;module&gt;', 'targets': ['sample:make'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[decorated_body]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'decorated_body', 'file': 'sample.py', 'context': 'sample:decorated', 'targets': ['sample:target'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[branch]" time="0.002"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'branch', 'file': 'sample.py', 'context': 'sample:branch', 'targets': ['sample:target', 'sample:other'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[reassignment]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'reassignment', 'file': 'sample.py', 'context': 'sample:reassignment', 'targets': ['sample:other'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_frozen_answer_semantics[external]" time="0.003"><failure message="KeyError: 'sites'">frozen_result = ([{'node_id': 'fixture:src/helpers.py:module:helpers#1', 'repository': 'fixture', 'path': 'src/helpers.py', 'kind': 'm...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expected = {'id': 'external', 'file': 'sample.py', 'context': 'sample:boundary', 'targets': ['json:loads'], ...}
+
+    @pytest.mark.parametrize("expected", FROZEN_CALLS, ids=lambda s: s["id"])
+    def test_frozen_answer_semantics(frozen_result, expected):
+        r = frozen_result
+        sources = {"src/" + p.name: p.read_text() for p in (FROZEN_ROOT / "fixtures").glob("*.py")}
+        byid = {n["node_id"]: n for n in r[0]}
+    
+        def label(ident):
+            n = byid[ident]
+            mod = Path(n["path"]).stem
+            return mod + ":" + ("&lt;module&gt;" if n["node_type"] == "module" else n["qualname"])
+    
+        lines = sources["src/" + expected["file"]].splitlines()
+        line = next(i + 1 for i, t in enumerate(lines) if "case:" + expected["id"] in t)
+        matches = [
+            s
+&gt;           for s in r[2]["sites"]
+                     ^^^^^^^^^^^^^
+            if byid[s["execution_owner"]]["path"] == "src/" + expected["file"]
+            and s["line"] == line
+            and (not expected["expression"] or s["expression"] == expected["expression"])
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:290: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_registry_key_correlation_and_bound_method_negative" time="0.008"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_registry_key_correlation_0')
+
+    def test_registry_key_correlation_and_bound_method_negative(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """handlers={}
+    def register(key,cb): handlers[key]=cb
+    def a(): pass
+    def b(): pass
+    register("a",a)
+    register("b",b)
+    def dispatch(): handlers["a"]()
+    class C:
+     def invoke(self,cb): cb()
+    def caller():
+     method=C().invoke
+     method(a)
+    """
+            },
+        )
+&gt;       expect(r, "handlers['a']", "dispatch", {"a"}, forbidden={"b"})
+
+tests\test_python_pipeline.py:326: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "handlers['a']", owner = 'dispatch', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_same_line_and_nested_shadowing" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_same_line_and_nested_shad0')
+
+    def test_same_line_and_nested_shadowing(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def a(): pass
+    def b(): pass
+    def driver(): cb=a; cb=b; cb()
+    def outer():
+     def a(): pass
+     def inner(): a()
+     inner()
+    """
+            },
+        )
+&gt;       expect(r, "cb", "driver", {"b"}, forbidden={"a"})
+
+tests\test_python_pipeline.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'driver', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_explicit_boundary_and_tool_failure" time="0.242"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_explicit_boundary_and_too0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001A17EE612E0&gt;
+
+    def test_explicit_boundary_and_tool_failure(tmp_path, monkeypatch):
+        import jedi
+    
+        r = analyze(tmp_path, {"demo.py": "import json\ndef caller(): json.loads('{}')\n"})
+&gt;       s = expect(r, "json.loads", "caller", set())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_pipeline.py:352: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'json.loads', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_exact_mapping_without_full_name_unicode_and_ambiguity" time="0.005"><failure message="ModuleNotFoundError: No module named 'lct.python_analysis'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_exact_mapping_without_ful0')
+
+    def test_exact_mapping_without_full_name_unicode_and_ambiguity(tmp_path):
+        from types import SimpleNamespace
+    
+&gt;       from lct.python_analysis import Analyzer
+E       ModuleNotFoundError: No module named 'lct.python_analysis'
+
+tests\test_python_pipeline.py:371: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_callback_passthrough_and_unknown_forwarding" time="0.006"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_callback_passthrough_and_0')
+
+    def test_callback_passthrough_and_unknown_forwarding(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def target(): pass
+    def sink(cb): cb()
+    def middle(cb): sink(cb)
+    def driver(unknown):
+     middle(target)
+     middle(unknown)
+    """
+            },
+        )
+&gt;       expect(r, "cb", "sink", {"target"}, unknown=True, complete=False)
+
+tests\test_python_pipeline.py:414: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'sink', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_unknown_container_mutation_is_not_complete" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_unknown_container_mutatio0')
+
+    def test_unknown_container_mutation_is_not_complete(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def a(): pass
+    def caller(unknown):
+     table={"a":a}
+     table.update(unknown)
+     table["a"]()
+    """
+            },
+        )
+&gt;       expect(r, "table['a']", "caller", {"a"}, unknown=True, complete=False)
+
+tests\test_python_pipeline.py:429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "table['a']", owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_unconditional_container_slot_replacement" time="0.006"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_unconditional_container_s0')
+
+    def test_unconditional_container_slot_replacement(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def a(): pass
+    def b(): pass
+    def caller():
+     table={"a":a}
+     table["a"]=b
+     table["a"]()
+    """
+            },
+        )
+&gt;       expect(r, "table['a']", "caller", {"b"}, forbidden={"a"})
+
+tests\test_python_pipeline.py:445: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "table['a']", owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_inherited_classmethod_receiver" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_inherited_classmethod_rec0')
+
+    def test_inherited_classmethod_receiver(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """class Base:
+     @classmethod
+     def construct(cls): return cls()
+     def work(self): pass
+    class Child(Base):
+     def work(self): pass
+    def caller(): Child.construct().work()
+    """
+            },
+        )
+&gt;       expect(r, "Child.construct().work", "caller", {"Child.work"}, forbidden={"Base.work"})
+
+tests\test_python_pipeline.py:462: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'Child.construct().work', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_callback_default_and_keyword_only" time="0.008"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_callback_default_and_keyw0')
+
+    def test_callback_default_and_keyword_only(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def target(): pass
+    def invoke(cb=target): cb()
+    def kw(*,cb=target): cb()
+    def caller():
+     invoke()
+     kw()
+    """
+            },
+        )
+&gt;       expect(r, "cb", "invoke", {"target"})
+
+tests\test_python_pipeline.py:478: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'cb', owner = 'invoke', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline" name="test_unmodeled_decorator_replacement_is_explicit" time="0.009"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_unmodeled_decorator_repla0')
+
+    def test_unmodeled_decorator_replacement_is_explicit(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def other(): pass
+    def replace(fn): return other
+    @replace
+    def original(): pass
+    def caller(): original()
+    """
+            },
+        )
+&gt;       s = expect(r, "original", "caller", set(), unknown=True, complete=False, forbidden={"original"})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_python_pipeline.py:494: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'original', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline_gaps" name="test_generator_contextmanager_binding" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_generator_contextmanager_0')
+
+    def test_generator_contextmanager_binding(tmp_path):
+        text = (FIXTURES / "generator_context.py").read_text(encoding="utf-8-sig")
+        result = analyze(tmp_path, {"demo.py": text})
+&gt;       expect(result, "resource.work", "caller", {"Resource.work"})
+
+tests\test_python_pipeline_gaps.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = 'resource.work', owner = 'caller', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_python_pipeline_gaps" name="test_separate_instance_registries" time="0.005"><failure message="KeyError: 'sites'">tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/baseline-complete/pytest/test_separate_instance_registr0')
+
+    def test_separate_instance_registries(tmp_path):
+        text = (FIXTURES / "instance_registries.py").read_text(encoding="utf-8-sig")
+        result = analyze(tmp_path, {"demo.py": text})
+&gt;       expect(result, "self.handlers['go']", "Registry.dispatch", {"a"}, forbidden={"b"})
+
+tests\test_python_pipeline_gaps.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_python_pipeline.py:49: in expect
+    s = site(result, expression, owner)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ts': '12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved', ...})
+expression = "self.handlers['go']", owner = 'Registry.dispatch', line = None
+
+    def site(result, expression, owner, line=None):
+        nodes, edges, info = result
+        byid = {n["node_id"]: n for n in nodes}
+        matches = [
+            s
+&gt;           for s in info["sites"]
+                     ^^^^^^^^^^^^^
+            if s["expression"] == expression
+            and byid[s["execution_owner"]]["qualname"] == owner
+            and (line is None or s["line"] == line)
+        ]
+E       KeyError: 'sites'
+
+tests\test_python_pipeline.py:34: KeyError</failure></testcase><testcase classname="tests.test_synthetic_dense" name="test_synthetic_three_channels_and_exact" time="1.383" /><testcase classname="tests.test_synthetic_dense" name="test_synthetic_filter_page_source_and_relations" time="1.393" /><testcase classname="tests.test_synthetic_dense" name="test_synthetic_change_delete_move_and_failure" time="4.161" /><testcase classname="tests.test_synthetic_dense" name="test_readonly_acceptance_guard_never_writes_or_requests" time="1.291" /></testsuite></testsuites>

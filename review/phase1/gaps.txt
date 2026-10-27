@@ -1,0 +1,56 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+____________________ test_generator_contextmanager_binding ____________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/gaps/test_generator_contextmanager_0')
+
+    def test_generator_contextmanager_binding(tmp_path):
+        text = (FIXTURES / "generator_context.py").read_text(encoding="utf-8-sig")
+        result = analyze(tmp_path, {"demo.py": text})
+>       expect(result, "resource.work", "caller", {"Resource.work"})
+
+tests\test_python_pipeline_gaps.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'resource.work', owner = 'caller', targets = {'Resource.work'}
+unknown = False, complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+        assert s["names"] == set(targets)
+        assert not s["names"].intersection(forbidden)
+>       assert s["unknown_origin"] is unknown
+E       assert True is False
+
+tests\test_python_pipeline.py:52: AssertionError
+______________________ test_separate_instance_registries ______________________
+
+tmp_path = WindowsPath('D:/Projects/agentic-trpg/local-code-tools/.tmp/phase1/gaps/test_separate_instance_registr0')
+
+    def test_separate_instance_registries(tmp_path):
+        text = (FIXTURES / "instance_registries.py").read_text(encoding="utf-8-sig")
+        result = analyze(tmp_path, {"demo.py": text})
+>       expect(result, "self.handlers['go']", "Registry.dispatch", {"a"}, forbidden={"b"})
+
+tests\test_python_pipeline_gaps.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...py:module:demo#1', 'execution_owner': 'fixture:demo.py:module:demo#1', 'phase': 'module', ...}], 'call_sites': 6, ...})
+expression = "self.handlers['go']", owner = 'Registry.dispatch', targets = {'a'}
+unknown = False, complete = True, forbidden = {'b'}
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'a'}
+E         
+E         Extra items in the right set:
+E         'a'
+E         Use -v to get more diff
+
+tests\test_python_pipeline.py:50: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_python_pipeline_gaps.py::test_generator_contextmanager_binding
+FAILED tests/test_python_pipeline_gaps.py::test_separate_instance_registries
+2 failed in 1.43s
