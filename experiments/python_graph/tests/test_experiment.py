@@ -10,8 +10,8 @@ import pytest
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
-from run import synthetic
-from syntax import inventory
+from run import synthetic  # noqa: E402
+from syntax import inventory, normalize  # noqa: E402
 
 
 def test_frozen_independent_truth_and_sources():
@@ -98,3 +98,15 @@ def test_cross_revision_negative_control_is_not_dropped(observed):
     assert matched["actual_targets_or_context_uses"] == ["dnd5e_engine.evaluation:evaluate"]
     assert mismatch["actual_targets_or_context_uses"] == []
     assert any(r["status"] == "boundary" for r in mismatch["raw"])
+
+
+def test_module_identity_does_not_lose_to_long_init_suffix():
+    """An init module's spelling must not steal names from a more specific module."""
+    modules = ["trpg_state_machine.__init__", "trpg_state_machine.errors"]
+    assert (
+        normalize("trpg_state_machine.errors.Issue", modules) == "trpg_state_machine.errors:Issue"
+    )
+    assert (
+        normalize("trpg_state_machine.errors.StateMachineError.__init__", modules)
+        == "trpg_state_machine.errors:StateMachineError.__init__"
+    )

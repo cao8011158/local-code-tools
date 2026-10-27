@@ -7,7 +7,7 @@ import re
 def normalize(full, modules):
     """Map known module prefixes and one anonymous scope spelling; retain raw elsewhere."""
     full = re.sub(r"\.lambda\.\d+(?=\.|$)", ".<lambda>", full or "")
-    for mod in sorted(modules, key=len, reverse=True):
+    for mod in sorted(modules, key=lambda m: len(m.removesuffix(".__init__")), reverse=True):
         clean = mod.removesuffix(".__init__")
         if full in (mod, clean):
             return clean + ":<module>"

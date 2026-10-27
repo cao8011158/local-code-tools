@@ -208,13 +208,22 @@ def measure(tool, plan_file, output, timeout):
     log = output.with_suffix(".log")
     start = time.perf_counter()
     rss = 0
+    max_processes = 0
     timed_out = False
     with log.open("w", encoding="utf-8") as stream:
         proc = subprocess.Popen(command, stdout=stream, stderr=stream, env=env, cwd=ROOT)
         ps = psutil.Process(proc.pid)
         while proc.poll() is None:
             try:
-                rss = max(rss, ps.memory_info().rss)
+                tree = [ps] + ps.children(recursive=True)
+                sampled = []
+                for member in tree:
+                    try:
+                        sampled.append(member.memory_info().rss)
+                    except psutil.Error:
+                        pass
+                rss = max(rss, sum(sampled))
+                max_processes = max(max_processes, len(sampled))
             except psutil.Error:
                 pass
             if time.perf_counter() - start > timeout:
@@ -239,6 +248,8 @@ def measure(tool, plan_file, output, timeout):
         ],
         wall_seconds=time.perf_counter() - start,
         sampled_peak_rss_bytes=rss,
+        rss_scope="sum of launcher + actual worker + live child processes; sampled, shared pages may be counted twice",
+        sampled_max_processes=max_processes,
         rss_sampling_seconds=0.025,
         returncode=proc.returncode,
         timeout_seconds=timeout,

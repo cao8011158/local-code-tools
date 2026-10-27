@@ -50,7 +50,9 @@ the relationship requirements. Real sample judgments have partial/unknown target
 sets; no whole-repository precision or recall is reported. Jedi measurements
 include all-file definition enumeration but only annotated-position inference;
 Graph/Pyan build full scoped in-memory relations. Timings are not equal-workload
-benchmarks. RSS is 25 ms sampled child-process working set, not an exact maximum.
+benchmarks. RSS is a process-tree working-set sum sampled with 25 ms sleeps, including Windows
+venv launchers and their actual worker children. It is not an exact peak, and shared
+pages may be counted twice. Sampling overhead affects wall time.
 
 The raw complete experimental graphs/plans and temporary Git repositories remain
 local under .tmp and are not committed. Only selected raw evidence and compact
