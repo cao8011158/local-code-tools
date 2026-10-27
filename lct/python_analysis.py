@@ -14,6 +14,8 @@ import jedi
 
 from .common import canonical, digest
 
+_DYNAMIC = object()
+
 
 @dataclass(frozen=True)
 class Atom:
@@ -23,6 +25,7 @@ class Atom:
     target: str
     bound: bool = False
     receiver: str = ""
+    allocation: str = ""
 
 
 @dataclass(frozen=True)
@@ -31,6 +34,7 @@ class Result:
 
     atoms: frozenset = frozenset()
     reasons: frozenset = frozenset()
+    proofs: frozenset = frozenset()
 
     @property
     def unknown(self):
@@ -42,17 +46,30 @@ def union(*results):
     return Result(
         frozenset(a for r in results for a in r.atoms),
         frozenset(x for r in results for x in r.reasons),
+        frozenset(p for r in results for p in r.proofs),
     )
 
 
 def known(kind, target, bound=False):
     """Construct a finite syntactic alternative."""
-    return Result(frozenset([Atom(kind, target, bound)]))
+    return Result(
+        frozenset([Atom(kind, target, bound)]), proofs=frozenset(["source-value:" + kind])
+    )
 
 
 def unknown(reason):
     """Retain a named unresolved origin alongside known candidates."""
     return Result(reasons=frozenset([reason]))
+
+
+def certified(result, rule):
+    """Attach a tested semantic justification; unknown reasons are never removed."""
+    return Result(result.atoms, result.reasons, result.proofs | frozenset([rule]))
+
+
+def invalid(rule):
+    """Prove that an attempted call has no valid target in supported syntax."""
+    return Result(proofs=frozenset([rule]))
 
 
 class Analyzer:
@@ -75,6 +92,7 @@ class Analyzer:
         self.paths, self.scripts, self.module_for = {}, {}, {}
         self.budget, self.limited = 20000, False
         self.recursions = 0
+        self.allocations = {}
         for ident, t in self.modules.items():
             n = nodes[ident]
             path = self.root / n["repository"] / n["path"]
@@ -402,6 +420,9 @@ class Analyzer:
                         for t in ast.walk(s)
                     ):
                         result = result + [("unknown", s)]
+                for conditional, value in self.named_bindings(s, name, before):
+                    entry = ("conditional-value" if conditional else "value", value)
+                    result = result + [entry] if conditional else [entry]
             return result
 
         return scan(self.statements[scope], [])
@@ -471,10 +492,20 @@ class Analyzer:
             expression=ast.unparse(expr),
             rule=type(expr).__name__,
             alternatives=[
-                dict(kind=a.kind, target=a.target, bound=a.bound, receiver=a.receiver)
-                for a in sorted(result.atoms, key=lambda a: (a.kind, a.target, a.bound, a.receiver))
+                dict(
+                    kind=a.kind,
+                    target=a.target,
+                    bound=a.bound,
+                    receiver=a.receiver,
+                    allocation=a.allocation,
+                )
+                for a in sorted(
+                    result.atoms,
+                    key=lambda a: (a.kind, a.target, a.bound, a.receiver, a.allocation),
+                )
             ],
             unknown_reasons=sorted(result.reasons),
+            proofs=sorted(result.proofs),
         )
         # Never memoize an answer computed under a cut recursive dependency.
         if self.recursions == recursion_before:
@@ -487,6 +518,8 @@ class Analyzer:
             return known("literal", repr(expr.value))
         if isinstance(expr, ast.Lambda):
             return known("callable", self.owner[id(expr)])
+        if isinstance(expr, ast.NamedExpr):
+            return certified(self.resolve(scope, expr.value), "ordered-named-expression")
         if isinstance(expr, ast.Name):
             return self.name(scope, expr.id, before, expr)
         if isinstance(expr, ast.IfExp):
@@ -513,7 +546,26 @@ class Analyzer:
             results = []
             for a in targets.atoms:
                 if a.kind == "class":
-                    results.append(known("instance", a.target))
+                    allocation = f"{scope}:{expr.lineno}:{expr.col_offset}"
+                    self.allocations[allocation] = (scope, expr)
+                    results.append(
+                        certified(
+                            Result(frozenset([Atom("instance", a.target, allocation=allocation)])),
+                            "explicit-construction-site",
+                        )
+                    )
+                elif a.kind in ("context-factory", "async-context-factory"):
+                    results.append(
+                        certified(
+                            known(
+                                "async-context-manager"
+                                if a.kind == "async-context-factory"
+                                else "context-manager",
+                                a.target,
+                            ),
+                            "verified-contextlib-wrapper",
+                        )
+                    )
                 elif a.kind == "callable":
                     obj = self.trees[a.target]
                     returns = [obj.body] if isinstance(obj, ast.Lambda) else self.return_values(obj)
@@ -554,26 +606,41 @@ class Analyzer:
             param = next((a for a in args if a.arg == name), None)
             items = self.reaching(current, name, before)
             if items:
-                return union(*(self.binding(current, kind, item) for kind, item in items))
+                return certified(
+                    union(*(self.binding(current, kind, item) for kind, item in items)),
+                    "reaching-lexical-binding",
+                )
             if param:
                 return self.parameter(current, param)
             if self.local_bound(current, name):
-                return Result()
-            parent = self.nodes[current]["parent"]
+                return invalid("unbound-local-before-assignment")
+            parent = self.nodes[current].get("resolution_parent", self.nodes[current]["parent"])
             if parent not in self.trees:
                 break
             if isinstance(t, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
                 while parent in self.trees and isinstance(self.trees[parent], ast.ClassDef):
                     parent = self.nodes[parent]["parent"]
             current = parent
-            before = 10**9
+            if isinstance(t, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+                before = 10**9
         value = self.query(scope, anchor)
-        return Result() if value.reasons == frozenset(["jedi-no-result"]) else value
+        return (
+            invalid("undefined-captured-lexical-name")
+            if value.reasons == frozenset(["jedi-no-result"])
+            else value
+        )
 
     def binding(self, scope, kind, item):
         """Translate a selected binding into its source association."""
         if kind == "definition":
             ident = self.owner[id(item)]
+            if (
+                isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and len(item.decorator_list) == 1
+            ):
+                wrapper = self.context_wrapper(scope, item.decorator_list[0])
+                if wrapper:
+                    return certified(known(wrapper, ident), "verified-contextlib-decorator-origin")
             if any(
                 ast.unparse(d) not in ("classmethod", "staticmethod") for d in item.decorator_list
             ):
@@ -581,6 +648,8 @@ class Analyzer:
             return known("class" if isinstance(item, ast.ClassDef) else "callable", ident)
         if kind == "value":
             return self.resolve(scope, item)
+        if kind == "conditional-value":
+            return union(self.resolve(scope, item), unknown("conditional-named-expression"))
         if kind == "import":
             stmt, alias = item
             query = ast.Name(id=alias.asname or alias.name)
@@ -594,6 +663,16 @@ class Analyzer:
             results = []
             method = "__aenter__" if isinstance(stmt, ast.AsyncWith) else "__enter__"
             for a in receivers.atoms:
+                if a.kind in ("context-manager", "async-context-manager"):
+                    expected = (
+                        "async-context-manager"
+                        if isinstance(stmt, ast.AsyncWith)
+                        else "context-manager"
+                    )
+                    if a.kind != expected:
+                        results.append(invalid("wrong-context-protocol"))
+                    else:
+                        results.append(self.generator_binding(a.target))
                 if a.kind in ("instance", "class"):
                     for k, b in self.reaching(a.target, method, 10**9):
                         value = self.binding(a.target, k, b)
@@ -603,69 +682,210 @@ class Analyzer:
                                 for r in self.return_values(self.trees[target.target])
                             )
             return union(*results) if results else unknown("unsupported-context-manager")
-        return Result() if kind == "unbound" else unknown("unsupported-binding")
+        return (
+            invalid("deleted-name-binding") if kind == "unbound" else unknown("unsupported-binding")
+        )
 
     def attribute(self, scope, expr):
-        """Retain method binding through variable aliases and honor member replacements."""
+        """Apply descriptor boundaries, instance fields, then nondata class members."""
         receivers = self.resolve(scope, expr.value)
         results = []
-        for a in receivers.atoms:
-            if a.kind in ("instance", "class", "module", "super"):
-                value = self.member(a.target, expr.attr, skip_own=a.kind == "super")
-                if value is not None:
-                    atoms = []
-                    for v in value.atoms:
-                        obj = self.trees.get(v.target)
-                        decorators = {ast.unparse(d) for d in getattr(obj, "decorator_list", [])}
-                        bound = isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
-                            "classmethod" in decorators
-                            or (
-                                a.kind in ("instance", "super") and "staticmethod" not in decorators
+        for receiver in receivers.atoms:
+            if receiver.kind not in ("instance", "class", "module", "super"):
+                continue
+            value = self.member(receiver.target, expr.attr, skip_own=receiver.kind == "super")
+            if receiver.kind == "instance":
+                guard = self.descriptor_guard(receiver.target, expr.attr, value)
+                if guard:
+                    results.append(union(self.query(scope, expr), unknown(guard)))
+                    continue
+                if self.instance_argument_escape(receiver, scope, expr):
+                    results.append(unknown("instance-argument-escape"))
+                field = self.instance_field(receiver, expr.attr, scope, expr)
+                if field is not None:
+                    if (
+                        "conditional-instance-field-uninitialized" in field.reasons
+                        and value is not None
+                    ):
+                        alternatives = frozenset(
+                            Atom(
+                                a.kind,
+                                a.target,
+                                a.kind == "callable",
+                                receiver.target,
+                                receiver.allocation,
                             )
+                            for a in value.atoms
                         )
-                        atoms.append(Atom(v.kind, v.target, bound, a.target if bound else ""))
-                    results.append(Result(frozenset(atoms), value.reasons))
+                        field = union(field, Result(alternatives, value.reasons, value.proofs))
+                    results.append(certified(field, "python-instance-field-precedence"))
+                    continue
+            if value is not None:
+                atoms = []
+                for v in value.atoms:
+                    obj = self.trees.get(v.target)
+                    decorators = {ast.unparse(d) for d in getattr(obj, "decorator_list", [])}
+                    bound = isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+                        "classmethod" in decorators
+                        or (
+                            receiver.kind in ("instance", "super")
+                            and "staticmethod" not in decorators
+                        )
+                    )
+                    atoms.append(
+                        Atom(
+                            v.kind,
+                            v.target,
+                            bound,
+                            receiver.target if bound else "",
+                            receiver.allocation if bound else v.allocation,
+                        )
+                    )
+                results.append(
+                    certified(
+                        Result(frozenset(atoms), value.reasons, value.proofs),
+                        "python-nondata-member-lookup",
+                    )
+                )
         if results:
             return union(*results, unknown("unknown-receiver") if receivers.unknown else Result())
         result = self.query(scope, expr)
-        atoms = []
-        for a in result.atoms:
-            obj = self.trees.get(a.target)
-            decorators = {ast.unparse(d) for d in getattr(obj, "decorator_list", [])}
-            bound = a.kind == "callable" and (
-                "classmethod" in decorators
-                or (
-                    "staticmethod" not in decorators
-                    and any(r.kind == "instance" for r in receivers.atoms)
-                )
-            )
-            atoms.append(Atom(a.kind, a.target, bound))
-        if not any(a.kind in ("callable", "class", "container", "instance") for a in atoms):
-            # Existing instance registries commonly initialize one literal field in
-            # __init__. Associate that exact field only; do not model arbitrary heaps.
-            for receiver in receivers.atoms:
-                if receiver.kind != "instance":
+        return Result(result.atoms, result.reasons | receivers.reasons, result.proofs)
+
+    def descriptor_guard(self, owner, name, value):
+        """Refuse custom attribute hooks, data descriptors and unverified decorators."""
+        if any(
+            self.member(owner, n) is not None
+            for n in ("__getattribute__", "__getattr__", "__setattr__", "__delattr__")
+        ):
+            return "dynamic-attribute-hook"
+        if self.member(owner, "__new__") is not None or any(
+            kw.arg == "metaclass" for kw in getattr(self.trees[owner], "keywords", [])
+        ):
+            return "custom-construction-protocol"
+        if self.reaching(owner, "__slots__", 10**9):
+            return "slotted-instance-field-not-modeled"
+        if value is not None:
+            if "decorated-binding-not-modeled" in value.reasons:
+                return "descriptor-or-decorated-member-not-modeled"
+            for atom in value.atoms:
+                if atom.kind == "instance" and self.member(atom.target, "__get__") is not None:
+                    if any(
+                        self.member(atom.target, n) is not None for n in ("__set__", "__delete__")
+                    ):
+                        return "data-descriptor-protocol-not-modeled"
+        return None
+
+    def instance_field(self, receiver, name, scope, anchor):
+        """Associate constructor fields and direct writes with one source creation site.
+
+        This is an AST origin join, not an object heap. Function factory/loop-created
+        aliases remain a documented boundary for identity-sensitive container use.
+        """
+        value = None
+        initializer = self.member(receiver.target, "__init__")
+        if initializer:
+            for function in initializer.atoms:
+                if function.kind != "callable":
                     continue
-                for kind, definition in self.reaching(receiver.target, "__init__", 10**9):
-                    if kind != "definition":
+                tree = self.trees[function.target]
+                args = tree.args.posonlyargs + tree.args.args
+                self_name = args[0].arg if args else None
+                for stmt in self.direct_statements(tree):
+                    if not isinstance(stmt, ast.Assign):
                         continue
-                    function = self.owner[id(definition)]
-                    for statement in self.direct_statements(definition):
-                        if not isinstance(statement, ast.Assign):
-                            continue
-                        if any(
-                            isinstance(dest, ast.Attribute)
-                            and dest.attr == expr.attr
-                            and isinstance(dest.value, ast.Name)
-                            and dest.value.id == "self"
-                            for dest in statement.targets
-                        ):
-                            results.append(self.resolve(function, statement.value))
-            if results:
-                return union(
-                    *results, unknown("unknown-receiver") if receivers.unknown else Result()
+                    if any(
+                        isinstance(t, ast.Attribute)
+                        and t.attr == name
+                        and isinstance(t.value, ast.Name)
+                        and t.value.id == self_name
+                        for t in stmt.targets
+                    ):
+                        candidate = self.field_value(
+                            function.target, stmt.value, receiver.allocation
+                        )
+                        if stmt in tree.body:
+                            value = candidate
+                        else:
+                            value = union(
+                                value or Result(),
+                                candidate,
+                                unknown(
+                                    "conditional-instance-field-uninitialized"
+                                    if value is None
+                                    else "conditional-instance-field"
+                                ),
+                            )
+        # Named instance writes before this access override the initialized value.
+        for stmt in self.direct_statements(self.trees[scope]):
+            if not isinstance(stmt, ast.Assign) or (stmt.lineno, stmt.col_offset) >= (
+                anchor.lineno,
+                anchor.col_offset,
+            ):
+                continue
+            for target in stmt.targets:
+                if not isinstance(target, ast.Attribute) or target.attr != name:
+                    continue
+                owners = self.resolve(scope, target.value)
+                if not receiver.allocation:
+                    continue
+                if any(
+                    o.kind == "instance" and o.allocation == receiver.allocation
+                    for o in owners.atoms
+                ):
+                    candidate = self.resolve(scope, stmt.value)
+                    if stmt in self.statements[scope]:
+                        value = candidate
+                    else:
+                        value = union(
+                            value or Result(),
+                            candidate,
+                            unknown(
+                                "conditional-instance-field-uninitialized"
+                                if value is None
+                                else "conditional-instance-field"
+                            ),
+                        )
+        if value is None:
+            return None
+        return Result(
+            frozenset(
+                Atom(
+                    a.kind,
+                    a.target,
+                    a.bound,
+                    a.receiver,
+                    receiver.allocation if a.kind == "container" else a.allocation,
                 )
-        return Result(frozenset(atoms), result.reasons | receivers.reasons)
+                for a in value.atoms
+            ),
+            value.reasons,
+            value.proofs,
+        )
+
+    def field_value(self, function, expr, allocation):
+        """Join a direct constructor parameter to the arguments of its creation site."""
+        args = self.trees[function].args.posonlyargs + self.trees[function].args.args
+        names = [p.arg for p in args]
+        if isinstance(expr, ast.Name) and expr.id in names[1:]:
+            origin = self.allocations.get(allocation)
+            if origin:
+                scope, call = origin
+                supplied = {p.arg: arg for p, arg in zip(args[1:], call.args)}
+                supplied.update({kw.arg: kw.value for kw in call.keywords if kw.arg})
+                if any(kw.arg is None for kw in call.keywords) or any(
+                    isinstance(a, ast.Starred) for a in call.args
+                ):
+                    return unknown("constructor-argument-unpacking")
+                if expr.id in supplied:
+                    return certified(
+                        self.resolve(scope, supplied[expr.id]), "constructor-argument-origin"
+                    )
+                default = self.parameter_default(self.trees[function], expr.id)
+                if default is not None:
+                    return self.resolve(self.nodes[function]["parent"], default)
+            return unknown("unknown-constructor-field-input")
+        return self.resolve(function, expr)
 
     def parameter(self, scope, param):
         """Associate explicit callers, keeping receiver offset and open input provenance."""
@@ -687,12 +907,55 @@ class Analyzer:
                 for a in self.resolve(site["execution_owner"], site["_expr"]).atoms:
                     if a.kind == "callable" and a.target == scope and a.bound and a.receiver:
                         receivers.append(
-                            known(
-                                "class" if "classmethod" in decorators else "instance", a.receiver
+                            certified(
+                                Result(
+                                    frozenset(
+                                        [
+                                            Atom(
+                                                "class"
+                                                if "classmethod" in decorators
+                                                else "instance",
+                                                a.receiver,
+                                                allocation=a.allocation,
+                                            )
+                                        ]
+                                    )
+                                ),
+                                "bound-receiver-origin",
                             )
                         )
             if receivers:
-                return union(*receivers)
+                value = union(*receivers)
+                return (
+                    value
+                    if self.repos[self.nodes[scope]["repository"]].get("closed_world", False)
+                    else union(value, unknown("open-receiver-input"))
+                )
+            # A lexical body without an observed invocation can still be reached by
+            # explicitly constructed instances; preserve those finite origins.
+            if "classmethod" not in decorators:
+                for site in self.sites:
+                    if site["_call"] is None:
+                        continue
+                    callee = self.resolve(site["execution_owner"], site["_expr"])
+                    if any(a.kind == "class" and a.target == parent for a in callee.atoms):
+                        allocation = f"{site['execution_owner']}:{site['_call'].lineno}:{site['_call'].col_offset}"
+                        self.allocations[allocation] = (site["execution_owner"], site["_call"])
+                        receivers.append(
+                            certified(
+                                Result(
+                                    frozenset([Atom("instance", parent, allocation=allocation)])
+                                ),
+                                "class-construction-receiver-candidates",
+                            )
+                        )
+            if receivers:
+                value = union(*receivers)
+                return (
+                    value
+                    if self.repos[self.nodes[scope]["repository"]].get("closed_world", False)
+                    else union(value, unknown("open-receiver-input"))
+                )
             value = known("class" if "classmethod" in decorators else "instance", parent)
             return (
                 value
@@ -732,49 +995,52 @@ class Analyzer:
                     Atom("instance", a.target) for a in inferred.atoms if a.kind == "class"
                 )
                 if atoms:
-                    return Result(atoms)
+                    return certified(Result(atoms), "closed-input-annotation")
             return unknown("parameter-without-known-origin")
         return union(*results)
 
     def subscript(self, scope, expr):
-        """Associate slots, ordered direct overwrites and correlated registry writes."""
+        """Apply finite literal-slot writes/deletes; retain mutation and escape origins."""
         containers = self.resolve(scope, expr.value)
-        key = expr.slice.value if isinstance(expr.slice, ast.Constant) else None
+        fixed, key = self.literal_key(expr.slice)
         results = []
-        for a in containers.atoms:
-            if a.kind != "container":
+        for atom in containers.atoms:
+            if atom.kind != "container":
                 continue
-            owner, obj = self.container_exprs[a.target]
-            owner_parent = self.nodes[owner]["parent"]
-            if self.nodes[owner]["name"] == "__init__" and owner_parent in self.trees:
-                constructors = sum(
-                    any(
-                        v.kind == "class" and v.target == owner_parent
-                        for v in self.resolve(site["execution_owner"], site["_expr"]).atoms
-                    )
-                    for site in self.sites
-                    if site["_call"] is not None
-                )
-                if constructors > 1:
-                    results.append(unknown("separate-instance-containers-not-modeled"))
+            owner, obj = self.container_exprs[atom.target]
+            if atom.allocation:
+                origin = self.allocations.get(atom.allocation)
+                if not origin or not isinstance(self.trees[origin[0]], ast.Module):
+                    results.append(unknown("nonunique-instance-container-allocation"))
                     continue
+                # A constructor inside a module loop/branch is not a unique instance.
+                if not any(
+                    isinstance(stmt, ast.Assign) and stmt.value is origin[1]
+                    for stmt in self.trees[origin[0]].body
+                ):
+                    results.append(unknown("nonunique-instance-container-allocation"))
+                    continue
+            sequence = not isinstance(obj, ast.Dict)
             entries = (
-                [
-                    (k.value if isinstance(k, ast.Constant) else None, v)
+                list(enumerate(obj.elts))
+                if sequence
+                else [
+                    (
+                        self.literal_key(k)[1]
+                        if k is not None and self.literal_key(k)[0]
+                        else _DYNAMIC,
+                        v,
+                    )
                     for k, v in zip(obj.keys, obj.values)
                 ]
-                if isinstance(obj, ast.Dict)
-                else list(enumerate(obj.elts))
             )
-            slots = {}
-            for k, v in entries:
-                slots[k] = [self.resolve(owner, v)]
+            slots = {k: [self.resolve(owner, v)] for k, v in entries}
             extra = []
             for function, tree in self.trees.items():
                 if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
                     continue
                 for statement in self.direct_statements(tree):
-                    if not isinstance(statement, ast.Assign):
+                    if not isinstance(statement, (ast.Assign, ast.Delete)):
                         continue
                     if function == scope and (statement.lineno, statement.col_offset) >= (
                         expr.lineno,
@@ -785,11 +1051,30 @@ class Analyzer:
                         if not isinstance(dest, ast.Subscript):
                             continue
                         dst = self.resolve(function, dest.value)
-                        if a not in dst.atoms:
+                        if atom not in dst.atoms:
                             continue
-                        write_key = (
-                            dest.slice.value if isinstance(dest.slice, ast.Constant) else None
-                        )
+                        write_fixed, write_key = self.literal_key(dest.slice)
+                        if (
+                            sequence
+                            and write_fixed
+                            and isinstance(write_key, int)
+                            and write_key < 0
+                        ):
+                            write_key += len(slots)
+                        direct = statement in tree.body and function in (scope, owner)
+                        if isinstance(statement, ast.Delete):
+                            if direct and write_fixed:
+                                slots.pop(write_key, None)
+                                if sequence:
+                                    slots = {
+                                        i: vs
+                                        for i, vs in enumerate(
+                                            vs for _, vs in sorted(slots.items())
+                                        )
+                                    }
+                            elif not write_fixed or not fixed or write_key == key:
+                                extra.append(unknown("conditional-or-dynamic-slot-deletion"))
+                            continue
                         if (
                             isinstance(dest.slice, ast.Name)
                             and isinstance(statement.value, ast.Name)
@@ -798,46 +1083,89 @@ class Analyzer:
                         ):
                             extra.extend(
                                 self.registry_arguments(
-                                    function, dest.slice.id, statement.value.id, key
+                                    function,
+                                    dest.slice.id,
+                                    statement.value.id,
+                                    key if fixed else None,
+                                    atom.allocation,
                                 )
                             )
-                        elif (
-                            write_key is not None
-                            and statement in tree.body
-                            and function in (scope, owner)
-                        ):
+                        elif direct and write_fixed:
                             slots[write_key] = [self.resolve(function, statement.value)]
-                        elif key is None or write_key is None or key == write_key:
+                        elif not fixed or not write_fixed or key == write_key:
                             extra.append(self.resolve(function, statement.value))
-                # Unsupported methods and escapes may introduce additional values. Merely
-                # finding old literal entries cannot prove completeness after such a call.
+                            extra.append(unknown("conditional-or-dynamic-slot-write"))
                 for site in self.sites:
                     if site["execution_owner"] != function or site["_call"] is None:
                         continue
-                    callee = site["_expr"]
-                    call = site["_call"]
                     if function == scope and (site["line"], site["column"]) >= (
                         expr.lineno,
                         expr.col_offset,
                     ):
                         continue
+                    callee, call = site["_expr"], site["_call"]
                     uses = ([callee.value] if isinstance(callee, ast.Attribute) else []) + call.args
+                    uses += [kw.value for kw in call.keywords]
                     for use in uses:
-                        if isinstance(use, ast.Starred):
-                            extra.append(unknown("container-unpacking"))
-                            continue
-                        if a in self.resolve(function, use).atoms:
+                        if self.container_reachable(function, use, atom):
                             extra.append(unknown("container-mutation-or-escape"))
-            results.extend(
+            lookup = key
+            if sequence and fixed:
+                if not isinstance(key, int):
+                    results.append(invalid("invalid-literal-sequence-index"))
+                    continue
+                lookup = key + len(slots) if key < 0 else key
+            chosen = [
                 r
                 for k, values in slots.items()
-                if key is None or k is None or key == k
+                if not fixed or k is _DYNAMIC or k == lookup
                 for r in values
-            )
-            results.extend(extra)
+            ]
+            if chosen or extra:
+                results.append(certified(union(*chosen, *extra), "literal-slot-state"))
+            else:
+                results.append(invalid("missing-literal-slot"))
         if containers.unknown:
             results.append(unknown("unknown-container-origin"))
-        return union(*results) if results else unknown("unresolved-container-slot")
+        if not results:
+            return unknown("unresolved-container-slot")
+        return union(*results)
+
+    def literal_key(self, expr):
+        """Read hashable constants and signed literal integers without eval."""
+        if isinstance(expr, ast.Constant):
+            try:
+                hash(expr.value)
+            except TypeError:
+                return False, None
+            return True, expr.value
+        if (
+            isinstance(expr, ast.UnaryOp)
+            and isinstance(expr.op, (ast.USub, ast.UAdd))
+            and isinstance(expr.operand, ast.Constant)
+            and type(expr.operand.value) is int
+        ):
+            return True, (
+                -expr.operand.value if isinstance(expr.op, ast.USub) else expr.operand.value
+            )
+        return False, None
+
+    def container_reachable(self, scope, expr, target, seen=None):
+        """Check explicit nested argument containers, including keyword and unpack values."""
+        if isinstance(expr, ast.Starred):
+            expr = expr.value
+        seen = set() if seen is None else seen
+        values = self.resolve(scope, expr)
+        for atom in values.atoms:
+            if atom == target:
+                return True
+            if atom.kind == "container" and atom.target not in seen:
+                seen.add(atom.target)
+                owner, obj = self.container_exprs[atom.target]
+                parts = obj.values if isinstance(obj, ast.Dict) else obj.elts
+                if any(self.container_reachable(owner, p, target, seen) for p in parts):
+                    return True
+        return False
 
     def direct_statements(self, tree):
         """Traverse lexical statements without entering nested definitions."""
@@ -852,7 +1180,7 @@ class Analyzer:
         for s in tree.body:
             yield from walk(s)
 
-    def registry_arguments(self, function, key_param, value_param, lookup):
+    def registry_arguments(self, function, key_param, value_param, lookup, allocation=""):
         """Join key/value arguments from the same explicit registration call."""
         results = []
         params = self.trees[function].args.posonlyargs + self.trees[function].args.args
@@ -863,6 +1191,8 @@ class Analyzer:
             targets = self.resolve(site["execution_owner"], site["_expr"])
             for a in targets.atoms:
                 if a.target != function or a.kind != "callable":
+                    continue
+                if allocation and a.allocation != allocation:
                     continue
                 positional = params[1:] if a.bound else params
                 supplied = {p.arg: arg for p, arg in zip(positional, call.args)}
@@ -949,3 +1279,153 @@ class Analyzer:
                 steps.append(self.traces[key])
             pending.extend(reversed(self.dependencies.get(key, [])))
         return dict(steps=steps, truncated=bool(pending))
+
+    def named_bindings(self, statement, name, before):
+        """Select ordered walrus stores; short-circuit/conditional stores stay open."""
+
+        def visit(obj, conditional=False):
+            if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+                return
+            if isinstance(obj, ast.NamedExpr):
+                yield from visit(obj.value, conditional)
+                if (
+                    isinstance(obj.target, ast.Name)
+                    and obj.target.id == name
+                    and (obj.end_lineno, obj.end_col_offset) < before
+                ):
+                    yield conditional, obj.value
+                return
+            if isinstance(obj, ast.If):
+                yield from visit(obj.test, conditional)
+                return
+            if isinstance(
+                obj,
+                (
+                    ast.BoolOp,
+                    ast.IfExp,
+                    ast.comprehension,
+                    ast.ListComp,
+                    ast.SetComp,
+                    ast.DictComp,
+                    ast.GeneratorExp,
+                ),
+            ):
+                for c in ast.iter_child_nodes(obj):
+                    yield from visit(c, True)
+                return
+            if isinstance(
+                obj, (ast.With, ast.AsyncWith, ast.For, ast.AsyncFor, ast.While, ast.Try, ast.Match)
+            ):
+                return
+            for c in ast.iter_child_nodes(obj):
+                yield from visit(c, conditional)
+
+        return list(visit(statement))
+
+    def context_wrapper(self, scope, decorator):
+        """Accept only an exact Jedi-resolved stdlib contextlib decorator origin."""
+        value = self.query(scope, decorator, goto=True)
+        origins = {a.target for a in value.atoms if a.kind == "boundary"}
+        if value.unknown:
+            return None
+        if origins == {"contextlib.contextmanager"}:
+            return "context-factory"
+        if origins == {"contextlib.asynccontextmanager"}:
+            return "async-context-factory"
+        return None
+
+    def generator_binding(self, function):
+        """Prove one straight-line yield; complex wrappers retain known yield candidates."""
+        tree = self.trees[function]
+        yields = [n for s in self.direct_statements(tree) for n in [s] if isinstance(n, ast.Yield)]
+        values = [self.resolve(function, y.value) for y in yields if y.value is not None]
+        simple = (
+            len(yields) == 1
+            and any(isinstance(s, ast.Expr) and s.value is yields[0] for s in tree.body)
+            and all(
+                isinstance(s, (ast.Expr, ast.Assign, ast.AnnAssign, ast.Pass)) for s in tree.body
+            )
+            and not any(
+                isinstance(n, (ast.YieldFrom, ast.Await)) for s in tree.body for n in ast.walk(s)
+            )
+        )
+        if simple:
+            return certified(union(*values), "single-straight-line-contextlib-yield")
+        return union(*values, unknown("complex-generator-context-protocol"))
+
+    def adjudicate(self, scope, expr, result, signal):
+        """Require explicit proof, and explain every choice between LCT and Jedi signals."""
+        chosen = {a.target for a in result.atoms if a.kind in ("callable", "class")}
+        inferred = {a.target for a in signal.atoms if a.kind in ("callable", "class")}
+        decisive = {
+            "reaching-lexical-binding",
+            "python-instance-field-precedence",
+            "python-nondata-member-lookup",
+            "literal-slot-state",
+            "missing-literal-slot",
+            "invalid-literal-sequence-index",
+            "unbound-local-before-assignment",
+            "undefined-captured-lexical-name",
+            "deleted-name-binding",
+            "single-straight-line-contextlib-yield",
+            "bound-receiver-origin",
+        }
+        justified = bool(result.proofs & decisive)
+        conflict = bool(inferred and chosen != inferred)
+        reason = (
+            "matching-signals"
+            if chosen == inferred
+            else "finite-association-with-missing-jedi-signal"
+        )
+        if conflict:
+            if justified and not result.unknown:
+                reason = "tested-semantic-rule"
+            elif justified:
+                result = union(result, unknown("unresolved-partial-signal-conflict"))
+                reason = "partial-association-conflict-retained"
+            else:
+                result = union(
+                    Result(reasons=result.reasons), unknown("unadjudicated-jedi-lct-conflict")
+                )
+                reason = "unresolved-conflict-no-decisive-rule"
+        if not result.proofs and not result.unknown:
+            result = union(result, unknown("no-completeness-proof"))
+        if not chosen and any(a.kind in ("instance", "external-value") for a in result.atoms):
+            result = union(result, unknown("value-call-protocol-not-modeled"))
+        decision = dict(
+            jedi_targets=sorted(inferred),
+            lct_targets=sorted(chosen),
+            selected_targets=sorted(
+                a.target for a in result.atoms if a.kind in ("callable", "class")
+            ),
+            conflict=conflict,
+            reason=reason,
+            semantic_rules=sorted(result.proofs),
+            excluded_jedi_targets=sorted(inferred - {a.target for a in result.atoms})
+            if reason == "tested-semantic-rule"
+            else [],
+            unresolved_jedi_targets=sorted(inferred - {a.target for a in result.atoms})
+            if reason != "tested-semantic-rule"
+            else [],
+            excluded_lct_targets=sorted(chosen - {a.target for a in result.atoms}),
+        )
+        return result, decision
+
+    def instance_argument_escape(self, receiver, scope, anchor):
+        """Do not certify a field after its receiver is passed to another call."""
+        if not receiver.allocation:
+            return False
+        for site in self.sites:
+            if site["execution_owner"] != scope or site["_call"] is None:
+                continue
+            if (site["line"], site["column"]) >= (anchor.lineno, anchor.col_offset):
+                continue
+            call = site["_call"]
+            for arg in call.args + [kw.value for kw in call.keywords]:
+                values = self.resolve(scope, arg.value if isinstance(arg, ast.Starred) else arg)
+                if any(
+                    a.kind == "instance" and a.allocation == receiver.allocation
+                    for a in values.atoms
+                ):
+                    return True
+        return False

@@ -15,10 +15,9 @@ uv sync --locked
 # macOS/Linux: 将上述解释器替换为 .venv/bin/python
 ```
 
-本分支正在进行 Python 解析第一阶段重构，完整 tests/ 当前有 **2 项未满足验收的失败测试**，
-见 [第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。这些失败没有设为 xfail/skip。
-已实现范围可单独复现：在上述 pytest 命令后加
-\x60--ignore=tests/test_python_pipeline_gaps.py\x60；这不等于完整验收通过。
+本分支继续修复独立审阅发现的 Python 解析问题，原两项 gap 保留为严格回归测试。
+六项审阅反例及其扩展控制覆盖开放输入模式。实际测试结果、支持范围和剩余限制见
+[第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。
 
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。
 Embedding API 被测试夹具禁止调用。一项使用已有真实历史缓存的测试默认跳过，只有显式

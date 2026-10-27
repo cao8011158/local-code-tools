@@ -69,7 +69,7 @@ SM 的 `src/`、`examples/`、`scripts/`；RE 的 Engine、SRD Data、Bridge、D
 ## 节点、说明与定位
 
 统一目录包含 Repository、Module、Class、Function（兼容检索层，含方法、嵌套函数和 lambda）、DocumentSection。
-Python 的 \x60node_type\x60 精确区分 module/class/function/method/lambda；不另建检索解析器。
+Python 的 `node_type` 精确区分 module/class/function/method/lambda；不另建检索解析器。
 第一阶段接口和未完成验收见 [报告](../review/PYTHON_PIPELINE_PHASE1.md)。本轮未重建真实索引。
 代码节点记录仓库、相对路径、限定名、父节点、源码范围、签名、docstring、内容及文件指纹。
 `node_id` 为仓库／路径／类型／限定名／作用域出现序号组成的逻辑身份，不写回源码。
@@ -137,7 +137,7 @@ Jedi 0.20.1 在私有捕获源码副本中解析名称；LCT 按源码定义位�
 普通项目输入默认开放，只有合成测试显式声明 closed_world。
 旧 resolved/possible/boundary/unresolved 是兼容投影，不能代替位置记录：
 唯一已知目标加未知来源仍是 incomplete，零目标也可能是静态无效调用。
-复杂 MRO、任意装饰器和动态容器行为保持未知；完整 tests/ 含报告列出的两项失败验收。
+复杂 MRO、任意装饰器和动态容器行为保持未知；原两项失败验收现保留为严格回归；具体结果与边界见报告。
 
 SM 的 RE pin 与旁边 RE checkout 分开核对。不匹配时保留带原因的依赖边界，
 不制造通往另一个版本的精确调用边。当前 pin 查 SM `pyproject.toml` 和索引 manifest。

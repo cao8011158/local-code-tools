@@ -121,6 +121,7 @@ class Graph:
                 if item["kind"] == "implicit_decorator" and isinstance(expr, ast.Call):
                     # Factory application calls its returned decorator, not the factory again.
                     result = analyzer.resolve(scope, expr)
+                result, decision = analyzer.adjudicate(scope, expr, result, signal)
                 targets = sorted(
                     {a.target for a in result.atoms if a.kind in ("callable", "class")}
                 )
@@ -128,15 +129,19 @@ class Graph:
                 reasons = sorted(result.reasons)
                 if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
                     reasons.append("dependency-version-unmatched")
-                complete = not reasons
+                complete = not reasons and bool(result.proofs)
                 record = {k: v for k, v in item.items() if not k.startswith("_")}
                 record.update(
                     targets=targets,
                     unknown_origin=bool(reasons),
                     complete=complete,
-                    completeness_basis="finite captured syntax under declared input boundary"
+                    completeness_basis=sorted(result.proofs) if complete else None,
+                    resolution_kind=(
+                        "proven-targets" if targets or boundaries else "proven-no-target"
+                    )
                     if complete
-                    else None,
+                    else ("partial-targets" if targets or boundaries else "unsupported-or-unknown"),
+                    resolution_decision=decision,
                     unresolved_reasons=reasons,
                     boundaries=[
                         dict(
@@ -166,6 +171,7 @@ class Graph:
                             tool="lct",
                             role="validated binding/argument/container association",
                             association_trace=analyzer.explain(scope, expr),
+                            decision=decision,
                             signal_agrees=targets
                             == sorted(
                                 a.target for a in signal.atoms if a.kind in ("callable", "class")

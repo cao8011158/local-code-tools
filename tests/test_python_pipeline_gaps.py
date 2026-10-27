@@ -1,6 +1,6 @@
-"""Unmet semantic acceptance cases. These must fail until the capability is implemented.
+"""Former acceptance gaps, retained as strict regressions without changing their oracle.
 
-Run explicitly or as part of tests/. No xfail, skip or altered target oracle hides gaps.
+Run explicitly or as part of tests/. No xfail or skip hides unsupported behavior.
 """
 
 from pathlib import Path

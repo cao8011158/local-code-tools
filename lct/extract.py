@@ -111,8 +111,13 @@ def python_nodes(file):
     ast_nodes[module["node_id"]] = tree
     counts = Counter()
 
-    def walk(item, owner):
+    def walk(item, owner, resolution_owner=None):
         for child in ast.iter_child_nodes(item):
+            lookup_owner = resolution_owner
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+                body = item.body if isinstance(item.body, list) else [item.body]
+                if child not in body:
+                    lookup_owner = owner.get("resolution_parent", owner["parent"])
             if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
                 kind = "class" if isinstance(child, ast.ClassDef) else "function"
                 name = "<lambda>" if isinstance(child, ast.Lambda) else child.name
@@ -170,11 +175,12 @@ def python_nodes(file):
                     else "function"
                 )
                 identity(node, child, node_type, name)
+                node["resolution_parent"] = lookup_owner or owner["node_id"]
                 nodes.append(node)
                 ast_nodes[node["node_id"]] = child
                 walk(child, node)
             else:
-                walk(child, owner)
+                walk(child, owner, lookup_owner)
 
     walk(tree, module)
     return nodes, ast_nodes

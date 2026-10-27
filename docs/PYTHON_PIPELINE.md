@@ -13,7 +13,8 @@ lct.extract.extract(files) → (nodes, asts) 和 Graph(nodes, asts, repos).build
 | path | 捕获的仓库相对路径 |
 | node_type | module、class、function、method 或 lambda |
 | kind | 兼容既有检索层的 module/class/function；method/lambda 仍属于 function 层 |
-| name / qualname / parent / module | 名称、限定名、直接词法 owner 和模块节点 |
+| name / qualname / parent / module | 名称、限定名、语法包含 owner 和模块节点 |
+| resolution_parent | 名称解析的外层作用域；定义头中的 lambda 不闭包捕获被定义函数的局部变量 |
 | node_id / logical_id | 同一逻辑身份，包含仓库、路径、检索 kind、限定名和逐层出现序号 |
 | snapshot_id / snapshot_scope | extract 的仓库捕获内容根；单独 python_nodes 调用为单文件捕获 |
 | version_id | 仓库身份、快照、逻辑身份、精确范围和源码指纹的 SHA-256 |
@@ -42,11 +43,14 @@ info.sites 是调用位置的完整语法目录，而不是 CALLS 边数量的�
 - targets：已验证的内部候选；bound receiver 保存在关联证据，避免别名丢失 self/cls 偏移。
 - boundaries：外部、排除源码或依赖版本边界，独立于内部目标。
 - unknown_origin：是否仍有未知来源；complete：是否有有限语法/显式输入边界下的完整性依据。
+- resolution_kind：proven-targets、partial-targets、proven-no-target 或 unsupported-or-unknown。
+- resolution_decision：Jedi/LCT 原始候选、选中目标、已排除或未裁决候选及具体语义规则。
 - completeness_basis、unresolved_reasons、evidence：AST、Jedi 原始映射和 LCT 逐位置关联路径。
   关联路径最多 100 步，截断单独标记；完整性不由证据输出长度推断。
 
 同一位置可以同时有 targets=[A] 和 unknown_origin=true、complete=false。
-完整的 [A,B] 是两个有依据的可能目标；零目标、complete=true 可表示静态无效调用尝试。
+完整的 [A,B] 是两个有依据的可能目标；零目标、complete=true 必须有静态无效调用的显式证明，例如未绑定局部、缺失字面槽或越界下标。
+空 Result、候选数、工具无异常均不构成完整性证明。
 Jedi infer 单独输出不证明穷尽；项目输入默认开放。closed_world 只由本轮合成驱动显式设置，
 生产 build 未设置它，也没有新增一个面向业务的闭合世界开关。
 
@@ -74,9 +78,25 @@ annotation；future annotations 和函数局部变量注解不产生执行调用
 没有 Flow 环境/堆、通用执行器、全程序类型固定点或任意路径求值。
 20,000 次关联和递归 40 是拒绝边界；不得把预算耗尽伪装为完整结果。
 
-两个严格验收失败保存在 tests/test_python_pipeline_gaps.py：生成器 contextmanager 的完整性，
-以及不同对象实例的容器身份。多继承 MRO、任意装饰器替换、复杂反射/动态属性、
-循环/try/match 写绑定和变参运输等仍可能未知，不声称全库健全性。
+原两个 gap 保留为严格回归：单层直线 yield 的 contextlib 包装协议，以及模块顶层不同
+构造位置的实例注册表。装饰器按 Jedi 实际定义来源核对，支持别名和 asynccontextmanager；
+分支/多 yield、异常控制流或异步 await 等复杂协议仍保持 unknown。
+
+实例字段查找先拒绝未建模的数据描述符、自定义动态属性/构造协议，再应用普通实例字段
+优先于非数据类成员的规则。保存到实例的函数不会被误绑定 self。绑定方法和容器沿
+allocation 源码创建位置关联，不建立运行对象堆；工厂复用/循环或非模块创建的实例容器
+不能据此证明唯一身份，明确报告 nonunique-instance-container-allocation。
+
+直接 walrus store 顺序生效；条件/短路 walrus 保留未知。字面槽直接删除会移除旧目标，
+条件/动态删除保留未知；重写和无关槽分别处理。有符号字面整数按序列范围归一化，
+不使用 eval。容器逃逸检查覆盖位置参数、关键字、星号、双星号及显式嵌套容器。
+
+Jedi 与 LCT 不简单合并。完整的有限语义规则可以排除冲突候选，记录具体证明；
+部分关联的冲突保留未知及未裁决的 Jedi 候选。无决定性依据时不把任一方自动升级为真值。
+原始 Jedi 记录、LCT 关联轨迹和实际采用/排除理由分别保留，便于独立复核。
+
+这些规则覆盖测试中的有限模式；复杂多继承、反射、任意装饰器替换、复杂控制流写入和
+变参运输仍可能未知，不声称全库健全性。
 
 后续 Neo4j 必须以 version_id 和 site_id 建立源码版本与位置，不按 qualname 或 legacy status
 合并版本；必须消费 unknown/complete/边界及来源。关系查询当前仍是旧 edges facade，

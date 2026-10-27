@@ -143,6 +143,7 @@ def main():
         "tests/test_core.py",
         "tests/test_python_pipeline.py",
         "tests/test_python_pipeline_gaps.py",
+        "tests/test_python_review_regressions.py",
         "experiments/python_graph/worker.py",
         "experiments/python_graph/tests/test_experiment.py",
     ]
@@ -164,8 +165,9 @@ def main():
         records=records,
         passed=sum(r["passed"] for r in records),
         total=len(records),
-        semantic_acceptance_complete=False,
-        known_gaps=["generator contextmanager completeness", "separate instance registry identity"],
+        frozen_contract_complete=all(r["passed"] for r in records),
+        review_baseline="c1785038492a6955bbd140a31afc1a3867df3314",
+        former_gap_regressions="tests/test_python_pipeline_gaps.py; not inferred from frozen-only export",
         requests=dict(embedding=0, llm=0),
         scope="frozen synthetic only",
     )
