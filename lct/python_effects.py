@@ -50,6 +50,7 @@ class EffectEvent:
         return dict(
             event_id=self.ident,
             kind=self.kind,
+            event_kind=self.kind,
             syntax=type(self.node).__name__,
             scope=self.scope,
             line=self.node.lineno,
@@ -233,6 +234,87 @@ class EffectCatalog:
         return [e for e in self.by_scope.get(scope, []) if e.order < limit]
 
 
+def valid_call_no_effect(check):
+    """A field-call NO_EFFECT needs checked access, phase, summary or creation evidence."""
+    if not check.get("reachable", True):
+        return True
+    proof = check.get("call_access")
+    if not isinstance(proof, dict):
+        return False
+    basis = check.get("no_effect_basis")
+    state = proof.get("target_state")
+    entries = proof.get("entries")
+    if not isinstance(entries, list):
+        return False
+    if basis == "creation-order":
+        return (
+            state == "BEFORE_ALLOCATION"
+            and bool(proof.get("allocation"))
+            and isinstance(proof.get("event_order"), int)
+            and isinstance(proof.get("creation_order"), int)
+            and proof["event_order"] < proof["creation_order"]
+        )
+    if basis == "private-input":
+        private = proof.get("private_input", {})
+        return (
+            state == "PREEXISTING_INPUT"
+            and bool(private.get("parameter"))
+            and bool(private.get("allocation"))
+            and private.get("private_constructor") is True
+            and private.get("escape_check_complete") is True
+            and private.get("binding_capture_check_complete") is True
+            and isinstance(private.get("checked_capture_names"), list)
+            and bool(private.get("creation_binding_names"))
+            and not set(private["checked_capture_names"]) & set(private["creation_binding_names"])
+            and isinstance(private.get("checked_events"), list)
+            and private.get("event_order", -1) > private.get("creation_order", 0)
+            and all(
+                e.get("state") == "NOT_REACHABLE" and not e.get("gaps") and bool(e.get("evidence"))
+                for e in entries
+            )
+        )
+    definitions = proof.get("definitions", [])
+    if (
+        state != "RESOLVED"
+        or not proof.get("targets")
+        or {d.get("target") for d in definitions} != set(proof["targets"])
+        or not all(d.get("version_id") for d in definitions)
+    ):
+        return False
+    if basis == "construction":
+        return bool(proof.get("allocation"))
+    if basis == "deferred-creation":
+        return bool(proof.get("phases")) and all(
+            p
+            in (
+                "coroutine-create",
+                "generator-create",
+                "async-generator-create",
+                "context-manager-create",
+            )
+            for p in proof["phases"]
+        )
+    if basis == "unused-input-summary":
+        unused = proof.get("unused_inputs", {})
+        return (
+            unused.get("used_parameters") == []
+            and isinstance(unused.get("dependencies"), list)
+            and all(
+                e.get("state") == "NOT_REACHABLE" and not e.get("gaps") and e.get("evidence")
+                for e in unused["dependencies"]
+            )
+            and valid_coverage(check.get("summary_coverage"))
+        )
+    if not all(
+        e.get("state") == "NOT_REACHABLE" and not e.get("gaps") and bool(e.get("evidence"))
+        for e in entries
+    ):
+        return False
+    if basis == "method-summary":
+        return valid_coverage(check.get("summary_coverage"))
+    return basis == "all-inputs-disproved" and bool(entries)
+
+
 def valid_coverage(receipt):
     """Validate obligations, never accept a bare complete flag or semantic label."""
     if not receipt or receipt.get("complete") is not True:
@@ -254,6 +336,13 @@ def valid_coverage(receipt):
             for c in checks
         )
         and all(s.get("supported") is True for s in sources)
+        and all(
+            valid_call_no_effect(c)
+            for c in checks
+            if receipt.get("rule") in ("instance-field-coverage", "finite-method-summary")
+            and c.get("event_kind", c.get("kind")) == "call"
+            and c.get("outcome") == EffectKind.NO_EFFECT.value
+        )
     )
 
 
@@ -300,7 +389,7 @@ class EffectCoverage:
                 for c in checks
             )
         )
-        return dict(
+        receipt = dict(
             rule=self.rule,
             required_events=list(self.required),
             events=self.events,
@@ -309,3 +398,5 @@ class EffectCoverage:
             gaps=self.gaps,
             complete=complete,
         )
+        receipt["complete"] = valid_coverage(receipt)
+        return receipt

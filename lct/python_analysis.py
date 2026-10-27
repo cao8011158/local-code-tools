@@ -13,6 +13,7 @@ from pathlib import Path
 import jedi
 
 from .common import canonical, digest
+from .python_access import AccessKind, ReceiverAccess, access, combine
 from .python_effects import EffectCatalog, EffectCoverage, EffectKind, EffectOutcome, valid_coverage
 
 _DYNAMIC = object()
@@ -152,6 +153,7 @@ class Analyzer:
             self.inventory(tree, ident, ident, "module", deferred)
 
         self.effects = EffectCatalog(trees, self.execution_nodes)
+        self.access = ReceiverAccess(self, Atom, Result)
 
     def close(self):
         """Release only this analyzer's private captured sources."""
@@ -1008,7 +1010,11 @@ class Analyzer:
             detail["decision"] = "other-receiver-body-summary"
             return outcome(EffectKind.NO_EFFECT, "independent-receiver")
         tree = self.trees.get(atom.target)
-        if atom.kind != "callable" or not isinstance(tree, ast.FunctionDef) or tree.decorator_list:
+        if (
+            atom.kind != "callable"
+            or not isinstance(tree, (ast.FunctionDef, ast.Lambda))
+            or getattr(tree, "decorator_list", [])
+        ):
             return outcome(EffectKind.UNKNOWN_EFFECT, "unsupported-receiver-method-effects")
         if "constructor-field-origin" in targets.proofs:
             return outcome(
@@ -1099,6 +1105,219 @@ class Analyzer:
         if isinstance(node, ast.MatchMapping) and node.rest:
             names.add(node.rest)
         return names
+
+    def call_field_effect(self, event, receiver, name, receiver_name=None):
+        """Certify call effects only from complete access checks or a verified body summary."""
+        call, scope = event.node, event.scope
+        frames = {scope: call}
+        bindings = (
+            {
+                (scope, receiver_name): Result(
+                    frozenset([receiver]), proofs=frozenset(["bound-receiver-origin"])
+                )
+            }
+            if receiver_name
+            else {}
+        )
+        origin = self.allocations.get(receiver.allocation)
+        targets = self.method_target(receiver, scope, call)
+        resolved = (
+            bool(targets.atoms)
+            and not targets.unknown
+            and self.requirements_complete(targets)
+            and all(a.kind in CALLABLE_KINDS for a in targets.atoms)
+        )
+        proof = dict(
+            target_state="RESOLVED" if resolved else "UNKNOWN",
+            targets=sorted(a.target for a in targets.atoms if a.kind in CALLABLE_KINDS),
+            entries=[],
+            definitions=[
+                dict(target=a.target, version_id=self.nodes[a.target]["version_id"])
+                for a in targets.atoms
+                if a.kind in CALLABLE_KINDS
+            ],
+        )
+        detail = dict(call_access=proof)
+
+        def no(reason, basis="all-inputs-disproved"):
+            return EffectOutcome(
+                EffectKind.NO_EFFECT, reason, detail=dict(detail, no_effect_basis=basis)
+            )
+
+        def bad(reason):
+            return EffectOutcome(EffectKind.UNKNOWN_EFFECT, reason, detail=detail)
+
+        # A fresh source allocation cannot be accessed before it exists. Constructor
+        # effects for this very creation are separately required by instance_field.
+        if origin and origin[0] == scope and call is origin[1] and resolved:
+            proof["allocation"] = receiver.allocation
+            return no("construction-accounted-in-field-scope", "construction")
+        if origin and origin[0] == scope:
+            creation = self.effects.points.get((scope, id(origin[1])))
+            if creation is not None and event.order < creation:
+                proof.update(
+                    target_state="BEFORE_ALLOCATION",
+                    allocation=receiver.allocation,
+                    event_order=event.order,
+                    creation_order=creation,
+                )
+                return no("call-precedes-instance-creation", "creation-order")
+
+        entries = []
+        for arg in call.args:
+            entries.append(
+                self.access.reachable(scope, arg, receiver, call, frames=frames, bindings=bindings)
+            )
+        for kw in call.keywords:
+            entries.append(
+                self.access.reachable(
+                    scope,
+                    kw.value,
+                    receiver,
+                    call,
+                    mode="kwargs" if kw.arg is None else "value",
+                    frames=frames,
+                    bindings=bindings,
+                )
+            )
+        proof["entries"] = [e.export() for e in entries]
+        if any(
+            a.kind == "deferred-result" and a.allocation == receiver.allocation
+            for arg in call.args + [k.value for k in call.keywords]
+            for a in self.access.value(scope, arg, frames, bindings).atoms
+        ):
+            return bad("deferred-method-resumption-not-modeled")
+        if not resolved:
+            argument_access = combine(entries, "argument-access")
+            if argument_access.state == AccessKind.REACHABLE:
+                return bad("instance-argument-escape")
+            if argument_access.state == AccessKind.UNKNOWN:
+                return bad(
+                    "unresolved-call-access:"
+                    + (argument_access.gaps[0] if argument_access.gaps else "unresolved-origin")
+                )
+            private = self.access.private_input(scope, call, receiver, entries)
+            if private:
+                proof.update(target_state="PREEXISTING_INPUT", private_input=private)
+                return no("preexisting-input-cannot-access-private-allocation", "private-input")
+            return bad("unresolved-call-target-access")
+        phases = [self.invocation_phase(a) for a in targets.atoms]
+        proof["phases"] = phases
+        if all(p != "ordinary-call" for p in phases):
+            # The body cannot run at creation, even if inputs retain this receiver.
+            # Nested operand calls have independent earlier catalog events.
+            effect = self.method_field_effect(receiver, scope, call, name)
+            return EffectOutcome(
+                effect.kind,
+                effect.reason,
+                effect.value,
+                dict(effect.detail, **detail, no_effect_basis="deferred-creation"),
+            )
+        same = any(a.bound and a.allocation == receiver.allocation for a in targets.atoms)
+        if isinstance(call.func, ast.Attribute):
+            owners = self.effect_owners(receiver, scope, call.func.value, receiver_name)
+            surface = self.receiver_relation(receiver, owners)
+            if surface == "same" and not any(a.bound for a in targets.atoms):
+                same = True
+            elif surface == "unknown":
+                entries.append(access(AccessKind.UNKNOWN, "unresolved-bound-receiver"))
+        dependencies = []
+        body_dependencies = []
+        for atom in targets.atoms:
+            if atom.bound and atom.allocation != receiver.allocation:
+                bound_value = Result(
+                    frozenset(
+                        [
+                            Atom(
+                                "class"
+                                if any(
+                                    ast.unparse(d) == "classmethod"
+                                    for d in getattr(
+                                        self.trees.get(atom.target), "decorator_list", []
+                                    )
+                                )
+                                else "instance",
+                                atom.receiver,
+                                allocation=atom.allocation,
+                            )
+                        ]
+                    ),
+                    proofs=frozenset(["bound-receiver-origin"]),
+                )
+                dependencies.append(
+                    self.access.values(
+                        bound_value,
+                        scope,
+                        receiver,
+                        call,
+                        mode="receiver",
+                        frames=frames,
+                        bindings=bindings,
+                    )
+                )
+            body_start = len(dependencies)
+            if atom.kind == "class":
+                dependencies.append(
+                    self.access.constructed(atom.target, scope, call, receiver, frames, bindings)
+                )
+            else:
+                dependencies.append(
+                    self.access.function(
+                        atom, scope, call, receiver, frames, bindings, environment_only=same
+                    )
+                )
+            body_dependencies.extend(dependencies[body_start:])
+        if all(
+            a.kind == "callable" and not self.access.summary(a.target)["used_params"]
+            for a in targets.atoms
+        ) and all(d.state == AccessKind.NOT_REACHABLE for d in body_dependencies):
+            target = next(iter(targets.atoms))
+            body_receiver = (
+                Atom("instance", target.receiver, allocation=target.allocation)
+                if target.bound and target.allocation
+                else receiver
+            )
+            effect = self.method_field_effect(body_receiver, scope, call, name)
+            if effect.kind == EffectKind.NO_EFFECT and valid_coverage(
+                effect.detail.get("summary_coverage")
+            ):
+                proof["unused_inputs"] = dict(
+                    used_parameters=[],
+                    dependencies=[d.export() for d in body_dependencies],
+                    ignored_inputs=[d.export() for d in dependencies if d not in body_dependencies],
+                )
+                return EffectOutcome(
+                    effect.kind,
+                    effect.reason,
+                    effect.value,
+                    dict(effect.detail, **detail, no_effect_basis="unused-input-summary"),
+                )
+        entries.extend(dependencies)
+        proof["entries"] = [e.export() for e in entries]
+        state = combine(entries, "call-access-entries")
+        if state.state == AccessKind.REACHABLE:
+            reason = (
+                "captured-receiver-effects-not-modeled"
+                if any(
+                    e.get("reason") in ("closure-binding", "external-binding")
+                    for e in state.evidence
+                )
+                else "instance-argument-escape"
+            )
+            return bad(reason)
+        if state.state == AccessKind.UNKNOWN:
+            return bad(
+                "unresolved-call-access:" + (state.gaps[0] if state.gaps else "unresolved-origin")
+            )
+        if same:
+            effect = self.method_field_effect(receiver, scope, call, name)
+            return EffectOutcome(
+                effect.kind,
+                effect.reason,
+                effect.value,
+                dict(effect.detail, **detail, no_effect_basis="method-summary"),
+            )
+        return no("call-access-proved-unrelated")
 
     def field_event(self, event, receiver, name, receiver_name=None):
         """Classify every inventory event; unsupported relevant operations default unknown."""
@@ -1197,41 +1416,9 @@ class Analyzer:
                 else "deferred-receiver-association-gap"
             )
         if event.kind == "call":
-            # Operand effects have their own preceding events, including for deferred creation.
-            arguments = [a.value if isinstance(a, ast.Starred) else a for a in node.args]
-            arguments += [kw.value for kw in node.keywords]
-            for arg in arguments:
-                values = self.effect_owners(receiver, scope, arg, receiver_name)
-                if any(a.kind == "deferred-result" for a in values.atoms):
-                    relation = self.receiver_relation(receiver, values)
-                    if relation not in ("independent", "non-receiver"):
-                        return bad("deferred-method-resumption-not-modeled")
-                if any(
-                    a.kind == "instance" and a.allocation == receiver.allocation
-                    for a in values.atoms
-                ):
-                    return bad("instance-argument-escape")
-            targets = self.method_target(receiver, scope, node)
-            bound = Result(frozenset(a for a in targets.atoms if a.bound), targets.reasons)
-            relation = self.receiver_relation(
-                receiver,
-                Result(
-                    frozenset(
-                        Atom("instance", a.receiver, allocation=a.allocation) for a in bound.atoms
-                    ),
-                    bound.reasons,
-                ),
-            )
-            if relation == "same":
-                return self.method_field_effect(receiver, scope, node, name)
-            if isinstance(node.func, ast.Attribute):
-                owners = self.effect_owners(receiver, scope, node.func.value, receiver_name)
-                surface = self.receiver_relation(receiver, owners)
-                if surface == "same":
-                    return self.method_field_effect(receiver, scope, node, name)
-                if surface == "unknown":
-                    return bad("unproven-call-receiver-association")
-            return no("call-without-queried-receiver-dependency")
+            effect = self.call_field_effect(event, receiver, name, receiver_name)
+            self.access.call_records[(scope, id(event.node), receiver.allocation)] = effect
+            return effect
         if event.kind in ("region", "scope-execution"):
             # Regions are obligations even when nested events are handled. Dynamic protocols
             # touching this receiver cannot be proved harmless by a successful child handler.
