@@ -1,3 +1,171 @@
+# 第五轮：副作用事件目录与独立覆盖认证（2026-10-28）
+
+分支：refactor/cgr-pipeline-integration。启动 HEAD/已审阅基线：
+fdc56dde99e0e5d8d5214e8fad5d05a95930b701，未前进、没有已跟踪未提交修改；
+唯一未跟踪项为 code_graph/，始终保留且未读取、采用或暂存。
+最终程序、测试及契约提交：**f73289f362c150473cc4c013f84061fc4e069ee8**。
+最终完整 tests：**270 passed、1 skipped、0 failed**。
+交付还包含后续报告/证据提交；其完整 SHA 由交付消息及
+`git log -1 --format=%H -- review/PYTHON_PIPELINE_PHASE1.md` 给出。
+
+已核对适用 AGENTS.md（目标及父目录未发现额外文件）、当前契约和前轮报告。
+沿当前分支提交，不新建分支、reset、merge、stash 或覆盖用户内容。
+本批没有更改 CGR/三个业务仓库、真实索引/缓存/数据库、快照存储实现、依赖或锁文件。
+没有启动服务、执行被分析源码或发出 Embedding/LLM 请求。使用既有 Python 3.12.14、
+Jedi 0.20.1、pytest 9.1.1 环境串行处理小型合成源码和临时测试数据。
+
+## 根因与本批机制
+
+旧 method_field_effect 把 Name 写入无条件忽略，接收者已被替换后仍把后续字段写入归给原实例；
+instance_field 只从少数外层语句的 .value 提取操作，遗漏表达式内部的 Call/Await。
+这些漏检没有产生 unknown；attribute/subscript 再把 not result.unknown 当覆盖证明，
+adjudicate 据此排除 Jedi 候选，形成错误的循环认证。增加 events/proof 标签无法补上漏检。
+
+现在事件发现、效果结论和完整性认证分别承担职责：
+
+- python_effects.EffectCatalog 复用既有 AST inventory 的执行 owner/phase，一次建立每作用域
+  操作目录。赋值、带值/无值注解、增强赋值、Delete、NamedExpr、显式调用、Await、隐式绑定、
+  装饰器应用、终止与未支持区域都独立于处理器收集。表达式递归，不再枚举外层语句补丁。
+- EffectOutcome 明确 NO_EFFECT/KNOWN_EFFECT/UNKNOWN_EFFECT，带位置、原因和适用依据。
+  field_scope/field_event 共用于构造器与普通方法；None 不再表示方法效果结论。
+  处理器缺失、关联不明及不支持的相关语法均阻止认证，不因为没有匹配 allocation 而判无影响。
+- EffectCoverage 在调用处理器前登记义务，保存 required_events/checks/sources/gaps。
+  全部义务都有确定结论且来源有效才完整；UNKNOWN_EFFECT 不能被另一次依赖访问的 NO_EFFECT
+  抹掉。valid_coverage 检查义务与结论集合、来源和缺口，裸 complete=true 不能冒充证明。
+- Result.requirements 与 union、绑定及派生值一起传播。读取字段/槽位后存为变量不会丢掉覆盖
+  义务；Graph CALLS、CONTEXT_ENTERS 和 adjudicate 使用同一门槛。certified 仅附规则标签。
+  字段/槽位不再从最终候选是否带 unknown 反推事件覆盖。
+
+AST 继续负责唯一目录、范围、作用域、执行位置；Jedi 继续提供原始定义/调用目标信号；
+LCT 仅做有限关联、事件效果归责和证据裁决。没有另建检索节点解析器、Flow、通用执行器、
+运行对象堆、完整 CFG 或异步调度器。新增文件约 12 KiB，依赖声明不变。
+字段读取只消费相关作用域的已建事件前缀和摘要；槽位使用已建目录的槽依赖范围，保持原注册表
+关联，不再每次遍历整个仓库 AST。目录和关联预算均限定在本次源码捕获，不跨快照复用。
+
+## 接收者、执行阶段和顺序
+
+有限摘要先确认调用位置的实际目标、绑定接收者及 ordinary-call 阶段，保留覆盖前后顺序及
+保存的 bound method。实际接收者参数名来自签名，不硬编码 self。
+重赋值、Delete、有值 AnnAssign、增强/解包或隐式语法替换接收者时，拒绝剩余摘要并记录
+receiver-binding-changed。不支持的其他局部绑定记录 unsupported-summary-binding；不能
+继续依赖该绑定解释后续写入。纯注解不写值。return 前的有效写入保留，后面事件不可达。
+
+Call/Await 在参数、容器元素、条件、元组、短路和链式比较中均被发现。已支持的直线语法遵守
+操作数先于操作、RHS 先于写入、callee/实参先于调用的顺序；分支、短路后项和后续 comparator
+显式 conditional。未建模区域不被伪造成确定路径。类定义主体是执行作用域依赖，相关副作用
+未特化时未知；类中未调用的方法、嵌套函数/lambda 主体不作为当前执行事件。
+默认值、装饰器和 eager annotation 仍按原定义阶段 owner 处理。
+
+创建协程/生成器不应用主体，创建调用中实参自身的副作用仍被独立处理。
+Await（含保存 pending 后等待）关联到当前对象时返回 deferred-method-resumption-not-modeled，
+不保留旧值的完整确认，也不猜测恢复后的目标。关联不足为 deferred-receiver-association-gap；
+明确独立实例可无影响。条件恢复同样未知。本批没有执行/模拟恢复主体。
+
+字典复制维持前轮候选、可能缺失、未知来源和左右覆盖行为。相关写入、展开来源和逃逸从
+同一义务机制认证，sealed 或 literal-slot-state 不代替覆盖。确定后键可屏蔽前序展开的槽来源
+依赖，表达式本身的调用事件仍须处理；副本不反向接受源字典之后的槽替换。
+
+## Jedi/LCT 裁决与实际证据
+
+原始 Jedi 映射与 LCT 候选分别保存，不无条件优先任一方，也不把并集称为完整。
+只有有效覆盖、来源和具体语义规则全部满足，才用 tested-semantic-rule 排除冲突项。
+覆盖不足时记录未裁决 Jedi 候选与原因，部分结果仍 unknown=true、complete=false。
+双方恰好一致也不绕过覆盖。mechanism-cases.json 保存 13 个开放输入样例的实际位置、
+双方原始证据、覆盖检查及最终 CALLS：
+
+| 组 | 实际结果 |
+| --- | --- |
+| 重赋值、删除、有值注解、解包接收者 | 保留原 a 的部分候选，禁止错误 b；unknown=true、complete=false，原因明确；即使 matching-signals 也不认证 |
+| 六种 await 位置及保存 pending | 不确认旧 a 或猜测 b，恢复原因及未知传播至 CALLS，Jedi 候选未被完整排除 |
+| 普通同步方法 | run → b，禁止 a，完整；实际目标/接收者/摘要覆盖支持排除冲突 |
+| 未等待的协程创建 | run → a，禁止 b，完整；创建阶段支持排除未执行主体带来的候选 |
+
+## 测试与复现证据
+
+修改前先加入 18 项 oracle 并实际运行：**11 failed、7 passed**，退出码 1。
+失败为 4 项接收者绑定、2 项构造器/方法共同检查和 5 项此前漏掉的 await 位置。
+before.txt/before.xml 保存当时实际失败；baseline_oracles.py 隔离这 18 个相同断言，方便在
+只读导出的旧源码上复现，不依赖本轮 python_effects 模块。没有依据新输出改变正确答案。
+
+本批最终新增 **67 项全部通过**：接收者/依赖绑定、六位置与 pending、事件收集器作用域、
+函数头、未调用主体、同步求值顺序、实例隔离、缺失处理器、明确 UNKNOWN_EFFECT、只有标签、
+伪 complete 标志、Jedi 一致、别名依赖、确定字典复制及覆盖未知不被抹去等。
+最终图断言同时核对 targets/forbidden、执行/词法作用域、行列、unknown/complete/reasons、
+CALLS 与排除理由，收集器另有直接断言。无删除 oracle、xfail 或新增跳过。
+
+| 实际执行 | 结果 | exit |
+| --- | --- | --- |
+| 修改前新增 18 项 | 11 failed、7 passed | 1 |
+| 旧基线只读源码导出＋隔离 oracle 复现 | 11 failed、7 passed | 1 |
+| 中间覆盖接入回归 | 一度 5 failed、209 passed；注册表先提交临时 UNKNOWN 的时机被修复；新负控制明确同一义务不能被 NO_EFFECT 重置，独立义务另建收据。既有目标 oracle 未改，最终均恢复 | 1 |
+| 接收者/顺序/旧解析相关定向 | 153 passed | 0 |
+| 首次完整 tests | 266 passed、1 skipped | 0 |
+| 最终完整 tests | **270 passed、1 skipped**，37.95 s | 0 |
+| 冻结输入哈希与独立合成导出 | **39/39 标注、44 节点**，analysis_limited=false | 0 |
+| Ruff check、format --check、git diff --check | 通过 | 0 |
+
+首次全套之后，审查补齐链式比较条件位置、类主体依赖及 CONTEXT_ENTERS 的统一门槛，
+因此执行了必要的定向和最终完整复验。最终完整运行后程序、正式 tests/ 和契约未再修改，
+后续只生成审阅材料和隔离的基线复现 oracle。未为耗时目的重复全套。
+Junit 互斥分组：原有 **203 passed/1 skipped**；本批 **67 passed/0 skipped**；合计 270/1。
+最终既有退化 0、新增剩余失败 0、缺依赖跳过 0。唯一跳过仍是 opt-in 的真实缓存测试，
+本批按要求不访问该缓存。前两项 gap、前轮实例字段/槽位/contextmanager、快照保留和生命周期
+均由本次完整 tests 覆盖。storage.py 和冻结 fixtures/truth 均无差异。
+
+summary.json 记录环境、命令和退出码，tests.txt/tests.xml 为最终原始输出；frozen.json 包含
+精确源码 SHA-256、冻结输入校验与独立标注结果。全部是合成材料，没有数据库、向量、缓存、
+虚拟环境或凭据。
+
+在仓库根目录使用既有环境，选未使用的 basetemp 名称串行复现：
+
+~~~powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_python_effect_coverage.py --basetemp=.tmp/repro-round5-mechanism
+.venv/Scripts/python.exe -m pytest -q tests --basetemp=.tmp/repro-round5-all
+.venv/Scripts/python.exe tools/review_python_pipeline.py --output .tmp/repro-round5-frozen.json
+.venv/Scripts/ruff.exe check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+.venv/Scripts/ruff.exe format --check lct tests tools experiments/python_graph/worker.py experiments/python_graph/tests/test_experiment.py
+git diff --check fdc56dde99e0e5d8d5214e8fad5d05a95930b701 HEAD
+~~~
+
+若独立复现旧失败，导出只读基线到新的临时目录（不切换/reset 当前分支，也不采用其结果
+修改答案），将 baseline_oracles.py 复制为导出目录下 tests/test_round5_baseline.py，再用同一
+现有虚拟环境从该临时目录运行该文件；预期 11 failed/7 passed。不要把旧源码导出目录当成
+具有 Git 元数据的旧选型实验环境。该隔离基线复现也已实际执行，结果相同；首次因导出目录缺少 basetemp 父目录出现 18 个 fixture
+基础设施错误，创建该目录后用同一副本重跑成功复现，不计为解析失败。副本 zip 约 424 KiB，
+未创建新环境/分支。基线失败原始日志已保存，不要求重复执行才能审阅。
+
+完整基线复现命令如下，使用全新的 GUID 临时路径，保留当前工作区：
+
+~~~powershell
+$lctRoot = (Get-Location).Path
+$lctPython = Join-Path $lctRoot '.venv/Scripts/python.exe'
+$baselineDir = Join-Path $lctRoot ('.tmp/phase1-baseline-' + [guid]::NewGuid().ToString('N'))
+$baselineZip = $baselineDir + '.zip'
+git archive --format=zip --output=$baselineZip fdc56dde99e0e5d8d5214e8fad5d05a95930b701
+Expand-Archive -LiteralPath $baselineZip -DestinationPath $baselineDir
+Copy-Item -LiteralPath review/phase1-round5/baseline_oracles.py -Destination (Join-Path $baselineDir 'tests/test_round5_baseline.py')
+New-Item -ItemType Directory -Path (Join-Path $baselineDir '.tmp') | Out-Null
+Push-Location $baselineDir
+try { & $lctPython -m pytest -q tests/test_round5_baseline.py --basetemp=.tmp/reproduce } finally { Pop-Location }
+~~~
+
+## 支持范围、限制与下一步边界
+
+本批验收机制测试和既有回归均通过，具备提交独立审阅的条件；不表示任意 Python 程序的
+健全性或三个业务仓库全库准确率。完整性只针对明确记录的有限源码/关联支持边界：
+没有 self 重绑定后跨对象追踪、完整 CFG、任意别名/运行堆、动态反射、任意隐式协议或调度。
+复杂方法/区域、不支持的依赖绑定、未知调用目标/接收者和延迟恢复明确保留未知；不承诺
+通过当前合成样例证明这些能力已实现。保守未知不是新增跳过，也不伪装完整结果。
+
+未运行：旧选型实验 harness、真实业务 graph/索引、远程 MCP、下一批“小图＋MCP”、远端 CI。
+冻结导出只验证固定合成 oracle，不代表上述未运行项通过。未接 Neo4j、完整增量或发布协调。
+后续消费者必须共同消费原节点目录和位置身份、覆盖依赖/未知状态；跨快照失效需重新认证。
+未更改真实索引的 manifest 或触发 rebuild。完成本批提交和 push 后停止，等待独立审阅。
+
+---
+
+以下为前轮历史证据，其“当前/本批”仅适用于相应提交。
+
 # 第四轮审阅修复：方法效果适用条件与字典复制的不确定性
 
 审阅基线：3994134c51a9b5ab7f178a12ecb480e0df6e2905。
