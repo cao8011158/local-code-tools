@@ -68,7 +68,9 @@ SM 的 `src/`、`examples/`、`scripts/`；RE 的 Engine、SRD Data、Bridge、D
 
 ## 节点、说明与定位
 
-统一目录包含 Repository、Module、Class、Function（含方法和嵌套函数）、DocumentSection。
+统一目录包含 Repository、Module、Class、Function（兼容检索层，含方法、嵌套函数和 lambda）、DocumentSection。
+Python 的 \x60node_type\x60 精确区分 module/class/function/method/lambda；不另建检索解析器。
+第一阶段接口和未完成验收见 [报告](../review/PYTHON_PIPELINE_PHASE1.md)。本轮未重建真实索引。
 代码节点记录仓库、相对路径、限定名、父节点、源码范围、签名、docstring、内容及文件指纹。
 `node_id` 为仓库／路径／类型／限定名／作用域出现序号组成的逻辑身份，不写回源码。
 同一文件同名定义不会互相覆盖；普通行号移动不改变身份，插入更早的同名定义可能改变序号。
@@ -126,16 +128,16 @@ connectivity=32、expansion_add=128、expansion_search=128；按 repository/kind
 ## 图关系与可信边界
 
 图使用 Python 标准库 AST 和有界 points-to 数据流，不导入或执行 SM/RE 模块。
-记录 CONTAINS、IMPORTS、CALLS、INHERITS。词法定义、导入别名、构造实例、类型注解、
-赋值、返回值、仓库内参数传递、普通字典和明确注册函数中的字典写入参与传播。
-不是只凭函数同名推断目标，也不是运行时完整调用跟踪。
+记录 CONTAINS、IMPORTS、CALLS、INHERITS 和 REFERENCES。AST 提取统一节点和调用位置；
+Jedi 0.20.1 在私有捕获源码副本中解析名称；LCT 按源码定义位置验证映射，并处理有限的
+顺序赋值、分支候选、绑定方法、显式回调实参和字面容器关联。没有单调 fixed-point/Flow 执行器。
 
-每条调用记录行列、表达式、解析依据和状态：`resolved` 为静态模型内唯一明确目标，
-`possible` 为已知多个目标或分析上限下的保守候选，`unresolved` 保留未知位置和原因；
-`boundary` 是外部依赖／排除范围／不匹配版本的边界引用。静态明确不等于运行时必定发生。
-传播是上下文／控制流不敏感的保守分析，有固定轮数、表达式深度和工作量限制；
-动态 monkey patch、反射、任意装饰器、插件加载及复杂容器流不保证解析。
-不得把 known alternatives 说成完全未知，或把未解析比例当成静态图完整率。
+每个位置单独保存候选 targets、unknown_origin、complete、completeness_basis、工具证据和原因，
+并区分 lexical_owner/execution_owner/phase。Jedi 推断本身不证明完整性；
+普通项目输入默认开放，只有合成测试显式声明 closed_world。
+旧 resolved/possible/boundary/unresolved 是兼容投影，不能代替位置记录：
+唯一已知目标加未知来源仍是 incomplete，零目标也可能是静态无效调用。
+复杂 MRO、任意装饰器和动态容器行为保持未知；完整 tests/ 含报告列出的两项失败验收。
 
 SM 的 RE pin 与旁边 RE checkout 分开核对。不匹配时保留带原因的依赖边界，
 不制造通往另一个版本的精确调用边。当前 pin 查 SM `pyproject.toml` 和索引 manifest。
@@ -153,7 +155,7 @@ SM 的 RE pin 与旁边 RE checkout 分开核对。不匹配时保留带原因�
 构建前后源码一致后原子替换 current 指针。图、BM25、向量来自同一捕获版本；
 失败候选不影响当前可读版本。向量按完整模型/输入设置和文本哈希复用；相容旧实验缓存
 只在文本完全相同才命中，旧独立摘要不作为新模板输入。函数说明变化也更新相关模块／类输入。
-删除旧节点及其 posting/边；节点／边／倒排按差异维护。AST 全局传播和候选 HNSW 在更新时
+删除旧节点及其 posting/边；节点／边／倒排按差异维护。AST/Jedi 关系分析和候选 HNSW 在更新时
 重建，不宣称所有更新计算都严格局部，但未变化向量不重请求 API。查询不做这些构建工作。
 
 ```powershell

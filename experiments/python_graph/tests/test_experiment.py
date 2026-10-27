@@ -76,13 +76,14 @@ def test_candidates_really_ran_without_network(observed):
             assert raw["network_denied"] and raw["network_attempts_blocked"] == 0
 
 
-def test_known_failures_stay_visible_and_semantics_stay_separate(observed):
+def test_repairs_and_tool_semantics_stay_separate(observed):
     """Do not silently turn Pyan USES or Jedi candidates into certain CALLS."""
     _, summary = observed
     tools = summary["runs"]["synthetic"]["tools"]
     current = tools["current"]
-    assert current["bounded_target_metric"]["fp"] > 0
-    assert "callback_mixed" in current["false_certainty_sites"]
+    assert current["bounded_target_metric"]["fp"] == 0
+    assert current["bounded_target_metric"]["fn"] == 0
+    assert not current["false_certainty_sites"]
     for tool in ("jedi", "pyan3"):
         assert not tools[tool]["false_certainty_sites"]
         assert all(r["asserted_certain"] is False for r in tools[tool]["records"])
@@ -91,7 +92,7 @@ def test_known_failures_stay_visible_and_semantics_stay_separate(observed):
 
 
 def test_cross_revision_negative_control_is_not_dropped(observed):
-    """The unchanged Graph keeps the mismatched local RE implementation at a boundary."""
+    """The current Graph keeps mismatched local RE definitions at a boundary."""
     _, summary = observed
     matched = summary["runs"]["cross-matched"]["tools"]["current"]["records"][0]
     mismatch = summary["runs"]["cross-mismatched"]["tools"]["current"]["records"][0]

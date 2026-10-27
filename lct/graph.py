@@ -1,9 +1,4 @@
-"""Conservative Python points-to analysis over AST; never executes indexed modules.
-
-Lexical bindings, imports, constructors, assignments, annotations, returns, callback
-arguments and mapping writes feed a monotone bounded fixed point. Dynamic behavior
-is retained as unresolved evidence. This is a source approximation, not a runtime trace.
-"""
+"""Python relationships from the unified catalog, AST sites and mapped Jedi evidence."""
 
 import ast
 import tomllib
@@ -11,37 +6,24 @@ from collections import defaultdict
 from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
+from .python_analysis import Analyzer
 
 
 class Graph:
-    """Keep scopes, value origins and edges separate from vector-neighbor HNSW data."""
+    """Compatibility facade; site completeness is explicit, never fixed-point cardinality."""
 
     def __init__(self, nodes, asts, repos):
         self.nodes = {n["node_id"]: n for n in nodes}
+        if len(self.nodes) != len(nodes):
+            raise ValueError("Node identity collision")
         self.asts = asts
         self.repos = {r["name"]: r for r in repos}
-        self.bindings = defaultdict(set)
-        self.members = defaultdict(set)
-        self.attrs = defaultdict(set)
-        self.maps = defaultdict(set)
-        self.returns = defaultdict(set)
         self.modules = defaultdict(set)
-        self.module_for = {}
-        self.scopes = {}
-        self.bases = defaultdict(set)
-        self.imports = []
-        self.call_sites = []
-        self.assignments = []
-        self.return_sites = []
-        self.annotations = []
-        self.edges = []
         self.cross_bindings = {}
-        self.saturated = False
-        self.limited = False
-        self.value_calls = 0
-        self.local_names = defaultdict(set)
-        self.memo = {}
-        self.forward_refs = {}
+        self.edges = []
+        for n in nodes:
+            if n["kind"] == "module":
+                self.modules[n["repository"], n["qualname"]].add(n["node_id"])
         for repo in repos:
             p = Path(repo["path"]) / "pyproject.toml"
             if p.exists():
@@ -80,90 +62,6 @@ class Graph:
                         group["pin"] = next(iter(pins)) if len(pins) == 1 else None
                         group["target_head"] = target.get("head")
 
-        for n in nodes:
-            ident = n["node_id"]
-            if n["parent"]:
-                self.add_edge(
-                    n["parent"], ident, "CONTAINS", "resolved", "lexical ownership", n["start"]
-                )
-            if n["kind"] == "module":
-                self.modules[n["repository"], n["qualname"]].add(ident)
-            if ident in asts and n["kind"] != "module":
-                self.bindings[n["parent"], asts[ident].name].add(ident)
-                self.members[n["parent"], asts[ident].name].add(ident)
-        for ident in asts:
-            scope = ident
-            while self.nodes[scope]["kind"] != "module":
-                scope = self.nodes[scope]["parent"]
-            self.module_for[ident] = scope
-        for ident, tree in asts.items():
-            self.scan_scope(ident, tree)
-
-    def add_edge(self, source, target, kind, status, basis, line=0, column=0, expression=""):
-        """A call with multiple known targets emits possible edges, unknown sites remain."""
-        e = dict(
-            source=source,
-            target=target,
-            kind=kind,
-            status=status,
-            basis=basis,
-            line=line,
-            column=column,
-            expression=expression,
-        )
-        e["edge_id"] = digest(canonical(e))
-        self.edges.append(e)
-
-    def scan_scope(self, scope, tree):
-        """Collect direct-scope operations; nested functions have their own analysis scope."""
-        if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            owner = self.nodes.get(self.nodes[scope]["parent"], {})
-            if owner.get("kind") == "class" and tree.args.args:
-                self.bindings[scope, tree.args.args[0].arg].add("instance:" + owner["node_id"])
-            for param in tree.args.posonlyargs + tree.args.args + tree.args.kwonlyargs:
-                self.local_names[scope].add(param.arg)
-                if param.annotation:
-                    self.annotations.append((scope, ast.Name(id=param.arg), param.annotation))
-        if isinstance(tree, ast.ClassDef):
-            for base in tree.bases:
-                self.annotations.append((scope, None, base))
-
-        def walk(n):
-            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                # Decorators/defaults are evaluated by the owner, not function body.
-                for x in n.decorator_list:
-                    walk(x)
-                return
-            if isinstance(n, (ast.Import, ast.ImportFrom)):
-                self.imports.append((scope, n))
-            elif isinstance(n, (ast.Assign, ast.AnnAssign, ast.NamedExpr)):
-                targets = n.targets if isinstance(n, ast.Assign) else [n.target]
-                for target in targets:
-                    self.assignments.append((scope, target, n.value))
-                    for assigned in ast.walk(target):
-                        if isinstance(assigned, ast.Name) and isinstance(assigned.ctx, ast.Store):
-                            self.local_names[scope].add(assigned.id)
-                    if isinstance(n, ast.AnnAssign) and n.annotation:
-                        self.annotations.append((scope, target, n.annotation))
-            elif isinstance(n, ast.Call):
-                self.call_sites.append((scope, n))
-            elif isinstance(n, ast.Return) and n.value:
-                self.return_sites.append((scope, n.value))
-            for child in ast.iter_child_nodes(n):
-                walk(child)
-
-        for item in tree.body:
-            walk(item)
-
-    def lookup(self, scope, name):
-        """Follow lexical scopes; a local binding is not replaced by global same-name guesses."""
-        while scope in self.nodes:
-            result = self.bindings.get((scope, name), set())
-            if result or name in self.local_names.get(scope, set()):
-                return set(result)
-            scope = self.nodes[scope]["parent"]
-        return set()
-
     def imported(self, repo, name):
         """Cross-repository targets require the exact dependency revision to match."""
         local = self.modules.get((repo, name), set())
@@ -178,308 +76,228 @@ class Graph:
                 return {"boundary:dependency-version-unmatched:" + name}
         return {"boundary:external-or-excluded:" + name}
 
-    def attribute(self, values, name, visited=None):
-        """Resolve owned/inherited attributes; unknown receivers produce no fake edge."""
-        result = set()
-        visited = visited or set()
-        for value in sorted(values):
-            if value.startswith("boundary:"):
-                result.add(value + "." + name)
-                continue
-            cls = value.removeprefix("instance:")
-            if cls in visited:
-                continue
-            visited.add(cls)
-            owned = (
-                self.members.get((cls, name), set())
-                | self.bindings.get((cls, name), set())
-                | self.attrs.get((cls, name), set())
-            )
-            result |= owned or self.attribute(self.bases.get(cls, set()), name, visited)
-        return result
-
-    def values(self, scope, expr, depth=0):
-        """Memoize repeated AST subexpressions inside one fixed-point stage."""
-        key = (scope, id(expr), depth)
-        if key in self.memo:
-            return self.memo[key]
-        result = self._values(scope, expr, depth)
-        if len(result) > 64:
-            self.limited = True
-            result = set(sorted(result)[:64])
-        self.memo[key] = result
-        return result
-
-    def _values(self, scope, expr, depth=0):
-        """Infer source-level callable/instance/map values, with bounded recursion."""
-        self.value_calls += 1
-        if self.value_calls > 2000000:
-            self.limited = True
-            return set()
-        if expr is None or depth > 6:
-            return set()
-        if isinstance(expr, ast.Name):
-            return self.lookup(scope, expr.id)
-        if isinstance(expr, ast.Attribute):
-            return self.attribute(self.values(scope, expr.value, depth + 1), expr.attr)
-        if isinstance(expr, ast.Call):
-            targets = self.values(scope, expr.func, depth + 1)
-            result = set()
-            for target in sorted(targets):
-                if self.nodes.get(target, {}).get("kind") == "class":
-                    result.add("instance:" + target)
-                result |= self.returns.get(target, set())
-            return result
-        if isinstance(expr, (ast.IfExp, ast.BoolOp, ast.Tuple, ast.List, ast.Set)):
-            parts = (
-                [expr.body, expr.orelse]
-                if isinstance(expr, ast.IfExp)
-                else expr.values
-                if isinstance(expr, ast.BoolOp)
-                else expr.elts
-            )
-            return set().union(*(self.values(scope, x, depth + 1) for x in parts))
-        if isinstance(expr, ast.Subscript):
-            mapping = self.values(scope, expr.value, depth + 1)
-            key = expr.slice.value if isinstance(expr.slice, ast.Constant) else None
-            return (
-                set().union(
-                    *(
-                        self.maps.get((m, key), set()) | self.maps.get((m, "*"), set())
-                        if key is not None
-                        else set().union(*(v for (owner, _), v in self.maps.items() if owner == m))
-                        for m in mapping
-                    )
-                )
-                if mapping
-                else set()
-            )
-        if isinstance(expr, ast.Dict):
-            return {f"map:{scope}:{expr.lineno}:{expr.col_offset}"}
-        if isinstance(expr, ast.Constant) and isinstance(expr.value, str):
-            try:
-                if expr.value not in self.forward_refs:
-                    self.forward_refs[expr.value] = ast.parse(expr.value, mode="eval").body
-                return self.values(scope, self.forward_refs[expr.value], depth + 1)
-            except SyntaxError:
-                return set()
-        return set()
-
-    def bind(self, scope, target, values):
-        """Accumulate alternatives instead of overwriting potential conditional assignments."""
-        if isinstance(target, ast.Name):
-            self.bindings[scope, target.id].update(values)
-        elif isinstance(target, ast.Attribute):
-            for owner in sorted(self.values(scope, target.value)):
-                self.attrs[owner.removeprefix("instance:"), target.attr].update(values)
-        elif isinstance(target, ast.Subscript):
-            key = target.slice.value if isinstance(target.slice, ast.Constant) else "*"
-            for mapping in sorted(self.values(scope, target.value)):
-                self.maps[mapping, key].update(values)
-        elif isinstance(target, (ast.Tuple, ast.List)):
-            # Do not assert tuple positional precision from an aggregate union.
-            for item in target.elts:
-                self.bind(scope, item, values)
-
-    def certain(self, scope, expr, seen=None):
-        """Recognize uniquely bound direct syntax independently of incomplete dataflow."""
-        seen = seen or set()
-        key = (scope, id(expr))
-        if key in seen:
-            return False
-        seen.add(key)
-        if isinstance(expr, ast.Name):
-            current = scope
-            while current in self.nodes:
-                values = self.bindings.get((current, expr.id), set())
-                if values or expr.id in self.local_names.get(current, set()):
-                    if len(values) != 1:
-                        return False
-                    assignments = [
-                        value
-                        for owner, target, value in self.assignments
-                        if owner == current
-                        and isinstance(target, ast.Name)
-                        and target.id == expr.id
-                    ]
-                    if assignments:
-                        return all(
-                            self.certain(current, value, seen.copy()) for value in assignments
-                        )
-                    return bool(self.members.get((current, expr.id)))
-                current = self.nodes[current]["parent"]
-        if isinstance(expr, ast.Attribute):
-            receiver = expr.value
-            if isinstance(receiver, ast.Call):
-                vals = self.values(scope, receiver.func)
-                return (
-                    len(vals) == 1
-                    and all(self.nodes.get(v, {}).get("kind") == "class" for v in vals)
-                    and self.certain(scope, receiver.func, seen)
-                )
-            if isinstance(receiver, ast.Name) and receiver.id in ("self", "cls"):
-                owner = self.nodes.get(self.nodes[scope]["parent"], {})
-                return owner.get("kind") == "class"
-        return False
-
-    def size(self):
-        """Monotone fact cardinality for fixed-point termination."""
-        return sum(
-            len(v)
-            for d in (self.bindings, self.attrs, self.maps, self.returns, self.bases)
-            for v in d.values()
+    def add_edge(
+        self, source, target, kind, status, basis, line=0, column=0, expression="", **extra
+    ):
+        """Store typed relations; CALLS edges are projections of a particular site."""
+        edge = dict(
+            source=source,
+            target=target,
+            kind=kind,
+            status=status,
+            basis=basis,
+            line=line,
+            column=column,
+            expression=expression,
+            **extra,
         )
+        edge["source_version_id"] = self.nodes.get(source, {}).get("version_id")
+        edge["target_version_id"] = self.nodes.get(target, {}).get("version_id")
+        edge["edge_id"] = digest(canonical(edge))
+        self.edges.append(edge)
 
     def build(self):
-        """Resolve imports and iterate dataflow, then retain every callsite and its evidence."""
-        for scope, item in self.imports:
-            n = self.nodes[scope]
-            mod = self.nodes[self.module_for[scope]]["qualname"]
-            package = mod if n["path"].endswith("__init__.py") else mod.rpartition(".")[0]
-            if isinstance(item, ast.Import):
-                for alias in item.names:
-                    name = alias.name if alias.asname else alias.name.split(".")[0]
-                    targets = self.imported(n["repository"], name)
-                    self.bindings[scope, alias.asname or name].update(targets)
-                    for t in sorted(targets):
-                        self.add_edge(
-                            scope,
-                            t,
-                            "IMPORTS",
-                            "boundary" if t.startswith("boundary:") else "resolved",
-                            "import path and dependency binding",
-                            item.lineno,
-                            item.col_offset,
-                            alias.name,
-                        )
-            else:
-                prefix = item.module or ""
-                if item.level:
-                    parts = package.split(".")
-                    prefix = ".".join(
-                        parts[: len(parts) - item.level + 1] + ([prefix] if prefix else [])
-                    )
-                for alias in item.names:
-                    mods = self.imported(n["repository"], prefix)
-                    targets = self.attribute(mods, alias.name)
-                    if not targets:
-                        targets = self.imported(n["repository"], prefix + "." + alias.name)
-                    self.bindings[scope, alias.asname or alias.name].update(targets)
-                    for t in sorted(targets):
-                        self.add_edge(
-                            scope,
-                            t,
-                            "IMPORTS",
-                            "boundary" if t.startswith("boundary:") else "resolved",
-                            "from-import alias and dependency binding",
-                            item.lineno,
-                            item.col_offset,
-                            prefix + "." + alias.name,
-                        )
-        for iteration in range(12):
-            self.value_calls = 0
-            self.memo.clear()
-            before = self.size()
-            for scope, target, ann in self.annotations:
-                owner = self.nodes[scope]["parent"] if target is None else scope
-                values = self.values(owner, ann)
-                if target is None:
-                    self.bases[scope].update(values)
-                else:
-                    instances = {
-                        "instance:" + v if self.nodes.get(v, {}).get("kind") == "class" else v
-                        for v in values
-                    }
-                    self.bind(scope, target, instances)
-            for scope, target, expr in self.assignments:
-                values = self.values(scope, expr)
-                self.bind(scope, target, values)
-                if isinstance(expr, ast.Dict):
-                    for mapid in sorted(values):
-                        for key, val in zip(expr.keys, expr.values):
-                            self.maps[
-                                mapid, key.value if isinstance(key, ast.Constant) else "*"
-                            ].update(self.values(scope, val))
-            for scope, expr in self.return_sites:
-                self.returns[scope].update(self.values(scope, expr))
-            for scope, call in self.call_sites:
-                targets = self.values(scope, call.func)
-                for t in sorted(targets):
-                    function = self.asts.get(t)
-                    if not isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                        continue
-                    params = function.args.posonlyargs + function.args.args
-                    if (
-                        isinstance(call.func, ast.Attribute)
-                        and self.nodes.get(self.nodes[t]["parent"], {}).get("kind") == "class"
-                    ):
-                        params = params[1:]
-                    for param, arg in zip(params, call.args):
-                        self.bindings[t, param.arg].update(self.values(scope, arg))
-                    for kw in call.keywords:
-                        if kw.arg:
-                            self.bindings[t, kw.arg].update(self.values(scope, kw.value))
-            if self.size() == before:
-                self.saturated = True
-                break
-        self.value_calls = 0
-        self.memo.clear()
-        for scope, values in self.bases.items():
-            for value in sorted(values):
+        """Analyze captured bytes only; return edges plus the independent site inventory."""
+        self.edges = []
+        for n in self.nodes.values():
+            if n["parent"]:
                 self.add_edge(
-                    scope,
-                    value,
-                    "INHERITS",
-                    "boundary" if value.startswith("boundary:") else "resolved",
-                    "base expression binding",
-                    self.nodes[scope]["start"],
+                    n["parent"],
+                    n["node_id"],
+                    "CONTAINS",
+                    "resolved",
+                    "AST lexical ownership",
+                    n["start"],
+                    n.get("column", 0),
                 )
-        for scope, call in self.call_sites:
-            values = self.values(scope, call.func)
-            targets = {
-                v
-                for v in values
-                if self.nodes.get(v, {}).get("kind") in ("class", "function")
-                or v.startswith("boundary:")
-            }
-            expression = ast.unparse(call.func)[:400]
-            if not targets:
-                self.add_edge(
-                    scope,
-                    None,
-                    "CALLS",
-                    "unresolved",
-                    "dynamic/unknown receiver, excluded builtin, or unsupported value flow",
-                    call.lineno,
-                    call.col_offset,
-                    expression,
+        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported)
+        try:
+            sites = []
+            for item in analyzer.sites:
+                expr, scope = item["_expr"], item["execution_owner"]
+                # Always retain the actual Jedi observation, including rejected descriptors.
+                signal = analyzer.query(scope, expr)
+                result = analyzer.resolve(scope, expr)
+                if item["kind"] == "implicit_decorator" and isinstance(expr, ast.Call):
+                    # Factory application calls its returned decorator, not the factory again.
+                    result = analyzer.resolve(scope, expr)
+                targets = sorted(
+                    {a.target for a in result.atoms if a.kind in ("callable", "class")}
                 )
-            else:
+                boundaries = sorted({a.target for a in result.atoms if a.kind == "boundary"})
+                reasons = sorted(result.reasons)
+                if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
+                    reasons.append("dependency-version-unmatched")
+                complete = not reasons
+                record = {k: v for k, v in item.items() if not k.startswith("_")}
+                record.update(
+                    targets=targets,
+                    unknown_origin=bool(reasons),
+                    complete=complete,
+                    completeness_basis="finite captured syntax under declared input boundary"
+                    if complete
+                    else None,
+                    unresolved_reasons=reasons,
+                    boundaries=[
+                        dict(
+                            full_name=b,
+                            reason="dependency-version-unmatched"
+                            if b.startswith("dependency-version-unmatched:")
+                            else "external-or-excluded",
+                        )
+                        for b in boundaries
+                    ],
+                    evidence=[
+                        dict(tool="ast", role="site and execution phase"),
+                        dict(
+                            tool="jedi",
+                            version="0.20.1",
+                            role="definition signal",
+                            raw=analyzer.queries[
+                                (
+                                    analyzer.module_for[scope],
+                                    expr.end_lineno,
+                                    expr.end_col_offset,
+                                    False,
+                                )
+                            ][1],
+                        ),
+                        dict(
+                            tool="lct",
+                            role="validated binding/argument/container association",
+                            association_trace=analyzer.explain(scope, expr),
+                            signal_agrees=targets
+                            == sorted(
+                                a.target for a in signal.atoms if a.kind in ("callable", "class")
+                            ),
+                        ),
+                    ],
+                )
+                sites.append(record)
                 status = (
-                    "resolved"
-                    if len(targets) == 1
-                    and ((self.saturated and not self.limited) or self.certain(scope, call.func))
-                    else "possible"
+                    "resolved" if complete and len(targets) + len(boundaries) == 1 else "possible"
                 )
-                for t in sorted(targets):
+                for target in targets:
                     self.add_edge(
                         scope,
-                        t,
+                        target,
                         "CALLS",
-                        "boundary" if t.startswith("boundary:") else status,
-                        "lexical/import/assignment/type/argument/mapping points-to; flow-insensitive; alternatives="
-                        + str(len(targets)),
-                        call.lineno,
-                        call.col_offset,
-                        expression,
+                        status,
+                        "mapped AST/Jedi/LCT site",
+                        item["line"],
+                        item["column"],
+                        item["expression"],
+                        site_id=item["site_id"],
+                        complete=complete,
+                        unknown_origin=bool(reasons),
                     )
-        self.edges = list({e["edge_id"]: e for e in self.edges}.values())
-        return self.edges, {
-            "engine": "stdlib ast + bounded monotone points-to (no project imports)",
-            "fixed_point": self.saturated,
-            "analysis_limited": self.limited,
-            "limits": "12 rounds, expression depth 6, 2M expression evaluations per round; limited calls are possible/unresolved",
-            "iterations": iteration + 1,
-            "dependency_bindings": self.cross_bindings,
-            "call_sites": len(self.call_sites),
-        }
+                for boundary in boundaries:
+                    target = "boundary:" + (
+                        "dependency-version-unmatched:" + boundary.split(":", 1)[1]
+                        if boundary.startswith("dependency-version-unmatched:")
+                        else "external-or-excluded:" + boundary
+                    )
+                    self.add_edge(
+                        scope,
+                        target,
+                        "CALLS",
+                        "boundary",
+                        "captured source boundary",
+                        item["line"],
+                        item["column"],
+                        item["expression"],
+                        site_id=item["site_id"],
+                        complete=complete,
+                        unknown_origin=bool(reasons),
+                    )
+                if not targets and not boundaries:
+                    self.add_edge(
+                        scope,
+                        None,
+                        "CALLS",
+                        "unresolved",
+                        "; ".join(reasons) or "invalid/noncallable target",
+                        item["line"],
+                        item["column"],
+                        item["expression"],
+                        site_id=item["site_id"],
+                        complete=complete,
+                        unknown_origin=bool(reasons),
+                    )
+            for scope, expr, phase in analyzer.references:
+                result = analyzer.resolve(scope, expr)
+                for a in result.atoms:
+                    if a.kind in ("callable", "class", "module"):
+                        self.add_edge(
+                            scope,
+                            a.target,
+                            "REFERENCES",
+                            "possible" if result.unknown else "resolved",
+                            "AST value reference; never implies invocation",
+                            expr.lineno,
+                            expr.col_offset,
+                            ast.unparse(expr),
+                            phase=phase,
+                        )
+            for scope, stmt in analyzer.import_sites:
+                for alias in stmt.names:
+                    result = analyzer.binding(scope, "import", (stmt, alias))
+                    for a in result.atoms:
+                        external = a.kind in ("boundary", "external-module", "external-value")
+                        target = a.target
+                        if external:
+                            target = "boundary:" + (
+                                a.target
+                                if a.target.startswith("dependency-version-unmatched:")
+                                else "external-or-excluded:" + a.target
+                            )
+                        self.add_edge(
+                            scope,
+                            target,
+                            "IMPORTS",
+                            "boundary" if external else "resolved",
+                            "exact captured import definition",
+                            stmt.lineno,
+                            stmt.col_offset,
+                            alias.name,
+                        )
+                    if not result.atoms:
+                        self.add_edge(
+                            scope,
+                            None,
+                            "IMPORTS",
+                            "unresolved",
+                            "; ".join(sorted(result.reasons)),
+                            stmt.lineno,
+                            stmt.col_offset,
+                            alias.name,
+                        )
+            for ident, scope, base in analyzer.inheritance:
+                result = analyzer.resolve(scope, base)
+                for a in result.atoms:
+                    if a.kind == "class":
+                        self.add_edge(
+                            ident,
+                            a.target,
+                            "INHERITS",
+                            "resolved",
+                            "explicit AST base",
+                            base.lineno,
+                            base.col_offset,
+                            ast.unparse(base),
+                        )
+            self.edges = list({e["edge_id"]: e for e in self.edges}.values())
+            return self.edges, dict(
+                engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
+                schema=2,
+                sites=sites,
+                call_sites=len(sites),
+                analysis_limited=analyzer.limited,
+                association_evaluations=20000 - analyzer.budget,
+                jedi_queries=len(analyzer.queries),
+                dependency_bindings=self.cross_bindings,
+                closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
+                limits="20k associations; recursion 40; unsupported constructs remain unknown",
+            )
+        finally:
+            analyzer.close()

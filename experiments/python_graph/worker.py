@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def current(plan):
-    """Run the unchanged production parser and Graph on in-memory source only."""
+    """Run current parser on frozen source; only the synthetic drivers are closed."""
     sys.path.insert(0, str(ROOT))
     from lct.extract import python_nodes
     from lct.graph import Graph
@@ -34,7 +34,8 @@ def current(plan):
                 mod + ":" + ("<module>" if n["kind"] == "module" else n["qualname"])
             )
             modules[n["node_id"]] = source["repository"] + ":" + source["path"]
-    graph = Graph(nodes, asts, plan["repositories"])
+    repos = [dict(r, closed_world=r["name"] == "synthetic") for r in plan["repositories"]]
+    graph = Graph(nodes, asts, repos)
     edges, info = graph.build()
     raw = []
     for e in edges:

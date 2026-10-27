@@ -4,7 +4,7 @@ import ast
 import re
 from collections import Counter
 
-from .common import TEMPLATE, digest
+from .common import TEMPLATE, canonical, digest
 
 CODE_KINDS = ("module", "class", "function")
 
@@ -49,10 +49,17 @@ def make_node(
 
 
 def python_nodes(file):
-    """Extract nested definitions including decorators, leading comments and duplicate names."""
+    """Extract the sole Python catalog, including methods, lambdas and redefinitions.
+
+    kind/node_id retain legacy search-level compatibility; node_type distinguishes
+    methods and lambdas. logical_id is ordinal scope identity, version_id binds the
+    capture, exact AST byte span and source fingerprint. The AST map holds captured
+    module text for Jedi; it is never recovered from the live working tree.
+    """
     text, path, repo = file["text"], file["path"], file["repository"]
     tree = ast.parse(text, filename=path, type_comments=True)
     lines = text.splitlines(keepends=True)
+    tree._lct_source = text
     nodes, ast_nodes = [], {}
     module = make_node(
         repo,
@@ -67,32 +74,67 @@ def python_nodes(file):
         ast.get_docstring(tree) or "",
         is_test=file["is_test"],
     )
+
+    def identity(node, obj, node_type, name):
+        node.update(
+            logical_id=node["node_id"],
+            repository_id=file.get("repository_id", repo),
+            snapshot_id=file.get("snapshot_id", digest(text)),
+            snapshot_scope="repository-capture" if "snapshot_id" in file else "single-file-capture",
+            source_sha256=digest(text),
+            node_type=node_type,
+            name=name,
+            module=module["node_id"],
+            definition_line=getattr(obj, "lineno", 1),
+            column=getattr(obj, "col_offset", 0),
+            end_column=getattr(
+                obj, "end_col_offset", len(lines[-1].rstrip("\r\n").encode("utf-8")) if lines else 0
+            ),
+        )
+        node["version_id"] = digest(
+            canonical(
+                [
+                    node["repository_id"],
+                    node["snapshot_id"],
+                    node["logical_id"],
+                    node["definition_line"],
+                    node["column"],
+                    node["end"],
+                    node["end_column"],
+                    node["fingerprint"],
+                ]
+            )
+        )
+
+    identity(module, tree, "module", module["qualname"])
     nodes.append(module)
     ast_nodes[module["node_id"]] = tree
     counts = Counter()
 
     def walk(item, owner):
         for child in ast.iter_child_nodes(item):
-            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
                 kind = "class" if isinstance(child, ast.ClassDef) else "function"
-                qual = (
-                    child.name
-                    if owner["kind"] == "module"
-                    else owner["qualname"] + "." + child.name
-                )
-                counts[owner["node_id"], kind, child.name] += 1
-                ordinal = counts[owner["node_id"], kind, child.name]
+                name = "<lambda>" if isinstance(child, ast.Lambda) else child.name
+                qual = name if owner["kind"] == "module" else owner["qualname"] + "." + name
+                counts[owner["node_id"], kind, name] += 1
+                ordinal = counts[owner["node_id"], kind, name]
                 # Include the owner's ordinal so same-name nested scopes do not collide.
                 occurrence = str(owner["occurrence"]) + "." + str(ordinal)
-                start = min([child.lineno] + [d.lineno for d in child.decorator_list])
-                while start > 1:
+                start = min(
+                    [child.lineno] + [d.lineno for d in getattr(child, "decorator_list", [])]
+                )
+                while start > 1 and not isinstance(child, ast.Lambda):
                     prev = lines[start - 2]
                     indent = len(lines[child.lineno - 1]) - len(lines[child.lineno - 1].lstrip())
                     if not prev.strip().startswith("#") or len(prev) - len(prev.lstrip()) != indent:
                         break
                     start -= 1
                 source = "".join(lines[start - 1 : child.end_lineno])
-                if kind == "function":
+                if isinstance(child, ast.Lambda):
+                    source = ast.get_source_segment(text, child)
+                    signature = "lambda " + ast.unparse(child.args)
+                elif kind == "function":
                     signature = (
                         "async " if isinstance(child, ast.AsyncFunctionDef) else ""
                     ) + f"def {child.name}({ast.unparse(child.args)})"
@@ -112,12 +154,22 @@ def python_nodes(file):
                     start,
                     child.end_lineno,
                     source,
-                    ast.get_docstring(child) or "",
+                    "" if isinstance(child, ast.Lambda) else ast.get_docstring(child) or "",
                     signature,
                     is_test=file["is_test"],
                     definition_line=child.lineno,
                     column=child.col_offset,
                 )
+                node_type = (
+                    "class"
+                    if kind == "class"
+                    else "lambda"
+                    if isinstance(child, ast.Lambda)
+                    else "method"
+                    if owner["node_type"] == "class"
+                    else "function"
+                )
+                identity(node, child, node_type, name)
                 nodes.append(node)
                 ast_nodes[node["node_id"]] = child
                 walk(child, node)
@@ -315,7 +367,16 @@ def extract(files):
                 is_test=False,
             )
         )
+    snapshots = {
+        repo: digest(
+            canonical(
+                sorted((f["path"], digest(f["text"])) for f in files if f["repository"] == repo)
+            )
+        )
+        for repo in {f["repository"] for f in files}
+    }
     for f in files:
+        f = dict(f, snapshot_id=snapshots[f["repository"]])
         if f["path"].endswith(".py"):
             ns, trees = python_nodes(f)
             nodes.extend(ns)

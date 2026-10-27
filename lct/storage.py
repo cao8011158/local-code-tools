@@ -132,7 +132,7 @@ def estimate(c):
 def build(c, offline=False, fail_at=None, lexical_only=False):
     """Build all channels from captured source; publish only after rechecking source bytes.
 
-    AST/dataflow and HNSW are recomputed during update, not during retrieval. SQLite
+    AST/Jedi relationships and HNSW are recomputed during update, not retrieval. SQLite
     nodes/edges/postings update by content difference; unchanged vectors never call API.
     """
     data = Path(c["data"])

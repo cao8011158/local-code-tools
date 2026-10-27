@@ -15,6 +15,11 @@ uv sync --locked
 # macOS/Linux: 将上述解释器替换为 .venv/bin/python
 ```
 
+本分支正在进行 Python 解析第一阶段重构，完整 tests/ 当前有 **2 项未满足验收的失败测试**，
+见 [第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。这些失败没有设为 xfail/skip。
+已实现范围可单独复现：在上述 pytest 命令后加
+\x60--ignore=tests/test_python_pipeline_gaps.py\x60；这不等于完整验收通过。
+
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。
 Embedding API 被测试夹具禁止调用。一项使用已有真实历史缓存的测试默认跳过，只有显式
 `--run-local-index` 才启用；它依然只读已缓存向量，不发送网络请求。
@@ -86,6 +91,6 @@ MCP 注册保存的是本机绝对解释器/入口，换电脑后须安装依赖
 历史实测见 [review/historical/ACCEPTANCE.md](review/historical/ACCEPTANCE.md)。报告保留实际日期、内容指纹和索引版本；
 旧报告不会因重新上传而变成新测试。向量数组、真实节点数据库和完整图数据不随报告提交。
 
-静态分析有轮数/深度/工作量上限，动态反射、任意装饰器、插件和复杂流仍可能未解析。
+静态分析有递归/工作量上限，动态反射、任意装饰器、插件和复杂流仍可能未解析。
 中文检索有指定入口漏检，RRF不稳定优于单路；旧问题复用不是独立评测。
 不将本地通过的测试称为独立代码审阅或新的远程CI结论。

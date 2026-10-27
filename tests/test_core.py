@@ -23,7 +23,7 @@ def graph(text, other=None):
         ns, trees = python_nodes(f)
         nodes += ns
         asts.update(trees)
-    g = Graph(nodes, asts, [dict(name="demo", path=".", head="test", status="")])
+    g = Graph(nodes, asts, [dict(name="demo", path=".", head="test", status="", closed_world=True)])
     edges, info = g.build()
     byid = {n["node_id"]: n["qualname"] for n in nodes}
     calls = [
