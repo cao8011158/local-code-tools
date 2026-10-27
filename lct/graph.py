@@ -199,17 +199,17 @@ class Graph:
                             for a in result.atoms
                         )
                         else "definition",
-                        invocation_phase="context-manager-create"
-                        if any(
-                            a.target == target
-                            and a.kind in ("context-factory", "async-context-factory")
-                            for a in result.atoms
-                        )
-                        else "ordinary-call",
+                        invocation_phase=next(
+                            (
+                                analyzer.invocation_phase(a)
+                                for a in result.atoms
+                                if a.target == target
+                            ),
+                            "ordinary-call",
+                        ),
                         executes_body=False
                         if any(
-                            a.target == target
-                            and a.kind in ("context-factory", "async-context-factory")
+                            a.target == target and analyzer.invocation_phase(a) != "ordinary-call"
                             for a in result.atoms
                         )
                         else None,

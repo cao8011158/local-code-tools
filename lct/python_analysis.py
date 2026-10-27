@@ -96,6 +96,7 @@ class Analyzer:
         self.recursions = 0
         self.allocations = {}
         self.coverage = {}
+        self.method_effects = {}
         for ident, t in self.modules.items():
             n = nodes[ident]
             path = self.root / n["repository"] / n["path"]
@@ -573,6 +574,23 @@ class Analyzer:
                         )
                     )
                 elif a.kind == "callable":
+                    if self.invocation_phase(a) != "ordinary-call":
+                        results.append(
+                            Result(
+                                frozenset(
+                                    [
+                                        Atom(
+                                            "deferred-result",
+                                            a.target,
+                                            receiver=a.receiver,
+                                            allocation=a.allocation,
+                                        )
+                                    ]
+                                ),
+                                frozenset(["deferred-call-result-not-modeled"]),
+                            )
+                        )
+                        continue
                     obj = self.trees[a.target]
                     returns = [obj.body] if isinstance(obj, ast.Lambda) else self.return_values(obj)
                     results.extend(self.resolve(a.target, r) for r in returns)
@@ -809,6 +827,11 @@ class Analyzer:
             kw.arg == "metaclass" for kw in getattr(self.trees[owner], "keywords", [])
         ):
             return "custom-construction-protocol"
+        initializer = self.member(owner, "__init__")
+        if initializer and any(
+            self.invocation_phase(a) != "ordinary-call" for a in initializer.atoms
+        ):
+            return "unsupported-deferred-initializer"
         if self.reaching(owner, "__slots__", 10**9):
             return "slotted-instance-field-not-modeled"
         if value is not None:
@@ -850,43 +873,120 @@ class Analyzer:
             ),
         )
 
-    def method_field_effect(self, receiver, method, name):
-        """Recognize straight-line self-field stores/deletes; never execute a method body.
-
-        Plain references/literals and writes to other known dictionary fields are finite
-        effects. Calls, branching, parameter-dependent values or dynamic targets invalidate
-        the field instead of simulating cross-procedure execution.
-        """
-        member = self.member(receiver.target, method)
-        if not member or member.unknown or len(member.atoms) != 1:
-            return unknown("unresolved-receiver-method-effects")
-        atom = next(iter(member.atoms))
+    def invocation_phase(self, atom):
+        """Classify creation of suspended bodies without running or scheduling them."""
+        if atom.kind in ("context-factory", "async-context-factory"):
+            return "context-manager-create"
         tree = self.trees.get(atom.target)
-        if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)) or tree.decorator_list:
+        if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return "ordinary-call"
+        generator = any(
+            isinstance(n, (ast.Yield, ast.YieldFrom)) for n in self.direct_statements(tree)
+        )
+        if isinstance(tree, ast.AsyncFunctionDef):
+            return "async-generator-create" if generator else "coroutine-create"
+        return "generator-create" if generator else "ordinary-call"
+
+    def method_target(self, receiver, scope, call):
+        """Resolve this access before the call, including direct instance overrides."""
+        tree = self.trees[scope]
+        params = (
+            tree.args.posonlyargs + tree.args.args
+            if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
+            else []
+        )
+        constructor_self = (
+            self.nodes[scope]["name"] == "__init__"
+            and params
+            and isinstance(call.func, ast.Attribute)
+            and isinstance(call.func.value, ast.Name)
+            and call.func.value.id == params[0].arg
+        )
+        if not constructor_self:
+            return self.resolve(scope, call.func)
+        method = call.func.attr
+        member = self.member(receiver.target, method)
+        guard = self.descriptor_guard(receiver.target, method, member)
+        if guard:
+            return unknown(guard)
+        field = self.instance_field(receiver, method, scope, call.func)
+        if field is not None and not any(a.kind == "absent-field" for a in field.atoms):
+            return field
+        if member is None:
+            return unknown("unresolved-receiver-method-target")
+        bound = frozenset(
+            Atom(a.kind, a.target, a.kind == "callable", receiver.target, receiver.allocation)
+            for a in member.atoms
+        )
+        value = Result(bound, member.reasons, member.proofs)
+        if field is not None:
+            value = union(
+                value,
+                Result(
+                    frozenset(a for a in field.atoms if a.kind != "absent-field"),
+                    field.reasons,
+                    field.proofs,
+                ),
+            )
+        return value
+
+    def method_field_effect(self, receiver, scope, call, name):
+        """Apply a finite summary only to the actual receiver/target in this call phase.
+
+        There is no dispatch-by-name execution. Coroutine/generator creation has no
+        body effect. Straight-line returns terminate the summary; unsupported control
+        or effects remain unknown rather than walking unreachable statements.
+        """
+        targets = self.method_target(receiver, scope, call)
+        key = (scope, id(call), receiver.allocation, name)
+        detail = dict(
+            kind="method-effect-applicability",
+            scope=scope,
+            line=call.lineno,
+            receiver=receiver.target,
+            allocation=receiver.allocation,
+            targets=sorted(a.target for a in targets.atoms if a.kind in CALLABLE_KINDS),
+            decision="unsupported",
+            unknown_reasons=sorted(targets.reasons),
+        )
+        self.method_effects[key] = detail
+        if targets.unknown or len(targets.atoms) != 1:
+            return union(
+                unknown("unproven-callsite-method-target"), Result(reasons=targets.reasons)
+            )
+        atom = next(iter(targets.atoms))
+        phase = self.invocation_phase(atom)
+        detail["invocation_phase"] = phase
+        if phase != "ordinary-call":
+            detail["decision"] = "deferred-body-not-executed"
+            return None
+        tree = self.trees.get(atom.target)
+        if atom.kind != "callable" or not isinstance(tree, ast.FunctionDef) or tree.decorator_list:
             return unknown("unsupported-receiver-method-effects")
+        if "constructor-field-origin" in targets.proofs:
+            return unknown("constructor-shadowed-receiver-method-effects")
         params = tree.args.posonlyargs + tree.args.args + tree.args.kwonlyargs
-        self_name = params[0].arg if params else None
-        other_params = {a.arg for a in params[1:]}
-        # A class method shadowed by an instance store cannot be simulated as that
-        # class definition. Preserve the boundary even if Jedi supplies a candidate.
-        initializer = self.member(receiver.target, "__init__")
-        if initializer:
-            for init in initializer.atoms:
-                if init.kind != "callable":
-                    continue
-                for st in self.direct_statements(self.trees[init.target]):
-                    if any(
-                        isinstance(t, ast.Attribute) and t.attr == method
-                        for t in self.write_targets(st)
-                    ) and not (isinstance(st, ast.AnnAssign) and st.value is None):
-                        return unknown("shadowed-receiver-method-effects")
+        self_name = params[0].arg if params and atom.bound else None
+        other_params = {a.arg for a in params if a.arg != self_name}
+        same_receiver = not atom.bound or atom.allocation == receiver.allocation
+        detail["body_receiver_allocation"] = atom.allocation
+        detail["decision"] = (
+            "finite-body-summary" if same_receiver else "other-receiver-body-summary"
+        )
         value = None
         for statement in tree.body:
             targets = self.write_targets(statement)
             if not targets:
+                if isinstance(statement, ast.Return):
+                    if statement.value is None or isinstance(
+                        statement.value, (ast.Constant, ast.Name)
+                    ):
+                        detail["termination_line"] = statement.lineno
+                        detail["decision"] = "return-terminated-summary"
+                        return value if same_receiver else None
+                    return union(value or Result(), unknown("unsupported-method-return-effects"))
                 if isinstance(statement, ast.Pass) or (
-                    isinstance(statement, (ast.Expr, ast.Return))
-                    and (statement.value is None or isinstance(statement.value, ast.Constant))
+                    isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant)
                 ):
                     continue
                 return union(value or Result(), unknown("unsupported-receiver-method-effects"))
@@ -918,7 +1018,7 @@ class Analyzer:
                     continue
                 else:
                     return union(value or Result(), unknown("unsupported-receiver-method-target"))
-        return value
+        return value if same_receiver else None
 
     def instance_field(self, receiver, name, scope, anchor):
         """Join constructor/direct field events and limited same-receiver method effects."""
@@ -935,6 +1035,34 @@ class Analyzer:
                 args = tree.args.posonlyargs + tree.args.args
                 self_name = args[0].arg if args else None
                 for stmt in self.direct_statements(tree):
+                    if stmt in tree.body and isinstance(stmt, ast.Return):
+                        events.append(
+                            dict(kind="constructor-return", scope=function.target, line=stmt.lineno)
+                        )
+                        break
+                    if (
+                        stmt in tree.body
+                        and isinstance(stmt, (ast.If, ast.Try, ast.With, ast.For, ast.While))
+                        and any(
+                            isinstance(n, (ast.Return, ast.Raise))
+                            for n in self.direct_statements_of(stmt)
+                        )
+                    ):
+                        events.append(
+                            dict(
+                                kind="constructor-termination-unknown",
+                                scope=function.target,
+                                line=stmt.lineno,
+                            )
+                        )
+                        value = unknown("conditional-constructor-termination")
+                        break
+                    if (
+                        scope == function.target
+                        and hasattr(stmt, "lineno")
+                        and (stmt.lineno, stmt.col_offset) >= (anchor.lineno, anchor.col_offset)
+                    ):
+                        continue
                     call = (
                         stmt.value
                         if isinstance(stmt, (ast.Expr, ast.Assign, ast.AnnAssign))
@@ -947,13 +1075,34 @@ class Analyzer:
                             and isinstance(call.func.value, ast.Name)
                             and call.func.value.id == self_name
                         ):
-                            effect = self.method_field_effect(receiver, call.func.attr, name)
+                            effect = self.method_field_effect(receiver, function.target, call, name)
                         elif any(
                             isinstance(n, ast.Name) and n.id == self_name
                             for arg in call.args + [k.value for k in call.keywords]
                             for n in ast.walk(arg)
                         ):
                             effect = unknown("constructor-receiver-escape")
+                        else:
+                            actual = self.resolve(function.target, call.func)
+                            if any(
+                                a.bound and a.allocation == receiver.allocation
+                                for a in actual.atoms
+                            ):
+                                effect = self.method_field_effect(
+                                    receiver, function.target, call, name
+                                )
+                    if (
+                        isinstance(call, ast.Call)
+                        and (function.target, id(call), receiver.allocation, name)
+                        in self.method_effects
+                    ):
+                        events.append(
+                            dict(
+                                self.method_effects[
+                                    (function.target, id(call), receiver.allocation, name)
+                                ]
+                            )
+                        )
                     if effect is not None:
                         events.append(
                             dict(
@@ -988,6 +1137,10 @@ class Analyzer:
                             else None
                         )
                         value = self.field_update(value, stmt, candidate, stmt in tree.body, name)
+                        if value is not None and not (
+                            isinstance(stmt, ast.AnnAssign) and stmt.value is None
+                        ):
+                            value = certified(value, "constructor-field-origin")
         for stmt in self.direct_statements(self.trees[scope]):
             if not isinstance(stmt, ast.stmt):
                 continue
@@ -1010,25 +1163,49 @@ class Analyzer:
                     candidate = self.resolve(scope, rhs) if rhs else None
                     direct = stmt in self.statements[scope] and not owners.unknown
                     value = self.field_update(value, stmt, candidate, direct, name)
-            call = stmt.value if isinstance(stmt, (ast.Expr, ast.Assign, ast.AnnAssign)) else None
-            if (
-                not isinstance(call, ast.Call)
-                or not isinstance(call.func, ast.Attribute)
-                or not receiver.allocation
-            ):
+            expression = (
+                stmt.value if isinstance(stmt, (ast.Expr, ast.Assign, ast.AnnAssign)) else None
+            )
+            if isinstance(expression, ast.Await):
+                resumed = self.resolve(scope, expression.value)
+                if any(a.allocation == receiver.allocation for a in resumed.atoms):
+                    events.append(dict(kind="deferred-resumption", scope=scope, line=stmt.lineno))
+                    value = unknown("deferred-method-resumption-not-modeled")
                 continue
-            owners = self.resolve(scope, call.func.value)
+            call = expression
+            if not isinstance(call, ast.Call) or not receiver.allocation:
+                continue
+            if any(
+                a.kind == "deferred-result" and a.allocation == receiver.allocation
+                for arg in call.args + [kw.value for kw in call.keywords]
+                for a in self.resolve(
+                    scope, arg.value if isinstance(arg, ast.Starred) else arg
+                ).atoms
+            ):
+                events.append(
+                    dict(kind="possible-deferred-resumption", scope=scope, line=stmt.lineno)
+                )
+                value = unknown("deferred-method-resumption-not-modeled")
+            targets = self.resolve(scope, call.func)
+            owners = (
+                self.resolve(scope, call.func.value)
+                if isinstance(call.func, ast.Attribute)
+                else Result()
+            )
             if not any(
                 o.kind == "instance" and o.allocation == receiver.allocation for o in owners.atoms
-            ):
+            ) and not any(a.bound and a.allocation == receiver.allocation for a in targets.atoms):
                 continue
-            effect = self.method_field_effect(receiver, call.func.attr, name)
+            effect = self.method_field_effect(receiver, scope, call, name)
+            events.append(dict(self.method_effects[(scope, id(call), receiver.allocation, name)]))
             if effect is None:
                 continue
             events.append(
                 dict(
                     kind="receiver-method-call",
-                    method=call.func.attr,
+                    method=call.func.attr
+                    if isinstance(call.func, ast.Attribute)
+                    else ast.unparse(call.func),
                     scope=scope,
                     line=stmt.lineno,
                 )
@@ -1216,11 +1393,11 @@ class Analyzer:
         sequence = not isinstance(obj, ast.Dict)
         slots, sealed, extra = {}, set(), []
 
-        def uncertain(reason):
-            value = unknown(reason)
+        def uncertain(reason, contributions=()):
+            value = union(unknown(reason), *contributions)
             for k in list(slots):
                 slots[k] = [union(*slots[k], value)]
-            slots[_DYNAMIC] = [value]
+            slots[_DYNAMIC] = [union(*slots.get(_DYNAMIC, []), value)]
             sealed.clear()
 
         if sequence:
@@ -1244,13 +1421,45 @@ class Analyzer:
                         )
                         events.extend(nested)
                         if _DYNAMIC in values or limitations:
-                            uncertain("incomplete-dict-expansion")
+                            uncertain(
+                                "incomplete-dict-expansion",
+                                [*values.get(_DYNAMIC, []), *limitations],
+                            )
                         for k, rs in values.items():
                             if k is _DYNAMIC:
                                 continue
-                            slots[k] = rs
-                            if k in source_sealed:
+                            copied = union(*rs, *limitations)
+                            maybe_missing = bool(limitations) or any(
+                                a.kind == "possible-missing-slot" for a in copied.atoms
+                            )
+                            ambiguous = origins.unknown or len(origins.atoms) != 1
+                            if maybe_missing or ambiguous:
+                                prior = union(
+                                    *slots.get(k, [known("possible-missing-slot", repr(k))])
+                                )
+                                copied = union(copied, prior)
+                                if not any(a.kind == "possible-missing-slot" for a in prior.atoms):
+                                    copied = Result(
+                                        frozenset(
+                                            a
+                                            for a in copied.atoms
+                                            if a.kind != "possible-missing-slot"
+                                        ),
+                                        copied.reasons,
+                                        copied.proofs,
+                                    )
+                            slots[k] = [copied]
+                            # Presence/overwrite information is not permission to erase
+                            # source uncertainty. Only an established finite value seals.
+                            if (
+                                k in source_sealed
+                                and not copied.unknown
+                                and not maybe_missing
+                                and not ambiguous
+                            ):
                                 sealed.add(k)
+                            else:
+                                sealed.discard(k)
                 else:
                     fixed, k = self.literal_key(key)
                     if fixed:
@@ -1295,7 +1504,17 @@ class Analyzer:
                                     i: rs
                                     for i, rs in enumerate(rs for _, rs in sorted(slots.items()))
                                 }
-                        elif not write_fixed or lookup is None or lookup == key:
+                        elif write_fixed:
+                            prior = union(*slots.get(key, []))
+                            slots[key] = [
+                                union(
+                                    prior,
+                                    known("possible-missing-slot", repr(key)),
+                                    unknown("conditional-or-dynamic-slot-deletion"),
+                                )
+                            ]
+                            sealed.discard(key)
+                        elif lookup is None or not write_fixed or lookup == key:
                             extra.append(unknown("conditional-or-dynamic-slot-deletion"))
                     elif isinstance(statement, ast.AugAssign):
                         extra.append(unknown("unsupported-slot-augassign"))
@@ -1313,6 +1532,16 @@ class Analyzer:
                     elif direct and write_fixed:
                         slots[key] = [self.resolve(function, statement.value)]
                         sealed.add(key)
+                    elif write_fixed:
+                        prior = union(*slots.get(key, [known("possible-missing-slot", repr(key))]))
+                        slots[key] = [
+                            union(
+                                prior,
+                                self.resolve(function, statement.value),
+                                unknown("conditional-or-dynamic-slot-write"),
+                            )
+                        ]
+                        sealed.discard(key)
                     elif lookup is None or not write_fixed or key == lookup:
                         extra.extend(
                             [
@@ -1686,3 +1915,11 @@ class Analyzer:
                 ):
                     return True
         return False
+
+    def direct_statements_of(self, statement):
+        """Inspect one constructor control statement without entering nested declarations."""
+        yield statement
+        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+            return
+        for child in ast.iter_child_nodes(statement):
+            yield from self.direct_statements_of(child)
