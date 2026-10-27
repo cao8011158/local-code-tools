@@ -1,0 +1,25 @@
+{
+  "read": [
+    "[\n  {\n    \"count\": 95\n  }\n]"
+  ],
+  "retrieval": {
+    "search_version": "e427bb9c4ebb90cb9838b120-65286a14",
+    "tools": [
+      "get_nodes",
+      "index_status",
+      "search_code",
+      "search_docs",
+      "update_index"
+    ],
+    "update_state": "PUBLISHED",
+    "version_error": true
+  },
+  "schema_ok": true,
+  "tools": [
+    "get-schema",
+    "read-cypher"
+  ],
+  "evidence_kind": "actual local HTTP MCP calls on owned synthetic native database",
+  "synthetic_only": true,
+  "official_read_scope": "MATCH(n:CGNode) count across owned test namespaces, not business repositories"
+}

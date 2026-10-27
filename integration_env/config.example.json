@@ -1,0 +1,54 @@
+{
+  "data": "C:/SET/ISOLATED_INTEGRATION_INDEX",
+  "include_tests": false,
+  "retained_versions": 2,
+  "retained_backups": 2,
+  "repositories": [
+    {
+      "name": "fixture",
+      "path": "C:/SET/SYNTHETIC_GIT_REPOSITORY",
+      "files": [
+        "sample.py"
+      ],
+      "source_roots": [
+        "."
+      ],
+      "documents": [
+        "guide.md"
+      ]
+    }
+  ],
+  "embedding": {
+    "model": "voyage-code-4",
+    "dimension": 1024,
+    "dtype": "float",
+    "endpoint": "https://api.voyageai.com/v1/embeddings",
+    "price_per_million_usd": 0.12,
+    "max_requests": 400,
+    "max_estimated_tokens": 15000000,
+    "max_cost_usd": 2,
+    "batch_bytes": 70000,
+    "batch_items": 64,
+    "retries": 3,
+    "min_interval_seconds": 1
+  },
+  "hnsw": {
+    "connectivity": 32,
+    "expansion_add": 128,
+    "expansion_search": 128
+  },
+  "freshness": {
+    "policy": "explicit inventory at build/status(refresh=true); retrieval reports last check time, never assumes fresh"
+  },
+  "cgr_commit": "896c037f1a09cb8cdb3928204c9cd62a34887f20",
+  "mode": "jedi",
+  "synthetic_fixture": true,
+  "namespace": "lct-fixture-SET_UNIQUE_NAMESPACE",
+  "uri": "bolt://127.0.0.1:17687",
+  "database": "neo4j",
+  "auth_file": "C:/SET/PRIVATE_NATIVE_STATE/native-auth.json",
+  "owned_home": "C:/SET/OWNED_NATIVE_NEO4J_HOME",
+  "official_port": 18886,
+  "retrieval_port": 18887,
+  "drain_seconds": 15
+}

@@ -1,5 +1,12 @@
 # Agentic TRPG Local Code Tools 1.0.0
 
+> **CGR + 原生 Neo4j 整合分支**：新的小样例流程、独立环境和两个 HTTP MCP 见
+> [integration_env/README.md](integration_env/README.md)，验收见
+> [review/CGR_NEO4J_INTEGRATION.md](review/CGR_NEO4J_INTEGRATION.md)。
+> 新流程只由固定提交的 CGR 生成 Python 节点，LCT 复用检索核心。
+> 下文原有 `lct/` CLI/stdio 流程作为旧工具说明保留；请勿将其旧解析器或索引作为新流程的节点依据。
+> 本分支不构建正式业务索引，不修改个人 MCP 配置，也不发布数据库或 Release 附件。
+
 这是独立私有源码审阅仓库，包含真实的解析、Code Graph、检索、增量版本管理、CLI 和 stdio MCP 实现。
 **本仓库不提供真实数据库、节点目录数据、图数据、向量、索引或 Release 附件。**
 Git checkout 用于审阅、开发和合成测试。本机已有完整工具包保留在原位置，上传不会重建或删除它。

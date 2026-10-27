@@ -1,0 +1,24 @@
+[project]
+name = "local-code-tools-cgr-integration"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "code-graph-rag @ git+https://github.com/agentic-trpg/code-graph-rag@896c037f1a09cb8cdb3928204c9cd62a34887f20",
+  "jedi==0.20.1",
+  "cgr-graph-rs==0.1.0",
+  "neo4j==6.4.1",
+  "neo4j-mcp-server==1.6.1",
+  "mcp==1.30.0",
+  "numpy==2.3.5",
+  "usearch==2.26.6",
+  "psutil==7.1.3",
+  "tree-sitter==0.26.0",
+  "tree-sitter-python==0.25.0",
+  "pydantic-ai-slim[anthropic,google,openai]==2.53.0",
+  "uvicorn==0.54.0",
+]
+[dependency-groups]
+dev = ["pytest==9.0.2", "pytest-asyncio==1.3.0", "ruff==0.15.22"]
+[tool.uv]
+package = false
+override-dependencies = ["cgr-graph-rs @ https://files.pythonhosted.org/packages/31/a1/07fa1781463966365891a2f49649473bce58d698feac5b2da13053e3e374/cgr_graph_rs-0.1.0-cp312-abi3-win_amd64.whl"]

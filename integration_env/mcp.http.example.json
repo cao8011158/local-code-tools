@@ -1,0 +1,17 @@
+{
+  "meaning": "Client connection template; not a Codex config or a public deployment",
+  "neo4j_official": {
+    "url": "http://127.0.0.1:18886/mcp",
+    "authentication": "HTTP Basic: Neo4j username/password supplied by the client securely",
+    "server_version": "1.6.1",
+    "read_only": true,
+    "tools": ["get-schema", "read-cypher"],
+    "lifecycle": "Only coordinator.update/resume may start the supervised official executable"
+  },
+  "local_code_tools": {
+    "url": "http://127.0.0.1:18887/mcp",
+    "authentication": "Authorization: Bearer <LCT_HTTP_TOKEN from environment>",
+    "tools": ["search_code", "search_docs", "get_nodes", "index_status", "update_index"]
+  },
+  "future_remote_access": "NOT TESTED: requires separately configured TLS, credential distribution and network access; no public listener is started here"
+}
