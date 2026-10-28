@@ -5,6 +5,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = ["numpy==2.3.5", "usearch>=2.21,<3", "mcp>=1.26,<2", "jedi==0.20.1"]
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.14,<1"]
+neo4j = ["neo4j==5.26.0"]
 [tool.ruff]
 line-length = 100
 [tool.ruff.lint]

@@ -3,7 +3,7 @@
 本契约只描述 LCT 当前源程序；未迁移或重建真实索引。入口仍为
 lct.extract.extract(files) → (nodes, asts) 和 Graph(nodes, asts, repos).build() → (edges, info)。
 调用方先捕获源码；Jedi 只读本次捕获的私有副本，源码不被 import/执行。
-没有 CGR 包依赖、Neo4j 驱动、新 MCP 服务或业务仓库扫描入口。
+没有 CGR 包依赖、新 MCP 服务或业务仓库扫描入口。后续 Batch 1 已新增可选 Neo4j 小图投影驱动与独立管理入口，见 [NEO4J_SMALL_GRAPH.md](NEO4J_SMALL_GRAPH.md)；本解析阶段仍未接入 Neo4j。
 
 ## 唯一节点目录
 
@@ -244,4 +244,4 @@ valid_coverage 对 implicit-call、region、scope-execution 按事件类型检�
 尚未提供独立 sites 查询 API。检索继续消费同一目录；原程序指纹保护会拒绝旧真实索引，
 本轮未修改旧 manifest，也没有执行真实 rebuild。后续增量工作须处理删除/重定义、
 引用/调用依赖失效、快照一致性和完整性重新计算，不能复用另一个快照的 Jedi 名称对象。
-这些都是后续接口要求，本轮未实施 Neo4j、正式增量协议或发布协调。
+这些是本解析阶段的后续接口要求；Batch 1 的小图投影已单独实现，仍不包含正式增量协议、MCP 集成或全量规模方案。

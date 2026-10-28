@@ -21,6 +21,10 @@ uv sync --locked
 本批不启动 MCP 或构建真实索引。实际结果、范围和剩余限制见
 [第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。
 
+另有可选的 [Neo4j 小图投影](docs/NEO4J_SMALL_GRAPH.md)：从已发布 SQLite
+catalog/manifest 导入固定版本的小图，未接入现有 MCP 或向量检索。安装可选
+`neo4j` 依赖组后使用独立 `python -m lct.neo4j_graph` 管理入口。
+
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。
 Embedding API 被测试夹具禁止调用。一项使用已有真实历史缓存的测试默认跳过，只有显式
 `--run-local-index` 才启用；它依然只读已缓存向量，不发送网络请求。
@@ -76,6 +80,7 @@ MCP 注册保存的是本机绝对解释器/入口，换电脑后须安装依赖
 | --- | --- |
 | `lct/extract.py` | Python AST/嵌套节点、签名、现有docstring输入、Markdown章节 |
 | `lct/graph.py` | CONTAINS/IMPORTS/CALLS/INHERITS、别名/赋值/回调/字典传播和依赖边界 |
+| `lct/neo4j_graph.py` | 已发布 SQLite 小图的可选 Neo4j 导入与固定版本查询 |
 | `lct/embedding.py` | 真正的Voyage客户端、内容键缓存、限额、有限重试和断点复用 |
 | `lct/lexical.py` | 中英/标识符分词与持久BM25 posting |
 | `lct/storage.py` | 节点目录、差异更新、HNSW、候选版本、原子切换及恢复 |
