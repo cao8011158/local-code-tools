@@ -13,7 +13,17 @@ FIXTURES = Path(__file__).parent / "fixtures" / "python_pipeline"
 def test_generator_contextmanager_binding(tmp_path):
     text = (FIXTURES / "generator_context.py").read_text(encoding="utf-8-sig")
     result = analyze(tmp_path, {"demo.py": text})
-    expect(result, "resource.work", "caller", {"Resource.work"})
+    s = expect(
+        result, "resource.work", "caller", {"Resource.work"}, unknown=True, complete=False
+    )
+    assert s["phase"] == "body"
+    assert any(
+        c["event_kind"] == "region"
+        and c["syntax"] == "With"
+        and c["outcome"] == "UNKNOWN_EFFECT"
+        and c["reason"] == "unsupported-protocol-region"
+        for c in s["resolution_decision"]["write_source_coverage"]["checks"]
+    )
 
 
 def test_separate_instance_registries(tmp_path):

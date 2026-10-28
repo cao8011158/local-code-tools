@@ -227,8 +227,16 @@ async def async_driver():
     )
     expect(r, "factory()", "driver", {"target"})
     expect(r, "object_factory().chain().work", "driver", {"C.work"})
-    expect(r, "obj.work", "driver", {"C.work"})
-    expect(r, "obj.work", "async_driver", {"C.work"})
+    for owner, syntax in (("driver", "With"), ("async_driver", "AsyncWith")):
+        s = expect(r, "obj.work", owner, {"C.work"}, unknown=True, complete=False)
+        assert s["phase"] == "body"
+        assert any(
+            c["event_kind"] == "region"
+            and c["syntax"] == syntax
+            and c["outcome"] == "UNKNOWN_EFFECT"
+            and c["reason"] == "unsupported-protocol-region"
+            for c in s["resolution_decision"]["write_source_coverage"]["checks"]
+        )
 
 
 def test_execution_ownership_defaults_decorators_annotations(tmp_path):

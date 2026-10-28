@@ -344,7 +344,15 @@ def caller(flag):
         },
         closed=False,
     )
-    expect(r, "first.work", "caller", {"R.work"})
+    first = expect(r, "first.work", "caller", {"R.work"}, unknown=True, complete=False)
+    assert first["phase"] == "body"
+    assert any(
+        c["event_kind"] == "region"
+        and c["syntax"] == "With"
+        and c["outcome"] == "UNKNOWN_EFFECT"
+        and c["reason"] == "unsupported-protocol-region"
+        for c in first["resolution_decision"]["write_source_coverage"]["checks"]
+    )
     expect(r, "second.work", "caller", {"R.work"}, unknown=True, complete=False)
 
 
@@ -506,7 +514,15 @@ async def caller():
         },
         closed=False,
     )
-    expect(r, "resource.work", "caller", {"R.work"})
+    s = expect(r, "resource.work", "caller", {"R.work"}, unknown=True, complete=False)
+    assert s["phase"] == "body"
+    assert any(
+        c["event_kind"] == "region"
+        and c["syntax"] == "AsyncWith"
+        and c["outcome"] == "UNKNOWN_EFFECT"
+        and c["reason"] == "unsupported-protocol-region"
+        for c in s["resolution_decision"]["write_source_coverage"]["checks"]
+    )
 
 
 def test_instance_keyword_escape_retains_field_uncertainty(tmp_path):
