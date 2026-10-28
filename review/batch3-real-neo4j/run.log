@@ -1,0 +1,29 @@
+Owned Neo4j 5.26.0 ready; running targeted command
+{"check": "sqlite_validated_and_bounds", "elapsed": 7.135}
+{"check": "scope_refusal_before_import", "elapsed": 13.973}
+Traceback (most recent call last):
+  File "/workspace/scratch/413372d9a5a5/lct-batch3-fixes-review/review/batch3-real-neo4j/accept_business_graph.py", line 231, in <module>
+    main()
+  File "/workspace/scratch/413372d9a5a5/lct-batch3-fixes-review/review/batch3-real-neo4j/accept_business_graph.py", line 94, in main
+    first = graph.import_snapshot(NAMESPACE, VERSION, snapshot)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-batch3-fixes-review/lct/neo4j_graph.py", line 207, in import_snapshot
+    tx.run(
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/work/transaction.py", line 195, in run
+    result._tx_ready_run(query, parameters)
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/work/result.py", line 175, in _tx_ready_run
+    self._run(query, parameters, None, None, None, None, None, None)
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/work/result.py", line 231, in _run
+    self._attach()
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/work/result.py", line 425, in _attach
+    self._connection.fetch_message()
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/io/_common.py", line 184, in inner
+    func(*args, **kwargs)
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/io/_bolt.py", line 994, in fetch_message
+    res = self._process_message(tag, fields)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/io/_bolt5.py", line 1204, in _process_message
+    response.on_failure(summary_metadata or {})
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/neo4j/_sync/io/_common.py", line 254, in on_failure
+    raise self._hydrate_error(metadata)
+neo4j.exceptions.TransientError: {code: Neo.TransientError.General.MemoryPoolOutOfMemoryError} {message: The allocation of an extra 2.0 MiB would use more than the limit 268.8 MiB. Currently using 268.0 MiB. dbms.memory.transaction.total.max threshold reached}

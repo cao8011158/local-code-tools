@@ -1,0 +1,257 @@
+{
+  "nodes_count": 5957,
+  "edges_count": 42459,
+  "sites_count": 22416,
+  "bytes": {
+    "nodes_canonical": 8901369,
+    "edges_canonical": 27174982,
+    "graph_canonical": 61164381,
+    "sites_canonical": 61164004,
+    "graph_without_sites": 368,
+    "source_canonical": 101913,
+    "snapshot_payload_canonical": 97342683,
+    "mean_site": 2728,
+    "mean_node": 1494,
+    "mean_edge": 640
+  },
+  "site_fields_count": {
+    "boundaries": 22416,
+    "column": 22416,
+    "complete": 22416,
+    "completeness_basis": 22416,
+    "end_column": 22416,
+    "end_line": 22416,
+    "evidence": 22416,
+    "execution_owner": 22416,
+    "expression": 22416,
+    "kind": 22416,
+    "lexical_owner": 22416,
+    "line": 22416,
+    "phase": 22416,
+    "resolution_decision": 22416,
+    "resolution_kind": 22416,
+    "site_id": 22416,
+    "targets": 22416,
+    "unknown_origin": 22416,
+    "unresolved_reasons": 22416
+  },
+  "site_fields_value_bytes": {
+    "boundaries": 622901,
+    "column": 41131,
+    "complete": 100005,
+    "completeness_basis": 535292,
+    "end_column": 44769,
+    "end_line": 66251,
+    "evidence": 35288890,
+    "execution_owner": 2351660,
+    "expression": 394075,
+    "kind": 143820,
+    "lexical_owner": 2350386,
+    "line": 66248,
+    "phase": 146286,
+    "resolution_decision": 9493008,
+    "resolution_kind": 402741,
+    "site_id": 1479456,
+    "targets": 908346,
+    "unknown_origin": 101739,
+    "unresolved_reasons": 417767
+  },
+  "top_values": [
+    [
+      [
+        "kind",
+        "call"
+      ],
+      21750
+    ],
+    [
+      [
+        "complete",
+        "True"
+      ],
+      12075
+    ],
+    [
+      [
+        "unknown_origin",
+        "False"
+      ],
+      12075
+    ],
+    [
+      [
+        "complete",
+        "False"
+      ],
+      10341
+    ],
+    [
+      [
+        "unknown_origin",
+        "True"
+      ],
+      10341
+    ],
+    [
+      [
+        "kind",
+        "implicit_decorator"
+      ],
+      666
+    ]
+  ],
+  "sample_site": {
+    "boundaries": [
+      {
+        "full_name": "pathlib.Path.resolve",
+        "reason": "external-or-excluded"
+      }
+    ],
+    "column": 7,
+    "complete": false,
+    "completeness_basis": null,
+    "end_column": 29,
+    "end_line": 20,
+    "evidence": [
+      {
+        "role": "site and execution phase",
+        "tool": "ast"
+      },
+      {
+        "raw": [
+          {
+            "column": 8,
+            "full_name": "pathlib.Path.resolve",
+            "line": 1228,
+            "mapping": "external-or-excluded",
+            "module_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py",
+            "name": "resolve",
+            "type": "function"
+          }
+        ],
+        "role": "definition signal",
+        "tool": "jedi",
+        "version": "0.20.1"
+      },
+      {
+        "association_trace": {
+          "steps": [
+            {
+              "alternatives": [
+                {
+                  "allocation": "",
+                  "bound": false,
+                  "kind": "boundary",
+                  "receiver": "",
+                  "target": "pathlib.Path.resolve"
+                }
+              ],
+              "column": 7,
+              "expression": "Path(__file__).resolve",
+              "line": 20,
+              "path": "examples/benchmark_perception_efficiency.py",
+              "proofs": [
+                "source-value:boundary"
+              ],
+              "rule": "Attribute",
+              "scope": "trpg-state-machine:examples/benchmark_perception_efficiency.py:module:examples.benchmark_perception_efficiency#1",
+              "unknown_reasons": [
+                "external-value-callability-unknown"
+              ]
+            },
+            {
+              "alternatives": [
+                {
+                  "allocation": "",
+                  "bound": false,
+                  "kind": "external-value",
+                  "receiver": "",
+                  "target": "pathlib.Path"
+                }
+              ],
+              "column": 7,
+              "expression": "Path(__file__)",
+              "line": 20,
+              "path": "examples/benchmark_perception_efficiency.py",
+              "proofs": [
+                "source-value:external-value"
+              ],
+              "rule": "Call",
+              "scope": "trpg-state-machine:examples/benchmark_perception_efficiency.py:module:examples.benchmark_perception_efficiency#1",
+              "unknown_reasons": [
+                "external-value-callability-unknown"
+              ]
+            },
+            {
+              "alternatives": [
+                {
+                  "allocation": "",
+                  "bound": false,
+                  "kind": "boundary",
+                  "receiver": "",
+                  "target": "pathlib.Path"
+                }
+              ],
+              "column": 7,
+              "expression": "Path",
+              "line": 20,
+              "path": "examples/benchmark_perception_efficiency.py",
+              "proofs": [
+                "reaching-lexical-binding",
+                "source-value:boundary"
+              ],
+              "rule": "Name",
+              "scope": "trpg-state-machine:examples/benchmark_perception_efficiency.py:module:examples.benchmark_perception_efficiency#1",
+              "unknown_reasons": []
+            }
+          ],
+          "truncated": false
+        },
+        "decision": {
+          "conflict": false,
+          "excluded_jedi_targets": [],
+          "excluded_lct_targets": [],
+          "jedi_targets": [],
+          "lct_targets": [],
+          "reason": "matching-signals",
+          "selected_targets": [],
+          "semantic_rules": [
+            "source-value:boundary"
+          ],
+          "unresolved_jedi_targets": [],
+          "write_source_coverage": null
+        },
+        "role": "validated binding/argument/container association",
+        "signal_agrees": true,
+        "tool": "lct"
+      }
+    ],
+    "execution_owner": "trpg-state-machine:examples/benchmark_perception_efficiency.py:module:examples.benchmark_perception_efficiency#1",
+    "expression": "Path(__file__).resolve",
+    "kind": "call",
+    "lexical_owner": "trpg-state-machine:examples/benchmark_perception_efficiency.py:module:examples.benchmark_perception_efficiency#1",
+    "line": 20,
+    "phase": "module",
+    "resolution_decision": {
+      "conflict": false,
+      "excluded_jedi_targets": [],
+      "excluded_lct_targets": [],
+      "jedi_targets": [],
+      "lct_targets": [],
+      "reason": "matching-signals",
+      "selected_targets": [],
+      "semantic_rules": [
+        "source-value:boundary"
+      ],
+      "unresolved_jedi_targets": [],
+      "write_source_coverage": null
+    },
+    "resolution_kind": "partial-targets",
+    "site_id": "16b9fb5efba5463aa19d5bb77be09025b152f64e449d50bd2fcc5e1ca2267766",
+    "targets": [],
+    "unknown_origin": true,
+    "unresolved_reasons": [
+      "external-value-callability-unknown"
+    ]
+  }
+}
