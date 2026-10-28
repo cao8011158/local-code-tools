@@ -1,0 +1,551 @@
+{
+  "reviewed_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+  "baseline_sha": "7c50563cd695aed018bd451dec9d05a631792525",
+  "baseline": {
+    "label": "graph-complete",
+    "seconds": 245.487,
+    "counts": {
+      "query_calls": 2226366,
+      "misses": 28010,
+      "hits": 2198356,
+      "adjudicated_sites": 22416,
+      "may_call_checks": 1674750
+    },
+    "peak_rss_kib": 1901660,
+    "semantic_sha256": "7e55ced697235f76b846655c7d6e059d38a0ec94fb9ca3d00a446808e9b34b64",
+    "edge_count": 42459,
+    "site_count": 22416,
+    "analysis_limited": true
+  },
+  "candidate": {
+    "label": "graph-complete",
+    "seconds": 212.531,
+    "counts": {
+      "query_calls": 973785,
+      "misses": 28010,
+      "hits": 945775,
+      "adjudicated_sites": 22416,
+      "may_call_checks": 422169
+    },
+    "peak_rss_kib": 1951904,
+    "semantic_sha256": "6c6d0d95aa20ecc67de1e22658d0e8a3613fc0604e52957782fb310058725e6f",
+    "edge_count": 42459,
+    "site_count": 22416,
+    "analysis_limited": true
+  },
+  "build": {
+    "label": "published",
+    "seconds": 230.903,
+    "counts": {
+      "query_calls": 973785,
+      "misses": 28010,
+      "hits": 945775,
+      "adjudicated_sites": 22416,
+      "may_call_checks": 422169
+    },
+    "peak_rss_kib": 2374496,
+    "version": "20261028T122745-62019ae507",
+    "node_count": 5957,
+    "edges": {
+      "CONTAINS": 5954,
+      "CALLS": 22451,
+      "WRAPS": 8,
+      "REFERENCES": 8760,
+      "IMPORTS": 5286
+    },
+    "call_resolution": {
+      "boundary": 8783,
+      "unresolved": 4907,
+      "resolved": 6104,
+      "possible": 2657
+    },
+    "artifacts": {
+      "catalog.sqlite": "dc98ef37cd3732e54186f675510e97342ceb2922f36df6e0d9b0c4bad506c176"
+    },
+    "dense_ready": false,
+    "embedding_run": {
+      "cache_hits": 0,
+      "historical_hits": 0,
+      "new_vectors": 0,
+      "requests": 0
+    },
+    "source_fingerprint": "12fe107f9c97d29261ea06cfd60c5c0e72e0a6a93aac9abb3af63c156de052fd",
+    "program_hash": "612d4e0336389487f18dd364024b3be7d56f2e6335fb7f8f1e18f6fd6697f858"
+  },
+  "comparison": {
+    "sites_total": 22416,
+    "sites_equal": 22411,
+    "same_internal_target_sets": true,
+    "same_completeness": true,
+    "same_unknown_origin": true,
+    "edges_common": 42454,
+    "edges_old_only": 5,
+    "edges_new_only": 5,
+    "differences": [
+      {
+        "site_id": "0f8d2286ef6318b1c3fa6cf4e491599f491fe558dd09157cc233f64a532daead",
+        "owner": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/activities/scale.py:function:_scale_config#1.1",
+        "expr": "config.get",
+        "line": 80,
+        "old_complete": false,
+        "new_complete": false,
+        "old_targets": [],
+        "new_targets": [],
+        "old_reasons": [
+          "association-budget",
+          "jedi-no-result"
+        ],
+        "new_reasons": [
+          "association-budget"
+        ],
+        "old_boundaries": [],
+        "new_boundaries": [
+          {
+            "full_name": "builtins.dict.get",
+            "reason": "external-or-excluded"
+          }
+        ]
+      },
+      {
+        "site_id": "d895a4d7cf3a90e4c2ff5fc25ee4a87c3ece825710aeabee708bf6b45b7d98a9",
+        "owner": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/activities/scale.py:function:_scale_config#1.1",
+        "expr": "config.get",
+        "line": 82,
+        "old_complete": false,
+        "new_complete": false,
+        "old_targets": [],
+        "new_targets": [],
+        "old_reasons": [
+          "association-budget",
+          "jedi-no-result"
+        ],
+        "new_reasons": [
+          "association-budget"
+        ],
+        "old_boundaries": [],
+        "new_boundaries": [
+          {
+            "full_name": "builtins.dict.get",
+            "reason": "external-or-excluded"
+          }
+        ]
+      },
+      {
+        "site_id": "67f3f6e80937771950214de54f7642546ded0588727e865efe3215cf821a5c9e",
+        "owner": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/activities/scale.py:function:_walk_owner_scales#1.1",
+        "expr": "config.get",
+        "line": 146,
+        "old_complete": false,
+        "new_complete": false,
+        "old_targets": [],
+        "new_targets": [],
+        "old_reasons": [
+          "association-budget",
+          "jedi-no-result"
+        ],
+        "new_reasons": [
+          "association-budget"
+        ],
+        "old_boundaries": [],
+        "new_boundaries": [
+          {
+            "full_name": "builtins.dict.get",
+            "reason": "external-or-excluded"
+          }
+        ]
+      },
+      {
+        "site_id": "a45ddb184179dc423b3127db2e714a7984449f241d2137966d37061b67641dde",
+        "owner": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/activities/scale.py:function:_walk_owner_scales#1.1",
+        "expr": "config.get",
+        "line": 152,
+        "old_complete": false,
+        "new_complete": false,
+        "old_targets": [],
+        "new_targets": [],
+        "old_reasons": [
+          "association-budget",
+          "jedi-no-result"
+        ],
+        "new_reasons": [
+          "association-budget"
+        ],
+        "old_boundaries": [],
+        "new_boundaries": [
+          {
+            "full_name": "builtins.dict.get",
+            "reason": "external-or-excluded"
+          }
+        ]
+      },
+      {
+        "site_id": "df7e5d4f0310de21eb00dfc8de413a8d6ca99dc73568f9123b0608381373e309",
+        "owner": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/activities/scale.py:function:_walk_owner_scales#1.1",
+        "expr": "config.get",
+        "line": 155,
+        "old_complete": false,
+        "new_complete": false,
+        "old_targets": [],
+        "new_targets": [],
+        "old_reasons": [
+          "association-budget",
+          "jedi-no-result"
+        ],
+        "new_reasons": [
+          "association-budget"
+        ],
+        "old_boundaries": [],
+        "new_boundaries": [
+          {
+            "full_name": "builtins.dict.get",
+            "reason": "external-or-excluded"
+          }
+        ]
+      }
+    ]
+  },
+  "targeted_repeated_observations": {
+    "full-query-parser-work.json": {
+      "records": [
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 80,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 82,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 146,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 152,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 155,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        }
+      ],
+      "seconds": 15.38,
+      "sites": 22416
+    },
+    "full-query2-parser-work.json": {
+      "records": [
+        {
+          "atoms": [],
+          "line": 80,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 82,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 146,
+          "pre_cached": false,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 152,
+          "pre_cached": false,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 155,
+          "pre_cached": false,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        }
+      ],
+      "seconds": 15.66,
+      "sites": 22416
+    },
+    "full-query-review.json": {
+      "records": [
+        {
+          "atoms": [],
+          "line": 80,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 82,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 146,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 152,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        },
+        {
+          "atoms": [
+            [
+              "boundary",
+              "builtins.dict.get"
+            ]
+          ],
+          "line": 155,
+          "raw": [
+            {
+              "column": 8,
+              "full_name": "builtins.dict.get",
+              "line": 1176,
+              "mapping": "external-or-excluded",
+              "module_path": "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+              "name": "get",
+              "type": "function"
+            }
+          ],
+          "reasons": []
+        }
+      ],
+      "seconds": 15.91,
+      "sites": 22416
+    },
+    "full-query2-review.json": {
+      "records": [
+        {
+          "atoms": [],
+          "line": 80,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 82,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 146,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 152,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        },
+        {
+          "atoms": [],
+          "line": 155,
+          "pre_cached": false,
+          "raw": [],
+          "reasons": [
+            "jedi-no-result"
+          ]
+        }
+      ],
+      "seconds": 13.88,
+      "sites": 22416
+    }
+  },
+  "all_recorded_commands_exit_zero": true,
+  "paid_requests": 0,
+  "real_dense_ready": false,
+  "formal_review_round": 1,
+  "scope": "Authorized prerequisite repair; full Batch 3 not accepted"
+}

@@ -1,37 +1,28 @@
-# Batch 3 checkpoint — authorized prerequisite repairs resumed
+# Batch 3 checkpoint — round 1 completed, human disposition pending
 
 Working branch: `feat/full-business-graph-indexes`.
-Published implementation candidate: `7c50563cd695aed018bd451dec9d05a631792525`.
-Base / current merge target previously verified: `655b78a834c40542bf62c09bdd508c17d7f46450` on `feat/local-code-tools-import`.
-No merge. Formal Batch 3 reviews completed: 0; independent source inspection and fast regression were underway, and functional acceptance has NOT passed. User prioritized workflow Skill revision before further production work.
+Reviewed implementation: `42b0acd95fd503551c22447613738c8d9e62bfe9`.
+Merge target: `feat/local-code-tools-import` at `655b78a834c40542bf62c09bdd508c17d7f46450`.
+Formal reviews completed: **1 of 3**. No merge. Latest report-only commit does not imply a new review or reset the count.
 
-## Completed implementation and verification
+User approved both narrow prerequisite repairs and requested resumption after locality-review installation. Production changes are in python_analysis.py, storage.py and management.py; three business repositories remain unchanged.
 
-The nine changed files add verified captured-source inventory and bounded atomic Neo4j bulk writes. Developer graph tests: 8 focused passed; 418 full passed, 1 skipped. Snapshot developer: 16 focused passed; 419 offline passed, 3 skipped, with service exclusions separately documented.
-Combined development fast regression with owned Neo4j: 427 passed, 1 skipped, 41.34 seconds.
-Independent copy fetched from the exact published candidate: all nine changed Git blobs verified. Independent real-Neo4j fast regression: 427 passed, 1 skipped, 45.85 seconds (SDK deprecation warning). Shared Python environment; not a clean-machine dependency installation.
+B3-001 repeated candidate scans: repaired with conservative observed-query and exact definition-line indexes. Actual query calls 2,226,366 -> 973,785; admission checks 1,674,750 -> 422,169; same 28,010 misses. Graph analysis 245.487 -> 212.531 seconds. Cold inference and unknown fallback cost remain; no memory improvement.
+B3-002 artifact membership: repaired using explicit catalog/partition files, streamed hash/size, sidecar rejection and backup exclusions. Actual offline build published 5,957 nodes / 42,459 edges / 22,416 sites in 230.903 seconds. No embedding requests, dense_ready=false.
 
-Source captures: 445 selected files / 7,295,748 bytes, verified Git blob SHA-1 and SHA-256. Offline extraction: 5,957 nodes, 4,070 vector chunks / 4,068 distinct inputs. No authenticated Voyage request, no paid requests, no dense index, no real-data acceptance or complete graph publication.
+Fixed-remote independent regression with real Neo4j: **441 passed, 1 skipped, 44.55 seconds**. Twelve synthetic differential pairs agree. Five independent dense/backup/WAL boundary cases passed and are in the remote test suite. See BATCH3_REVIEW_ROUND1.md and batch3-round1/ for complete evidence.
 
-## Scale findings (not introduced by the nine-file candidate)
+## B3-003: existing core inference variability; human decision required
 
-B3-001: existing `Analyzer.parameter` and `registry_arguments` repeatedly inspect global call-site lists through `may_call` / `query`. Initial 240-second probe timed out. A subsequent progress-instrumented run completed all 22,416 top-level call-site adjudications by the 240-second sample, so this was NOT proof of an infinite hang. At that sample: 2,226,366 query calls, 28,010 cache misses and 2,198,356 hits; process peak RSS 1,814,164 KiB. Both expensive cold Jedi work and repeated warm global scans must be distinguished. No evidence that Jedi itself is defective.
+All actual internal target sets, completeness and UNKNOWN flags match. Five external-boundary site records differ at scale.py config.get lines 80,82,146,152,155. Same baseline code/source/fixed hash seed/query order also varies between no-result and builtins.dict.get across bounded fresh processes. Precise cause remains unverified; do not claim a proven optimization regression or upstream defect. All five remain incomplete UNKNOWN.
 
-B3-002: that run failed after 283.17 seconds before publication in `storage.build` while stat-ing a disappearing incidental `.catalog.sqlite.*` file previously admitted by directory-wide artifact enumeration. Workspace synchronization is a likely source of transient copies, not conclusively identified. The failed catalog also has a journal: immutable quick-check alone does NOT prove safe publication. Candidate remains failed; no current pointer. Preserve this evidence; do not repair the failed real database in place.
+Recommend accepting this narrowly documented external-candidate variability and continuing Batch 3 with explicit UNKNOWN/coverage limitations. Alternative: authorize a separate bounded core stability investigation before continuing. Existing scope authorization covered locality and artifact membership, not replacement or broad rewriting of the core analyzer. The root has stopped affected automatic progression under batch-dev-review; await actual user choice.
 
-## Candidate work retained but not published
+Both full runs hit the original 20,000 association limit and report analysis_limited=true. This is a final coverage limitation, not authority to raise budgets or certify complete calls.
 
-A four-file parser locality candidate exists locally: cached-observation candidate index, exact definition-line index, tests and developer report. No eager inference prepass or name-only exclusion; class-construction fallback retained. Developer reports 148 targeted passed, 1 skipped; 417 offline full passed, 1 skipped, 12 service cases deselected. This candidate has NOT received independent review or real-scale equivalence/performance acceptance, and is NOT in the published SHA above.
-Artifact-membership diagnosis completed; further storage changes/testing paused at the user's request. No artifact fix accepted or published.
+## Preserved artifacts and remaining gates
 
-## User's revised workflow boundary
+New validated lexical graph runtime: /tmp/lct-b3-locality-fixed-20261028, version 20261028T122745-62019ae507.
+Original failed synchronized-workspace candidate preserved unchanged. Runtime data is transient and is not uploaded as a final accepted package. Reproduction scripts and statistical evidence are in the repository; no real database/index/key uploaded.
 
-Each developer/refactor/fix completion and each completed formal review must have a substantial user-visible report plus persisted evidence. Findings in earlier batches of the SAME authorized step return to their owning batch without rewriting Git history or resetting the review limit. Confirmed P0/P1, system-code issues OUTSIDE the current step, and defects/critical limitations in CORE external dependencies require human decision. Noncore alternatives remain bounded by existing authorization and contract. Max three formal review rounds remains.
-
-The parser and artifact paths predate this Batch 1–3 feature sequence. Do not silently classify them as Batch 1 Neo4j regressions. User explicitly approved including both narrow existing-code repairs: “这是可以的” in response to the parser-locality and incidental-artifact scope request. On 2026-10-28 the user requested continuation after installation of locality-review. These two repairs are now in scope; this does not authorize replacing Jedi or expanding to unrelated parser behavior. Existing candidates and original failed database remain preserved; merge remains gated.
-
-Paid run budget also remains pending. Configured initial vector estimate: <= USD0.6099 using conservative byte-bound inputs at USD0.12/million; actual provider tokens/free allowance unknown. No credential is stored in this repository or any evidence artifact.
-
-## Resumption record (2026-10-28)
-
-Apply installed batch-dev-review and locality-review. Preserve formal review count 0 until a fixed-remote-SHA review is completed. Root independently inspects parser candidate; GPT-6 SOL / medium subagent completes artifact-membership fix; separate independent synthetic differential probes compare old/new public Graph.build behavior. A single bounded baseline graph analysis and corrected offline build compare actual captured-source scope, semantics and work counters. No authenticated API requests or paid-run budget granted. Live SQLite construction will use a private /tmp directory rather than a synchronized working directory; this is environment placement, not removal of integrity checks.
+Remaining: full feature/real data acceptance, actual vectors/HNSW, real business Neo4j projection, Drive restore. Paid Voyage budget still pending; zero authenticated API requests. Existing conservative initial embedding estimate remains <= USD0.6099, account/free quota unknown. No auto-merge until human disposition and all gates pass.
