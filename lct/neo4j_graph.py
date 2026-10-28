@@ -13,8 +13,13 @@ from contextlib import closing
 from .common import ToolError, canonical, config, digest
 from .storage import manifest, validate_folder
 
-MAX_NODES = 500
-MAX_EDGES = 5000
+MAX_QUERY_IDS = 500
+MAX_IMPORT_NODES = 50_000
+MAX_IMPORT_EDGES = 500_000
+MAX_SNAPSHOT_BYTES = 128 * 1024 * 1024
+MAX_BATCH_RECORDS = 500
+MAX_BATCH_BYTES = 1024 * 1024
+IMPORT_TIMEOUT_SECONDS = 300
 MAX_RESULTS = 5000
 NODE_LABELS = {
     "repository": "Repository", "module": "Module", "class": "Class",
@@ -34,8 +39,7 @@ def load_snapshot(c, version):
     with closing(sqlite3.connect(uri, uri=True)) as db:
         nodes = [json.loads(row[0]) for row in db.execute("select data from nodes order by node_id")]
         edges = [json.loads(row[0]) for row in db.execute("select data from edges order by edge_id")]
-    if len(nodes) > MAX_NODES or len(edges) > MAX_EDGES:
-        raise ToolError("Small graph limit exceeded (500 nodes, 5000 edges)")
+    _import_counts(nodes, edges)
     if len(nodes) != m["node_count"] or len(edges) != sum(m["edges"].values()):
         raise ToolError("Catalog graph counts mismatch")
     if any(n.get("kind") not in NODE_LABELS for n in nodes):
@@ -44,9 +48,38 @@ def load_snapshot(c, version):
         raise ToolError("Unsupported relationship kind")
     graph = m["graph"]  # Includes the complete site inventory and unresolved reasons.
     source = {k: m[k] for k in ("repositories", "source_fingerprint", "files")}
-    fingerprint = digest(canonical(dict(nodes=nodes, edges=edges, graph=graph, source=source)))
+    payload = _snapshot_payload(nodes, edges, graph, source)
+    fingerprint = digest(payload)
     return dict(version=version, nodes=nodes, edges=edges, graph=graph, source=source,
                 fingerprint=fingerprint)
+
+
+def _import_counts(nodes, edges):
+    if len(nodes) > MAX_IMPORT_NODES or len(edges) > MAX_IMPORT_EDGES:
+        raise ToolError("Graph import limit exceeded (50000 nodes, 500000 edges)")
+
+
+def _snapshot_payload(nodes, edges, graph, source):
+    payload = canonical(dict(nodes=nodes, edges=edges, graph=graph, source=source))
+    if len(payload.encode("utf-8")) > MAX_SNAPSHOT_BYTES:
+        raise ToolError("Graph import canonical snapshot exceeds 128 MiB")
+    return payload
+
+
+def _batches(rows):
+    """Bound each parameter batch by record count and UTF-8 JSON size."""
+    batch, size = [], 0
+    for row in rows:
+        row_size = len(canonical(row).encode("utf-8"))
+        if row_size > MAX_BATCH_BYTES:
+            raise ToolError("Graph import record exceeds 1 MiB batch limit")
+        if batch and (len(batch) >= MAX_BATCH_RECORDS or size + row_size > MAX_BATCH_BYTES):
+            yield batch
+            batch, size = [], 0
+        batch.append(row)
+        size += row_size
+    if batch:
+        yield batch
 
 
 def _scope(namespace, version):
@@ -64,7 +97,7 @@ def _limit(value):
 
 
 def _ids(ids):
-    if not isinstance(ids, (list, tuple)) or len(ids) > MAX_NODES or any(
+    if not isinstance(ids, (list, tuple)) or len(ids) > MAX_QUERY_IDS or any(
         not isinstance(i, str) or not i for i in ids
     ):
         raise ToolError("ids must be a list of at most 500 nonempty strings")
@@ -107,21 +140,47 @@ class Neo4jGraph:
         if not isinstance(snapshot, dict) or snapshot.get("version") != version:
             raise ToolError("Snapshot index version mismatch")
         nodes, edges, graph, source = (snapshot[k] for k in ("nodes", "edges", "graph", "source"))
-        if len(nodes) > MAX_NODES or len(edges) > MAX_EDGES:
-            raise ToolError("Small graph limit exceeded (500 nodes, 5000 edges)")
+        _import_counts(nodes, edges)
         if any(n.get("kind") not in NODE_LABELS for n in nodes) or any(
             e.get("kind") not in REL_TYPES for e in edges
         ):
             raise ToolError("Unsupported graph kind")
-        fingerprint = digest(canonical(dict(nodes=nodes, edges=edges, graph=graph, source=source)))
+        payload = _snapshot_payload(nodes, edges, graph, source)
+        fingerprint = digest(payload)
         if fingerprint != snapshot.get("fingerprint"):
             raise ToolError("Snapshot fingerprint mismatch")
         node_ids = {n["node_id"] for n in nodes}
         if len(node_ids) != len(nodes) or len({e["edge_id"] for e in edges}) != len(edges):
             raise ToolError("Duplicate graph identity")
+        # Prepare all parameter batches before the first write. A single oversized record
+        # cannot leave even an incomplete scope behind.
+        node_batches = {
+            kind: list(_batches(
+                dict(node_id=n["node_id"], kind=n["kind"],
+                     repository=n.get("repository"), path=n.get("path"),
+                     qualname=n.get("qualname"), version_id=n.get("version_id"),
+                     raw=canonical(n))
+                for n in nodes if n["kind"] == kind))
+            for kind in NODE_LABELS
+        }
+        edge_batches = list(_batches(
+            dict(edge_id=e["edge_id"], kind=e["kind"], source=e.get("source"),
+                 target=e.get("target"), status=e.get("status"), site_id=e.get("site_id"),
+                 unknown_origin=e.get("unknown_origin"), complete=e.get("complete"),
+                 source_version_id=e.get("source_version_id"),
+                 target_version_id=e.get("target_version_id"), raw=canonical(e),
+                 internal=e.get("source") in node_ids and e.get("target") in node_ids)
+            for e in edges))
+        relation_batches = {
+            kind: list(_batches(
+                dict(edge_id=e["edge_id"], source=e["source"], target=e["target"])
+                for e in edges if e["kind"] == kind and
+                e.get("source") in node_ids and e.get("target") in node_ids))
+            for kind in sorted(REL_TYPES)
+        }
         with self.driver.session(database=self.database) as session:
             self._schema(session)
-            with session.begin_transaction(timeout=30) as tx:
+            with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
                 row = tx.run(
                     "MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) "
                     "ON CREATE SET s.fingerprint=$fingerprint, s.complete=false "
@@ -133,39 +192,40 @@ class Neo4jGraph:
                 if row["complete"]:
                     return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
                                 edges=len(edges), already_present=True)
-                for n in nodes:
-                    label = NODE_LABELS[n["kind"]]
-                    tx.run(
-                        f"CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, "
-                        "node_id:$node_id, kind:$kind, repository:$repository, "
-                        "path:$path, qualname:$qualname, version_id:$version_id, raw_json:$raw})",
-                        **scope, node_id=n["node_id"], kind=n["kind"],
-                        repository=n.get("repository"), path=n.get("path"),
-                        qualname=n.get("qualname"), version_id=n.get("version_id"),
-                        raw=canonical(n),
-                    ).consume()
-                for e in edges:
-                    tx.run(
-                        "CREATE (e:LCTEdge {namespace:$namespace, version:$version, "
-                        "edge_id:$edge_id, kind:$kind, source:$source, target:$target, "
-                        "status:$status, site_id:$site_id, unknown_origin:$unknown_origin, "
-                        "complete:$complete, source_version_id:$source_version_id, "
-                        "target_version_id:$target_version_id, internal:$internal, raw_json:$raw})",
-                        **scope, edge_id=e["edge_id"], kind=e["kind"],
-                        source=e.get("source"), target=e.get("target"), status=e.get("status"),
-                        site_id=e.get("site_id"), unknown_origin=e.get("unknown_origin"),
-                        complete=e.get("complete"), source_version_id=e.get("source_version_id"),
-                        target_version_id=e.get("target_version_id"), raw=canonical(e),
-                        internal=e.get("source") in node_ids and e.get("target") in node_ids,
-                    ).consume()
-                    if e.get("source") in node_ids and e.get("target") in node_ids:
-                        kind = e["kind"]  # validated above; never interpolate untrusted identifiers
+                for kind, batches in node_batches.items():
+                    label = NODE_LABELS[kind]  # fixed whitelist, never input text in Cypher
+                    for batch in batches:
                         tx.run(
-                            "MATCH (a:LCTNode {namespace:$namespace, version:$version, node_id:$source}) "
-                            "MATCH (b:LCTNode {namespace:$namespace, version:$version, node_id:$target}) "
-                            f"CREATE (a)-[:{kind} {{edge_id:$edge_id, namespace:$namespace, "
+                            "UNWIND $rows AS row "
+                            f"CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, "
+                            "node_id:row.node_id, kind:row.kind, repository:row.repository, "
+                            "path:row.path, qualname:row.qualname, version_id:row.version_id, "
+                            "raw_json:row.raw})",
+                            **scope, rows=batch,
+                        ).consume()
+                for batch in edge_batches:
+                    tx.run(
+                        "UNWIND $rows AS row "
+                        "CREATE (e:LCTEdge {namespace:$namespace, version:$version, "
+                        "edge_id:row.edge_id, kind:row.kind, source:row.source, "
+                        "target:row.target, status:row.status, site_id:row.site_id, "
+                        "unknown_origin:row.unknown_origin, complete:row.complete, "
+                        "source_version_id:row.source_version_id, "
+                        "target_version_id:row.target_version_id, internal:row.internal, "
+                        "raw_json:row.raw})",
+                        **scope, rows=batch,
+                    ).consume()
+                for kind, batches in relation_batches.items():
+                    for batch in batches:
+                        tx.run(
+                            "UNWIND $rows AS row "
+                            "MATCH (a:LCTNode {namespace:$namespace, version:$version, "
+                            "node_id:row.source}) "
+                            "MATCH (b:LCTNode {namespace:$namespace, version:$version, "
+                            "node_id:row.target}) "
+                            f"CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, "
                             "version:$version}]->(b)",
-                            **scope, source=e["source"], target=e["target"], edge_id=e["edge_id"],
+                            **scope, rows=batch,
                         ).consume()
                 tx.run(
                     "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) "
