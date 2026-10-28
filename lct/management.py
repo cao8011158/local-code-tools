@@ -1,14 +1,19 @@
 """Portable backups, checksum-verified restore and bounded cache retention."""
 
 import json
+import hashlib
+import os
+import shutil
 import sqlite3
+import stat
 import tempfile
 import time
 import zipfile
 from contextlib import closing
 from pathlib import Path
 
-from .common import ROOT, ToolError, canonical, digest, load, lock
+from .common import (FORMAT, ROOT, SCHEMA, TEMPLATE, TOKENIZER, ToolError, atomic,
+                     canonical, digest, identity, load, lock, program_hash)
 from .embedding import vector_key
 from .storage import manifest, prune, validate_folder
 
@@ -44,7 +49,9 @@ def backup(c):
             p = ROOT / name
             if p.is_file():
                 entries[name] = p
-        entries["config.json"] = Path(c["_path"])
+        # The input file may contain a relative data path. Archive its resolved
+        # identity so relocation never has to guess the source working directory.
+        normalized = {k: v for k, v in c.items() if not k.startswith("_")}
         for p in (data / "versions").iterdir():
             if (p / "manifest.json").is_file() and load(p / "manifest.json").get(
                 "state"
@@ -64,17 +71,24 @@ def backup(c):
             ):
                 source.backup(out)
             entries["data/vectors.sqlite"] = target
+            config_bytes = canonical(normalized).encode("utf-8")
             checks = {name: digest(path.read_bytes()) for name, path in entries.items()}
+            checks["config.json"] = digest(config_bytes)
             temp = archive.with_suffix(".zip.tmp")
             with zipfile.ZipFile(temp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=2) as z:
                 for name, path in entries.items():
                     z.write(path, name)
+                z.writestr("config.json", config_bytes)
                 z.writestr(
                     "backup-manifest.json",
                     canonical(
                         {
-                            "schema": 1,
+                            "schema": 2,
                             "version": m["version"],
+                            "config_hash": identity(c),
+                            "program_hash": program_hash(),
+                            "index_schema": SCHEMA,
+                            "index_format": FORMAT,
                             "files": checks,
                             "excluded": [
                                 ".venv",
@@ -93,34 +107,116 @@ def backup(c):
         return {
             "archive": str(archive),
             "sha256": digest(archive.read_bytes()),
-            "files": len(entries),
+            "files": len(checks),
             "bytes": archive.stat().st_size,
         }
 
 
 def restore(c, archive, destination):
-    """Verify before writing into a new directory, never overwrite an existing toolkit."""
+    """Verify and rebind a complete snapshot before publishing a new toolkit."""
     target = Path(destination).resolve()
     if target.exists():
         raise ToolError("Restore destination must not exist")
+    archive = Path(archive)
     with zipfile.ZipFile(archive) as z:
         names = z.namelist()
-        m = json.loads(z.read("backup-manifest.json"))
-        if set(names) != set(m["files"]) | {"backup-manifest.json"} or len(names) != len(
-            set(names)
-        ):
+        if names.count("backup-manifest.json") != 1:
             raise ToolError("Backup manifest membership mismatch")
-        for name, expected in m["files"].items():
-            if not (target / name).resolve().is_relative_to(target) or ":" in name or "\\" in name:
+        meta = json.loads(z.read("backup-manifest.json"))
+        if meta.get("schema") != 2:
+            raise ToolError("Portable relocation requires a schema-2 backup; recreate the archive with the current toolkit")
+        checks = meta.get("files")
+        if not isinstance(checks, dict) or set(names) != set(checks) | {"backup-manifest.json"} or len(names) != len(set(names)):
+            raise ToolError("Backup manifest membership mismatch")
+        for info in z.infolist():
+            name = info.filename
+            parts = Path(name).parts
+            mode = info.external_attr >> 16
+            if (not name or name.startswith("/") or name.endswith("/") or
+                ":" in name or "\\" in name or ".." in parts or "." in parts or
+                (mode and stat.S_IFMT(mode) not in (0, stat.S_IFREG)) or
+                not (target / name).resolve().is_relative_to(target)):
                 raise ToolError("Unsafe backup member path")
-            if digest(z.read(name)) != expected:
+        for name, expected in checks.items():
+            if not isinstance(expected, str) or len(expected) != 64:
+                raise ToolError("Invalid backup checksum metadata")
+            h = hashlib.sha256()
+            with z.open(name) as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    h.update(chunk)
+            if h.hexdigest() != expected:
                 raise ToolError("Backup checksum mismatch")
-        target.mkdir(parents=True)
-        z.extractall(target)
+        archived = json.loads(z.read("config.json"))
+        current = json.loads(z.read("data/current.json"))["version"]
+    if not isinstance(archived, dict) or not Path(archived.get("data", "")).is_absolute():
+        raise ToolError("Backup configuration has no resolved data location")
+    original_hash = digest(canonical(archived))
+    if original_hash != meta.get("config_hash") or identity(c) != original_hash:
+        raise ToolError("Restore configuration differs from archived configuration")
+    program_names = sorted(name for name in checks if name.startswith("lct/") and
+                           name.count("/") == 1 and name.endswith(".py"))
+    program_names += [name for name in ("uv.lock", "pyproject.toml", "local_code_tools.py", "register_mcp.py") if name in checks]
+    captured_program = digest(canonical([(Path(name).name, checks[name]) for name in program_names]))
+    if captured_program != meta.get("program_hash") or meta.get("index_schema") != SCHEMA or meta.get("index_format") != FORMAT:
+        raise ToolError("Backup program or index format incompatible with this toolkit")
+    rebound = dict(archived, data=str(target / "data"))
+    rebound_hash = digest(canonical(rebound))
+    versions = []
+    manifests = {}
+    prefix = "data/versions/"
+    for name in checks:
+        if name.startswith(prefix) and name.endswith("/manifest.json"):
+            version = name[len(prefix):-len("/manifest.json")]
+            if not version or "/" in version or version in manifests:
+                raise ToolError("Invalid backed-up version")
+            with zipfile.ZipFile(archive) as snapshot:
+                raw = snapshot.read(name)
+            vm = json.loads(raw)
+            compatible = (vm.get("state") == "complete" and vm.get("version") == version and
+                          vm.get("config_hash") == original_hash and
+                          vm.get("program_hash") == captured_program and
+                          vm.get("schema") == SCHEMA and vm.get("format") == FORMAT and
+                          vm.get("template") == TEMPLATE and vm.get("tokenizer") == TOKENIZER and
+                          vm.get("embedding") == {k: archived["embedding"][k] for k in ("model", "dimension", "dtype")} and
+                          vm.get("hnsw") == archived["hnsw"])
+            manifests[version] = (vm, compatible, digest(raw))
+            if compatible:
+                versions.append(version)
+    if current != meta.get("version") or current not in versions:
+        raise ToolError("Current backup version is incompatible with archived configuration/program")
+    # Stage beside the target, so a failed validation cannot publish a partial restore.
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=target.parent, prefix=".restore-stage-") as tmp:
+        stage = Path(tmp) / "toolkit"
+        stage.mkdir()
+        with zipfile.ZipFile(archive) as snapshot:
+            for name in checks:
+                p = stage / name
+                p.parent.mkdir(parents=True, exist_ok=True)
+                with snapshot.open(name) as source, p.open("wb") as output:
+                    shutil.copyfileobj(source, output)
+        for version, (vm, compatible, _) in manifests.items():
+            validate_folder(stage / prefix / version, vm)
+            if compatible:
+                vm["config_hash"] = rebound_hash
+                atomic(stage / prefix / version / "manifest.json", vm)
+        atomic(stage / "config.json", rebound)
+        atomic(stage / "restore-receipt.json", dict(
+            archive_sha256=digest(archive.read_bytes()),
+            original_config_hash=original_hash, restored_config_hash=rebound_hash,
+            original_data=archived["data"], restored_data=rebound["data"],
+            rebound_versions=sorted(versions),
+            original_manifest_sha256={v: manifests[v][2] for v in sorted(versions)},
+        ))
+        if target.exists():
+            raise ToolError("Restore destination must not exist")
+        os.rename(stage, target)
     return {
         "restored_to": str(target),
-        "version": m["version"],
-        "next": "uv sync --locked; configure paths; update; register_mcp.py",
+        "version": current,
+        "rebound_versions": sorted(versions),
+        "receipt": str(target / "restore-receipt.json"),
+        "next": "Install locked dependencies and query or register the restored toolkit",
     }
 
 
