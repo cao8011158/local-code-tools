@@ -7,6 +7,7 @@ engine: unsupported mutation and control flow contribute explicit unknown origin
 import ast
 import sys
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -98,6 +99,7 @@ class Analyzer:
             i: t.body if not isinstance(t, ast.Lambda) else [] for i, t in trees.items()
         }
         self.queries, self.memo, self.container_exprs = {}, {}, {}
+        self._query_inflight = 0
         self.active = set()
         self.stack, self.traces, self.dependencies = [], {}, {}
         self.sites, self.references, self.import_sites, self.inheritance = [], [], [], []
@@ -150,6 +152,14 @@ class Analyzer:
             while nodes[mod]["kind"] != "module":
                 mod = nodes[mod]["parent"]
             self.module_for[ident] = mod
+        self._source_lines = {
+            ident: tree._lct_source.splitlines() for ident, tree in self.modules.items()
+        }
+        self._definitions_by_line = defaultdict(list)
+        for ident, node in self.nodes.items():
+            if ident in self.module_for:
+                self._definitions_by_line[self.module_for[ident], node["definition_line"]].append(ident)
+        self._definition_index_sizes = (len(self.nodes), len(self.module_for))
         for ident, tree in self.modules.items():
             deferred = any(
                 isinstance(s, ast.ImportFrom)
@@ -159,8 +169,47 @@ class Analyzer:
             )
             self.inventory(tree, ident, ident, "module", deferred)
 
+        self._site_index_size = len(self.sites)
+        self._site_keys = defaultdict(set)
+        self._site_spellings = defaultdict(set)
+        self._site_unqueried = set()
+        self._site_no_atoms = set()
+        self._site_targets = defaultdict(set)
+        for pos, site in enumerate(self.sites):
+            if site["_call"] is None:
+                continue
+            self._site_unqueried.add(pos)
+            expr = site["_expr"]
+            key = (self.module_for[site["execution_owner"]], expr.end_lineno,
+                   expr.end_col_offset, False)
+            self._site_keys[key].add(pos)
+            spelling = (expr.id if isinstance(expr, ast.Name) else
+                        expr.attr if isinstance(expr, ast.Attribute) else None)
+            if spelling is not None:
+                self._site_spellings[spelling].add(pos)
+            if key in self.queries:
+                self._observe_query(key, self.queries[key][0])
         self.effects = EffectCatalog(trees, self.execution_nodes)
         self.access = ReceiverAccess(self, Atom, Result)
+
+    def _observe_query(self, key, result):
+        """Index only observations already made by the ordinary query path."""
+        positions = self._site_keys.get(key, ())
+        self._site_unqueried.difference_update(positions)
+        if not result.atoms:
+            self._site_no_atoms.update(positions)
+        else:
+            for atom in result.atoms:
+                self._site_targets[atom.target].update(positions)
+
+    def candidate_sites(self, function):
+        """Preserve may_call's admission and original site order, including unknowns."""
+        if self._query_inflight or len(self.sites) != self._site_index_size:
+            return self.sites
+        positions = (self._site_spellings.get(self.nodes[function]["name"], set())
+                     | self._site_targets.get(function, set())
+                     | self._site_no_atoms | self._site_unqueried)
+        return (self.sites[pos] for pos in sorted(positions))
 
     def close(self):
         """Release only this analyzer's private captured sources."""
@@ -286,12 +335,19 @@ class Analyzer:
         if name.type == "module":
             raw["mapping"] = "exact-captured-module"
             return known("module", module), raw
-        lines = self.trees[module]._lct_source.splitlines()
+        lines = self._source_lines[module]
         col = len(lines[name.line - 1][: name.column].encode("utf-8")) if name.line else None
         matches = []
-        for ident, node in self.nodes.items():
-            if self.module_for.get(ident) != module or node["definition_line"] != name.line:
-                continue
+        candidates = (
+            self._definitions_by_line.get((module, name.line), ())
+            if (len(self.nodes), len(self.module_for)) == self._definition_index_sizes
+            else (
+                ident for ident, node in self.nodes.items()
+                if self.module_for.get(ident) == module and node["definition_line"] == name.line
+            )
+        )
+        for ident in candidates:
+            node = self.nodes[ident]
             obj = self.trees.get(ident)
             if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 prefix = (
@@ -358,9 +414,10 @@ class Analyzer:
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
             return self.queries[key][0]
-        line = self.trees[module]._lct_source.splitlines()[expr.end_lineno - 1]
+        line = self._source_lines[module][expr.end_lineno - 1]
         column = len(line.encode("utf-8")[: expr.end_col_offset].decode("utf-8"))
         raw, results = [], []
+        self._query_inflight += 1
         try:
             script = self.scripts[module]
             names = (
@@ -384,10 +441,13 @@ class Analyzer:
         except Exception as exc:
             raw.append(dict(error=type(exc).__name__, mapping="jedi-error"))
             results.append(unknown("jedi-error:" + type(exc).__name__))
+        finally:
+            self._query_inflight -= 1
         result = union(*results) if results else unknown("jedi-no-result")
         if not goto and any(a.kind in ("callable", "class", "instance") for a in result.atoms):
             result = union(result, unknown("jedi-inference-not-exhaustive"))
         self.queries[key] = result, raw
+        self._observe_query(key, result)
         return result
 
     def reaching(self, scope, name, before):
@@ -1569,7 +1629,7 @@ class Analyzer:
             and "staticmethod" not in decorators
         ):
             receivers = []
-            for site in self.sites:
+            for site in self.candidate_sites(scope):
                 if site["_call"] is None or not self.may_call(scope, site):
                     continue
                 for a in self.resolve(site["execution_owner"], site["_expr"]).atoms:
@@ -1631,7 +1691,7 @@ class Analyzer:
                 else union(value, unknown("open-receiver-input"))
             )
         results = []
-        for site in self.sites:
+        for site in self.candidate_sites(scope):
             call = site["_call"]
             if call is None or not self.may_call(scope, site):
                 continue
@@ -2076,7 +2136,7 @@ class Analyzer:
         """Join key/value arguments from the same explicit registration call."""
         results = []
         params = self.trees[function].args.posonlyargs + self.trees[function].args.args
-        for site in self.sites:
+        for site in self.candidate_sites(function):
             call = site["_call"]
             if call is None or not self.may_call(function, site):
                 continue

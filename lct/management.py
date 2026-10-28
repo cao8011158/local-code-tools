@@ -53,13 +53,17 @@ def backup(c):
         # identity so relocation never has to guess the source working directory.
         normalized = {k: v for k, v in c.items() if not k.startswith("_")}
         for p in (data / "versions").iterdir():
-            if (p / "manifest.json").is_file() and load(p / "manifest.json").get(
-                "state"
-            ) == "complete":
-                validate_folder(p, load(p / "manifest.json"))
-                for f in p.iterdir():
-                    if f.is_file():
-                        entries["data/versions/" + p.name + "/" + f.name] = f
+            manifest_path = p / "manifest.json"
+            if manifest_path.is_file():
+                vm = load(manifest_path)
+                if vm.get("state") != "complete":
+                    continue
+                validate_folder(p, vm)
+                for name in (*sorted(vm["artifacts"]), "manifest.json", "build-state.json"):
+                    f = p / name
+                    if name == "build-state.json" and not f.is_file():
+                        continue
+                    entries["data/versions/" + p.name + "/" + name] = f
         for name in ("current.json", "freshness.json", "ledger.json", "cursor-key.json"):
             if (data / name).is_file():
                 entries["data/" + name] = data / name

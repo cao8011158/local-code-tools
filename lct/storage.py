@@ -1,7 +1,9 @@
 """Consistent candidate snapshots, incremental SQLite maintenance and atomic publication."""
 
+import hashlib
 import shutil
 import sqlite3
+import stat
 import time
 import uuid
 from collections import Counter, defaultdict
@@ -76,18 +78,65 @@ def manifest(c, version=None, compatible=True):
     return folder, m
 
 
+def required_artifacts(specs):
+    """Names produced by this build, independent of incidental candidate files."""
+    names = {"catalog.sqlite"}
+    for part, spec in enumerate(specs):
+        stem = f"partition-{part}"
+        if spec.get("stem") != stem:
+            raise ToolError("Invalid index partition artifact")
+        names.update(stem + ext for ext in (".npy", ".usearch", ".json"))
+    return names
+
+
+def artifact_file(folder, rel):
+    """Locate a required regular artifact without following a symlink."""
+    p = folder / rel
+    try:
+        info = p.lstat()
+        if not stat.S_ISREG(info.st_mode):
+            raise ToolError("Index artifact is not a regular file: " + rel)
+        return p, info.st_size
+    except OSError as exc:
+        raise ToolError("Index artifact unavailable: " + rel) from exc
+
+
+def hash_artifact(folder, rel):
+    """Hash and count the same stream without retaining the artifact in memory."""
+    p, _ = artifact_file(folder, rel)
+    checksum = hashlib.sha256()
+    size = 0
+    try:
+        with p.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                checksum.update(chunk)
+                size += len(chunk)
+    except OSError as exc:
+        raise ToolError("Index artifact unavailable: " + rel) from exc
+    return checksum.hexdigest(), size
+
+
+def check_catalog_sidecars(folder):
+    # Opening SQLite for validation may replay a hot journal; refuse it first.
+    for suffix in ("-journal", "-wal"):
+        p = folder / ("catalog.sqlite" + suffix)
+        try:
+            if p.lstat().st_size:
+                raise ToolError("Catalog has a nonempty SQLite sidecar: " + p.name)
+        except FileNotFoundError:
+            pass
+
+
 def validate_folder(folder, m, full=True):
     """Validate every artifact checksum and SQLite integrity before publish or restore."""
+    if set(m["artifacts"]) != required_artifacts(m["partitions"]):
+        raise ToolError("Index artifact membership mismatch")
+    check_catalog_sidecars(folder)
     for rel, expected in m["artifacts"].items():
-        p = folder / rel
-        if (
-            not p.is_file()
-            or (full and digest(p.read_bytes()) != expected)
-            or (
-                not full
-                and rel in m.get("artifact_sizes", {})
-                and p.stat().st_size != m["artifact_sizes"][rel]
-            )
+        p, size = artifact_file(folder, rel)
+        if (full and digest(p.read_bytes()) != expected) or (
+            not full and rel in m.get("artifact_sizes", {})
+            and size != m["artifact_sizes"][rel]
         ):
             raise ToolError("Index artifact checksum mismatch: " + rel)
     with closing(sqlite3.connect(folder / "catalog.sqlite")) as db:
@@ -301,12 +350,13 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
                 ),
                 seconds=round(time.monotonic() - started, 2),
             )
-            m["artifacts"] = {
-                p.name: digest(p.read_bytes())
-                for p in sorted(folder.iterdir())
-                if p.name not in ("manifest.json", "build-state.json")
-            }
-            m["artifact_sizes"] = {rel: (folder / rel).stat().st_size for rel in m["artifacts"]}
+            check_catalog_sidecars(folder)
+            m["artifacts"] = {}
+            m["artifact_sizes"] = {}
+            for rel in sorted(required_artifacts(specs)):
+                checksum, size = hash_artifact(folder, rel)
+                m["artifacts"][rel] = checksum
+                m["artifact_sizes"][rel] = size
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             if fail_at == "before_publish":
