@@ -1,4 +1,4 @@
-# Batch 3 checkpoint — paused for scope decision
+# Batch 3 checkpoint — authorized prerequisite repairs resumed
 
 Working branch: `feat/full-business-graph-indexes`.
 Published implementation candidate: `7c50563cd695aed018bd451dec9d05a631792525`.
@@ -28,6 +28,10 @@ Artifact-membership diagnosis completed; further storage changes/testing paused 
 
 Each developer/refactor/fix completion and each completed formal review must have a substantial user-visible report plus persisted evidence. Findings in earlier batches of the SAME authorized step return to their owning batch without rewriting Git history or resetting the review limit. Confirmed P0/P1, system-code issues OUTSIDE the current step, and defects/critical limitations in CORE external dependencies require human decision. Noncore alternatives remain bounded by existing authorization and contract. Max three formal review rounds remains.
 
-The parser and artifact paths predate this Batch 1–3 feature sequence. Do not silently classify them as Batch 1 Neo4j regressions. Pending user decision: explicitly include the two narrow existing-code repairs in this step, or leave them separate. Existing candidates preserved, affected full-build/merge work paused.
+The parser and artifact paths predate this Batch 1–3 feature sequence. Do not silently classify them as Batch 1 Neo4j regressions. User explicitly approved including both narrow existing-code repairs: “这是可以的” in response to the parser-locality and incidental-artifact scope request. On 2026-10-28 the user requested continuation after installation of locality-review. These two repairs are now in scope; this does not authorize replacing Jedi or expanding to unrelated parser behavior. Existing candidates and original failed database remain preserved; merge remains gated.
 
 Paid run budget also remains pending. Configured initial vector estimate: <= USD0.6099 using conservative byte-bound inputs at USD0.12/million; actual provider tokens/free allowance unknown. No credential is stored in this repository or any evidence artifact.
+
+## Resumption record (2026-10-28)
+
+Apply installed batch-dev-review and locality-review. Preserve formal review count 0 until a fixed-remote-SHA review is completed. Root independently inspects parser candidate; GPT-6 SOL / medium subagent completes artifact-membership fix; separate independent synthetic differential probes compare old/new public Graph.build behavior. A single bounded baseline graph analysis and corrected offline build compare actual captured-source scope, semantics and work counters. No authenticated API requests or paid-run budget granted. Live SQLite construction will use a private /tmp directory rather than a synchronized working directory; this is environment placement, not removal of integrity checks.
