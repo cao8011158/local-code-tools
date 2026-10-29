@@ -1,6 +1,6 @@
 # Batch 3 — full business graph and retrieval indexes
 
-Status: staged-import redesign in progress; formal reviews completed: 1 of 3. No merge or full-scale acceptance claimed. Earlier task text below records the initial plan; the appended continuation supersedes its one-transaction rollback design.
+Status: staged-import repair passed independent review; formal reviews completed: 2 of 3. No merge or full-scale acceptance claimed. Earlier task text below records the initial plan; the appended continuation supersedes its one-transaction rollback design.
 
 Tool base and merge target: `655b78a834c40542bf62c09bdd508c17d7f46450`, default branch `feat/local-code-tools-import`. Working branch: `feat/full-business-graph-indexes`.
 

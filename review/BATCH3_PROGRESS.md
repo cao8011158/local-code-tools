@@ -1,3 +1,9 @@
+# Latest checkpoint — staged importer reviewed
+
+Implementation `cb68331465cde30bf7333b0f41759669bf4ccb8d`; formal review **2/3**. Independent tests:452 passed/1 skipped. Synthetic61.16MB evidence import/readback passed with bounded committed batches; sampled retained transaction heap maximum2MiB. Not full business-data acceptance. No merge or paid API calls. See BATCH3_REVIEW_ROUND2.md. Batch2 B3-004 remains paused pending explicit narrow reopening under the three-round rule.
+
+## Previous checkpoint (historical)
+
 # Current checkpoint — staged-import redesign in progress
 
 Source base: `56a04275bc72c982559e1b47b82af541d10dd40d`; branch `feat/full-business-graph-indexes`; merge target unchanged at `655b78a834c40542bf62c09bdd508c17d7f46450`. Formal reviews completed: **1/3**. No merge; no new paid API calls.
