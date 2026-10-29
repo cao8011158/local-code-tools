@@ -43,8 +43,7 @@ def create_app(*, uri: str, user: str, password: str, database: str,
         nonlocal graph, fingerprint
         try:
             graph = await anyio.to_thread.run_sync(Neo4jGraph, uri, user, password, database)
-            info = await anyio.to_thread.run_sync(graph.snapshot_info, namespace, version)
-            fingerprint = info["fingerprint"]
+            fingerprint = await anyio.to_thread.run_sync(graph.snapshot_fingerprint, namespace, version)
         except Exception:
             if graph is not None:
                 await anyio.to_thread.run_sync(graph.close)

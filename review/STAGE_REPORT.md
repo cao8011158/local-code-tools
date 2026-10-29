@@ -202,3 +202,15 @@ RESTORE_001_REVIEW.md 明确记载 Batch 2 第 3/3 轮已通过。根据 batch-d
 1GiB堆的原生Neo4j完成100节点、500关系、61,164,381字节合成分析证据导入及完整读回：90次事务提交，82个数据批次，最大批记录总字节786,780；每批写入后采样的事务内存最大2MiB，耗时8.82秒。此前相近合成证据的单事务探针约126.3MiB。采样不是执行中或JVM总峰值，不能冒充真实5957节点图验收。服务已停止。
 
 本轮导入修改未发现新的阻塞问题；B3-006写入批次提前装配已关闭。B3-005仍需要真实数据验收。B3-004指纹读取的Batch2整改继续暂停，不能擅自增加第4轮审阅。没有合并、没有重建真实图、没有Voyage调用。完整结果见BATCH3_REVIEW_ROUND2.md。
+
+## 17. 用户确认继续：重开Batch2的B3-004窄范围整改
+
+基线c6fd24335f3f96387c09ba4897fbce14713db970，工作分支feat/full-business-graph-indexes，合并目标仍feat/local-code-tools-import。用户在解释剩余启动读取问题后说“好 那么请继续”，随后询问通用性；明确选择“那就不换了 继续工作把 再有需求我们再来 refactor 这个库”。这覆盖当前已说明的指纹读取整改；保留Batch2原3/3记录，本次是人工批准的额外一次窄范围审阅，不重置计数。Batch3仍2/3。
+
+修改限定：增加只读取完整快照标记的snapshot_fingerprint；MCP启动接入该方法；保留graph_status完整返回、认证、异常脱敏和关闭驱动行为。Voyage、解析器、索引格式、保留/淘汰策略不改，不建真实图、不调用付费API。GPT-6 SOL medium开发子Agent，主Agent独立审阅。
+
+纠正此前口头说明：当前MCP启动只是读取图指纹，不自动比较外部向量/BM25指纹。源码commit集合已保存在manifest.repositories与Neo4j源元数据；程序/配置/模型信息保存在manifest。源码身份、构建兼容性、图内容指纹的含义需要分别描述，不能宣称完整跨服务匹配已实现。
+
+### 17.1 开发完成，尚未推送
+
+新增snapshot_fingerprint单条complete:true标记查询，MCP lifespan接入；graph_status、认证和异常脱敏保留。开发者定向10 passed（0.60秒）；默认tests/运行442 passed、18 skipped、3项因未设置真实Neo4j URI而初始化失败。排除该服务专用文件后的运行442 passed、18 skipped（11.63秒），不能称为完整通过。原始日志见fingerprint-fix；主Agent将在固定远端版本上启用真实服务独立复验。两个主Agent原生边界用例尚待运行。没有更换模型、调整索引格式或建真实图。

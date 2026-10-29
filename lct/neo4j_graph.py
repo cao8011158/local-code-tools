@@ -420,6 +420,19 @@ class Neo4jGraph:
                 raise ToolError("Neo4j snapshot missing or incomplete")
             return found["fingerprint"], list(session.run(query, **scope, **params))
 
+    def snapshot_fingerprint(self, namespace, version):
+        """Read only the identity marker of a complete, explicitly scoped snapshot."""
+        scope = _scope(namespace, version)
+        with self.driver.session(database=self.database, default_access_mode="READ",
+                                 fetch_size=64) as session:
+            row = session.run(
+                "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
+                "RETURN s.fingerprint AS fingerprint", **scope,
+            ).single()
+            if row is None or not isinstance(row["fingerprint"], str) or not row["fingerprint"]:
+                raise ToolError("Neo4j snapshot missing or incomplete")
+            return row["fingerprint"]
+
     def snapshot_info(self, namespace, version):
         fingerprint, rows = self._read(namespace, version,
             "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
