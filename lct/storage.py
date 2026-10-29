@@ -48,6 +48,8 @@ create index if not exists posting_node on postings(node_id);
 create table if not exists lengths(node_id text primary key,repository text,kind text,length integer);
 create table if not exists terms(term text primary key,df integer);
 """
+GRAPH_SITES = "graph-sites.sqlite"
+SOURCE_FILES = "source-files.json"
 
 
 def current(c):
@@ -64,7 +66,11 @@ def manifest(c, version=None, compatible=True):
     folder = Path(c["data"]) / "versions" / version
     if not (folder / "manifest.json").exists():
         raise ToolError("Index version expired or incomplete")
-    m = load(folder / "manifest.json")
+    if not (folder / "summary.json").exists():
+        raise ToolError("Legacy index metadata requires explicit migrate-metadata")
+    m = load(folder / "summary.json")
+    if m.get("metadata_layout") != 2:
+        raise ToolError("Legacy index metadata requires explicit migrate-metadata")
     if m.get("state") != "complete":
         raise ToolError("Index incomplete")
     if compatible and (
@@ -79,9 +85,11 @@ def manifest(c, version=None, compatible=True):
     return folder, m
 
 
-def required_artifacts(specs):
+def required_artifacts(specs, graph_detail=False):
     """Names produced by this build, independent of incidental candidate files."""
     names = {"catalog.sqlite"}
+    if graph_detail:
+        names.update((GRAPH_SITES, SOURCE_FILES))
     for part, spec in enumerate(specs):
         stem = f"partition-{part}"
         if spec.get("stem") != stem:
@@ -117,22 +125,25 @@ def hash_artifact(folder, rel):
     return checksum.hexdigest(), size
 
 
-def check_catalog_sidecars(folder):
+def check_catalog_sidecars(folder, graph=False):
     # Opening SQLite for validation may replay a hot journal; refuse it first.
-    for suffix in ("-journal", "-wal"):
-        p = folder / ("catalog.sqlite" + suffix)
-        try:
-            if p.lstat().st_size:
-                raise ToolError("Catalog has a nonempty SQLite sidecar: " + p.name)
-        except FileNotFoundError:
-            pass
+    for base in (("catalog.sqlite", GRAPH_SITES) if graph else ("catalog.sqlite",)):
+        for suffix in ("-journal", "-wal"):
+            p = folder / (base + suffix)
+            try:
+                if p.lstat().st_size:
+                    raise ToolError("Catalog has a nonempty SQLite sidecar: " + p.name)
+            except FileNotFoundError:
+                pass
 
 
 def validate_folder(folder, m, full=True):
     """Validate every artifact checksum and SQLite integrity before publish or restore."""
-    if set(m["artifacts"]) != required_artifacts(m["partitions"]):
+    if m.get("metadata_layout") == 2 and m.get("graph_detail") != GRAPH_SITES:
+        raise ToolError("Graph evidence layout mismatch")
+    if set(m["artifacts"]) != required_artifacts(m["partitions"], m.get("graph_detail") == GRAPH_SITES):
         raise ToolError("Index artifact membership mismatch")
-    check_catalog_sidecars(folder)
+    check_catalog_sidecars(folder, graph=m.get("graph_detail") == GRAPH_SITES)
     for rel, expected in m["artifacts"].items():
         p, size = artifact_file(folder, rel)
         if (full and digest(p.read_bytes()) != expected) or (
@@ -140,11 +151,148 @@ def validate_folder(folder, m, full=True):
             and size != m["artifact_sizes"][rel]
         ):
             raise ToolError("Index artifact checksum mismatch: " + rel)
-    with closing(sqlite3.connect(folder / "catalog.sqlite")) as db:
-        if full and db.execute("pragma integrity_check").fetchone()[0] != "ok":
-            raise ToolError("Catalog integrity check failed")
-        if db.execute("select count(*) from nodes").fetchone()[0] != m["node_count"]:
-            raise ToolError("Catalog node count mismatch")
+    if full:
+        with closing(sqlite3.connect(folder / "catalog.sqlite")) as db:
+            if db.execute("pragma integrity_check").fetchone()[0] != "ok":
+                raise ToolError("Catalog integrity check failed")
+            if db.execute("select count(*) from nodes").fetchone()[0] != m["node_count"]:
+                raise ToolError("Catalog node count mismatch")
+        if m.get("graph_detail") == GRAPH_SITES:
+            with closing(sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+                if db.execute("pragma integrity_check").fetchone()[0] != "ok":
+                    raise ToolError("Graph evidence integrity check failed")
+                if db.execute("select count(*) from sites").fetchone()[0] != m["graph"]["call_sites"]:
+                    raise ToolError("Graph evidence site count mismatch")
+
+
+def graph_detail(folder, m):
+    """Read complete persisted graph evidence only for an explicit detail consumer."""
+    if m.get("graph_detail") != GRAPH_SITES:
+        if "sites" not in m["graph"]:
+            raise ToolError("Graph evidence missing")
+        return m["graph"]  # Pre-migration snapshot.
+    checksum, size = hash_artifact(folder, GRAPH_SITES)
+    if checksum != m["artifacts"][GRAPH_SITES] or size != m["artifact_sizes"][GRAPH_SITES]:
+        raise ToolError("Graph evidence checksum mismatch")
+    with closing(sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+        sites = [json.loads(row[0]) for row in db.execute("select data from sites order by ordinal")]
+    if len(sites) != m["graph"]["call_sites"]:
+        raise ToolError("Graph evidence site count mismatch")
+    return dict(m["graph"], sites=sites)
+
+
+def graph_sites(folder, m, offset=0, limit=100, max_bytes=100000):
+    """Bounded ordered evidence page; callers can continue from next_offset."""
+    if type(offset) is not int or type(limit) is not int or not 0 <= offset or not 1 <= limit <= 500:
+        raise ToolError("Invalid graph evidence page")
+    if m.get("graph_detail") != GRAPH_SITES:
+        raise ToolError("Legacy index metadata requires explicit migrate-metadata")
+    total = m["graph"]["call_sites"]
+    rows = []
+    envelope = dict(sites=[], total=total, version=m["version"], next_offset=offset + limit)
+    used = max(len(canonical(envelope).encode("utf-8")),
+               len(canonical(dict(envelope, next_offset=None)).encode("utf-8")))
+    if used > max_bytes:
+        raise ToolError("Graph evidence response metadata exceeds max_bytes")
+    with closing(sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+        for (raw,) in db.execute("select data from sites where ordinal>=? order by ordinal limit ?",
+                                 (offset, limit)):
+            site = json.loads(raw)
+            size = len(raw.encode("utf-8")) + (1 if rows else 0)
+            if used + size > max_bytes:
+                if not rows:
+                    raise ToolError("Graph evidence site exceeds max_bytes; increase limit")
+                break
+            rows.append(site)
+            used += size
+    return dict(sites=rows, next_offset=offset + len(rows) if offset + len(rows) < total else None,
+                total=total, version=m["version"])
+
+
+def source_files(folder, m):
+    """Reconstruct complete source revision evidence for an explicit full consumer."""
+    if m.get("graph_detail") != GRAPH_SITES:
+        return m["files"]
+    checksum, size = hash_artifact(folder, SOURCE_FILES)
+    if checksum != m["artifacts"][SOURCE_FILES] or size != m["artifact_sizes"][SOURCE_FILES]:
+        raise ToolError("Source evidence checksum mismatch")
+    files = load(folder / SOURCE_FILES)
+    if not isinstance(files, list) or len(files) != m["file_count"]:
+        raise ToolError("Source evidence file count mismatch")
+    return files
+
+
+def split_graph(folder, m):
+    """Prepare immutable site evidence and a compact manifest before publication."""
+    graph = m["graph"]
+    sites = graph["sites"]
+    if len(sites) != graph["call_sites"]:
+        raise ToolError("Graph evidence site count mismatch")
+    db = sqlite3.connect(folder / GRAPH_SITES)
+    try:
+        db.execute("create table sites(ordinal integer primary key, data text not null)")
+        db.executemany("insert into sites values(?,?)", ((i, canonical(site)) for i, site in enumerate(sites)))
+        db.commit()
+    finally:
+        db.close()
+    atomic(folder / SOURCE_FILES, m["files"])
+    m["file_count"] = len(m["files"])
+    del m["files"]
+    m["graph"] = {k: v for k, v in graph.items() if k != "sites"}
+    m["graph_detail"] = GRAPH_SITES
+    m["metadata_layout"] = 2
+    for rel in (GRAPH_SITES, SOURCE_FILES):
+        checksum, size = hash_artifact(folder, rel)
+        m["artifacts"][rel] = checksum
+        m["artifact_sizes"][rel] = size
+
+
+def migrate_metadata(c, version, expected_program_hash):
+    """Explicit offline migration of a frozen version; publish only the small sidecar last.
+
+    The original manifest and version identity are retained. A failed preparation
+    leaves it unmigrated, and no cursor or current pointer is changed.
+    """
+    if not isinstance(version, str) or not version or any(x in version for x in ("/", "\\", "..")):
+        raise ToolError("Invalid index version")
+    if not isinstance(expected_program_hash, str) or len(expected_program_hash) != 64:
+        raise ToolError("Explicit old program hash required")
+    with lock(Path(c["data"]) / "update.lock"):
+        folder = Path(c["data"]) / "versions" / version
+        original = folder / "manifest.json"
+        if not original.is_file():
+            raise ToolError("Index version expired or incomplete")
+        old = load(original)
+        if old.get("version") != version or old.get("state") != "complete":
+            raise ToolError("Index incomplete")
+        if old.get("program_hash") != expected_program_hash:
+            raise ToolError("Frozen program hash differs from explicit predecessor")
+        if old.get("schema") != SCHEMA or old.get("format") != FORMAT or old.get("template") != TEMPLATE or old.get("tokenizer") != TOKENIZER or old.get("config_hash") != identity(c):
+            raise ToolError("Frozen index incompatible with metadata migration")
+        if (folder / "summary.json").exists():
+            _, summary = manifest(c, version)
+            if summary.get("migrated_from_program_hash", summary["program_hash"]) != expected_program_hash:
+                raise ToolError("Existing metadata migration predecessor differs")
+            return dict(version=version, already_migrated=True)
+        if old.get("metadata_layout") == 2:
+            # A new-format candidate with a missing sidecar is not a legacy version.
+            raise ToolError("Summary metadata missing from new-format version")
+        if old.get("embedding") != {k: c["embedding"][k] for k in ("model", "dimension", "dtype")} or old.get("hnsw") != c["hnsw"]:
+            raise ToolError("Frozen index embedding configuration differs")
+        validate_folder(folder, old, full=True)
+        m = dict(old)
+        m["artifacts"] = dict(old["artifacts"])
+        m["artifact_sizes"] = dict(old.get("artifact_sizes", {}))
+        for rel in (GRAPH_SITES, SOURCE_FILES, GRAPH_SITES + "-journal", GRAPH_SITES + "-wal"):
+            (folder / rel).unlink(missing_ok=True)
+        split_graph(folder, m)
+        m["migrated_from_program_hash"] = old["program_hash"]
+        m["migrated_from_config_hash"] = old["config_hash"]
+        m["program_hash"] = program_hash()
+        validate_folder(folder, m, full=True)
+        atomic(folder / "summary.json", m)
+        return dict(version=version, already_migrated=False, graph_sites=m["graph"]["call_sites"],
+                    manifest_bytes=original.stat().st_size, summary_bytes=(folder / "summary.json").stat().st_size)
 
 
 def source_text(n, files):
@@ -358,8 +506,10 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
                 checksum, size = hash_artifact(folder, rel)
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
+            split_graph(folder, m)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
+            atomic(folder / "summary.json", m)
             if fail_at == "before_publish":
                 raise ToolError("Injected interruption before atomic pointer publication")
             activate(c, ident)
@@ -414,9 +564,10 @@ def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
             nodes = [json.loads(r[0]) for r in db.execute("select data from nodes order by node_id")]
             files = [dict(repository=r[0], path=r[1], sha256=r[2], text=r[3])
                      for r in db.execute("select repository,path,sha256,text from files")]
-        if len(nodes) != old["node_count"] or len(files) != len(old["files"]):
+        original_files = source_files(old_folder, old)
+        if len(nodes) != old["node_count"] or len(files) != len(original_files):
             raise ToolError("Frozen catalog capture incomplete")
-        expected_files = {(f["repository"], f["path"]): f["sha256"] for f in old["files"]}
+        expected_files = {(f["repository"], f["path"]): f["sha256"] for f in original_files}
         if {(f["repository"], f["path"]): f["sha256"] for f in files} != expected_files:
             raise ToolError("Frozen catalog file inventory differs")
         if any(f["sha256"] not in (digest(f["text"]), digest(b"\xef\xbb\xbf" + f["text"].encode()))
@@ -461,7 +612,9 @@ def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
                      seconds=round(time.monotonic() - started, 2))
             m["artifacts"] = {}
             m["artifact_sizes"] = {}
-            for rel in sorted(required_artifacts(specs)):
+            shutil.copy2(old_folder / GRAPH_SITES, folder / GRAPH_SITES)
+            shutil.copy2(old_folder / SOURCE_FILES, folder / SOURCE_FILES)
+            for rel in sorted(required_artifacts(specs, graph_detail=True)):
                 checksum, size = hash_artifact(folder, rel)
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
@@ -469,6 +622,7 @@ def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
                 raise ToolError("Frozen catalog changed during dense attachment")
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
+            atomic(folder / "summary.json", m)
             if fail_at == "before_publish":
                 raise ToolError("Injected interruption before dense publish")
             if current(c) != expected_version:
@@ -541,7 +695,7 @@ def prune(c):
     valid_history = []
     for version in history[:limit]:
         folder = versions / version
-        if (folder / "manifest.json").is_file() and load(folder / "manifest.json").get(
+        if (folder / "summary.json").is_file() and load(folder / "summary.json").get(
             "state"
         ) == "complete":
             valid_history.append(version)
@@ -553,7 +707,7 @@ def prune(c):
             continue
         if folder.is_symlink() or folder.resolve().parent != versions.resolve():
             raise ToolError("Unsafe version cleanup target")
-        complete = (folder / "manifest.json").is_file() and load(folder / "manifest.json").get(
+        complete = (folder / "summary.json").is_file() and load(folder / "summary.json").get(
             "state"
         ) == "complete"
         # A legacy failed marker may have been written after pointer publication.

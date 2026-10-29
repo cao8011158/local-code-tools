@@ -18,7 +18,7 @@ from mcp.client.stdio import get_default_environment, stdio_client
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = Path(__file__).parent / "fixtures/small_graph_mcp"
 REPOSITORY = "small-graph-mcp"
-TOOLS = {"index_status", "search_code", "search_docs", "get_nodes", "get_relations"}
+TOOLS = {"index_status", "graph_evidence", "search_code", "search_docs", "get_nodes", "get_relations"}
 
 
 def prepare(tmp_path):
@@ -218,7 +218,8 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
 
                 # 6. The prior decorator counterexample stays partial, with candidate a.
                 # Sites/reasons live in the persisted manifest, CALLS projections in SQL.
-                sites = [s for s in manifest["graph"]["sites"]
+                evidence = await call("graph_evidence", offset=0, limit=500)
+                sites = [s for s in evidence["sites"]
                          if s["execution_owner"] == caller["node_id"] and s["expression"] == "obj.run"]
                 assert len(sites) == 1
                 site = sites[0]
@@ -226,7 +227,10 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
                 assert site["targets"] == [node("src/unknown.py", "a")["node_id"]]
                 assert any("implicit" in reason or "protocol" in reason
                            for reason in site["unresolved_reasons"])
-                assert status["graph"] == manifest["graph"]
+                assert {k: v for k, v in status["graph"].items()
+                        if k not in ("sites_available", "detail_tool")} == manifest["graph"]
+                assert evidence["total"] == manifest["graph"]["call_sites"]
+                assert evidence["next_offset"] is None
                 actual = await relations(caller["node_id"], "CALLS", "out")
                 partial = [e for e in actual if e.get("site_id") == site["site_id"]]
                 assert {e["target"] for e in partial} == set(site["targets"])

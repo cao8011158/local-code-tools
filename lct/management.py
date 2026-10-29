@@ -15,7 +15,7 @@ from pathlib import Path
 from .common import (FORMAT, ROOT, SCHEMA, TEMPLATE, TOKENIZER, ToolError, atomic,
                      canonical, digest, identity, load, lock, program_hash)
 from .embedding import vector_key
-from .storage import manifest, prune, validate_folder
+from .storage import graph_detail, manifest, prune, source_files, validate_folder
 
 
 def backup(c):
@@ -54,12 +54,17 @@ def backup(c):
         normalized = {k: v for k, v in c.items() if not k.startswith("_")}
         for p in (data / "versions").iterdir():
             manifest_path = p / "manifest.json"
-            if manifest_path.is_file():
-                vm = load(manifest_path)
+            summary_path = p / "summary.json"
+            if manifest_path.is_file() and not summary_path.is_file():
+                if load(manifest_path).get("state") == "complete":
+                    raise ToolError("Retained index metadata requires explicit migrate-metadata: " + p.name)
+                continue
+            if manifest_path.is_file() and summary_path.is_file():
+                vm = load(summary_path)
                 if vm.get("state") != "complete":
                     continue
                 validate_folder(p, vm)
-                for name in (*sorted(vm["artifacts"]), "manifest.json", "build-state.json"):
+                for name in (*sorted(vm["artifacts"]), "manifest.json", "summary.json", "build-state.json"):
                     f = p / name
                     if name == "build-state.json" and not f.is_file():
                         continue
@@ -169,8 +174,8 @@ def restore(c, archive, destination):
     manifests = {}
     prefix = "data/versions/"
     for name in checks:
-        if name.startswith(prefix) and name.endswith("/manifest.json"):
-            version = name[len(prefix):-len("/manifest.json")]
+        if name.startswith(prefix) and name.endswith("/summary.json"):
+            version = name[len(prefix):-len("/summary.json")]
             if not version or "/" in version or version in manifests:
                 raise ToolError("Invalid backed-up version")
             with zipfile.ZipFile(archive) as snapshot:
@@ -200,10 +205,24 @@ def restore(c, archive, destination):
                 with snapshot.open(name) as source, p.open("wb") as output:
                     shutil.copyfileobj(source, output)
         for version, (vm, compatible, _) in manifests.items():
-            validate_folder(stage / prefix / version, vm)
+            folder = stage / prefix / version
+            validate_folder(folder, vm)
+            original = load(folder / "manifest.json")
+            if original.get("metadata_layout") == 2:
+                if original != vm:
+                    raise ToolError("Original manifest differs from summary")
+            elif (original.get("graph") != graph_detail(folder, vm) or
+                  original.get("files") != source_files(folder, vm) or
+                  original.get("program_hash") != vm.get("migrated_from_program_hash") or
+                  original.get("config_hash") != vm.get("migrated_from_config_hash") or
+                  any(original.get(k) != vm.get(k) for k in
+                      ("version", "schema", "format", "source_fingerprint", "repositories"))):
+                raise ToolError("Migrated summary differs from original manifest")
             if compatible:
                 vm["config_hash"] = rebound_hash
-                atomic(stage / prefix / version / "manifest.json", vm)
+                atomic(folder / "summary.json", vm)
+                if original.get("metadata_layout") == 2:
+                    atomic(folder / "manifest.json", vm)
         atomic(stage / "config.json", rebound)
         atomic(stage / "restore-receipt.json", dict(
             archive_sha256=digest(archive.read_bytes()),

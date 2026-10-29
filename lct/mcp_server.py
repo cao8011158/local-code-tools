@@ -20,6 +20,13 @@ def index_status(refresh: bool = False) -> dict:
 
 
 @server.tool()
+def graph_evidence(offset: int = 0, limit: int = 100, max_bytes: int = 100000,
+                   version: str | None = None) -> dict:
+    """Page persisted graph call sites by ordinal; next_offset continues without skipping evidence."""
+    return core.graph_evidence(offset, limit, max_bytes, version)
+
+
+@server.tool()
 def search_code(
     query: str,
     level: str = "function",

@@ -73,6 +73,7 @@ def test_relative_config_and_incompatible_retained_version(tmp_path):
     shutil.copytree(folder, Path(c["data"]) / "versions" / second_name)
     other = Path(c["data"]) / "versions" / second_name / "manifest.json"
     atomic(other, dict(m, version=second_name, config_hash="f" * 64))
+    atomic(other.with_name("summary.json"), dict(m, version=second_name, config_hash="f" * 64))
     archive = backup(c)["archive"]
     target = tmp_path / "portable"
     restore(c, archive, target)

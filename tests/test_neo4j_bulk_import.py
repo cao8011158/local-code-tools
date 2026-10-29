@@ -76,8 +76,21 @@ def test_bulk_roundtrip_and_query_bound(graph, monkeypatch, tmp_path):
     assert sum(chunks) == 1200 + 6000 + 4800 + 2
     assert max(chunks) <= 500
     assert graph.snapshot_info(namespace, 'bulk-v')['graph'] == data['graph']
-    assert graph.list_nodes(namespace, 'bulk-v', limit=5000)['nodes'] == data['nodes']
-    assert graph.get_nodes(namespace, 'bulk-v', [n['node_id'] for n in data['nodes'][:500]]) == data['nodes'][:500]
+    page = graph.list_nodes(namespace, 'bulk-v', limit=5000)
+    listed = list(page['nodes'])
+    while page['has_more']:
+        page = graph.list_nodes(namespace, 'bulk-v', limit=5000, cursor=page['next_cursor'])
+        listed.extend(page['nodes'])
+    assert listed == data['nodes']
+    ids = [n['node_id'] for n in data['nodes'][:500]]
+    cursor, selected = 0, []
+    while True:
+        page = graph.get_nodes_page(namespace, 'bulk-v', ids, cursor)
+        selected.extend(page['nodes'])
+        if not page['has_more']:
+            break
+        cursor = page['next_cursor']
+    assert selected == data['nodes'][:500]
     with pytest.raises(ToolError, match='at most 500'):
         graph.get_nodes(namespace, 'bulk-v', [n['node_id'] for n in data['nodes'][:MAX_QUERY_IDS + 1]])
     with graph.driver.session(database=graph.database) as session:

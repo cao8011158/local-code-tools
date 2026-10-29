@@ -44,10 +44,10 @@ class Backend:
             raise ToolError('Neo4j snapshot missing or incomplete')
         return 'review-fingerprint'
 
-    def snapshot_info(self, namespace, version):
+    def snapshot_summary(self, namespace, version):
         self.status_calls += 1
-        return {'fingerprint': 'review-fingerprint', 'graph': {'sites': []},
-                'source': {'repositories': []}, 'nodes': 0, 'edges': 0}
+        return {'fingerprint': 'review-fingerprint', 'nodes': 0, 'edges': 0,
+                'storage_complete': True}
 
     def list_nodes(self, *args):
         raise RuntimeError(SECRET_MARKER)
@@ -122,7 +122,7 @@ def test_expiry_discovery_redaction_and_normal_shutdown(monkeypatch):
     asyncio.run(run())
 
 
-def test_startup_reads_only_fingerprint_and_status_still_loads_metadata(monkeypatch):
+def test_startup_reads_only_fingerprint_and_status_reads_summary(monkeypatch):
     application = app(monkeypatch)
 
     async def run():
@@ -140,8 +140,53 @@ def test_startup_reads_only_fingerprint_and_status_still_loads_metadata(monkeypa
                 result = response.json()['result']
                 payload = result.get('structuredContent') or json.loads(result['content'][0]['text'])
                 assert payload['fingerprint'] == 'review-fingerprint'
-                assert payload['data']['source'] == {'repositories': []}
+                assert payload['data']['storage_complete'] is True
             assert (backend.fingerprint_calls, backend.status_calls) == (1, 1)
         assert backend.closed
+
+    asyncio.run(run())
+
+
+def test_wrapped_reply_has_a_byte_ceiling_and_oversize_error(monkeypatch):
+    class LargeBackend(Backend):
+        def list_nodes(self, namespace, version, kind=None, repository=None, limit=100,
+                       cursor=None):
+            from lct.neo4j_graph import _bounded_page
+            rows = [dict(id=f'{i:03}', raw=json.dumps({'node_id': f'{i:03}',
+                                                        'evidence': '界\\' * 3500}))
+                    for i in range(20)]
+            rows = [row for row in rows if cursor is None or row['id'] > cursor]
+            return _bounded_page(rows[:min(limit, 16) + 1], 'nodes', limit)
+
+    monkeypatch.setattr(module, 'Neo4jGraph', LargeBackend)
+    application = module.create_app(
+        uri='bolt://127.0.0.1:1', user='review', password='not-real', database='neo4j',
+        namespace='fixed-ns', version='fixed-v', token_verifier=Verifier(),
+        auth=settings(RESOURCE), allowed_host='127.0.0.1:8765',
+        allowed_origin='http://127.0.0.1:8765')
+
+    async def run():
+        async with application.router.lifespan_context(application):
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=application),
+                                         base_url='http://127.0.0.1:8765') as client:
+                cursor, seen = None, []
+                while True:
+                    response = await client.post('/mcp', headers={
+                        'Authorization': 'Bearer valid',
+                        'Accept': 'application/json, text/event-stream',
+                        'MCP-Protocol-Version': '2025-11-25'}, json={
+                        'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call',
+                        'params': {'name': 'list_nodes', 'arguments': {'cursor': cursor}}})
+                    assert response.status_code == 200
+                    assert len(response.content) < 256 * 1024
+                    result = response.json()['result']
+                    assert not result.get('isError'), result
+                    payload = result.get('structuredContent') or json.loads(result['content'][0]['text'])
+                    data = payload['data']
+                    seen.extend(n['node_id'] for n in data['nodes'])
+                    if not data['has_more']:
+                        break
+                    cursor = data['next_cursor']
+                assert seen == [f'{i:03}' for i in range(20)]
 
     asyncio.run(run())

@@ -14,7 +14,7 @@ from uuid import uuid4
 from contextlib import closing
 
 from .common import ToolError, canonical, config, digest
-from .storage import manifest, validate_folder
+from .storage import manifest, validate_folder, graph_detail, source_files
 
 MAX_QUERY_IDS = 500
 MAX_IMPORT_NODES = 50_000
@@ -27,6 +27,8 @@ LEASE_SECONDS = 60
 CLAIM_WAIT_SECONDS = 10
 IMPORT_TIMEOUT_SECONDS = 300
 MAX_RESULTS = 5000
+MAX_REPLY_DATA_BYTES = 64 * 1024
+PAGE_FETCH = 17  # At most 16 records plus one lookahead; large raw records stay bounded.
 NODE_LABELS = {
     "repository": "Repository", "module": "Module", "class": "Class",
     "function": "Function", "documentsection": "DocumentSection",
@@ -52,8 +54,10 @@ def load_snapshot(c, version):
         raise ToolError("Unsupported node kind")
     if any(e.get("kind") not in REL_TYPES for e in edges):
         raise ToolError("Unsupported relationship kind")
-    graph = m["graph"]  # Includes the complete site inventory and unresolved reasons.
-    source = {k: m[k] for k in ("repositories", "source_fingerprint", "files")}
+    graph = graph_detail(folder, m)  # Explicit full import retains all unresolved evidence.
+    source = {"repositories": m["repositories"],
+              "source_fingerprint": m["source_fingerprint"],
+              "files": source_files(folder, m)}
     payload = _snapshot_payload(nodes, edges, graph, source)
     fingerprint = digest(payload)
     return dict(version=version, nodes=nodes, edges=edges, graph=graph, source=source,
@@ -108,6 +112,34 @@ def _ids(ids):
     ):
         raise ToolError("ids must be a list of at most 500 nonempty strings")
     return list(dict.fromkeys(ids))
+
+
+def _after(value):
+    if value is not None and (not isinstance(value, str) or len(value) > 4096):
+        raise ToolError("cursor must be a string of at most 4096 characters")
+    return value
+
+
+def _bounded_page(rows, key, limit, cursor=None):
+    """Budget the serialized data envelope, preserving an exact next position."""
+    items = []
+    for row in rows:
+        if row['raw'] is None:
+            if items:
+                break
+            raise ToolError('Single graph record exceeds reply byte limit')
+        item = json.loads(row['raw'])
+        trial = {key: [*items, item], 'has_more': True, 'next_cursor': row['id']}
+        if len(canonical(trial).encode('utf-8')) > MAX_REPLY_DATA_BYTES:
+            if not items:
+                raise ToolError('Single graph record exceeds reply byte limit')
+            break
+        items.append(item)
+        if len(items) >= min(limit, PAGE_FETCH - 1):
+            break
+    more = len(rows) > len(items)
+    return {key: items, 'has_more': more,
+            'next_cursor': rows[len(items) - 1]['id'] if more and items else None}
 
 
 def _chunks(value):
@@ -328,13 +360,18 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                        "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
                        's.native_count=$native, s.chunk_count=$chunks, '
                        's.graph_sha256=$graph_sha, '
-                       's.source_sha256=$source_sha, s.storage_format=$format',
+                       's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                       's.source_repository_count=$source_repository_count, '
+                       's.storage_format=$format',
                        **scope, nodes=len(nodes), edges=len(edges),
                        native=sum(e.get('source') in node_ids and e.get('target') in node_ids
                                   for e in edges),
                        chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
                        graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
                        source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+                       source_fingerprint=source.get('source_fingerprint'),
+                       source_repository_count=(len(source['repositories']) if
+                                                isinstance(source.get('repositories'), dict) else None),
                        format='chunks-v1').consume()
             _verify(session, scope, owner, nodes, edges, node_ids, metadata)
             with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
@@ -433,6 +470,69 @@ class Neo4jGraph:
                 raise ToolError("Neo4j snapshot missing or incomplete")
             return row["fingerprint"]
 
+    def snapshot_summary(self, namespace, version):
+        """Marker-only status; complete evidence is available via snapshot_evidence."""
+        fingerprint, rows = self._read(namespace, version,
+            "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
+            "RETURN s.node_count AS nodes, s.edge_count AS edges, "
+            "s.native_count AS native_edges, s.chunk_count AS chunks, "
+            "s.graph_sha256 AS graph_sha256, s.source_sha256 AS source_sha256, "
+            "s.source_fingerprint AS source_fingerprint, "
+            "s.source_repository_count AS source_repository_count, "
+            "s.storage_format AS storage_format")
+        return dict(namespace=namespace, version=version, fingerprint=fingerprint,
+                    **dict(rows[0]), storage_complete=True,
+                    evidence_detail="Use snapshot_evidence for full graph/source JSON, including UNKNOWN reasons, analysis complete flags and repository revisions")
+
+    def snapshot_evidence(self, namespace, version, kind, cursor=None):
+        """Read a UTF-8 JSON fragment, without materializing either complete document."""
+        if kind not in ('graph', 'source'):
+            raise ToolError('kind must be graph or source')
+        if cursor is None:
+            ordinal, offset = 0, 0
+        else:
+            if not isinstance(cursor, str) or len(cursor) > 30:
+                raise ToolError('Invalid evidence cursor')
+            try:
+                ordinal, offset = map(int, cursor.split(':'))
+            except (ValueError, TypeError):
+                raise ToolError('Invalid evidence cursor') from None
+            if ordinal < 0 or offset < 0:
+                raise ToolError('Invalid evidence cursor')
+        _, marker = self._read(namespace, version,
+            "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
+            "RETURN s.storage_format AS format")
+        if marker[0]['format'] == 'chunks-v1':
+            _, rows = self._read(namespace, version,
+                "MATCH (c:LCTChunk {namespace:$namespace, version:$version, kind:$kind}) "
+                "WHERE c.ordinal >= $ordinal "
+                "RETURN c.ordinal AS ordinal, substring(c.data, $offset, 8192) AS data, "
+                "size(c.data) AS length ORDER BY ordinal LIMIT 2",
+                kind=kind, ordinal=ordinal, offset=offset)
+            if not rows or rows[0]['ordinal'] != ordinal or offset >= rows[0]['length']:
+                raise ToolError('Invalid or incomplete evidence cursor')
+            row = rows[0]
+            end = offset + len(row['data'])
+            more = end < row['length'] or len(rows) > 1
+            next_cursor = (f'{ordinal}:{end}' if end < row['length'] else
+                           f'{ordinal + 1}:0') if more else None
+        else:
+            if ordinal != 0:
+                raise ToolError('Invalid evidence cursor')
+            property_name = 'graph_json' if kind == 'graph' else 'source_json'
+            _, rows = self._read(namespace, version,
+                "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
+                f"RETURN substring(s.{property_name}, $offset, 8192) AS data, "
+                f"size(s.{property_name}) AS length", offset=offset)
+            row = rows[0]
+            if row['length'] is None or offset >= row['length']:
+                raise ToolError('Invalid evidence cursor')
+            end = offset + len(row['data'])
+            more = end < row['length']
+            next_cursor = f'0:{end}' if more else None
+        return dict(kind=kind, fragment=row['data'], format='JSON fragments',
+                    has_more=more, next_cursor=next_cursor)
+
     def snapshot_info(self, namespace, version):
         fingerprint, rows = self._read(namespace, version,
             "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
@@ -456,30 +556,74 @@ class Neo4jGraph:
         return dict(namespace=namespace, version=version, fingerprint=fingerprint,
                     nodes=row["nodes"], edges=row["edges"], **content)
 
-    def list_nodes(self, namespace, version, kind=None, repository=None, limit=100):
+    def list_nodes(self, namespace, version, kind=None, repository=None, limit=100,
+                   cursor=None):
         if kind is not None and kind not in NODE_LABELS:
             raise ToolError("Unsupported node kind")
         if repository is not None and not isinstance(repository, str):
             raise ToolError("repository must be a string")
         limit = _limit(limit)
+        cursor = _after(cursor)
         _, rows = self._read(namespace, version,
             "MATCH (n:LCTNode {namespace:$namespace, version:$version}) "
             "WHERE ($kind IS NULL OR n.kind=$kind) AND "
-            "($repository IS NULL OR n.repository=$repository) "
-            "RETURN n.raw_json AS raw ORDER BY n.node_id LIMIT $fetch",
-            kind=kind, repository=repository, fetch=limit + 1)
-        return dict(nodes=[json.loads(row["raw"]) for row in rows[:limit]],
-                    has_more=len(rows) > limit)
+            "($repository IS NULL OR n.repository=$repository) AND "
+            "($cursor IS NULL OR n.node_id > $cursor) "
+            "RETURN n.node_id AS id, "
+            "CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw "
+            "ORDER BY id LIMIT $fetch",
+            kind=kind, repository=repository, cursor=cursor,
+            fetch=min(limit, PAGE_FETCH - 1) + 1)
+        return _bounded_page(rows, 'nodes', limit, cursor)
 
     def get_nodes(self, namespace, version, ids):
         ids = _ids(ids)
         _, rows = self._read(namespace, version,
             "MATCH (n:LCTNode {namespace:$namespace, version:$version}) "
-            "WHERE n.node_id IN $ids RETURN n.node_id AS id, n.raw_json AS raw", ids=ids)
+            "WHERE n.node_id IN $ids RETURN n.node_id AS id, "
+            "CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw", ids=ids)
+        if any(row['raw'] is None for row in rows):
+            raise ToolError('Single graph record exceeds reply byte limit')
         by_id = {row["id"]: json.loads(row["raw"]) for row in rows}
-        return [by_id[i] for i in ids if i in by_id]
+        result = [by_id[i] for i in ids if i in by_id]
+        if len(canonical(result).encode('utf-8')) > MAX_REPLY_DATA_BYTES:
+            raise ToolError('Node reply exceeds byte limit; use get_nodes_page')
+        return result
 
-    def get_relations(self, namespace, version, ids, types=None, direction="both", limit=100):
+    def get_nodes_page(self, namespace, version, ids, cursor=0):
+        ids = _ids(ids)
+        if type(cursor) is not int or cursor < 0 or cursor > len(ids):
+            raise ToolError('Invalid requested-ID cursor')
+        # The cursor is a position in the deduplicated requested IDs, including missing IDs.
+        selected = ids[cursor:cursor + min(PAGE_FETCH - 1, len(ids) - cursor)]
+        _, rows = self._read(namespace, version,
+            "MATCH (n:LCTNode {namespace:$namespace, version:$version}) "
+            "WHERE n.node_id IN $ids RETURN n.node_id AS id, "
+            "CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw",
+            ids=selected)
+        by_id = {row['id']: row['raw'] for row in rows}
+        items, consumed = [], 0
+        for item_id in selected:
+            if item_id in by_id:
+                if by_id[item_id] is None:
+                    if items:
+                        break
+                    raise ToolError('Single graph record exceeds reply byte limit')
+                item = json.loads(by_id[item_id])
+                trial = dict(nodes=[*items, item], has_more=True,
+                             next_cursor=cursor + consumed + 1)
+                if len(canonical(trial).encode('utf-8')) > MAX_REPLY_DATA_BYTES:
+                    if not items:
+                        raise ToolError('Single graph record exceeds reply byte limit')
+                    break
+                items.append(item)
+            consumed += 1
+        next_pos = cursor + consumed
+        more = next_pos < len(ids)
+        return dict(nodes=items, has_more=more, next_cursor=next_pos if more else None)
+
+    def get_relations(self, namespace, version, ids, types=None, direction="both", limit=100,
+                      cursor=None):
         ids = _ids(ids)
         if direction not in ("in", "out", "both"):
             raise ToolError("direction must be in, out or both")
@@ -487,28 +631,36 @@ class Neo4jGraph:
                                   any(t not in REL_TYPES for t in types)):
             raise ToolError("Unsupported relationship type")
         limit = _limit(limit)
+        cursor = _after(cursor)
         params = dict(ids=ids, types=list(types) if types is not None else None,
-                      direction=direction, fetch=limit + 1)
+                      direction=direction, cursor=cursor,
+                      fetch=min(limit, PAGE_FETCH - 1) + 1)
         _, internal = self._read(namespace, version,
             "MATCH (a:LCTNode {namespace:$namespace, version:$version})-[r]->"
             "(b:LCTNode {namespace:$namespace, version:$version}) "
             "WHERE type(r) IN $allowed AND ($types IS NULL OR type(r) IN $types) AND "
+            "($cursor IS NULL OR r.edge_id > $cursor) AND "
             "(($direction='out' AND a.node_id IN $ids) OR "
             "($direction='in' AND b.node_id IN $ids) OR "
             "($direction='both' AND (a.node_id IN $ids OR b.node_id IN $ids))) "
             "MATCH (e:LCTEdge {namespace:$namespace, version:$version, edge_id:r.edge_id}) "
-            "RETURN e.edge_id AS id, e.raw_json AS raw ORDER BY id LIMIT $fetch",
+            "RETURN e.edge_id AS id, "
+            "CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw "
+            "ORDER BY id LIMIT $fetch",
             **params, allowed=sorted(REL_TYPES))
         _, external = self._read(namespace, version,
             "MATCH (e:LCTEdge {namespace:$namespace, version:$version, internal:false}) "
             "WHERE ($types IS NULL OR e.kind IN $types) AND "
+            "($cursor IS NULL OR e.edge_id > $cursor) AND "
             "(($direction='out' AND e.source IN $ids) OR "
             "($direction='in' AND e.target IN $ids) OR "
             "($direction='both' AND (e.source IN $ids OR e.target IN $ids))) "
-            "RETURN e.edge_id AS id, e.raw_json AS raw ORDER BY id LIMIT $fetch", **params)
-        combined = {row["id"]: json.loads(row["raw"]) for row in [*internal, *external]}
+            "RETURN e.edge_id AS id, "
+            "CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw "
+            "ORDER BY id LIMIT $fetch", **params)
+        combined = {row['id']: row for row in [*internal, *external]}
         ordered = [combined[k] for k in sorted(combined)]
-        return dict(edges=ordered[:limit], has_more=len(ordered) > limit)
+        return _bounded_page(ordered, 'edges', limit, cursor)
 
 
 def main(argv=None):

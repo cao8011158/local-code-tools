@@ -6,7 +6,7 @@ import sys
 
 from .common import ToolError, config
 from .query import Query
-from .storage import attach_dense, build, estimate, recover
+from .storage import attach_dense, build, estimate, migrate_metadata, recover
 
 
 def main():
@@ -25,6 +25,14 @@ def main():
     commands.add_parser("estimate")
     s = commands.add_parser("status")
     s.add_argument("--refresh", action="store_true")
+    s = commands.add_parser("graph-evidence")
+    s.add_argument("--version")
+    s.add_argument("--offset", type=int, default=0)
+    s.add_argument("--limit", type=int, default=100)
+    s.add_argument("--max-bytes", type=int, default=100000)
+    s = commands.add_parser("migrate-metadata")
+    s.add_argument("--version", required=True)
+    s.add_argument("--expected-program-hash", required=True)
     for name in ("search-code", "search-docs"):
         s = commands.add_parser(name)
         s.add_argument("query")
@@ -78,6 +86,10 @@ def main():
             out = estimate(c)
         elif command == "status":
             out = core.index_status(**args)
+        elif command == "graph-evidence":
+            out = core.graph_evidence(**args)
+        elif command == "migrate-metadata":
+            out = migrate_metadata(c, **args)
         elif command == "search-code":
             out = core.search_code(**args)
         elif command == "search-docs":

@@ -108,7 +108,7 @@ def test_program_format_freshness_and_missing(sandbox):
     assert q.index_status(refresh=True)["freshness"]["status"] == "stale"
     folder, m = manifest(c)
     changed = dict(m, format=999)
-    atomic(folder / "manifest.json", changed)
+    atomic(folder / "summary.json", changed)
     assert Query(c).index_status()["status"] == "missing_or_incompatible"
     with pytest.raises(ToolError, match="incompatible"):
         Query(c).search_code("weight", mode="bm25")

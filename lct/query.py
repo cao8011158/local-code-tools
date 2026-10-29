@@ -17,7 +17,7 @@ from .common import ToolError, atomic, canonical, digest, inventory, load, now
 from .embedding import Embeddings
 from .extract import CODE_KINDS
 from .lexical import rank as lexical_rank
-from .storage import current, manifest, validate_folder
+from .storage import current, graph_sites, manifest, validate_folder
 
 
 class Query:
@@ -89,10 +89,18 @@ class Query:
             "dense_ready": m.get("dense_ready", False),
             "vector_chunks": m["vector_chunks"],
             "planned_vector_chunks": m.get("planned_vector_chunks", m["vector_chunks"]),
-            "graph": m["graph"],
+            "graph": dict(m["graph"], sites_available=m["graph"]["call_sites"],
+                          detail_tool="graph_evidence"),
             "incremental": m["incremental"],
             "embedding_run": m["embedding_run"],
         }
+
+    def graph_evidence(self, offset=0, limit=100, max_bytes=100000, version=None):
+        """Read an ordered page of call-site evidence without materializing all sites."""
+        if not 1 <= max_bytes <= 1000000:
+            raise ToolError("Invalid graph evidence byte limit")
+        folder, m = self.snapshot(version)
+        return graph_sites(folder, m, offset, limit, max_bytes)
 
     def conditions(self, kind, repositories, category=None, include_tests=False):
         """Filter in candidate generation, never after a small global TopK."""

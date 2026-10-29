@@ -13,6 +13,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 
+from .common import ToolError
 from .neo4j_graph import Neo4jGraph, _scope
 
 
@@ -72,30 +73,39 @@ def create_app(*, uri: str, user: str, password: str, database: str,
         try:
             data = await anyio.to_thread.run_sync(method, namespace, version, *args)
             return dict(namespace=namespace, version=version, fingerprint=fingerprint, data=data)
+        except ToolError as exc:
+            # Safe, bounded validation/size errors tell clients how to continue.
+            raise ValueError(str(exc)) from None
         except Exception:
             raise RuntimeError("Graph read unavailable") from None
 
     @server.tool(annotations=read_only)
     async def graph_status() -> dict:
-        """Get counts, source identity and unresolved graph sites for this snapshot."""
-        return await read(graph.snapshot_info)
+        """Get marker counts and identity. Use snapshot_evidence for detailed evidence."""
+        return await read(graph.snapshot_summary)
+
+    @server.tool(annotations=read_only)
+    async def snapshot_evidence(kind: str, cursor: str | None = None) -> dict:
+        """Page JSON fragments of graph or source; concatenate to retain all UNKNOWN reasons."""
+        return await read(graph.snapshot_evidence, kind, cursor)
 
     @server.tool(annotations=read_only)
     async def list_nodes(kind: str | None = None, repository: str | None = None,
-                         limit: int = 100) -> dict:
+                         limit: int = 100, cursor: str | None = None) -> dict:
         """List bounded nodes by kind and repository."""
-        return await read(graph.list_nodes, kind, repository, limit)
+        return await read(graph.list_nodes, kind, repository, limit, cursor)
 
     @server.tool(annotations=read_only)
-    async def get_nodes(ids: list[str]) -> dict:
-        """Get nodes in requested ID order, omitting unknown IDs."""
-        return await read(graph.get_nodes, ids)
+    async def get_nodes(ids: list[str], cursor: int = 0) -> dict:
+        """Page requested IDs in order, omitting missing IDs; cursor is an ID position."""
+        return await read(graph.get_nodes_page, ids, cursor)
 
     @server.tool(annotations=read_only)
     async def get_relations(ids: list[str], types: list[str] | None = None,
-                            direction: str = "both", limit: int = 100) -> dict:
+                            direction: str = "both", limit: int = 100,
+                            cursor: str | None = None) -> dict:
         """Get bounded incoming and/or outgoing relationships for node IDs."""
-        return await read(graph.get_relations, ids, types, direction, limit)
+        return await read(graph.get_relations, ids, types, direction, limit, cursor)
 
     app = server.streamable_http_app()
     sdk_lifespan = app.router.lifespan_context

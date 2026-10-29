@@ -52,17 +52,27 @@ def test_neo4j_small_graph(tmp_path, monkeypatch):
             graph.get_nodes(namespace, "wrong-version", [nodes[0]["node_id"]])
         info = graph.import_snapshot(namespace, version, snapshot)
         assert info["nodes"] == 17 and info["edges"] == 30
-        assert graph.snapshot_info(namespace, version)["graph"] == m["graph"]
+        assert graph.snapshot_info(namespace, version)["graph"] == snapshot["graph"]
         assert graph.snapshot_info(namespace, version)["source"]["repositories"] == m["repositories"]
-        assert graph.list_nodes(namespace, version, limit=500) == dict(nodes=nodes, has_more=False)
+        page = graph.list_nodes(namespace, version, limit=500)
+        listed = page['nodes']
+        while page['has_more']:
+            page = graph.list_nodes(namespace, version, limit=500, cursor=page['next_cursor'])
+            listed.extend(page['nodes'])
+        assert listed == nodes
         assert graph.list_nodes(namespace, version, limit=1)["has_more"] is True
         assert graph.get_nodes(namespace, version, [n["node_id"] for n in nodes]) == nodes
         for kind in ("module", "class", "function"):
             assert graph.list_nodes(namespace, version, kind=kind, limit=500)["nodes"] == [
                 n for n in nodes if n["kind"] == kind
             ]
-        assert graph.list_nodes(namespace, version, repository="small-graph-mcp",
-                                limit=500)["nodes"] == nodes
+        page = graph.list_nodes(namespace, version, repository="small-graph-mcp", limit=500)
+        repository_nodes = list(page['nodes'])
+        while page['has_more']:
+            page = graph.list_nodes(namespace, version, repository="small-graph-mcp",
+                                    limit=500, cursor=page['next_cursor'])
+            repository_nodes.extend(page['nodes'])
+        assert repository_nodes == nodes
         for n in nodes:
             for direction in ("in", "out", "both"):
                 for kind in ("CALLS", "CONTAINS", "INHERITS", "REFERENCES", "IMPORTS",
@@ -72,9 +82,10 @@ def test_neo4j_small_graph(tmp_path, monkeypatch):
                         e.get("target") == n["node_id"] if direction == "in" else
                         n["node_id"] in (e.get("source"), e.get("target"))
                     )]
-                    assert graph.get_relations(namespace, version, [n["node_id"]],
-                                               [kind], direction, 500) == dict(
-                                                   edges=expected, has_more=False)
+                    page = graph.get_relations(namespace, version, [n["node_id"]],
+                                               [kind], direction, 500)
+                    assert page['edges'] == expected[:len(page['edges'])]
+                    assert page['has_more'] == (len(page['edges']) < len(expected))
         assert any(e.get("unknown_origin") is True and e.get("complete") is False
                    for e in edges)
         assert any(s.get("unknown_origin") is True and s.get("complete") is False

@@ -274,3 +274,56 @@ Full actual stdio MCP acceptance failed on first index_status request after60s. 
 ## 23. Preserved full dense package and final review disposition
 
 Drive2part upload/download/reassembly hashes pass; supportedrestore without original data/sources passes identical26recall comparisons,11query rankings,BM25and3sourcechecks. No additionalAPI. Fullarchive182274492bytes SHA2562e7a704c60ada3529ef9759761afd390e348adcd37271694abf4aec5c95901e3. See dense-acceptance/DOWNLOAD_AND_RESTORE.md. Final thirdreview changes_required dueB3-005; earlier code-checkpass is not fullfeatureapproval. GateHUMAN_REQUIRED. No merge, no furtherproductionfix. Requesthumanapprove narrow LCTstatuspayloadrepair; no graph/vectorregeneration needed.
+
+
+## 查询局部性专项整改：启动
+
+已更新 locality-review 的强制证据要求。按用户明确授权重新打开此前阻塞；保留原三轮审阅历史。并行修复 LCT 元数据读取与 Neo4j 状态/有界查询，复用现有图和向量。此时尚未完成代码修改、测试或推送。
+
+
+## 查询局部性整改：Neo4j 开发完成（尚未推送）
+
+# Neo4j locality repair (developer evidence)
+
+Scope: `lct/neo4j_graph.py`, `lct/neo4j_mcp.py` and related Neo4j tests. The SQLite catalog remains authoritative; import payload fingerprint and complete offline `snapshot_info` are unchanged. `load_snapshot` calls the explicit full `graph_detail`/`source_files` helpers after full snapshot validation.
+
+| Public entry | Read/parse path and cold/warm evidence | Reply and continuation | Unrelated evidence comparison / remaining check |
+| --- | --- | --- | --- |
+| HTTP `graph_status` | `read → snapshot_summary → _read`: complete marker fingerprint and one marker row, zero `LCTChunk` rows, no graph/source JSON parse. No cache; synthetic cold and warm calls each issue one summary query after the marker check. | Compact counts/hashes, `storage_complete` (not analyzer completeness), source fingerprint and repository count on new imports. Older imported markers may return null identity fields. | Synthetic 300-chunk marker has exactly the same one-row work; real-service byte counters pending owner run. |
+| HTTP `snapshot_evidence` | `read → snapshot_evidence → _read`: marker storage format and at most two chunk rows, with an 8192-character server-side substring; no full metadata parse. Legacy JSON property uses substring. | JSON fragments with `has_more` and `next_cursor=ordinal:character_offset`; concatenate in cursor order then parse to retain every UNKNOWN reason and `complete` flag. | Large unrelated metadata only adds requested fragment pages; real chunk integrity/full proof remains explicit offline `snapshot_info`. |
+| HTTP `list_nodes` | `read → list_nodes → _read`: marker plus ordered node query, at most 17 selected raw rows. Cypher suppresses raw values over 65536 characters. | 64 KiB canonical data envelope, stable node-ID cursor, `has_more`, explicit single-item error. | Synthetic 23 nodes of ~8 KiB paginate without loss/duplication; ASGI wrapped reply asserted under 512 KiB. |
+| HTTP `get_nodes` | `read → get_nodes_page → _read`: marker and at most 16 selected IDs; direct Python `get_nodes` remains a list and fails if it exceeds 64 KiB. | Requested-ID-position cursor includes missing IDs; 64 KiB data envelope, oversized item explicit error. | Synthetic missing and present IDs preserve order and exact continuation. |
+| HTTP `get_relations` | `read → get_relations → _read`: marker checks and two ordered native/external queries, at most 17 rows from each; raw oversized values suppressed. | Merge by edge ID, page at 64 KiB with last edge-ID cursor. | Synthetic interleaved native/external UNKNOWN edges retain reasons and `complete=false`, no loss or duplicate. |
+
+All cursors are stateless within the fixed HTTP namespace/version and must be reused with the same filters/ID list and direction; they are not immutable result snapshots across a concurrent different import. Since completed scopes are immutable by import contract, normal continuation is stable. A single record beyond the budget produces a clear error, not silent omission. An explicit full `snapshot_info` still reads all chunks for offline inspection; normal status never invokes it. Marker query itself validates complete scope on every request. The new identity fields are derived during import and belong to that immutable marker; failed import remains hidden.
+
+Validation: `.venv/bin/python -m pytest -q tests/test_neo4j_reply_locality.py tests/test_neo4j_http_review_independent.py tests/test_neo4j_fingerprint.py tests/test_neo4j_http_mcp.py` in the staged directory: 15 passed, 1 skipped (real service URI absent). Synthetic `_read` checks do not prove real Neo4j storage/network bytes; the ASGI wrapper test does exercise actual MCP serialization but uses a fake backend. The owner coordinates real service acceptance separately. No full business graph was imported or parsed in this task.
+
+
+## 查询局部性整改：LCT 开发完成（尚未推送）
+
+# LCT query locality repair — developer report
+
+Scope: LCT storage, query, CLI/MCP, management, tests and metadata format docs. Baseline remote `aeed8fd7cc381e9884d9602559e54acc207a5f28`; this is an uncommitted shared workspace, not an independent review or pushed result. Original three-round review history remains unchanged.
+
+Root cause: `Query.snapshot` parsed the full manifest for every public request; `index_status` also serialized `graph.sites` in full. The cold path additionally ran a catalog-wide node count. A real manifest reaches roughly 61 MiB because it embeds all graph sites.
+
+Change: New builds write a small `summary.json`, indexed `graph-sites.sqlite` with ordered full site JSON, and `source-files.json` for complete source inventory. The summary retains version/config/program/schema identity, repository revisions, source fingerprint, graph totals, partitions, counts and checksums/sizes. Query reads the summary only and checks artifact sizes/sidecars once per Query instance/version; publication, recovery, backup and restore retain full hashes, SQLite integrity and count validation. `Query.graph_evidence` plus CLI/MCP tool returns ordered pages with `total` and `next_offset`, a 1 MiB maximum response budget, and explicit oversized-entry error. Explicit `storage.graph_detail` and `storage.source_files` reconstruct canonical full Neo4j evidence. Attach-dense copies frozen evidence without parsing sources. `migrate_metadata` requires version and exact old program hash, validates old artifacts and config, prepares sidecars, then publishes summary last under update lock without changing original manifest bytes, version ID, or pointer. Unmigrated versions instruct migration; backup refuses to omit a complete unmigrated retained version. Restore checks migrated summary against original manifest/evidence, including immutable predecessor program/config hashes, and rebinds compatible summaries. A backup→restore→backup→restore regression preserves full graph evidence.
+
+Files: `lct/storage.py`, `lct/query.py`, `lct/management.py`, `lct/cli.py`, `lct/mcp_server.py`; `tests/test_metadata_locality.py`, `tests/test_lifecycle.py`, `tests/test_attach_dense.py` (unchanged), `tests/test_portable_restore.py`, `tests/test_artifact_membership.py`, `tests/test_small_graph_mcp_e2e.py`; `docs/METADATA_LAYOUT.md`, `docs/ARTIFACT_MEMBERSHIP.md`.
+
+Evidence (synthetic, not a real-scale claim): `pytest -q tests/test_metadata_locality.py tests/test_lifecycle.py tests/test_attach_dense.py tests/test_portable_restore.py tests/test_artifact_membership.py tests/test_small_graph_mcp_e2e.py` → 24 passed in 6.03s including migration, portable double-restore and actual stdio MCP; after final byte-envelope guard, `pytest -q tests/test_metadata_locality.py tests/test_artifact_membership.py` → 9 passed in 1.32s. New locality test adds 400 unrelated 4-KiB site records, migrates a legacy full manifest, asserts original manifest byte identity, full graph/source equality, original version/pointer identity and idempotence. Actual `Path.read_text` counts over two distinct cold Query instances show only `summary.json`/current/freshness, never `manifest.json`/source-files; combined summary read <40 KiB and each status output <10 KiB. Actual stdio MCP exercise verifies bounded graph evidence retrieval and semantic UNKNOWN/possible reasons. Full suite and copied-real-data migration/byte measurement remain for root review.
+
+Read chain: `index_status`/`search_code`/`search_docs`/`get_nodes`/`get_relations` → `Query.snapshot` → pointer, `summary.json`, artifact lstat/sidecars on first Query/version; no catalog count. `graph_evidence` → same snapshot → indexed ordinal range on graph-sites SQLite, one row at a time. `neo4j_graph.load_snapshot` should use explicit `graph_detail`/`source_files` after full validation; root's separate Neo4j agent owns that integration.
+
+Validity: Immutable version directory owns summary/evidence, all build/attach/migration write entries before summary publication, restore rebinds matching compatible versions, and original source fingerprints/graph site objects remain unchanged. Query cursor versions continue to name the same frozen snapshot. Unrelated source changes do not invalidate snapshot; explicit refresh inventories source. Full recovery/backup/restore retain integrity checks. Limit: on-demand full graph import intentionally reads all 61 MiB; an individual evidence page may need to read one oversized site before rejecting it. Real copied index, old retained versions and complete fast suite are not yet independently verified.
+
+
+### 提交前整合检查
+
+真实 Neo4j 首轮整合检查为 8 failed、27 passed：6 项由新增摘要字段错误假定输入必有源码身份字段引起；2 项为旧测试仍把完整图等同于摘要、或忽略分页。开发子 Agent 已恢复可选字段兼容，并改为完整重组/翻页后比较全部数据，正在复核。未把这次失败记为通过，也尚未开始固定远端提交的正式独立审阅。
+
+
+## 查询局部性整改：提交前整合通过
+
+真实 Neo4j 环境下，全仓库加 3 项独立边界测试为 **475 passed、1 skipped，118.74 秒**。原八项失败已消除。尚未完成固定远端提交的正式审阅和真实业务索引迁移验收。日志：query-locality-repair/prepush-all.log。

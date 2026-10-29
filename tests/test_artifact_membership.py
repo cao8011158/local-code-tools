@@ -40,7 +40,7 @@ def test_disappearing_incidental_file_is_not_an_artifact(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Path, "iterdir", disappearing)
     m = storage.build(c, lexical_only=True)
-    assert set(m["artifacts"]) == {"catalog.sqlite"}
+    assert set(m["artifacts"]) == {"catalog.sqlite", "graph-sites.sqlite", "source-files.json"}
     assert storage.current(c) == m["version"]
 
 
@@ -107,7 +107,8 @@ def test_backup_excludes_foreign_files_and_restores(tmp_path):
         prefix = "data/versions/" + first["version"] + "/"
         members = {name.removeprefix(prefix) for name in z.namelist()
                    if name.startswith(prefix)}
-    assert members == {"catalog.sqlite", "manifest.json", "build-state.json"}
+    assert members == {"catalog.sqlite", "graph-sites.sqlite", "source-files.json",
+                       "manifest.json", "summary.json", "build-state.json"}
     target = tmp_path / "restored"
     restore(c, archive, target)
     assert not (target / prefix / "foreign.log").exists()

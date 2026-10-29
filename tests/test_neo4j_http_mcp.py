@@ -121,7 +121,7 @@ def test_real_http_mcp_read_only(tmp_path, monkeypatch):
                     await session.initialize()
                     tools = await session.list_tools()
                     assert {t.name for t in tools.tools} == {
-                        "graph_status", "list_nodes", "get_nodes", "get_relations"}
+                        "graph_status", "snapshot_evidence", "list_nodes", "get_nodes", "get_relations"}
                     for tool in tools.tools:
                         assert "namespace" not in tool.inputSchema.get("properties", {})
                         assert "version" not in tool.inputSchema.get("properties", {})
@@ -142,12 +142,28 @@ def test_real_http_mcp_read_only(tmp_path, monkeypatch):
 
                     status = await call("graph_status")
                     assert (status["nodes"], status["edges"]) == (17, 30)
-                    assert status["graph"] == snapshot["graph"]
+                    assert status['storage_complete'] is True
+                    fragments, cursor = [], None
+                    while True:
+                        page = await call('snapshot_evidence', {'kind': 'graph', 'cursor': cursor})
+                        fragments.append(page['fragment'])
+                        if not page['has_more']:
+                            break
+                        cursor = page['next_cursor']
+                    assert json.loads(''.join(fragments)) == snapshot['graph']
                     for kind in ("module", "class", "function", "documentsection"):
                         listed = await call("list_nodes", {"kind": kind, "limit": 500})
                         assert listed["nodes"] == [n for n in nodes if n["kind"] == kind]
                     assert (await call("list_nodes", {"limit": 1}))["has_more"]
-                    assert await call("get_nodes", {"ids": [n["node_id"] for n in nodes]}) == nodes
+                    selected = [n['node_id'] for n in nodes]
+                    found, cursor = [], 0
+                    while True:
+                        page = await call('get_nodes', {'ids': selected, 'cursor': cursor})
+                        found.extend(page['nodes'])
+                        if not page['has_more']:
+                            break
+                        cursor = page['next_cursor']
+                    assert found == nodes
                     caller = next(n for n in nodes if n["qualname"] == "caller")
                     relations = await call("get_relations", {
                         "ids": [caller["node_id"]], "types": ["CALLS"], "direction": "out"})
@@ -155,7 +171,7 @@ def test_real_http_mcp_read_only(tmp_path, monkeypatch):
                                 e["source"] == caller["node_id"]]
                     assert relations["edges"] == expected
                     assert any(e["unknown_origin"] and not e["complete"] for e in expected)
-                    assert await call("get_nodes", {"ids": ["nonexistent"]}) == []
+                    assert (await call("get_nodes", {"ids": ["nonexistent"]}))['nodes'] == []
                     bad = await session.call_tool("get_nodes", {
                         "ids": [caller["node_id"]], "namespace": "other", "version": "other"})
                     if not bad.isError:
@@ -169,4 +185,9 @@ def test_real_http_mcp_read_only(tmp_path, monkeypatch):
     asyncio.run(exercise())
     with Neo4jGraph(uri, user, password, database) as graph:
         assert graph.snapshot_info(namespace, version)["fingerprint"] == snapshot["fingerprint"]
-        assert graph.list_nodes(namespace, version, limit=500)["nodes"] == nodes
+        page = graph.list_nodes(namespace, version, limit=500)
+        listed = list(page['nodes'])
+        while page['has_more']:
+            page = graph.list_nodes(namespace, version, limit=500, cursor=page['next_cursor'])
+            listed.extend(page['nodes'])
+        assert listed == nodes

@@ -41,7 +41,8 @@ def test_external_mixed_limits_native_and_literal_scope(graph):
                     e['target']=='a' if direction=='in' else 'a' in (e['source'], e['target']))]
         for limit in (1, 2, 5):
             assert graph.get_relations(ns, 'v1', ['a'], direction=direction, limit=limit) == {
-                'edges': expected[:limit], 'has_more': len(expected)>limit}
+                'edges': expected[:limit], 'has_more': len(expected)>limit,
+                'next_cursor': expected[limit-1]['edge_id'] if len(expected)>limit else None}
     assert graph.get_relations(ns, 'v1', ['external:pkg'])['edges'] == p['edges'][1:3]
     assert graph.get_relations(ns, 'v1', ['a'], types=[])['edges'] == []
     assert graph.get_nodes(ns, 'v1', ['b', 'missing', 'a', 'b']) == list(reversed(p['nodes']))
