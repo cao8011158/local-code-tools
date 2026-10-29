@@ -220,3 +220,34 @@ RESTORE_001_REVIEW.md 明确记载 Batch 2 第 3/3 轮已通过。根据 batch-d
 固定实现提交`caa9d1ee6c54187580061eb90932e72d578e83e4`，独立副本117个文件匹配远端Git blob。真实Neo4j 5.26.0（384MiB堆）快速全仓库回归：**462 passed、1 skipped、1 warning，72.47秒，退出0**。主Agent两项原生边界覆盖只有完整标记而无说明数据的启动、未完成/缺失/跨命名空间拒绝。既有认证、关闭驱动、graph_status完整读取及分批导入回归通过。服务已停止。
 
 本次是用户明确继续后批准的Batch2窄范围额外审阅，保留原3/3历史，不重置；本次通过，B3-004关闭。Batch3仍2/3，未完成真实图、向量及恢复验收，未合并。没有更换Embedding、重建真实图或付费API调用。报告见MCP_FINGERPRINT_REVIEW.md。
+
+## 18. 恢复Batch3真实数据验收（2026-10-29）
+
+工具固定提交5c413c4bceed0093f3054a913199607b74ae4495，分支不变；Batch3正式审阅2/3。用户要求继续；本阶段先恢复固定源码、离线graph/BM25构建并持久保存，再测试真实Neo4j分批导入与MCP。没有授权新Embedding计费预算，本阶段不发请求。
+
+Google Drive既有LCT-Code-Indexes文件夹已重新定位，只有Batch1/2小图与审阅包，没有之前丢失的完整图。恢复源码与验收脚本准备分别交GPT-6 SOL medium子Agent；主Agent核对固定版本、产物与恢复。不会将恢复的源码副本伪装成Git checkout，不修改三个业务仓库。
+
+### 18.1 源码恢复与验收脚本准备完成
+
+源码子Agent恢复445文件/7,295,748字节/286Python，逐文件Git blob与SHA256校验，inventory成员校验通过，无缺失；三个仓库固定提交保持不变，源码指纹12fe107f9c97d29261ea06cfd60c5c0e72e0a6a93aac9abb3af63c156de052fd。不是Git checkout，未修改业务仓库。验收脚本子Agent完成参数化真实图验收，只有语法编译验证，尚未执行；主Agent核对后将运行。尚未提交新证据，未合并。
+
+### 18.2 真实图、MCP与Drive恢复验收完成（仅图/BM25）
+
+工具固定5c413c4bceed0093f3054a913199607b74ae4495，本阶段未改生产代码。一次离线建图得到5957节点、42492逻辑关系、22416调用位置；解析/构建记录234.37秒，CLI总265.03秒。与旧统计42459关系不同，旧完整文件已丢失，不能声称已完成逐项差异归因；10343个UNKNOWN位置及analysis_limited=true保留。
+
+原工作目录非空SQLite journal使正式备份拒绝。主库hash、大小和只读immutable完整性均通过，原现场未删，已另存Drive诊断包；在隔离目录使用核验产物和WAL感知缓存副本，通过正式restore与backup。
+
+真实Neo4j分批导入24.305秒，235批；全部节点/边/原生关系/图说明/源身份读回一致，重复导入通过。HTTP阶段先因代理环境缺socksio失败，保存原FAIL；仅清理本地验收子进程代理后重跑MCP四工具通过16.67秒，无重新导入，服务已关闭。
+
+67.4MB正式图/BM25工具包已上传Drive、重新下载且SHA256一致。在原源码和原数据目录缺席时完成新目录恢复，模块/类/函数/文档检索及源码摘要、关系结果一致，原目录已恢复。向量/HNSW/混合检索尚未生成，无付费请求，未合并，Batch3审阅仍2/3。完整证据见business-resume/ACCEPTANCE.md。
+
+
+## 2026-10-29 next-stage readiness
+
+Real graph, BM25, Neo4j import, HTTP MCP and downloaded-package relocation checks are complete for the frozen snapshot; this is not final Batch3 approval. Vector preparation:4070 chunks,4068 unique inputs,79 document batches excluding retries,11 query cases. Ten cases have labels; the RE case has two matching nodes and mixed has no relevance label, so neither may be silently treated as a unique gold answer. Configured historical price gives USD0.6098874 conservative estimate, not measured provider tokens/current quote. No paid request made. Current runtime credential absent; bounded paid run remains pending. Formal review count2/3, no merge.
+
+## 19. Dense prerequisite preparation — 2026-10-29
+
+User authorized Voyage run ceiling USD3 (supersedes USD1). Existing program enforces USD2/15M conservative units/400 attempts; retain stricter cap instead of changing common.config. Official Voyage pricing checked USD0.12/M for voyage-code-4. Credential only passed to no-echo process environment, excluded from artifacts. Cache-only wrapper reads verified frozen catalog and uses existing Embeddings.get_many, no source analysis.
+
+Developer preparation found storage.build unconditionally re-enters inventory/extract/Graph.build. There is no supported dense-attachment command. Within current Batch3 scope, developer assigned minimal attach_dense/CLI plus focused tests: expected-version fence, new candidate, unchanged graph/source/catalog, no source analysis, atomic publish and old-version retention. Query/embedding/parser unchanged. Implementation pending; no new formal review counted (Batch3 remains2/3). Paid cache generation concurrent but isolated from development test data.

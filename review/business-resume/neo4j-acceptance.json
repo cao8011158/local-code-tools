@@ -1,0 +1,86 @@
+{
+  "namespace": "batch3-real-staged-20261029-7a235bf36f",
+  "version": "20261029T111748-7a235bf36f",
+  "checks": [
+    "sqlite_validated_and_bounds",
+    "fresh_namespace",
+    "scope_refusal_before_import",
+    "native_import",
+    "idempotent_reimport",
+    "metadata_roundtrip_and_filters",
+    "exact_full_database_roundtrip_and_publication",
+    "counts_and_wrong_scope_refusal"
+  ],
+  "seconds": {
+    "sqlite_validated_and_bounds": 10.176,
+    "fresh_namespace": 1.906,
+    "scope_refusal_before_import": 0.218,
+    "native_import": 24.305,
+    "idempotent_reimport": 1.951,
+    "metadata_roundtrip_and_filters": 4.411,
+    "exact_full_database_roundtrip_and_publication": 3.126,
+    "counts_and_wrong_scope_refusal": 0.013
+  },
+  "certification": "limited: UNKNOWN evidence and analysis_limited remain",
+  "preflight": {
+    "nodes": 5957,
+    "edges": 42492,
+    "sites": 22416,
+    "files": 445,
+    "manifest_edges": {
+      "CALLS": 22452,
+      "CONTAINS": 5954,
+      "IMPORTS": 5286,
+      "REFERENCES": 8792,
+      "WRAPS": 8
+    },
+    "unknown_sites": 10343,
+    "unknown_edges": 10379,
+    "max_raw_record_bytes": 7843,
+    "graph_json_bytes": 61238037,
+    "fingerprint": "db11a1db19ed3f524ba8309184ce6ccc27f44531830f83a0a467736d5150d568",
+    "analysis_limited": true,
+    "source_heads": {
+      "agentic-trpg": "ac2a0e41ec99bcc78d4fa608287fb4e7ea7fd436",
+      "trpg-state-machine": "4166e52f0809ae80ba1694295bb0739acec76bd8",
+      "trpg-rules-engine": "ab276fffc5ff02a973e1c767543e712dd0897451"
+    },
+    "kinds": {
+      "repository": 3,
+      "documentsection": 1888,
+      "module": 286,
+      "function": 2935,
+      "class": 845
+    }
+  },
+  "selected": {
+    "node_ids": [
+      "trpg-rules-engine:apps/demo/src/nat20_demo/__init__.py:module:nat20_demo#1",
+      "trpg-rules-engine:apps/demo/src/nat20_demo/replay.py:class:FightLog#1.1",
+      "trpg-rules-engine:apps/demo/src/nat20_demo/app.py:function:_act_noop_response#1.1"
+    ],
+    "calls_source": "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/build_spec.py:function:_ability_scores#1.1",
+    "calls_count": 16
+  },
+  "neo4j_settings": {
+    "dbms.memory.transaction.total.max": "716.80MiB",
+    "server.memory.heap.max_size": "384.00MiB",
+    "server.memory.pagecache.size": "128.00MiB"
+  },
+  "batches": {
+    "count": 235,
+    "max_records": 500,
+    "max_bytes": 1048043,
+    "stages": {
+      "node": 15,
+      "edge": 85,
+      "native_relation": 56,
+      "chunk": 79
+    }
+  },
+  "native_relationships": 27138,
+  "boundary_logical_edges": 15354,
+  "result": "FAIL",
+  "error": "ImportError: Using SOCKS proxy, but the 'socksio' package is not installed. Make sure to install httpx using `pip install httpx[socks]`.",
+  "elapsed_seconds": 46.874
+}

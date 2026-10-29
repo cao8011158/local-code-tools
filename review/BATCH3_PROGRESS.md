@@ -1,3 +1,13 @@
+# Latest checkpoint — real lexical graph accepted, dense pending
+
+Production fixed at 5c413c4bceed0093f3054a913199607b74ae4495. Version20261029T111748-7a235bf36f:5957 nodes/42492 edges. Actual Neo4j bounded import, four HTTP MCP tools, Drive upload/download hash check and restore without original sources/data passed. No production modifications in this phase; formal Batch3 reviews remain2/3. No merge. Sidecar rejection/recovery and parser incompleteness are explicitly documented in business-resume/ACCEPTANCE.md.
+
+Normal lexical toolkit package: Drive18fmZ5EqHeGwAmWPEeshf2Z0nw1VIDMO4,67417228 bytes,SHA256 f0bdb2309c9fc349207593bbd45d1ed6dce2df6cb967ee5516fa127acd96ae01. No vectors yet. Source capture also persisted. Do not reparse the sources for the next stage.
+
+Next: authorized bounded Voyage embedding, HNSW/exact and RRF quality checks, final package acceptance and remaining independent review. Current runtime has no VOYAGE_API_KEY. Offline estimate4068 unique inputs/79 batches without retries; configured historical-price estimate USD0.6098874 is not current billing quote. Paid calls0. Existing task record requires bounded run budget before paid execution.
+
+## Historical checkpoints (preserved)
+
 # Latest checkpoint — startup prerequisite repaired
 
 B3-004 closed at `caa9d1ee6c54187580061eb90932e72d578e83e4`, independently reviewed after user-authorized narrow Batch2 reopening. Native full suite462 passed/1 skipped,72.47s. Preserve original Batch2 3/3 plus this one authorized extra review; Batch3 remains2/3. No merge. Next: real business graph regeneration, durable persistence before import, actual import/retrieval/restore acceptance. No paid API in this repair. See MCP_FINGERPRINT_REVIEW.md.

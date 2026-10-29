@@ -32,3 +32,8 @@ Use GPT-6 SOL / medium developer; root independent review after push. Start with
 ## B3-004 reopening completed (2026-10-29)
 
 User approved continuing the explained narrow startup repair. Implementation caa9d1ee6c54187580061eb90932e72d578e83e4 passed one authorized additional Batch2 review after prior3/3; do not reset history. B3-004 closed. Batch3 remains2/3. Native full regression462 passed/1 skipped. Identity/general provider migration and automated retention remain outside this repair. Earlier pause wording above is historical and superseded for B3-004 only.
+
+
+## 2026-10-29 next-stage readiness
+
+Real graph, BM25, Neo4j import, HTTP MCP and downloaded-package relocation checks are complete for the frozen snapshot; this is not final Batch3 approval. Vector preparation:4070 chunks,4068 unique inputs,79 document batches excluding retries,11 query cases. Ten cases have labels; the RE case has two matching nodes and mixed has no relevance label, so neither may be silently treated as a unique gold answer. Configured historical price gives USD0.6098874 conservative estimate, not measured provider tokens/current quote. No paid request made. Current runtime credential absent; bounded paid run remains pending. Formal review count2/3, no merge.

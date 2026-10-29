@@ -1,0 +1,71 @@
+{
+  "version": "20261029T111748-7a235bf36f",
+  "paid_requests": 0,
+  "chunks": 4070,
+  "unique_inputs": 4068,
+  "document_bound": 5082395,
+  "batches_without_retries": 79,
+  "max_input_bound": 22368,
+  "query_count": 11,
+  "query_bound": 1669,
+  "configured_price_per_million_usd": 0.12,
+  "label_presence": [
+    {
+      "id": "Q01:zh",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "Q01:expanded",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "Q05:zh",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "Q05:expanded",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "Q30:zh",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "Q30:expanded",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "module",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "class",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "identifier",
+      "label_matches": 1,
+      "has_label": true
+    },
+    {
+      "id": "RE",
+      "label_matches": 2,
+      "has_label": true
+    },
+    {
+      "id": "mixed",
+      "label_matches": 0,
+      "has_label": false
+    }
+  ],
+  "limitation": "Configured historical price only, not current billing quote; conservative byte bound, not provider measured tokens. No relevance evaluation yet.",
+  "configured_price_estimate_usd": 0.6098874
+}

@@ -1,0 +1,51 @@
+{
+  "version": "20261029T111748-7a235bf36f",
+  "source_fingerprint": "12fe107f9c97d29261ea06cfd60c5c0e72e0a6a93aac9abb3af63c156de052fd",
+  "program_hash": "59c3b55f4f41d7925172042d31236b8064e9a655895ed06db942ff3d0655b4fc",
+  "repositories": {
+    "agentic-trpg": "ac2a0e41ec99bcc78d4fa608287fb4e7ea7fd436",
+    "trpg-state-machine": "4166e52f0809ae80ba1694295bb0739acec76bd8",
+    "trpg-rules-engine": "ab276fffc5ff02a973e1c767543e712dd0897451"
+  },
+  "graph_sha256": "1b220e9c80aca289ba2a7c86ffcf09d0a2cae9874310c96cd4bb2ebd2951e13b",
+  "artifacts": {
+    "catalog.sqlite": "7d260089cb4cfa45f4105509cb10283bbc2fd48504b54cebfad92ff61e2508e4"
+  },
+  "dense_ready": false,
+  "searches": {
+    "module": [
+      "trpg-state-machine:src/trpg_state_machine/environment_commands.py:module:trpg_state_machine.environment_commands#1",
+      "trpg-state-machine:src/trpg_state_machine/__init__.py:module:trpg_state_machine#1",
+      "trpg-state-machine:src/trpg_state_machine/environment.py:module:trpg_state_machine.environment#1",
+      "trpg-state-machine:src/trpg_state_machine/environment_models.py:module:trpg_state_machine.environment_models#1",
+      "trpg-state-machine:src/trpg_state_machine/environment_versions.py:module:trpg_state_machine.environment_versions#1"
+    ],
+    "class": [
+      "trpg-state-machine:src/trpg_state_machine/commands.py:class:TypedCommand#1.1",
+      "trpg-state-machine:src/trpg_state_machine/environment.py:class:EnvironmentService#1.1",
+      "trpg-state-machine:src/trpg_state_machine/environment.py:class:EnvironmentHeightSegment#1.1",
+      "trpg-state-machine:src/trpg_state_machine/environment_models.py:class:EnvironmentSceneFacts#1.1",
+      "trpg-state-machine:src/trpg_state_machine/environment_commands.py:class:BatchEnvironment#1.1"
+    ],
+    "function": [
+      "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_snapshot.py:function:capture_evaluation_snapshot#1.1",
+      "trpg-state-machine:src/trpg_state_machine/mechanics.py:function:snapshot_digest#1.1",
+      "trpg-state-machine:src/trpg_state_machine/package.py:function:_legacy_audit_foundation#1.1",
+      "trpg-state-machine:examples/spatial_world.py:function:state#1.1",
+      "trpg-state-machine:src/trpg_state_machine/combat.py:function:validate_foundation#1.1"
+    ],
+    "docs": [
+      "trpg-rules-engine:docs/dev/stateless-evaluation.md:documentsection:Stateless rule evaluation: current local contract / Versions and breaking migration#1.0",
+      "agentic-trpg:docs/MODULE_CONTRACTS.md:documentsection:Agentic TRPG — Module Contracts（目标架构与 MVP） / 4. Combat Handler / 领域 → Rule Engine：RuleEvaluationRequest（P0） / 4.2 StateSnapshot：CombatSnapshot / NonCombatSnapshot `[DECIDED; PARTIALLY IMPLEMENTED]`#1.0",
+      "trpg-state-machine:docs/SM10_VERSIONED_STATE.md:documentsection:SM-10: versioned authoritative mechanical state / Unique field ownership#1.0",
+      "agentic-trpg:docs/reviews/agentic-trpg-architecture-contracts-2026-10-17-v0.4.md:documentsection:Agentic TRPG 架构审查与组件接口契约草案 / 7 对外接口契约 / C05 StateMachine → Rule Engine 求值#1.0",
+      "trpg-rules-engine:docs/dev/rf-history-free-evaluation.md:documentsection:RF-RE1–RF-RE4: history-free evaluation and modular SM integration / Actual, current and target contracts#1.0"
+    ]
+  },
+  "sources": {
+    "trpg-state-machine:src/trpg_state_machine/environment_commands.py:module:trpg_state_machine.environment_commands#1": "e255ae1d0b5d37cbccde04fa3833fa897dbce0f9f4a82d9d811fb106e53b3770",
+    "trpg-state-machine:src/trpg_state_machine/commands.py:class:TypedCommand#1.1": "dd6f1232d9a5143f4623a2deec1d5eddc843b2bf25c0af77733182137b1ad555",
+    "trpg-rules-engine:packages/dnd5e-engine/src/dnd5e_engine/evaluation_snapshot.py:function:capture_evaluation_snapshot#1.1": "7fa5ae9d8e5532b68f2a04abcf06fcc1c0bece651a7735b3a7510d13bb9ef315"
+  },
+  "relations_sha256": "3294386f51012615cf242a298a9b19e3ac7ab9abc3871fb8c4b5985c9307c36e"
+}
