@@ -1,0 +1,26 @@
+{
+  "archive_sha256": "2e7a704c60ada3529ef9759761afd390e348adcd37271694abf4aec5c95901e3",
+  "paid_requests": 0,
+  "shared_installed_dependencies": true,
+  "restore": {
+    "restored_to": "/tmp/lct-b3-dense-drive-restored-20261029",
+    "version": "20261029T122833-1278b3bc4b",
+    "rebound_versions": [
+      "20261029T122833-1278b3bc4b"
+    ],
+    "receipt": "/tmp/lct-b3-dense-drive-restored-20261029/restore-receipt.json",
+    "next": "Install locked dependencies and query or register the restored toolkit"
+  },
+  "dense": {
+    "exit_code": 0,
+    "stdout": "{\"status\": \"PASS\", \"version\": \"20261029T122833-1278b3bc4b\", \"cases\": 11, \"comparisons\": 26, \"mean_recall\": 0.9953846153846153, \"minimum_recall\": 0.92, \"compared_restore\": true}\n",
+    "stderr": ""
+  },
+  "lexical": {
+    "exit_code": 0,
+    "stdout": "{\"status\": \"PASS\", \"version\": \"20261029T122833-1278b3bc4b\", \"dense_ready\": true, \"search_kinds\": [\"module\", \"class\", \"function\", \"docs\"], \"source_checks\": 3, \"restored_comparison\": true, \"required_no_live_sources\": true}\n",
+    "stderr": ""
+  },
+  "status": "PASS",
+  "original_source_and_data_absent": true
+}

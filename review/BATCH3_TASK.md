@@ -37,3 +37,8 @@ User approved continuing the explained narrow startup repair. Implementation caa
 ## 2026-10-29 next-stage readiness
 
 Real graph, BM25, Neo4j import, HTTP MCP and downloaded-package relocation checks are complete for the frozen snapshot; this is not final Batch3 approval. Vector preparation:4070 chunks,4068 unique inputs,79 document batches excluding retries,11 query cases. Ten cases have labels; the RE case has two matching nodes and mixed has no relevance label, so neither may be silently treated as a unique gold answer. Configured historical price gives USD0.6098874 conservative estimate, not measured provider tokens/current quote. No paid request made. Current runtime credential absent; bounded paid run remains pending. Formal review count2/3, no merge.
+
+
+## Dense phase 2026-10-29 completed except MCP blocker
+
+User authorizedUSD3total. Actual80requests/0retries,usage1,047,502tokens; actualvectorsandHNSWsavedtoDriveanddownloadedrestoreverified. Thirdreviewfinalchanges_required B3-005: realLCTstdio index_status61MBresponse/60stimeout. Awaitnarrowreopeningdecision; do not merge or regenerate data. ExistingNeo4jstartupfixremainsclosed. Details dense-acceptance/ACCEPTANCE.md.

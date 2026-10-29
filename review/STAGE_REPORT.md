@@ -257,3 +257,20 @@ Developer preparation found storage.build unconditionally re-enters inventory/ex
 Developer GPT-6 SOL/medium completed lct.storage.attach_dense and CLI attach-dense. New version uses frozen catalog nodes/files and cached embeddings, preserving catalog bytes/graph/source metadata; explicit expected version and predecessor program hash fence; no inventory/extract/Graph call. Original version retained, atomic candidate publication, BOM-compatible source checks and truthful post-publication status. Existing parser, embedding provider and query implementation unchanged.
 
 Final developer targeted tests:4 passed in0.99s; Ruff passed. Earlier fast non-native suite444 passed/18 skipped; this preceded final BOM/restore additions. Initial native setup attempt had3 setup errors for missing LCT_TEST_NEO4J_URI, not product passes. Actual native regression and independent checks are next. No merge; developer report review/dense-acceptance/DEVELOPER.md. Production changes not yet formally reviewed; Batch3 completed rounds remain2/3 pending third review.
+
+## 21. Third independent review — code checks pass, feature acceptance pending
+
+Fixed remote9da6e12288cdb32c4e0fc21a2e61185cf1a236b9. Root reviewed developer implementation; full suite with actual Neo4j plus8 independent boundaries:474 passed/1 skipped in108.02s. Native service stopped. No new confirmed blocking defect. Remote file blobs bound to local tested bytes (CRLF uploads normalized before tests). Review3/3 code checks pass; no reset and no merge. Remaining gates: actual Voyage completion, HNSW/exact/RRF observations, full downloaded package restore. See dense-acceptance/REVIEW.md and independent-tests.{log,xml}.
+
+## 22. Actual dense acceptance and MCP blocker
+
+Voyage completed80 successful requests/0 retries,4068 document vectors plus11 query vectors. Provider usage1,047,502 tokens, list-rate equivalentUSD0.12570024 (account invoice/free quota not checked). Reserved conservative bound5,084,064 units. Existing internalUSD2 ceiling remained below userUSD3 authorization. API credential was process-only and process exited.
+
+Offline attach published20261029T122833-1278b3bc4b in2.35s,4070 chunks/6 partitions,0 new API calls. Catalog hash unchanged. Actual HNSW/exact26 comparisons mean recall99.538%,minimum92%;11 actual query cases. Relevance limits retained: Q05 Chinese label absent from dense/RRFTop50, expanded Q05 BM25rank5/RRFrank20/denseabsent; Q30expanded dense2/RRF16. Algorithm mechanics passed; relevance is not universally correct.
+
+Full actual stdio MCP acceptance failed on first index_status request after60s. Query.index_status returns entire graph metadata (prior graph payload61,238,037bytes) via mcp_server.index_status. Small/synthetic MCP and Neo4j HTTP tests do not prove this actual LCT status path. Detailed bounded size/timing diagnostic retained. This is a new acceptance blocker in prior MCP path, not a vector-corruption result. No production fix or merge attempted after third review; human decision required for narrow reopening. Full dense backup succeeded locally,182,274,492bytes. Single-file Drive upload rejected100MiB operational limit; splitting and actual roundtrip is in progress, not yet claimed successful.
+
+
+## 23. Preserved full dense package and final review disposition
+
+Drive2part upload/download/reassembly hashes pass; supportedrestore without original data/sources passes identical26recall comparisons,11query rankings,BM25and3sourcechecks. No additionalAPI. Fullarchive182274492bytes SHA2562e7a704c60ada3529ef9759761afd390e348adcd37271694abf4aec5c95901e3. See dense-acceptance/DOWNLOAD_AND_RESTORE.md. Final thirdreview changes_required dueB3-005; earlier code-checkpass is not fullfeatureapproval. GateHUMAN_REQUIRED. No merge, no furtherproductionfix. Requesthumanapprove narrow LCTstatuspayloadrepair; no graph/vectorregeneration needed.

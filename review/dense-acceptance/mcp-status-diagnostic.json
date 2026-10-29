@@ -1,0 +1,9 @@
+{
+  "status_build_seconds": 0.5655565980014217,
+  "canonical_status_bytes": 61240616,
+  "graph_field_bytes": 61238037,
+  "status_without_graph_bytes": 2570,
+  "protocol_failure": "real stdio index_status request timed out after60seconds",
+  "code_location": "lct/query.py Query.index_status returns graph=m[graph]; lct/mcp_server.py exposes whole return",
+  "cause_limit": "Payload size confirmed; no allocation/transport profiler run, cannot assign all timeout to one layer"
+}

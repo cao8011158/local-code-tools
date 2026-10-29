@@ -1,0 +1,1 @@
+{"authorized_ceiling_usd":3,"chunks":4070,"effective_existing_ceiling_usd":2,"ledger":{"attempts":80,"errors":[],"last_attempt_epoch":1793276882.1769526,"reserved_tokens":5084064,"successes":80,"usage_tokens":1047502},"new_vectors":4079,"requests":80,"seconds":1303.5398833669988,"status":"PASS","version":"20261029T111748-7a235bf36f"}

@@ -1,3 +1,11 @@
+# Current checkpoint — dense saved, HUMAN_REQUIRED for MCP status
+
+Production9da6e12288cdb32c4e0fc21a2e61185cf1a236b9. Dense20261029T122833-1278b3bc4b saved to privateDrive in2 parts; actual download/reassembly and source/data-independent restoration passed.4079 actual vectors/4070 document partition chunks/80 successfulrequests/0retries; list-rate usageUSD0.12570024. HNSWmeanrecall99.538%,minimum92%; semantic misses documented. No key persisted.
+
+Final Batch3review3/3 requireschanges: B3-005 actual LCTstdio index_status60s timeout due61MB result, localstatusbuild0.5656s. This differs from fixed Neo4j startupB3-004. No automaticfix/merge; humanapproval needed for boundedstatussummary and explicitboundedanalysisdetails. See dense-acceptance/ACCEPTANCE.md and finding-B3-005.json. Do not regenerate graph or pay for existingvectors. Original/currenttool packages andpartialcache remain.
+
+## Historical checkpoints preserved
+
 # Latest checkpoint — real lexical graph accepted, dense pending
 
 Production fixed at 5c413c4bceed0093f3054a913199607b74ae4495. Version20261029T111748-7a235bf36f:5957 nodes/42492 edges. Actual Neo4j bounded import, four HTTP MCP tools, Drive upload/download hash check and restore without original sources/data passed. No production modifications in this phase; formal Batch3 reviews remain2/3. No merge. Sidecar rejection/recovery and parser incompleteness are explicitly documented in business-resume/ACCEPTANCE.md.
