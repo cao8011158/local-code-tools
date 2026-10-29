@@ -1,7 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
-最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，待本次推送；完整增量分析仍未实现，未合并。
+最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
 
 ## 验收范围
@@ -55,3 +55,9 @@
 - 未复用旧真实图数据，未调用Voyage，测试服务限1GiB heap，由launcher自动关闭。仅证明当前依赖切片，完整batch仍0/3正式review，不因本阶段通过宣称增量分析或合并就绪。
 
 最终真实Neo4j定向复跑：1 passed in7.94s，exit0（lookup-neo4j-final.log）；限额服务已退出。
+
+## 阶段7：远端固定提交与独立切片结论
+实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送到feat/incremental-index-updates，远端ref核对一致；18个本地文件逐一匹配远端Git blob SHA，无差异。目标feat/local-code-tools-import未改动。
+固定远端实现后的快速回归：479 passed、25 skipped，13.39秒，exit0（lookup-remote-fast.log）。真实Neo4j最终定向1 passed/7.94秒；独立PROFILE两种规模各两条查询通过。查询测试没有调用Embedding API。
+结论：用户本轮指定的命名未解析导入及LOOKUP_IN关系切片已实现并通过独立检查。不是整个Batch4验收或正式review，完整batch正式review仍0/3，不合并。剩余必须完成：正向成功导入/重导出等完整依赖捕获、影响闭包与分析复用、图/向量索引差分接线、统一发布与恢复、全量构建差分和规模验收。现有真实图和Drive包未迁移。
+本轮未确认生产P0/P1；两处新增Neo4j测试错误和一次跨编辑指纹冲突均保留原日志，修正后通过。没有将开发自测计为独立正式审阅，也没有将完整源码重算包装成增量分析。
