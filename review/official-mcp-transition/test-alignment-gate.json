@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "batch_id": "Batch3",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/full-business-graph-indexes",
+  "base_sha": "1ec4a6c417b3bb702a45c32bf9a0766ca681bb1d",
+  "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "655b78a834c40542bf62c09bdd508c17d7f46450",
+  "implementation_actor": "test_alignment",
+  "merge_authorized": true,
+  "authorization_reference": "用户：通过review就自动merge吧；本次解释有限收尾后：继续",
+  "scope": [
+    "仅两份测试及证据报告"
+  ],
+  "acceptance_criteria": [
+    "旧失败对齐且不削弱语义",
+    "旧格式拒绝且标记不变"
+  ],
+  "feature_complete": false,
+  "scale_required": false,
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "remote_head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Historical round1 retained in BATCH3_REVIEW_ROUND1.md"
+    },
+    {
+      "round": 2,
+      "head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "remote_head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Staged-import bounded transactions and real native regression; partial acceptance only"
+    },
+    {
+      "round": 3,
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "remote_head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "474pass1skip but actual stdio index_status timed out60s; B3-005. Dense recall and actual downloaded restore pass."
+    },
+    {
+      "round": 4,
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "remote_head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Explicitly authorized narrow reopen; B3-005 fixed, PROFILE confirms prior global relationship scans B3-006. No round reset."
+    },
+    {
+      "round": 5,
+      "head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+      "remote_head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "B3-006 closed, B3-007 test alignment open; original REVIEW.md retained"
+    },
+    {
+      "round": 6,
+      "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "remote_head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Actual remote diff inspected; exact test blob hashes verified; independent real Neo4j targeted 3 passed in 14.98s; production unchanged."
+    }
+  ],
+  "findings": [
+    {
+      "id": "B3-007",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "resolved"
+    }
+  ],
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "command": [
+        "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python",
+        "review/business-resume/run_owned_neo4j.py",
+        "/workspace/scratch/413372d9a5a5/lct-staged-import",
+        "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_neo4j_bulk_import.py::test_bulk_roundtrip_and_query_bound",
+        "tests/test_neo4j_staged_import.py::test_expired_owner_is_fenced_on_retry",
+        "tests/test_neo4j_staged_import.py::test_incomplete_old_projection_marker_is_rejected_without_rewrite"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "dev-test-alignment.log",
+      "log_sha256": "186ec9b50aa464ab39634874609f4a3645b2529ac95fcbfc41e226c6cf32c918"
+    },
+    {
+      "role": "reviewer",
+      "kind": "targeted",
+      "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "command": [
+        "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python",
+        "review/business-resume/run_owned_neo4j.py",
+        "/workspace/scratch/413372d9a5a5/lct-staged-import",
+        "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_neo4j_bulk_import.py::test_bulk_roundtrip_and_query_bound",
+        "tests/test_neo4j_staged_import.py::test_expired_owner_is_fenced_on_retry",
+        "tests/test_neo4j_staged_import.py::test_incomplete_old_projection_marker_is_rejected_without_rewrite"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "reviewer-test-alignment.log",
+      "log_sha256": "ba05f06c3cc0b57183e65b6b4f0d9b7ecc848f09ca1c6db2b60ba82f8a1f912e"
+    }
+  ],
+  "human_override": "用户在明确说明仅修两项测试、补旧格式拒绝测试并定向验证后回复：继续；本次只做定向验证，不伪造快速回归证据。检查器不支持人工授权例外，输出如实保留，由主Agent按已获得授权裁决。"
+}

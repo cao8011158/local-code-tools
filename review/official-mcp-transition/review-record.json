@@ -1,6 +1,6 @@
 {
   "batch_id": "Batch3",
-  "head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+  "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
   "branch": "feat/full-business-graph-indexes",
   "target_branch": "feat/local-code-tools-import",
   "target_sha": "655b78a834c40542bf62c09bdd508c17d7f46450",
@@ -36,18 +36,34 @@
       "actor": "root-reviewer",
       "verdict": "changes_required",
       "counterexample_note": "Explicitly authorized narrow reopen; B3-005 fixed, PROFILE confirms prior global relationship scans B3-006. No round reset."
+    },
+    {
+      "round": 5,
+      "head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+      "remote_head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "B3-006 closed, B3-007 test alignment open; original REVIEW.md retained"
+    },
+    {
+      "round": 6,
+      "head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "remote_head_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Actual remote diff inspected; exact test blob hashes verified; independent real Neo4j targeted 3 passed in 14.98s; production unchanged."
     }
   ],
   "current_review": {
-    "round": 5,
-    "verdict": "changes_required",
-    "authorized_continuation": "用户在原地迁移和官方只读MCP方案明确后：好的 既然明确了那就继续工作把；随后再次：好的 那么请继续工作",
+    "round": 6,
+    "verdict": "pass",
+    "authorized_continuation": "用户在明确说明仅修两项测试、补旧格式拒绝测试并定向验证后回复：继续",
     "issues": {
       "B3-006": "closed for native-boundary-v2",
-      "B3-007": "open: test/fixture alignment"
+      "B3-007": "closed"
     }
   },
-  "merge": false,
+  "merge": true,
   "logs": {
     "reviewer-fast.log": {
       "sha256": "53c3108feb7ce56f0ff12762df66652452387a49028c920d5e2fe7c561b8d6bf",
@@ -68,6 +84,19 @@
     "portable-acceptance.log": {
       "sha256": "1b2ca7d92fbcfb363be33ed0ed3d8ccaee760750d0ee2560b3405a629b5cd1e3",
       "bytes": 6121
+    },
+    "dev-test-alignment.log": {
+      "sha256": "186ec9b50aa464ab39634874609f4a3645b2529ac95fcbfc41e226c6cf32c918",
+      "bytes": 150
+    },
+    "reviewer-test-alignment.log": {
+      "sha256": "ba05f06c3cc0b57183e65b6b4f0d9b7ecc848f09ca1c6db2b60ba82f8a1f912e",
+      "bytes": 150
     }
-  }
+  },
+  "test_scope_exception": "用户限制本次只运行修改部分；未复跑全套或快速全仓库。上轮快速和真实服务结果仍绑定原提交，不转记本轮。",
+  "merged_code_sha": "c017a0adde0b059610a1596c926e944f0375df32",
+  "merge_method": "fast-forward",
+  "merge_target_readback": "c017a0adde0b059610a1596c926e944f0375df32",
+  "gate_resolution": "HUMAN_REQUIRED原始输出保留；用户授权有限续审和定向测试、通过后自动合并；未伪造READY。"
 }
