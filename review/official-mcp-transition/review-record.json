@@ -1,0 +1,73 @@
+{
+  "batch_id": "Batch3",
+  "head_sha": "1818ec58c8c4f7f6e1603f459632ead95c5bc913",
+  "branch": "feat/full-business-graph-indexes",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "655b78a834c40542bf62c09bdd508c17d7f46450",
+  "history": [
+    {
+      "round": 1,
+      "head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "remote_head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Historical round1 retained in BATCH3_REVIEW_ROUND1.md"
+    },
+    {
+      "round": 2,
+      "head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "remote_head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Staged-import bounded transactions and real native regression; partial acceptance only"
+    },
+    {
+      "round": 3,
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "remote_head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "474pass1skip but actual stdio index_status timed out60s; B3-005. Dense recall and actual downloaded restore pass."
+    },
+    {
+      "round": 4,
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "remote_head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Explicitly authorized narrow reopen; B3-005 fixed, PROFILE confirms prior global relationship scans B3-006. No round reset."
+    }
+  ],
+  "current_review": {
+    "round": 5,
+    "verdict": "changes_required",
+    "authorized_continuation": "用户在原地迁移和官方只读MCP方案明确后：好的 既然明确了那就继续工作把；随后再次：好的 那么请继续工作",
+    "issues": {
+      "B3-006": "closed for native-boundary-v2",
+      "B3-007": "open: test/fixture alignment"
+    }
+  },
+  "merge": false,
+  "logs": {
+    "reviewer-fast.log": {
+      "sha256": "53c3108feb7ce56f0ff12762df66652452387a49028c920d5e2fe7c561b8d6bf",
+      "bytes": 593
+    },
+    "reviewer-neo4j.log": {
+      "sha256": "1cf726d564a699d62099c6f142d4f2e1cbced73a4b52bea9044b3a13b5a5710f",
+      "bytes": 6681
+    },
+    "independent-locality.log": {
+      "sha256": "816e821b7fc431e05181b0f711b8f7950463bfa9e1bd0146441e9ac4f9fe6abc",
+      "bytes": 9921
+    },
+    "test-alignment-probe.log": {
+      "sha256": "b66a593926599d112d80da420fd95df2c8ee91c963c86f4d65b97491e407d887",
+      "bytes": 150
+    },
+    "portable-acceptance.log": {
+      "sha256": "1b2ca7d92fbcfb363be33ed0ed3d8ccaee760750d0ee2560b3405a629b5cd1e3",
+      "bytes": 6121
+    }
+  }
+}
