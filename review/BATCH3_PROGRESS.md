@@ -1,3 +1,9 @@
+# Latest checkpoint — startup prerequisite repaired
+
+B3-004 closed at `caa9d1ee6c54187580061eb90932e72d578e83e4`, independently reviewed after user-authorized narrow Batch2 reopening. Native full suite462 passed/1 skipped,72.47s. Preserve original Batch2 3/3 plus this one authorized extra review; Batch3 remains2/3. No merge. Next: real business graph regeneration, durable persistence before import, actual import/retrieval/restore acceptance. No paid API in this repair. See MCP_FINGERPRINT_REVIEW.md.
+
+## Historical checkpoints
+
 # Latest checkpoint — staged importer reviewed
 
 Implementation `cb68331465cde30bf7333b0f41759669bf4ccb8d`; formal review **2/3**. Independent tests:452 passed/1 skipped. Synthetic61.16MB evidence import/readback passed with bounded committed batches; sampled retained transaction heap maximum2MiB. Not full business-data acceptance. No merge or paid API calls. See BATCH3_REVIEW_ROUND2.md. Batch2 B3-004 remains paused pending explicit narrow reopening under the three-round rule.

@@ -214,3 +214,9 @@ RESTORE_001_REVIEW.md 明确记载 Batch 2 第 3/3 轮已通过。根据 batch-d
 ### 17.1 开发完成，尚未推送
 
 新增snapshot_fingerprint单条complete:true标记查询，MCP lifespan接入；graph_status、认证和异常脱敏保留。开发者定向10 passed（0.60秒）；默认tests/运行442 passed、18 skipped、3项因未设置真实Neo4j URI而初始化失败。排除该服务专用文件后的运行442 passed、18 skipped（11.63秒），不能称为完整通过。原始日志见fingerprint-fix；主Agent将在固定远端版本上启用真实服务独立复验。两个主Agent原生边界用例尚待运行。没有更换模型、调整索引格式或建真实图。
+
+### 17.2 已推送并完成独立审阅：B3-004关闭
+
+固定实现提交`caa9d1ee6c54187580061eb90932e72d578e83e4`，独立副本117个文件匹配远端Git blob。真实Neo4j 5.26.0（384MiB堆）快速全仓库回归：**462 passed、1 skipped、1 warning，72.47秒，退出0**。主Agent两项原生边界覆盖只有完整标记而无说明数据的启动、未完成/缺失/跨命名空间拒绝。既有认证、关闭驱动、graph_status完整读取及分批导入回归通过。服务已停止。
+
+本次是用户明确继续后批准的Batch2窄范围额外审阅，保留原3/3历史，不重置；本次通过，B3-004关闭。Batch3仍2/3，未完成真实图、向量及恢复验收，未合并。没有更换Embedding、重建真实图或付费API调用。报告见MCP_FINGERPRINT_REVIEW.md。
