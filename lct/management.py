@@ -38,6 +38,7 @@ def backup(c):
             "uv.lock",
             "requirements.lock.txt",
             "README.md",
+            "docs/OFFICIAL_NEO4J_MCP.md",
             "local_code_tools.py",
             "register_mcp.py",
             "protocol_acceptance.py",

@@ -17,6 +17,8 @@ def fake_graph(nodes=(), internal=(), external=()):
             return 'fingerprint', [dict(nodes=len(nodes), edges=len(internal) + len(external),
                                         native_edges=len(internal), chunks=300,
                                         graph_sha256='g', source_sha256='s', storage_format='chunks-v1')]
+        if 's.projection_schema AS projection_schema' in query:
+            return 'fingerprint', [dict(projection_schema=None)]
         if 's.storage_format AS format' in query:
             return 'fingerprint', [dict(format='chunks-v1')]
         if 'MATCH (c:LCTChunk' in query:
@@ -34,7 +36,7 @@ def fake_graph(nodes=(), internal=(), external=()):
             return 'fingerprint', [dict(id=n['node_id'], raw=canonical(n)) for n in
                                    selected[:params['fetch']]]
         if 'RETURN e.edge_id AS id' in query:
-            source = external if 'internal:false' in query else internal
+            source = external if 'e.internal=false' in query else internal
             selected = [e for e in source if params['cursor'] is None or
                         e['edge_id'] > params['cursor']]
             return 'fingerprint', [dict(id=e['edge_id'], raw=canonical(e)) for e in

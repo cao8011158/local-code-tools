@@ -16,6 +16,7 @@ from contextlib import closing
 from .common import ToolError, canonical, config, digest
 from .storage import manifest, validate_folder, graph_detail, source_files
 
+PROJECTION_SCHEMA = 'native-boundary-v2'
 MAX_QUERY_IDS = 500
 MAX_IMPORT_NODES = 50_000
 MAX_IMPORT_EDGES = 500_000
@@ -167,9 +168,9 @@ def _fence(tx, scope, owner, state):
            'SET s.lease_until=$lease', **scope, lease=time.time() + LEASE_SECONDS).consume()
 
 
-def _write(session, scope, owner, query, rows=None):
+def _write(session, scope, owner, query, rows=None, state="writing"):
     with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
-        _fence(tx, scope, owner, 'writing')
+        _fence(tx, scope, owner, state)
         tx.run(query, **scope, **({'rows': rows} if rows is not None else {})).consume()
 
 
@@ -177,8 +178,11 @@ def _cleanup(session, scope, owner):
     for pattern, variable in (
         ('(a:LCTNode {namespace:$namespace, version:$version})-[r '
          '{namespace:$namespace, version:$version}]->()', 'r'),
+        ('(a:LCTBoundary {namespace:$namespace, version:$version})-[r '
+         '{namespace:$namespace, version:$version}]->()', 'r'),
         ('(c:LCTChunk {namespace:$namespace, version:$version})', 'c'),
         ('(e:LCTEdge {namespace:$namespace, version:$version})', 'e'),
+        ('(b:LCTBoundary {namespace:$namespace, version:$version})', 'b'),
         ('(n:LCTNode {namespace:$namespace, version:$version})', 'n'),
     ):
         while True:
@@ -209,11 +213,11 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
         _compare(tx, scope,
                  'MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
                  'RETURN s.node_count AS nodes, s.edge_count AS edges, '
-                 's.native_count AS native, s.chunk_count AS chunks, '
+                 's.native_count AS native, s.boundary_count AS boundary_count, '
+                 's.projection_schema AS projection_schema, s.chunk_count AS chunks, '
                  's.graph_sha256 AS graph_sha, s.source_sha256 AS source_sha',
-                 iter(((len(nodes), len(edges),
-                        sum(e.get('source') in node_ids and e.get('target') in node_ids
-                            for e in edges),
+                 iter(((len(nodes), len(edges), len(edges), len(_boundaries(edges, node_ids)),
+                        PROJECTION_SCHEMA,
                         sum(len(list(_chunks(v))) for v in metadata.values()),
                         sha256(metadata['graph'].encode('utf-8')).hexdigest(),
                         sha256(metadata['source'].encode('utf-8')).hexdigest()),)))
@@ -232,26 +236,50 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
                  'e.unknown_origin AS unknown_origin, e.complete AS complete, '
                  'e.source_version_id AS source_version_id, '
                  'e.target_version_id AS target_version_id, '
-                 'e.internal AS internal, e.raw_json AS raw ORDER BY id',
+                 'e.internal AS internal, e.source_boundary_id AS source_boundary, '
+                 'e.target_boundary_id AS target_boundary, e.raw_json AS raw ORDER BY id',
                  ((e['edge_id'], e['kind'], e.get('source'), e.get('target'),
                    e.get('status'), e.get('site_id'), e.get('unknown_origin'),
                    e.get('complete'), e.get('source_version_id'),
                    e.get('target_version_id'),
                    e.get('source') in node_ids and e.get('target') in node_ids,
+                   _boundary_id(e, 'source', node_ids), _boundary_id(e, 'target', node_ids),
                    canonical(e)) for e in sorted(edges, key=lambda e: e['edge_id'])))
+        boundary = _boundaries(edges, node_ids)
         _compare(tx, scope,
-                 'MATCH (a:LCTNode {namespace:$namespace, version:$version})-[r]->(b) '
-                 'RETURN r.edge_id AS id, type(r) AS kind, a.node_id AS source, '
-                 'b.node_id AS target, r.namespace AS namespace, r.version AS version, '
+                 'MATCH (b:LCTBoundary {namespace:$namespace, version:$version}) '
+                 'RETURN b.boundary_id AS id, b.endpoint_id AS endpoint, '
+                 'b.category AS category ORDER BY id',
+                 ((b['boundary_id'], b['endpoint_id'], b['category']) for b in
+                  sorted(boundary.values(), key=lambda b: b['boundary_id'])))
+        _compare(tx, scope,
+                 'MATCH (a)-[r {namespace:$namespace, version:$version}]->(b) '
+                 'RETURN r.edge_id AS id, type(r) AS kind, '
+                 'coalesce(a.node_id,a.endpoint_id) AS source, '
+                 'coalesce(b.node_id,b.endpoint_id) AS target, '
+                 'r.source_boundary_id AS source_boundary, '
+                 'r.target_boundary_id AS target_boundary, '
+                 'a.boundary_id AS actual_source_boundary, '
+                 'b.boundary_id AS actual_target_boundary, '
+                 'a.namespace AS source_namespace, a.version AS source_version, '
                  'b.namespace AS target_namespace, b.version AS target_version '
                  'ORDER BY id',
-                 ((e['edge_id'], e['kind'], e['source'], e['target'],
+                 ((e['edge_id'], e['kind'], e.get('source'), e.get('target'),
+                   _boundary_id(e, 'source', node_ids), _boundary_id(e, 'target', node_ids),
+                   _boundary_id(e, 'source', node_ids), _boundary_id(e, 'target', node_ids),
                    scope['namespace'], scope['version'], scope['namespace'], scope['version'])
-                  for e in sorted(edges, key=lambda e: e['edge_id']) if
-                  e.get('source') in node_ids and e.get('target') in node_ids))
+                  for e in sorted(edges, key=lambda e: e['edge_id'])))
         _compare(tx, scope,
-                 'MATCH (a)-[r]->(b:LCTNode {namespace:$namespace, version:$version}) '
-                 'WHERE NOT (a:LCTNode AND a.namespace=$namespace AND a.version=$version) '
+                 'MATCH (a)-[r]->(b) WHERE '
+                 '(a:LCTNode OR a:LCTBoundary) AND a.namespace=$namespace AND a.version=$version AND '
+                 '(r.namespace IS NULL OR r.version IS NULL OR '
+                 'r.namespace <> $namespace OR r.version <> $version) '
+                 'RETURN r.edge_id AS id', iter(()))
+        _compare(tx, scope,
+                 'MATCH (a)-[r]->(b {namespace:$namespace, version:$version}) '
+                 'WHERE r.namespace=$namespace AND r.version=$version AND '
+                 '(a.namespace IS NULL OR a.version IS NULL OR '
+                 'a.namespace <> $namespace OR a.version <> $version) '
                  'RETURN r.edge_id AS id', iter(()))
         _compare(tx, scope,
                  'MATCH (c:LCTChunk {namespace:$namespace, version:$version}) '
@@ -261,6 +289,28 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
                  ((kind, ordinal, part, sha256(part.encode('utf-8')).hexdigest())
                   for kind, value in metadata.items()
                   for ordinal, part in enumerate(_chunks(value))))
+
+
+def _boundary_id(edge, side, node_ids):
+    endpoint = edge.get(side)
+    if endpoint in node_ids:
+        return None
+    if isinstance(endpoint, str) and endpoint:
+        return 'external:' + endpoint
+    return 'unresolved:' + edge['edge_id'] + ':' + side
+
+
+def _boundaries(edges, node_ids):
+    by_id = {}
+    for edge in edges:
+        for side in ('source', 'target'):
+            key = _boundary_id(edge, side, node_ids)
+            if key is not None:
+                endpoint = edge.get(side)
+                by_id[key] = dict(boundary_id=key, endpoint_id=endpoint,
+                                  category='external' if isinstance(endpoint, str) and endpoint
+                                  else 'unresolved')
+    return by_id
 
 
 def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
@@ -275,12 +325,14 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                     'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
                     'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
                     "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
-                    "s.storage_format='chunks-v1' "
+                    "s.storage_format='chunks-v1', s.projection_schema=$projection_schema "
                     'SET s.lock_nonce=$nonce '
                     'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
-                    's.owner AS owner, s.lease_until AS lease',
-                    **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                    's.owner AS owner, s.lease_until AS lease, s.projection_schema AS projection_schema',
+                    **scope, fingerprint=fingerprint, projection_schema=PROJECTION_SCHEMA, owner=owner, nonce=uuid4().hex,
                     lease=now + LEASE_SECONDS).single(strict=True)
+                if row['projection_schema'] != PROJECTION_SCHEMA:
+                    raise ToolError('Snapshot scope uses a different projection; select a fresh namespace')
                 if row['fingerprint'] != fingerprint:
                     raise ToolError('Snapshot scope already contains different content')
                 if row['complete'] is not False and row['complete'] is not True:
@@ -314,12 +366,20 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                            'node_id:row.node_id, kind:row.kind, repository:row.repository, '
                            'path:row.path, qualname:row.qualname, version_id:row.version_id, '
                            'raw_json:row.raw})', batch)
+            boundary = _boundaries(edges, node_ids)
+            for batch in _batches(boundary.values()):
+                _write(session, scope, owner,
+                       'UNWIND $rows AS row CREATE (b:LCTBoundary '
+                       '{namespace:$namespace, version:$version, boundary_id:row.boundary_id, '
+                       'endpoint_id:row.endpoint_id, category:row.category})', batch)
             edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
                               target=e.get('target'), status=e.get('status'),
                               site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
                               complete=e.get('complete'),
                               source_version_id=e.get('source_version_id'),
-                              target_version_id=e.get('target_version_id'), raw=canonical(e),
+                              target_version_id=e.get('target_version_id'),
+                              source_boundary=_boundary_id(e, 'source', node_ids),
+                              target_boundary=_boundary_id(e, 'target', node_ids), raw=canonical(e),
                               internal=e.get('source') in node_ids and
                               e.get('target') in node_ids) for e in edges)
             for batch in _batches(edge_rows):
@@ -331,20 +391,24 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                        'unknown_origin:row.unknown_origin, complete:row.complete, '
                        'source_version_id:row.source_version_id, '
                        'target_version_id:row.target_version_id, internal:row.internal, '
+                       'source_boundary_id:row.source_boundary, target_boundary_id:row.target_boundary, '
                        'raw_json:row.raw})', batch)
             for kind in sorted(REL_TYPES):
-                rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
-                        for e in edges if e['kind'] == kind and
-                        e.get('source') in node_ids and e.get('target') in node_ids)
+                rows = (dict(edge_id=e['edge_id'], source=e.get('source'), target=e.get('target'),
+                             source_boundary=_boundary_id(e, 'source', node_ids),
+                             target_boundary=_boundary_id(e, 'target', node_ids))
+                        for e in edges if e['kind'] == kind)
                 for batch in _batches(rows):
                     _write(session, scope, owner,
                            'UNWIND $rows AS row '
-                           'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
-                           'node_id:row.source}) '
-                           'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
-                           'node_id:row.target}) '
+                           'OPTIONAL MATCH (an:LCTNode {namespace:$namespace, version:$version, node_id:row.source}) '
+                           'OPTIONAL MATCH (ab:LCTBoundary {namespace:$namespace, version:$version, boundary_id:row.source_boundary}) '
+                           'OPTIONAL MATCH (bn:LCTNode {namespace:$namespace, version:$version, node_id:row.target}) '
+                           'OPTIONAL MATCH (bb:LCTBoundary {namespace:$namespace, version:$version, boundary_id:row.target_boundary}) '
+                           'WITH row, coalesce(an, ab) AS a, coalesce(bn, bb) AS b '
                            f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
-                           'version:$version}]->(b)', batch)
+                           'version:$version, source_boundary_id:row.source_boundary, '
+                           'target_boundary_id:row.target_boundary}]->(b)', batch)
             for kind, value in metadata.items():
                 for batch in _batches(dict(kind=kind, ordinal=i, data=part,
                                            sha256=sha256(part.encode('utf-8')).hexdigest())
@@ -358,14 +422,14 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                 _fence(tx, scope, owner, 'writing')
                 tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
                        "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
-                       's.native_count=$native, s.chunk_count=$chunks, '
+                       's.native_count=$native, s.boundary_count=$boundary_count, s.chunk_count=$chunks, '
                        's.graph_sha256=$graph_sha, '
                        's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
                        's.source_repository_count=$source_repository_count, '
                        's.storage_format=$format',
                        **scope, nodes=len(nodes), edges=len(edges),
-                       native=sum(e.get('source') in node_ids and e.get('target') in node_ids
-                                  for e in edges),
+                       native=len(edges),
+                       boundary_count=len(boundary),
                        chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
                        graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
                        source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
@@ -391,6 +455,66 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
             raise
     return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
                 edges=len(edges), already_present=False)
+
+
+# Fixed Neo4j 5.26-compatible templates for the official neo4j/mcp read-cypher tool.
+# Each branch starts at a scoped identity/index lookup; no full relationship or edge scan.
+def relation_queries(direction):
+    if direction not in ("in", "out", "both"):
+        raise ToolError("direction must be in, out or both")
+    native_branches = []
+    external_branches = []
+    for side in (("out", "in") if direction == "both" else (direction,)):
+        node_pattern = ("(a:LCTNode {namespace:$namespace, version:$version, node_id:wanted})"
+                        "-[r]->(b:LCTNode {namespace:$namespace, version:$version})" if side == "out" else
+                        "(a:LCTNode {namespace:$namespace, version:$version})"
+                        "-[r]->(b:LCTNode {namespace:$namespace, version:$version, node_id:wanted})")
+        native_branches.append(
+            "UNWIND $ids AS wanted MATCH " + node_pattern +
+            " WHERE r.namespace=$namespace AND r.version=$version AND type(r) IN $allowed "
+            "RETURN r.edge_id AS edge_id")
+        external_branches.append(
+            "UNWIND $ids AS wanted MATCH (e:LCTEdge {namespace:$namespace, version:$version, "
+            + ("source" if side == "out" else "target") + ":wanted}) "
+            "WHERE e.internal=false RETURN e.edge_id AS edge_id")
+    suffix = (
+        " WITH DISTINCT edge_id "
+        "MATCH (e:LCTEdge {namespace:$namespace, version:$version, edge_id:edge_id}) "
+        "WHERE ($types IS NULL OR e.kind IN $types) AND "
+        "($cursor IS NULL OR e.edge_id > $cursor) "
+        "RETURN e.edge_id AS id, "
+        "CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw "
+        "ORDER BY id LIMIT $fetch")
+    return tuple("CALL () { " + " UNION ".join(branches) + " }" + suffix
+                 for branches in (native_branches, external_branches))
+
+
+def native_relation_query(direction):
+    """All v2 edges are native, including external and per-edge unresolved endpoints."""
+    if direction not in ('in', 'out', 'both'):
+        raise ToolError('direction must be in, out or both')
+    branches = []
+    for side in (('out', 'in') if direction == 'both' else (direction,)):
+        for label, identity in (('LCTNode', 'node_id:wanted'),
+                                ('LCTBoundary', 'boundary_id:boundary_key')):
+            prefix = ('UNWIND $ids AS wanted WITH wanted, '
+                      "'external:' + wanted AS boundary_key ")
+            anchor = f'({"a" if side == "out" else "b"}:{label} {{namespace:$namespace, version:$version, {identity}}})'
+            if side == 'out':
+                pattern = anchor + '-[r]->(b)'
+            else:
+                pattern = '(a)-[r]->' + anchor
+            branches.append(prefix + 'MATCH ' + pattern +
+                ' WHERE r.namespace=$namespace AND r.version=$version '
+                'AND type(r) IN $allowed RETURN r.edge_id AS edge_id')
+    return ('CALL () { ' + ' UNION '.join(branches) + ' } WITH DISTINCT edge_id '
+            'MATCH (e:LCTEdge {namespace:$namespace, version:$version, edge_id:edge_id}) '
+            'WHERE ($types IS NULL OR e.kind IN $types) AND '
+            '($cursor IS NULL OR e.edge_id > $cursor) '
+            'RETURN e.edge_id AS id, e.source_boundary_id AS source_boundary_id, '
+            'e.target_boundary_id AS target_boundary_id, '
+            'CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw, '
+            'size(e.raw_json)>65536 AS raw_too_large ORDER BY id LIMIT $fetch')
 
 
 class Neo4jGraph:
@@ -421,9 +545,141 @@ class Neo4jGraph:
             ("lct_node_scope", "LCTNode", "s.namespace, s.version, s.node_id"),
             ("lct_edge_scope", "LCTEdge", "s.namespace, s.version, s.edge_id"),
             ("lct_chunk_scope", "LCTChunk", "s.namespace, s.version, s.kind, s.ordinal"),
+            ("lct_boundary_scope", "LCTBoundary", "s.namespace, s.version, s.boundary_id"),
         ):
             session.run(f"CREATE CONSTRAINT {name} IF NOT EXISTS FOR (s:{label}) "
                         f"REQUIRE ({keys}) IS UNIQUE").consume()
+
+    def maintain_indexes(self, legacy_edges=False):
+        """Offline idempotent DDL; legacy endpoint indexes only aid old scopes."""
+        with self.driver.session(database=self.database) as session:
+            self._schema(session)
+            if legacy_edges:
+                for side in ("source", "target"):
+                    session.run(
+                        f"CREATE INDEX lct_edge_scope_{side} IF NOT EXISTS "
+                        f"FOR (e:LCTEdge) ON (e.namespace, e.version, e.{side})"
+                    ).consume()
+
+    def migrate_projection(self, namespace, version, expected_fingerprint):
+        """Offline, resumable in-place v1 -> v2 projection maintenance.
+
+        Stop the query service first. Only derived boundary nodes, native relationships,
+        and projection fields change; existing source nodes, raw edges and evidence stay.
+        The marker stays incomplete on any failure, including an interrupted process.
+        """
+        scope = _scope(namespace, version)
+        if not isinstance(expected_fingerprint, str) or len(expected_fingerprint) != 64:
+            raise ToolError('Explicit snapshot fingerprint required')
+        owner = uuid4().hex
+        with self.driver.session(database=self.database, fetch_size=64) as session:
+            self._schema(session)
+            with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                row = tx.run(
+                    'MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                    'SET s.lock_nonce=$nonce RETURN s.fingerprint AS fingerprint, '
+                    's.complete AS complete, s.projection_schema AS schema, '
+                    's.owner AS owner, s.lease_until AS lease, s.storage_format AS format',
+                    **scope, nonce=uuid4().hex).single()
+                if row is None or row['fingerprint'] != expected_fingerprint:
+                    raise ToolError('Snapshot missing or fingerprint mismatch')
+                if row['schema'] == PROJECTION_SCHEMA and row['complete'] is True:
+                    return dict(**scope, fingerprint=expected_fingerprint, already_present=True)
+                if row['schema'] not in (None, PROJECTION_SCHEMA):
+                    raise ToolError('Unsupported projection schema')
+                if row['format'] != 'chunks-v1':
+                    raise ToolError('Migration requires chunks-v1 evidence layout')
+                if row['owner'] is not None and row['lease'] is not None and row['lease'] >= time.time():
+                    raise ToolError('Snapshot maintenance busy (active writer)')
+                tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                       "SET s.complete=false, s.state='migrating', s.owner=$owner, "
+                       's.lease_until=$lease', **scope, owner=owner,
+                       lease=time.time()+LEASE_SECONDS).consume()
+            try:
+                # Full existing projection is the sole migration input. No SQLite/source parsing.
+                nodes = [json.loads(r['raw']) for r in session.run(
+                    'MATCH (n:LCTNode {namespace:$namespace, version:$version}) '
+                    'RETURN n.raw_json AS raw ORDER BY n.node_id', **scope)]
+                edges = [json.loads(r['raw']) for r in session.run(
+                    'MATCH (e:LCTEdge {namespace:$namespace, version:$version}) '
+                    'RETURN e.raw_json AS raw ORDER BY e.edge_id', **scope)]
+                parts = list(session.run(
+                    'MATCH (c:LCTChunk {namespace:$namespace, version:$version}) '
+                    'RETURN c.kind AS kind, c.ordinal AS ordinal, c.data AS data '
+                    'ORDER BY kind, ordinal', **scope))
+                metadata = {}
+                for kind in ('graph', 'source'):
+                    selected = [r for r in parts if r['kind'] == kind]
+                    if not selected or [r['ordinal'] for r in selected] != list(range(len(selected))):
+                        raise ToolError('Snapshot evidence incomplete')
+                    metadata[kind] = ''.join(r['data'] for r in selected)
+                persisted_fingerprint = digest(_snapshot_payload(
+                    nodes, edges, json.loads(metadata['graph']), json.loads(metadata['source'])))
+                if persisted_fingerprint != expected_fingerprint:
+                    raise ToolError('Persisted snapshot fingerprint mismatch')
+                node_ids = {n['node_id'] for n in nodes}
+                if len(node_ids) != len(nodes) or len({e['edge_id'] for e in edges}) != len(edges):
+                    raise ToolError('Duplicate graph identity')
+                if any(e.get('kind') not in REL_TYPES for e in edges):
+                    raise ToolError('Unsupported relationship kind')
+                boundary = _boundaries(edges, node_ids)
+                for batch in _batches(boundary.values()):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row MERGE (b:LCTBoundary '
+                           '{namespace:$namespace, version:$version, boundary_id:row.boundary_id}) '
+                           'SET b.endpoint_id=row.endpoint_id, b.category=row.category',
+                           batch, state='migrating')
+                for batch in _batches(dict(edge_id=e['edge_id'],
+                                            source_boundary=_boundary_id(e,'source',node_ids),
+                                            target_boundary=_boundary_id(e,'target',node_ids))
+                                      for e in edges):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row MATCH (e:LCTEdge '
+                           '{namespace:$namespace, version:$version, edge_id:row.edge_id}) '
+                           'SET e.source_boundary_id=row.source_boundary, '
+                           'e.target_boundary_id=row.target_boundary', batch, state='migrating')
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e.get('source'),
+                                 target=e.get('target'),
+                                 source_boundary=_boundary_id(e,'source',node_ids),
+                                 target_boundary=_boundary_id(e,'target',node_ids))
+                            for e in edges if e['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'OPTIONAL MATCH (an:LCTNode {namespace:$namespace, version:$version, node_id:row.source}) '
+                               'OPTIONAL MATCH (ab:LCTBoundary {namespace:$namespace, version:$version, boundary_id:row.source_boundary}) '
+                               'OPTIONAL MATCH (bn:LCTNode {namespace:$namespace, version:$version, node_id:row.target}) '
+                               'OPTIONAL MATCH (bb:LCTBoundary {namespace:$namespace, version:$version, boundary_id:row.target_boundary}) '
+                               'WITH row, coalesce(an,ab) AS a, coalesce(bn,bb) AS b '
+                               f'MERGE (a)-[r:{kind} {{namespace:$namespace, version:$version, edge_id:row.edge_id}}]->(b) '
+                               'SET r.source_boundary_id=row.source_boundary, '
+                               'r.target_boundary_id=row.target_boundary', batch, state='migrating')
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'migrating')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.native_count=$native, "
+                           's.boundary_count=$boundary, s.projection_schema=$schema',
+                           **scope, native=len(edges), boundary=len(boundary),
+                           schema=PROJECTION_SCHEMA).consume()
+                _verify(session, scope, owner, nodes, edges, node_ids, metadata)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'validating')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.complete=true, s.state='complete', s.owner=null, "
+                           's.lease_until=null', **scope).consume()
+            except Exception:
+                try:
+                    with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                        _fence(tx, scope, owner, None)
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.complete=false, s.state='failed', s.owner=null, "
+                               's.lease_until=null', **scope).consume()
+                except Exception:
+                    pass
+                raise
+        return dict(**scope, fingerprint=expected_fingerprint, nodes=len(nodes),
+                    edges=len(edges), boundaries=len(boundary), already_present=False)
 
     def import_snapshot(self, namespace, version, snapshot):
         scope = _scope(namespace, version)
@@ -635,29 +891,18 @@ class Neo4jGraph:
         params = dict(ids=ids, types=list(types) if types is not None else None,
                       direction=direction, cursor=cursor,
                       fetch=min(limit, PAGE_FETCH - 1) + 1)
-        _, internal = self._read(namespace, version,
-            "MATCH (a:LCTNode {namespace:$namespace, version:$version})-[r]->"
-            "(b:LCTNode {namespace:$namespace, version:$version}) "
-            "WHERE type(r) IN $allowed AND ($types IS NULL OR type(r) IN $types) AND "
-            "($cursor IS NULL OR r.edge_id > $cursor) AND "
-            "(($direction='out' AND a.node_id IN $ids) OR "
-            "($direction='in' AND b.node_id IN $ids) OR "
-            "($direction='both' AND (a.node_id IN $ids OR b.node_id IN $ids))) "
-            "MATCH (e:LCTEdge {namespace:$namespace, version:$version, edge_id:r.edge_id}) "
-            "RETURN e.edge_id AS id, "
-            "CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw "
-            "ORDER BY id LIMIT $fetch",
-            **params, allowed=sorted(REL_TYPES))
-        _, external = self._read(namespace, version,
-            "MATCH (e:LCTEdge {namespace:$namespace, version:$version, internal:false}) "
-            "WHERE ($types IS NULL OR e.kind IN $types) AND "
-            "($cursor IS NULL OR e.edge_id > $cursor) AND "
-            "(($direction='out' AND e.source IN $ids) OR "
-            "($direction='in' AND e.target IN $ids) OR "
-            "($direction='both' AND (e.source IN $ids OR e.target IN $ids))) "
-            "RETURN e.edge_id AS id, "
-            "CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw "
-            "ORDER BY id LIMIT $fetch", **params)
+        native_query, external_query = relation_queries(direction)
+        _, marker = self._read(namespace, version,
+            'MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) '
+            'RETURN s.projection_schema AS projection_schema')
+        if marker[0]['projection_schema'] == PROJECTION_SCHEMA:
+            _, rows = self._read(namespace, version, native_relation_query(direction),
+                                 **params, allowed=sorted(REL_TYPES))
+            return _bounded_page(rows, 'edges', limit, cursor)
+        # Compatibility for immutable legacy projections; migrate by fresh namespace.
+        _, internal = self._read(namespace, version, native_query,
+                                 **params, allowed=sorted(REL_TYPES))
+        _, external = self._read(namespace, version, external_query, **params)
         combined = {row['id']: row for row in [*internal, *external]}
         ordered = [combined[k] for k in sorted(combined)]
         return _bounded_page(ordered, 'edges', limit, cursor)
@@ -671,7 +916,11 @@ def main(argv=None):
     parser.add_argument("--database", required=True)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("import")
+    maintenance = commands.add_parser("maintain-indexes")
+    maintenance.add_argument("--legacy-edges", action="store_true")
     commands.add_parser("info")
+    migration = commands.add_parser("migrate-projection")
+    migration.add_argument("--expected-fingerprint", required=True)
     listing = commands.add_parser("nodes")
     listing.add_argument("--kind", choices=NODE_LABELS)
     listing.add_argument("--repository")
@@ -690,6 +939,12 @@ def main(argv=None):
             if args.command == "import":
                 result = graph.import_snapshot(args.namespace, args.version,
                                                load_snapshot(c, args.version))
+            elif args.command == "maintain-indexes":
+                graph.maintain_indexes(args.legacy_edges)
+                result = {"database": args.database, "legacy_edge_indexes": args.legacy_edges}
+            elif args.command == "migrate-projection":
+                result = graph.migrate_projection(args.namespace, args.version,
+                                                  args.expected_fingerprint)
             elif args.command == "info":
                 result = graph.snapshot_info(args.namespace, args.version)
             elif args.command == "nodes":

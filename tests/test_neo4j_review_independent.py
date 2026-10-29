@@ -28,6 +28,8 @@ def seal(p):
 
 @pytest.fixture
 def graph():
+    if not os.environ.get('LCT_TEST_NEO4J_URI'):
+        pytest.skip('owned Neo4j URI required')
     with Neo4jGraph(os.environ['LCT_TEST_NEO4J_URI'], os.environ['LCT_TEST_NEO4J_USER'],
                     os.environ['LCT_TEST_NEO4J_PASSWORD'], os.environ['LCT_TEST_NEO4J_DATABASE']) as g:
         yield g
@@ -49,7 +51,8 @@ def test_external_mixed_limits_native_and_literal_scope(graph):
     with graph.driver.session(database=graph.database) as s:
         row = s.run('MATCH (n:LCTNode {namespace:$ns,version:"v1"}) '
                     'OPTIONAL MATCH (n)-[r]->() RETURN count(DISTINCT n) AS n, count(r) AS r', ns=ns).single()
-        assert (row['n'], row['r']) == (2, 2)
+        # V2 projects every logical edge; four originate at code node a.
+        assert (row['n'], row['r']) == (2, 4)
     with pytest.raises(ToolError):
         graph.snapshot_info(ns+'missing', 'v1')
 

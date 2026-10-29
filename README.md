@@ -24,7 +24,7 @@ uv sync --locked
 另有可选的 [Neo4j 投影](docs/NEO4J_FULL_GRAPH.md)（[API 与 CLI](docs/NEO4J_SMALL_GRAPH.md)）：
 从已发布 SQLite catalog/manifest 分批导入固定版本，完成校验后原子发布；失败候选
 不可查询，同输入重试清理后从头导入。未接入现有 MCP 或向量检索。安装可选
-`neo4j` 依赖组后使用独立 `python -m lct.neo4j_graph` 管理入口。
+`neo4j` 依赖组后使用独立 `python -m lct.neo4j_graph` 管理入口。已知节点的图查询可使用 [官方 Neo4j MCP read-cypher 模板](docs/OFFICIAL_NEO4J_MCP.md)；投影迁移与索引维护仅在终端离线执行。
 
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。
 Embedding API 被测试夹具禁止调用。一项使用已有真实历史缓存的测试默认跳过，只有显式

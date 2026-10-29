@@ -1,0 +1,19 @@
+
+==================================== ERRORS ====================================
+______ ERROR collecting experiments/python_graph/tests/test_experiment.py ______
+ImportError while importing test module '/workspace/scratch/413372d9a5a5/lct-staged-import/experiments/python_graph/tests/test_experiment.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+experiments/python_graph/tests/test_experiment.py:13: in <module>
+    from run import synthetic  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+experiments/python_graph/run.py:13: in <module>
+    import psutil
+E   ModuleNotFoundError: No module named 'psutil'
+=========================== short test summary info ============================
+ERROR experiments/python_graph/tests/test_experiment.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.80s

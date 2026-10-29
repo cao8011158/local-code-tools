@@ -14,7 +14,7 @@ command = ['java', '-Xms128m', '-Xmx1024m',
            '--add-opens=java.base/java.nio=ALL-UNNAMED',
            '--add-opens=java.base/java.io=ALL-UNNAMED',
            '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
-           '-cp', str(HOME_DIR / 'lib/*'), 'org.neo4j.server.CommunityEntryPoint',
+           '-cp', os.pathsep.join((str(HOME_DIR / 'lib/*'), str(HOME_DIR / 'plugins/*'))), 'org.neo4j.server.CommunityEntryPoint',
            '--home-dir=' + str(HOME_DIR), '--config-dir=' + str(HOME_DIR / 'conf')]
 env = dict(os.environ, LCT_TEST_NEO4J_URI='bolt://127.0.0.1:17687',
            LCT_TEST_NEO4J_USER='neo4j', LCT_TEST_NEO4J_PASSWORD='synthetic-lct-batch1-only',
