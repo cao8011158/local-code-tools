@@ -1,3 +1,11 @@
+# Current checkpoint — staged-import redesign in progress
+
+Source base: `56a04275bc72c982559e1b47b82af541d10dd40d`; branch `feat/full-business-graph-indexes`; merge target unchanged at `655b78a834c40542bf62c09bdd508c17d7f46450`. Formal reviews completed: **1/3**. No merge; no new paid API calls.
+
+The user authorized the staged-write / atomic-publication design after reviewing the memory diagnosis. Current repair changes import transactions, not source analysis. Same-version retries must be fenced and unpublished until content verification completes. Separate MCP startup P2 remains open. The preserved report below is historical: its `/tmp` real graph has since disappeared and is not recoverable from current files. Fixed source SHAs and build evidence remain available. Prior interpretation of the user's continue instruction regarding five UNKNOWN external candidates is documented in STAGE_REPORT; do not manufacture explicit waiver wording.
+
+## Historical checkpoint (retained verbatim)
+
 # Batch 3 checkpoint — round 1 completed, human disposition pending
 
 Working branch: `feat/full-business-graph-indexes`.

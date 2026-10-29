@@ -150,6 +150,7 @@ def test_neo4j_small_graph(tmp_path, monkeypatch):
             graph.snapshot_info(namespace + "-failed", version)
         with original.session(database=database) as session:
             assert session.run(
-                "MATCH (n {namespace:$ns, version:$v}) RETURN count(n) AS c",
+                "MATCH (n:LCTNode {namespace:$ns, version:$v}) RETURN count(n) AS c",
                 ns=namespace + "-failed", v=version,
-            ).single()["c"] == 0
+            ).single()["c"] == 17
+        assert graph.import_snapshot(namespace + "-failed", version, snapshot)["already_present"] is False

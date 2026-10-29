@@ -21,8 +21,9 @@ uv sync --locked
 本批不启动 MCP 或构建真实索引。实际结果、范围和剩余限制见
 [第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。
 
-另有可选的 [Neo4j 小图投影](docs/NEO4J_SMALL_GRAPH.md)：从已发布 SQLite
-catalog/manifest 导入固定版本的小图，未接入现有 MCP 或向量检索。安装可选
+另有可选的 [Neo4j 投影](docs/NEO4J_FULL_GRAPH.md)（[API 与 CLI](docs/NEO4J_SMALL_GRAPH.md)）：
+从已发布 SQLite catalog/manifest 分批导入固定版本，完成校验后原子发布；失败候选
+不可查询，同输入重试清理后从头导入。未接入现有 MCP 或向量检索。安装可选
 `neo4j` 依赖组后使用独立 `python -m lct.neo4j_graph` 管理入口。
 
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。

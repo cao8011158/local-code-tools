@@ -70,9 +70,10 @@ def test_bulk_roundtrip_and_query_bound(graph, monkeypatch, tmp_path):
     result = graph.import_snapshot(namespace, data['version'], data)
     graph.driver = original
     assert (result['nodes'], result['edges'], result['already_present']) == (1200, 6000, False)
-    assert len(queries) < 50  # chunk operations, not 12000 individual record writes
+    # Each bounded batch now commits independently with two fenced marker statements.
+    assert len(queries) < 150
     chunks = [size for _, size in queries if size]
-    assert sum(chunks) == 1200 + 6000 + 4800
+    assert sum(chunks) == 1200 + 6000 + 4800 + 2
     assert max(chunks) <= 500
     assert graph.snapshot_info(namespace, 'bulk-v')['graph'] == data['graph']
     assert graph.list_nodes(namespace, 'bulk-v', limit=5000)['nodes'] == data['nodes']
@@ -97,7 +98,7 @@ def test_bulk_roundtrip_and_query_bound(graph, monkeypatch, tmp_path):
         graph.import_snapshot(namespace, 'bulk-v', changed)
 
 
-def test_failure_after_edge_batch_rolls_back(graph, tmp_path):
+def test_failure_after_edge_batch_is_hidden_and_retry_cleans(graph, tmp_path):
     data = snapshot()
     namespace = 'failed-' + uuid4().hex
     original = graph.driver
@@ -133,8 +134,13 @@ def test_failure_after_edge_batch_rolls_back(graph, tmp_path):
     with pytest.raises(ToolError, match='missing'):
         graph.snapshot_info(namespace, 'bulk-v')
     with original.session(database=graph.database) as session:
-        assert session.run('MATCH (n {namespace:$ns, version:$v}) RETURN count(n) AS c',
-                           ns=namespace, v='bulk-v').single()['c'] == 0
+        assert session.run('MATCH (n:LCTNode {namespace:$ns, version:$v}) RETURN count(n) AS c',
+                           ns=namespace, v='bulk-v').single()['c'] == 1200
+        assert session.run('MATCH (s:LCTSnapshot {namespace:$ns, version:$v}) '
+                           'RETURN s.complete AS complete', ns=namespace,
+                           v='bulk-v').single()['complete'] is False
+    assert graph.import_snapshot(namespace, 'bulk-v', data)['already_present'] is False
+    assert graph.snapshot_info(namespace, 'bulk-v')['graph'] == data['graph']
 
 
 def test_capacity_rejection_before_publication(graph, monkeypatch, tmp_path):
