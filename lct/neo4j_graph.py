@@ -35,7 +35,7 @@ NODE_LABELS = {
     "function": "Function", "documentsection": "DocumentSection",
 }
 REL_TYPES = frozenset({"CONTAINS", "IMPORTS", "CALLS", "INHERITS", "REFERENCES",
-                       "WRAPS", "CONTEXT_ENTERS"})
+                       "WRAPS", "CONTEXT_ENTERS", "LOOKUP_IN"})
 
 
 def load_snapshot(c, version):
@@ -249,8 +249,13 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
         _compare(tx, scope,
                  'MATCH (b:LCTBoundary {namespace:$namespace, version:$version}) '
                  'RETURN b.boundary_id AS id, b.endpoint_id AS endpoint, '
-                 'b.category AS category ORDER BY id',
-                 ((b['boundary_id'], b['endpoint_id'], b['category']) for b in
+                 'b.category AS category, b.lookup_repository AS lookup_repository, '
+                 'b.lookup_module AS lookup_module, b.lookup_name AS lookup_name, '
+                 'b.lookup_status AS lookup_status, b.lookup_reason AS lookup_reason ORDER BY id',
+                 ((b['boundary_id'], b['endpoint_id'], b['category'],
+                   b.get('lookup_repository'), b.get('lookup_module'),
+                   b.get('lookup_name'), b.get('lookup_status'),
+                   b.get('lookup_reason')) for b in
                   sorted(boundary.values(), key=lambda b: b['boundary_id'])))
         _compare(tx, scope,
                  'MATCH (a)-[r {namespace:$namespace, version:$version}]->(b) '
@@ -307,9 +312,18 @@ def _boundaries(edges, node_ids):
             key = _boundary_id(edge, side, node_ids)
             if key is not None:
                 endpoint = edge.get(side)
-                by_id[key] = dict(boundary_id=key, endpoint_id=endpoint,
-                                  category='external' if isinstance(endpoint, str) and endpoint
-                                  else 'unresolved')
+                lookup = edge.get('lookup') if isinstance(endpoint, str) and endpoint.startswith(
+                    'boundary:unresolved-import:') else None
+                record = dict(boundary_id=key, endpoint_id=endpoint,
+                              category='unresolved' if lookup or not endpoint else 'external',
+                              lookup_repository=lookup.get('repository') if lookup else None,
+                              lookup_module=lookup.get('module') if lookup else None,
+                              lookup_name=lookup.get('name') if lookup else None,
+                              lookup_status=edge.get('lookup_status') if lookup else None,
+                              lookup_reason='named-import-unresolved' if lookup else None)
+                if key in by_id and by_id[key] != record:
+                    raise ToolError('Inconsistent boundary lookup identity')
+                by_id[key] = record
     return by_id
 
 
@@ -371,7 +385,10 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                 _write(session, scope, owner,
                        'UNWIND $rows AS row CREATE (b:LCTBoundary '
                        '{namespace:$namespace, version:$version, boundary_id:row.boundary_id, '
-                       'endpoint_id:row.endpoint_id, category:row.category})', batch)
+                       'endpoint_id:row.endpoint_id, category:row.category, '
+                       'lookup_repository:row.lookup_repository, lookup_module:row.lookup_module, '
+                       'lookup_name:row.lookup_name, lookup_status:row.lookup_status, '
+                       'lookup_reason:row.lookup_reason})', batch)
             edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
                               target=e.get('target'), status=e.get('status'),
                               site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
@@ -627,7 +644,10 @@ class Neo4jGraph:
                     _write(session, scope, owner,
                            'UNWIND $rows AS row MERGE (b:LCTBoundary '
                            '{namespace:$namespace, version:$version, boundary_id:row.boundary_id}) '
-                           'SET b.endpoint_id=row.endpoint_id, b.category=row.category',
+                           'SET b.endpoint_id=row.endpoint_id, b.category=row.category, '
+                           'b.lookup_repository=row.lookup_repository, b.lookup_module=row.lookup_module, '
+                           'b.lookup_name=row.lookup_name, b.lookup_status=row.lookup_status, '
+                           'b.lookup_reason=row.lookup_reason',
                            batch, state='migrating')
                 for batch in _batches(dict(edge_id=e['edge_id'],
                                             source_boundary=_boundary_id(e,'source',node_ids),

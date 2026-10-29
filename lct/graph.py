@@ -76,6 +76,41 @@ class Graph:
                 return {"boundary:dependency-version-unmatched:" + name}
         return {"boundary:external-or-excluded:" + name}
 
+    def import_lookup(self, scope, stmt, alias):
+        """Identify one captured namespace for an unresolved named import.
+
+        Do not turn a Jedi failure into a claim about external, ambiguous, or
+        unpinned modules. This is a dependency hint, not proof of name absence.
+        """
+        if not isinstance(stmt, ast.ImportFrom) or alias.name == "*":
+            return None
+        caller = self.nodes[scope]
+        module_node = scope
+        while self.nodes[module_node]["kind"] != "module":
+            module_node = self.nodes[module_node]["parent"]
+        current = self.nodes[module_node]
+        if stmt.level:
+            package = current["qualname"].split(".")
+            if not current["path"].endswith("/__init__.py"):
+                package.pop()
+            if stmt.level > len(package):
+                return None
+            prefix = package[:len(package) - stmt.level + 1]
+            name = ".".join([*prefix, *([stmt.module] if stmt.module else [])])
+        else:
+            name = stmt.module or ""
+        if not name or self.modules.get((caller["repository"], name + "." + alias.name)):
+            return None
+        allowed = self.imported(caller["repository"], name)
+        if len(allowed) != 1:
+            return None
+        module = next(iter(allowed))
+        if module not in self.nodes or self.nodes[module]["kind"] != "module":
+            return None
+        owner = self.nodes[module]
+        identity = dict(repository=owner["repository"], module=name, name=alias.name)
+        return module, "boundary:unresolved-import:" + digest(canonical(identity)), identity
+
     def add_edge(
         self, source, target, kind, status, basis, line=0, column=0, expression="", **extra
     ):
@@ -342,16 +377,23 @@ class Graph:
                             alias.name,
                         )
                     if not result.atoms:
+                        reasons = sorted(result.reasons)
+                        lookup = self.import_lookup(scope, stmt, alias)
+                        target = lookup[1] if lookup else None
+                        detail = dict(lookup=lookup[2], lookup_status="unresolved",
+                                      unresolved_reasons=reasons, unknown_origin=True,
+                                      complete=False) if lookup else {}
                         self.add_edge(
-                            scope,
-                            None,
-                            "IMPORTS",
-                            "unresolved",
-                            "; ".join(sorted(result.reasons)),
-                            stmt.lineno,
-                            stmt.col_offset,
-                            alias.name,
+                            scope, target, "IMPORTS", "unresolved",
+                            "; ".join(reasons), stmt.lineno, stmt.col_offset,
+                            alias.name, **detail,
                         )
+                        if lookup:
+                            self.add_edge(
+                                target, lookup[0], "LOOKUP_IN", "resolved",
+                                "unique captured import lookup namespace; name unresolved",
+                                lookup=lookup[2], lookup_status="unresolved",
+                            )
             for ident, scope, base in analyzer.inheritance:
                 result = analyzer.resolve(scope, base)
                 for a in result.atoms:

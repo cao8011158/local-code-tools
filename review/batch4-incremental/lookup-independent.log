@@ -1,0 +1,23 @@
+{
+  "public_build_query": "passed",
+  "old_snapshot": "unchanged",
+  "transition": "unresolved to resolved",
+  "sqlite_plan": [
+    "SEARCH edges USING INDEX edge_target (target=? AND kind=?)",
+    "USE TEMP B-TREE FOR ORDER BY"
+  ],
+  "before_cold": {
+    "vm_steps": 247,
+    "rows": 3
+  },
+  "before_warm": {
+    "vm_steps": 123,
+    "rows": 3
+  },
+  "after_10000_unrelated_edges": {
+    "vm_steps": 123,
+    "rows": 3
+  },
+  "paid_api_calls": 0,
+  "analysis": "full build; not an incremental analyzer test"
+}

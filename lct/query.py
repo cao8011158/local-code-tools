@@ -456,10 +456,11 @@ class Query:
             raise ToolError(
                 "Invalid traversal caps/direction; depth<=4, nodes<=500, edges<=1000, bytes<=200000"
             )
-        types = relation_types or ["CONTAINS", "IMPORTS", "CALLS", "INHERITS"]
+        types = relation_types or ["CONTAINS", "IMPORTS", "LOOKUP_IN", "CALLS", "INHERITS"]
         if not set(types) <= {
             "CONTAINS",
             "IMPORTS",
+            "LOOKUP_IN",
             "CALLS",
             "INHERITS",
             "WRAPS",
@@ -510,7 +511,7 @@ class Query:
                         size += len(raw.encode())
                         if other and other not in visited:
                             visited.add(other)
-                            if not other.startswith("boundary:"):
+                            if not other.startswith("boundary:") or other.startswith("boundary:unresolved-import:"):
                                 queue.append((other, d + 1))
                     if truncated:
                         break

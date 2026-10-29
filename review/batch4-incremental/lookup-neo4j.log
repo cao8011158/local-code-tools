@@ -1,0 +1,45 @@
+Owned Neo4j 5.26.0 ready; running targeted command
+.......F.....                                                            [100%]
+=================================== FAILURES ===================================
+____________ test_real_neo4j_lookup_projection_and_reverse_relation ____________
+
+    def test_real_neo4j_lookup_projection_and_reverse_relation():
+        import os
+        import uuid
+    
+        import pytest
+    
+        from lct.common import canonical, digest
+        from lct.neo4j_graph import Neo4jGraph
+        from lct.official_mcp import node_read_cypher_requests
+    
+        uri = os.getenv('LCT_TEST_NEO4J_URI')
+        if not uri:
+            pytest.skip('owned Neo4j URI required')
+        nodes, edges = build([file('from helper import fresh as f\n', 'src/caller.py'),
+                              file('def old(): pass\n', 'src/helper.py')])
+        imports, lookups = lookup_edges(edges)
+        snapshot = dict(version='fixture-v1', nodes=nodes, edges=edges,
+                        graph={'sites': []}, source={'repositories': []})
+        snapshot['fingerprint'] = digest(canonical({k: snapshot[k] for k in
+                                                    ('nodes', 'edges', 'graph', 'source')}))
+        namespace, version = 'lookup-test-' + uuid.uuid4().hex, 'fixture-v1'
+        password = os.getenv('LCT_TEST_NEO4J_PASSWORD', 'synthetic-lct-batch1-only')
+        with Neo4jGraph(uri, os.getenv('LCT_TEST_NEO4J_USER', 'neo4j'), password,
+                        os.getenv('LCT_TEST_NEO4J_DATABASE', 'neo4j')) as graph:
+            graph.maintain_indexes()
+            graph.import_snapshot(namespace, version, snapshot)
+            assert graph.import_snapshot(namespace, version, snapshot)['already_present']
+            module = lookups[0]['target']
+            assert graph.get_relations(namespace, version, [module], ['LOOKUP_IN'], 'in')['edges'] == lookups
+            boundary = _boundary_id(imports[0], 'target', {n['node_id'] for n in nodes})
+>           assert graph.get_relations(namespace, version, [boundary], ['IMPORTS'], 'in')['edges'] == imports
+E           AssertionError: assert [] == [{'source': '...solved', ...}]
+E             
+E             Right contains one more item: {'source': 'demo:src/caller.py:module:caller#1', 'target': 'boundary:unresolved-import:12db5b32b420d012ecf0a1e33e947d79ac0e8100702a06ee713bef63bf0bda15', 'kind': 'IMPORTS', 'status': 'unresolved', ...}
+E             Use -v to get more diff
+
+tests/test_import_lookup_dependency.py:194: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_import_lookup_dependency.py::test_real_neo4j_lookup_projection_and_reverse_relation
+1 failed, 12 passed in 19.23s

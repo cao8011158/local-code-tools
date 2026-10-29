@@ -1,0 +1,710 @@
+Owned Neo4j 5.26.0 ready; running targeted command
+.......F[
+  {
+    "unrelated_edges": 0,
+    "queries": [
+      {
+        "kind": "LOOKUP_IN",
+        "rows": 1,
+        "db_hits": 29,
+        "operators": [
+          {
+            "operator": "ProduceResults@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "CacheProperties@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Top@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "CartesianProduct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Union@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 2,
+            "db_hits": 2
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 2,
+            "db_hits": 6
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 2,
+            "db_hits": 3
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 0,
+            "db_hits": 1
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 2,
+            "db_hits": 4
+          }
+        ]
+      },
+      {
+        "kind": "IMPORTS",
+        "rows": 1,
+        "db_hits": 22,
+        "operators": [
+          {
+            "operator": "ProduceResults@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "CacheProperties@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Top@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "CartesianProduct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Union@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 0,
+            "db_hits": 1
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "unrelated_edges": 2000,
+    "queries": [
+      {
+        "kind": "LOOKUP_IN",
+        "rows": 1,
+        "db_hits": 29,
+        "operators": [
+          {
+            "operator": "ProduceResults@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "CacheProperties@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Top@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "CartesianProduct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Union@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 2,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 2,
+            "db_hits": 2
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 2,
+            "db_hits": 6
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 2,
+            "db_hits": 3
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 0,
+            "db_hits": 1
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 2,
+            "db_hits": 4
+          }
+        ]
+      },
+      {
+        "kind": "IMPORTS",
+        "rows": 1,
+        "db_hits": 22,
+        "operators": [
+          {
+            "operator": "ProduceResults@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "CacheProperties@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Top@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "CartesianProduct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "Distinct@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Union@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 0,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 0,
+            "db_hits": 1
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 1
+          },
+          {
+            "operator": "Filter@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Expand(All)@neo4j",
+            "rows": 1,
+            "db_hits": 3
+          },
+          {
+            "operator": "Apply@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Projection@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "Unwind@neo4j",
+            "rows": 1,
+            "db_hits": 0
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          },
+          {
+            "operator": "NodeUniqueIndexSeek@neo4j",
+            "rows": 1,
+            "db_hits": 2
+          }
+        ]
+      }
+    ]
+  }
+]
+.
+=================================== FAILURES ===================================
+____________ test_real_neo4j_lookup_projection_and_reverse_relation ____________
+
+    def test_real_neo4j_lookup_projection_and_reverse_relation():
+        import os
+        import uuid
+    
+        import pytest
+    
+        from lct.common import canonical, digest
+        from lct.neo4j_graph import Neo4jGraph
+        from lct.official_mcp import node_read_cypher_requests
+    
+        uri = os.getenv('LCT_TEST_NEO4J_URI')
+        if not uri:
+            pytest.skip('owned Neo4j URI required')
+        nodes, edges = build([file('from helper import fresh as f\n', 'src/caller.py'),
+                              file('def old(): pass\n', 'src/helper.py')])
+        imports, lookups = lookup_edges(edges)
+        snapshot = dict(version='fixture-v1', nodes=nodes, edges=edges,
+                        graph={'sites': []}, source={'repositories': []})
+        snapshot['fingerprint'] = digest(canonical({k: snapshot[k] for k in
+                                                    ('nodes', 'edges', 'graph', 'source')}))
+        namespace, version = 'lookup-test-' + uuid.uuid4().hex, 'fixture-v1'
+        password = os.getenv('LCT_TEST_NEO4J_PASSWORD', 'synthetic-lct-batch1-only')
+        with Neo4jGraph(uri, os.getenv('LCT_TEST_NEO4J_USER', 'neo4j'), password,
+                        os.getenv('LCT_TEST_NEO4J_DATABASE', 'neo4j')) as graph:
+            graph.maintain_indexes()
+            graph.import_snapshot(namespace, version, snapshot)
+            assert graph.import_snapshot(namespace, version, snapshot)['already_present']
+            module = lookups[0]['target']
+            assert graph.get_relations(namespace, version, [module], ['LOOKUP_IN'], 'in')['edges'] == lookups
+            boundary = _boundary_id(imports[0], 'target', {n['node_id'] for n in nodes})
+            assert graph.get_relations(namespace, version, [imports[0]['target']], ['IMPORTS'], 'in')['edges'] == imports
+            request = node_read_cypher_requests(namespace, version, [boundary],
+                                                snapshot['fingerprint'], boundary=True)[1]
+            with graph.driver.session(database=graph.database) as session:
+                row = session.run(request['arguments']['query'],
+                                  **request['arguments']['params']).single()
+                assert row['category'] == 'unresolved'
+                assert row['lookup_repository'] == 'demo'
+                assert row['lookup_module'] == 'helper'
+                assert row['lookup_name'] == 'fresh'
+                assert row['lookup_status'] == 'unresolved'
+                assert row['lookup_reason'] == 'named-import-unresolved'
+                plan = session.run('EXPLAIN ' + request['arguments']['query'],
+                                   **request['arguments']['params']).consume().plan
+                assert plan is not None
+                def operators(item):
+                    return [item.operator_type, *(op for child in item.children for op in operators(child))]
+                assert any('NodeUniqueIndexSeek' in op or 'NodeIndexSeek' in op
+>                          for op in operators(plan))
+                                     ^^^^^^^^^^^^^^^
+
+tests/test_import_lookup_dependency.py:212: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+item = {'args': {'Order': 'position ASC', 'planner-impl': 'IDP', 'string-representation': 'Cypher 5\n\nPlanner COST\n\nRuntim...'lookup_module', 's', 'fingerprint', 'n', 'lookup_status', 'lookup_name', ...], 'operatorType': 'ProduceResults@neo4j'}
+
+    def operators(item):
+>       return [item.operator_type, *(op for child in item.children for op in operators(child))]
+                ^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'dict' object has no attribute 'operator_type'
+
+tests/test_import_lookup_dependency.py:210: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_import_lookup_dependency.py::test_real_neo4j_lookup_projection_and_reverse_relation
+1 failed, 8 passed in 13.55s

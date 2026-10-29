@@ -53,7 +53,9 @@ def node_read_cypher_requests(namespace, version, ids, expected_fingerprint,
     label = 'LCTBoundary' if boundary else 'LCTNode'
     key = 'boundary_id' if boundary else 'node_id'
     projection = ('n.boundary_id AS boundary_id, n.endpoint_id AS endpoint_id, '
-                  'n.category AS category' if boundary else
+                  'n.category AS category, n.lookup_repository AS lookup_repository, '
+                  'n.lookup_module AS lookup_module, n.lookup_name AS lookup_name, '
+                  'n.lookup_status AS lookup_status, n.lookup_reason AS lookup_reason' if boundary else
                   'CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw, '
                   'size(n.raw_json)>65536 AS raw_too_large')
     guard = ('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true, '
