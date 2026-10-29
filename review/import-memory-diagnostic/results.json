@@ -1,0 +1,927 @@
+{
+  "runtime": "Neo4j 5.26.0, 1 GiB JVM heap, 128 MiB pagecache",
+  "source": "exact remote SHA 4557d4cd2c5a6b33933b3832f81dfb64207e4e4b",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "n100-e500-blob0",
+      "namespace": "diag-20261029-741f6d752f8c",
+      "nodes": 100,
+      "edges": 500,
+      "blob_mb": 0,
+      "canonical_bytes": 51209,
+      "result": {
+        "namespace": "diag-20261029-741f6d752f8c",
+        "version": "v1",
+        "fingerprint": "c750d1c66334fb7f5af225bdb9099eb9a02465751235e61c3dcb75526e959da9",
+        "nodes": 100,
+        "edges": 500,
+        "already_present": false
+      },
+      "original_query_plan": {
+        "explain": "{'args': {'planner-impl': 'IDP', 'Details': '', 'planner-version': '5.26', 'string-representation': 'Cypher 5\\n\\nPlanner COST\\n\\nRuntime SLOTTED\\n\\nRuntime version 5.26\\n\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\\n| Operator                          | Id | Details                                                                                              | Estimated Rows |\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\\n| +ProduceResults                   |  0 |                                                                                                      |             10 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+\\n| +EmptyResult                      |  1 |                                                                                                      |             10 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+\\n| +Create                           |  2 | (a)-[anon_0:CALLS {edge_id: row.edge_id, namespace: $namespace, version: $version}]->(b)             |             10 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+\\n| +Apply                            |  3 |                                                                                                      |             10 |\\n| |\\\\                                +----+------------------------------------------------------------------------------------------------------+----------------+\\n| | +CartesianProduct               |  4 |                                                                                                      |             10 |\\n| | |\\\\                              +----+------------------------------------------------------------------------------------------------------+----------------+\\n| | | +NodeUniqueIndexSeek(Locking) |  5 | UNIQUE b:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AN |             10 |\\n| | |                               |    | D node_id = row.target                                                                               |                |\\n| | |                               +----+------------------------------------------------------------------------------------------------------+----------------+\\n| | +NodeUniqueIndexSeek(Locking)   |  6 | UNIQUE a:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AN |             10 |\\n| |                                 |    | D node_id = row.source                                                                               |                |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+\\n| +Unwind                           |  7 | $rows AS row                                                                                         |             10 |\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\\n\\nTotal database accesses: ?\\n', 'runtime-version': '5.26', 'runtime': 'SLOTTED', 'Id': 0, 'runtime-impl': 'SLOTTED', 'EstimatedRows': 10.000000000000004, 'planner': 'COST', 'version': '5'}, 'children': [{'args': {'EstimatedRows': 10.000000000000004, 'Id': 1}, 'children': [{'args': {'Details': '(a)-[anon_0:CALLS {edge_id: row.edge_id, namespace: $namespace, version: $version}]->(b)', 'Id': 2, 'EstimatedRows': 10.000000000000004}, 'children': [{'args': {'EstimatedRows': 10.000000000000004, 'Id': 3}, 'children': [{'args': {'Details': '$rows AS row', 'Id': 7, 'EstimatedRows': 10.0}, 'identifiers': ['row'], 'operatorType': 'Unwind@neo4j'}, {'args': {'EstimatedRows': 10.000000000000004, 'Id': 4}, 'children': [{'args': {'Details': 'UNIQUE a:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AND node_id = row.source', 'Id': 6, 'EstimatedRows': 10.000000000000002}, 'identifiers': ['row', 'a'], 'operatorType': 'NodeUniqueIndexSeek(Locking)@neo4j'}, {'args': {'Details': 'UNIQUE b:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AND node_id = row.target', 'Id': 5, 'EstimatedRows': 10.000000000000004}, 'identifiers': ['row', 'b'], 'operatorType': 'NodeUniqueIndexSeek(Locking)@neo4j'}], 'identifiers': ['row', 'a', 'b'], 'operatorType': 'CartesianProduct@neo4j'}], 'identifiers': ['row', 'a', 'b'], 'operatorType': 'Apply@neo4j'}], 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'Create@neo4j'}], 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'EmptyResult@neo4j'}], 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'ProduceResults@neo4j'}",
+        "profile_one_row_rolled_back": "{'args': {'GlobalMemory': 64, 'planner-impl': 'IDP', 'Memory': 0, 'string-representation': 'Cypher 5\\n\\nPlanner COST\\n\\nRuntime SLOTTED\\n\\nRuntime version 5.26\\n\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| Operator                          | Id | Details                                                                                              | Estimated Rows | Rows | DB Hits | Memory (Bytes) | Page Cache Hits/Misses |\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| +ProduceResults                   |  0 |                                                                                                      |             10 |    0 |       0 |              0 |                    0/0 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| +EmptyResult                      |  1 |                                                                                                      |             10 |    0 |       0 |                |                    0/0 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| +Create                           |  2 | (a)-[anon_0:CALLS {edge_id: row.edge_id, namespace: $namespace, version: $version}]->(b)             |             10 |    1 |       5 |                |                    0/0 |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| +Apply                            |  3 |                                                                                                      |             10 |    1 |       0 |                |                    0/0 |\\n| |\\\\                                +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| | +CartesianProduct               |  4 |                                                                                                      |             10 |    1 |       0 |                |                    0/0 |\\n| | |\\\\                              +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| | | +NodeUniqueIndexSeek(Locking) |  5 | UNIQUE b:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AN |             10 |    1 |       1 |                |                    0/0 |\\n| | |                               |    | D node_id = row.target                                                                               |                |      |         |                |                        |\\n| | |                               +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| | +NodeUniqueIndexSeek(Locking)   |  6 | UNIQUE a:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AN |             10 |    1 |       1 |                |                    0/0 |\\n| |                                 |    | D node_id = row.source                                                                               |                |      |         |                |                        |\\n| |                                 +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n| +Unwind                           |  7 | $rows AS row                                                                                         |             10 |    1 |       0 |                |                    0/0 |\\n+-----------------------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+\\n\\nTotal database accesses: 7, total allocated memory: 64\\n', 'runtime': 'SLOTTED', 'runtime-impl': 'SLOTTED', 'version': '5', 'DbHits': 0, 'Details': '', 'planner-version': '5.26', 'runtime-version': '5.26', 'Id': 0, 'EstimatedRows': 10.000000000000004, 'planner': 'COST', 'PageCacheMisses': 0, 'Rows': 0, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'children': [{'args': {'Id': 1, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000004, 'DbHits': 0, 'Rows': 0, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'children': [{'args': {'Details': '(a)-[anon_0:CALLS {edge_id: row.edge_id, namespace: $namespace, version: $version}]->(b)', 'Id': 2, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000004, 'DbHits': 5, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'children': [{'args': {'Id': 3, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000004, 'DbHits': 0, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'children': [{'args': {'Details': '$rows AS row', 'Id': 7, 'PageCacheMisses': 0, 'EstimatedRows': 10.0, 'DbHits': 0, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'dbHits': 0, 'identifiers': ['row'], 'operatorType': 'Unwind@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}, {'args': {'Id': 4, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000004, 'DbHits': 0, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'children': [{'args': {'Details': 'UNIQUE a:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AND node_id = row.source', 'Id': 6, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000002, 'DbHits': 1, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'dbHits': 1, 'identifiers': ['row', 'a'], 'operatorType': 'NodeUniqueIndexSeek(Locking)@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}, {'args': {'Details': 'UNIQUE b:LCTNode(namespace, version, node_id) WHERE namespace = $namespace AND version = $version AND node_id = row.target', 'Id': 5, 'PageCacheMisses': 0, 'EstimatedRows': 10.000000000000004, 'DbHits': 1, 'Rows': 1, 'PageCacheHits': 0}, 'pageCacheMisses': 0, 'dbHits': 1, 'identifiers': ['row', 'b'], 'operatorType': 'NodeUniqueIndexSeek(Locking)@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}], 'dbHits': 0, 'identifiers': ['row', 'a', 'b'], 'operatorType': 'CartesianProduct@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}], 'dbHits': 0, 'identifiers': ['row', 'a', 'b'], 'operatorType': 'Apply@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}], 'dbHits': 5, 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'Create@neo4j', 'rows': 1, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}], 'dbHits': 0, 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'EmptyResult@neo4j', 'rows': 0, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}], 'dbHits': 0, 'identifiers': ['row', 'a', 'b', 'anon_0'], 'operatorType': 'ProduceResults@neo4j', 'rows': 0, 'pageCacheHitRatio': 0.0, 'pageCacheHits': 0}"
+      },
+      "seconds_since_start": 7.263
+    },
+    {
+      "name": "n1000-e5000-blob0",
+      "namespace": "diag-20261029-e4279bfab32d",
+      "nodes": 1000,
+      "edges": 5000,
+      "blob_mb": 0,
+      "canonical_bytes": 528509,
+      "result": {
+        "namespace": "diag-20261029-e4279bfab32d",
+        "version": "v1",
+        "fingerprint": "ba179cfc490f45da16a3d43f847393d1a835838c01bf0cd506b2dd19d29a1077",
+        "nodes": 1000,
+        "edges": 5000,
+        "already_present": false
+      },
+      "seconds_since_start": 8.941
+    },
+    {
+      "name": "n100-e500-blob8",
+      "namespace": "diag-20261029-43ec6a2c4c76",
+      "nodes": 100,
+      "edges": 500,
+      "blob_mb": 8,
+      "canonical_bytes": 8439817,
+      "result": {
+        "namespace": "diag-20261029-43ec6a2c4c76",
+        "version": "v1",
+        "fingerprint": "28f135bbacdacce2b8a8feb12d579eec0ece87dcbc5dced8eea9b3ee380483e0",
+        "nodes": 100,
+        "edges": 500,
+        "already_present": false
+      },
+      "seconds_since_start": 9.365
+    },
+    {
+      "name": "n100-e500-blob61.16",
+      "namespace": "diag-20261029-30bbfa406f81",
+      "nodes": 100,
+      "edges": 500,
+      "blob_mb": 61.16,
+      "canonical_bytes": 64182117,
+      "result": {
+        "namespace": "diag-20261029-30bbfa406f81",
+        "version": "v1",
+        "fingerprint": "a3f4003c7c17a132caa6a204ab206e6e0b682697c3d2e95226b0375b14319c3e",
+        "nodes": 100,
+        "edges": 500,
+        "already_present": false
+      },
+      "seconds_since_start": 11.522
+    }
+  ],
+  "measurements": [
+    {
+      "case": "n100-e500-blob0",
+      "phase": "begin",
+      "batch": 0,
+      "at_seconds": 5.485,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "before_scope",
+      "batch": 0,
+      "at_seconds": 5.494,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_scope",
+      "batch": 1,
+      "at_seconds": 5.975,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "before_nodes",
+      "batch": 0,
+      "at_seconds": 5.982,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_nodes",
+      "batch": 1,
+      "at_seconds": 6.142,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "before_edges",
+      "batch": 0,
+      "at_seconds": 6.148,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_edges",
+      "batch": 1,
+      "at_seconds": 6.376,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "before_relations",
+      "batch": 0,
+      "at_seconds": 6.381,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_relations",
+      "batch": 1,
+      "at_seconds": 6.734,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "before_graph_property",
+      "batch": 0,
+      "at_seconds": 6.739,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_graph_property",
+      "batch": 1,
+      "at_seconds": 6.857,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-4",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob0",
+      "phase": "after_commit_or_rollback",
+      "batch": 1,
+      "at_seconds": 7.072,
+      "transactions": []
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "begin",
+      "batch": 0,
+      "at_seconds": 7.361,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "before_scope",
+      "batch": 0,
+      "at_seconds": 7.365,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_scope",
+      "batch": 1,
+      "at_seconds": 7.372,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "before_nodes",
+      "batch": 0,
+      "at_seconds": 7.375,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_nodes",
+      "batch": 1,
+      "at_seconds": 7.462,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1507,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_nodes",
+      "batch": 2,
+      "at_seconds": 7.513,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 3007,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "before_edges",
+      "batch": 0,
+      "at_seconds": 7.517,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 3007,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_edges",
+      "batch": 1,
+      "at_seconds": 7.572,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 4508,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 6291456
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_edges",
+      "batch": 2,
+      "at_seconds": 7.643,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 6008,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 6291456
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_edges",
+      "batch": 5,
+      "at_seconds": 7.784,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 10508,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 12582912
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_edges",
+      "batch": 10,
+      "at_seconds": 7.996,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 18008,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 20971520
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "before_relations",
+      "batch": 0,
+      "at_seconds": 8.003,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 18008,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 20971520
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_relations",
+      "batch": 1,
+      "at_seconds": 8.064,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 19010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 20971520
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_relations",
+      "batch": 2,
+      "at_seconds": 8.112,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 20010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 23068672
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_relations",
+      "batch": 5,
+      "at_seconds": 8.224,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 23010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 23068672
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_relations",
+      "batch": 10,
+      "at_seconds": 8.4,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 28010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 27262976
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "before_graph_property",
+      "batch": 0,
+      "at_seconds": 8.406,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 28010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 27262976
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_graph_property",
+      "batch": 1,
+      "at_seconds": 8.416,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-10",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 28010,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 27262976
+        }
+      ]
+    },
+    {
+      "case": "n1000-e5000-blob0",
+      "phase": "after_commit_or_rollback",
+      "batch": 1,
+      "at_seconds": 8.941,
+      "transactions": []
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "begin",
+      "batch": 0,
+      "at_seconds": 9.033,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "before_scope",
+      "batch": 0,
+      "at_seconds": 9.038,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_scope",
+      "batch": 1,
+      "at_seconds": 9.045,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "before_nodes",
+      "batch": 0,
+      "at_seconds": 9.048,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_nodes",
+      "batch": 1,
+      "at_seconds": 9.063,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "before_edges",
+      "batch": 0,
+      "at_seconds": 9.067,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_edges",
+      "batch": 1,
+      "at_seconds": 9.113,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "before_relations",
+      "batch": 0,
+      "at_seconds": 9.118,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_relations",
+      "batch": 1,
+      "at_seconds": 9.145,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "before_graph_property",
+      "batch": 0,
+      "at_seconds": 9.179,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_graph_property",
+      "batch": 1,
+      "at_seconds": 9.292,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-14",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 20971640
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob8",
+      "phase": "after_commit_or_rollback",
+      "batch": 1,
+      "at_seconds": 9.364,
+      "transactions": []
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "begin",
+      "batch": 0,
+      "at_seconds": 10.094,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "before_scope",
+      "batch": 0,
+      "at_seconds": 10.097,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 0,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 0
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_scope",
+      "batch": 1,
+      "at_seconds": 10.104,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "before_nodes",
+      "batch": 0,
+      "at_seconds": 10.107,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 5,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_nodes",
+      "batch": 1,
+      "at_seconds": 10.121,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "before_edges",
+      "batch": 0,
+      "at_seconds": 10.125,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 307,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_edges",
+      "batch": 1,
+      "at_seconds": 10.163,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "before_relations",
+      "batch": 0,
+      "at_seconds": 10.173,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 1808,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 2097152
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_relations",
+      "batch": 1,
+      "at_seconds": 10.208,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "before_graph_property",
+      "batch": 0,
+      "at_seconds": 10.404,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 4194304
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_graph_property",
+      "batch": 1,
+      "at_seconds": 11.177,
+      "transactions": [
+        {
+          "transactionId": "neo4j-transaction-18",
+          "currentQuery": "",
+          "status": "Running",
+          "activeLockCount": 2810,
+          "allocatedDirectBytes": 0,
+          "estimatedUsedHeapMemory": 132456240
+        }
+      ]
+    },
+    {
+      "case": "n100-e500-blob61.16",
+      "phase": "after_commit_or_rollback",
+      "batch": 1,
+      "at_seconds": 11.52,
+      "transactions": []
+    }
+  ],
+  "service_exit_code": 0,
+  "elapsed_seconds": 21.87
+}

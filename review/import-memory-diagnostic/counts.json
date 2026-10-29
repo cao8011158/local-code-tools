@@ -1,0 +1,131 @@
+{
+  "source_sha": "4557d4cd2c5a6b33933b3832f81dfb64207e4e4b",
+  "source_git_blob": "7b875e733228261a0e374d0e58973fc2685c108d",
+  "scope": "Exact import_snapshot method with counting lists and fake driver; no load_snapshot, Neo4j execution, or DB-memory claim",
+  "results": [
+    {
+      "n": 100,
+      "e": 500,
+      "already_present": false,
+      "node_visits": 800,
+      "edge_visits": 5500,
+      "node_passes": 8,
+      "edge_passes": 11,
+      "canonical_calls": {
+        "snapshot": 1,
+        "row": 1700,
+        "graph": 1,
+        "source": 1
+      },
+      "canonical_bytes": {
+        "snapshot": 37088,
+        "row": 220192,
+        "graph": 12,
+        "source": 2
+      },
+      "statements": {
+        "schema": 3,
+        "scope": 1,
+        "node": 5,
+        "edge": 1,
+        "relation": 7,
+        "metadata": 1
+      },
+      "write_rows": {
+        "node": 100,
+        "edge": 500,
+        "relation": 500
+      },
+      "duplicate_writes": 0
+    },
+    {
+      "n": 100,
+      "e": 500,
+      "already_present": true,
+      "node_visits": 800,
+      "edge_visits": 5500,
+      "node_passes": 8,
+      "edge_passes": 11,
+      "canonical_calls": {
+        "snapshot": 1,
+        "row": 1700
+      },
+      "canonical_bytes": {
+        "snapshot": 37088,
+        "row": 220192
+      },
+      "statements": {
+        "schema": 3,
+        "scope": 1
+      },
+      "write_rows": {
+        "node": 0,
+        "edge": 0,
+        "relation": 0
+      },
+      "duplicate_writes": 0
+    },
+    {
+      "n": 1000,
+      "e": 5000,
+      "already_present": false,
+      "node_visits": 8000,
+      "edge_visits": 55000,
+      "node_passes": 8,
+      "edge_passes": 11,
+      "canonical_calls": {
+        "snapshot": 1,
+        "row": 17000,
+        "graph": 1,
+        "source": 1
+      },
+      "canonical_bytes": {
+        "snapshot": 386245,
+        "row": 2264363,
+        "graph": 12,
+        "source": 2
+      },
+      "statements": {
+        "schema": 3,
+        "scope": 1,
+        "node": 5,
+        "edge": 10,
+        "relation": 14,
+        "metadata": 1
+      },
+      "write_rows": {
+        "node": 1000,
+        "edge": 5000,
+        "relation": 5000
+      },
+      "duplicate_writes": 0
+    },
+    {
+      "n": 1000,
+      "e": 5000,
+      "already_present": true,
+      "node_visits": 8000,
+      "edge_visits": 55000,
+      "node_passes": 8,
+      "edge_passes": 11,
+      "canonical_calls": {
+        "snapshot": 1,
+        "row": 17000
+      },
+      "canonical_bytes": {
+        "snapshot": 386245,
+        "row": 2264363
+      },
+      "statements": {
+        "schema": 3,
+        "scope": 1
+      },
+      "write_rows": {
+        "node": 0,
+        "edge": 0,
+        "relation": 0
+      },
+      "duplicate_writes": 0
+    }
+  ]
+}
