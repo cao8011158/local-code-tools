@@ -63,6 +63,13 @@ Copy-Item config.example.json config.json
 `protocol_acceptance.py` 是已有本机验收入口，默认要求配置/真实索引，有些路径可能申请缺失查询或文档向量；
 不能把它们当成默认离线测试。`dense_acceptance.py --offline` 禁止申请新向量。
 
+已有完整 lexical 版本需要追加向量而不重新解析源码时，使用
+`local_code_tools.py attach-dense --version <当前版本> --expected-program-hash <原版本program_hash> --offline`。
+它仅从已发布 catalog 的捕获源码重建 embedding 输入，读取缓存，创建新版本并原子发布；
+`--offline` 缺向量即拒绝，去掉该参数才允许在配置预算内请求 Voyage。程序升级导致旧版本
+`program_hash` 不同，必须显式提供旧哈希；schema、配置、模型、HNSW 和校验和仍严格验证。
+源码新鲜度沿用旧版本上次检查时间，不执行实时目录扫描。
+
 本次上传的只读实库验证命令为：
 
 ```powershell

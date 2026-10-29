@@ -6,7 +6,7 @@ import sys
 
 from .common import ToolError, config
 from .query import Query
-from .storage import build, estimate, recover
+from .storage import attach_dense, build, estimate, recover
 
 
 def main():
@@ -18,6 +18,10 @@ def main():
         s = commands.add_parser(name)
         s.add_argument("--offline", action="store_true")
         s.add_argument("--lexical-only", action="store_true")
+    s = commands.add_parser("attach-dense", help="Attach vectors to an expected frozen lexical version")
+    s.add_argument("--version", dest="expected_version", required=True)
+    s.add_argument("--expected-program-hash")
+    s.add_argument("--offline", action="store_true")
     commands.add_parser("estimate")
     s = commands.add_parser("status")
     s.add_argument("--refresh", action="store_true")
@@ -68,6 +72,8 @@ def main():
     try:
         if command in ("build", "update"):
             out = build(c, **args)
+        elif command == "attach-dense":
+            out = attach_dense(c, **args)
         elif command == "estimate":
             out = estimate(c)
         elif command == "status":

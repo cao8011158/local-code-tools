@@ -1,6 +1,7 @@
 """Consistent candidate snapshots, incremental SQLite maintenance and atomic publication."""
 
 import hashlib
+import json
 import shutil
 import sqlite3
 import stat
@@ -377,6 +378,113 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
             return m
         except BaseException:
             atomic(folder / "build-state.json", dict(state="failed-or-interrupted", at=now()))
+            raise
+        finally:
+            cache.close()
+
+
+def attach_dense(c, expected_version, offline=False, expected_program_hash=None, fail_at=None):
+    """Attach real cached/provider vectors to one frozen lexical catalog, without source parsing.
+
+    The expected-version fence and update lock make the new candidate atomic. The
+    predecessor's captured files/nodes, graph, BM25 and source identity are retained.
+    No live repository is consulted; freshness remains the predecessor's last check.
+    """
+    data = Path(c["data"])
+    with lock(data / "update.lock"):
+        if current(c) != expected_version:
+            raise ToolError("Dense attachment expected current version mismatch")
+        old_folder, old = manifest(c, expected_version, compatible=False)
+        if (expected_program_hash is not None and old["program_hash"] != expected_program_hash or
+            old["program_hash"] != program_hash() and expected_program_hash is None):
+            raise ToolError("Frozen lexical program hash differs from explicit predecessor")
+        if (old["schema"] != SCHEMA or old["format"] != FORMAT or
+            old["template"] != TEMPLATE or old["tokenizer"] != TOKENIZER or
+            old["config_hash"] != identity(c) or
+            old["embedding"] != {k: c["embedding"][k] for k in ("model", "dimension", "dtype")} or
+            old["hnsw"] != c["hnsw"]):
+            raise ToolError("Frozen lexical index incompatible with dense attachment")
+        if old["dense_ready"] or old["partitions"] or old["vector_chunks"]:
+            raise ToolError("Expected version already has a dense index")
+        validate_folder(old_folder, old)
+        started = time.monotonic()
+        with closing(sqlite3.connect((old_folder / "catalog.sqlite").as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+            # Match the prior frozen-catalog vector preflight exactly. Member
+            # summaries are generated from this explicit deterministic order.
+            nodes = [json.loads(r[0]) for r in db.execute("select data from nodes order by node_id")]
+            files = [dict(repository=r[0], path=r[1], sha256=r[2], text=r[3])
+                     for r in db.execute("select repository,path,sha256,text from files")]
+        if len(nodes) != old["node_count"] or len(files) != len(old["files"]):
+            raise ToolError("Frozen catalog capture incomplete")
+        expected_files = {(f["repository"], f["path"]): f["sha256"] for f in old["files"]}
+        if {(f["repository"], f["path"]): f["sha256"] for f in files} != expected_files:
+            raise ToolError("Frozen catalog file inventory differs")
+        if any(f["sha256"] not in (digest(f["text"]), digest(b"\xef\xbb\xbf" + f["text"].encode()))
+               for f in files):
+            raise ToolError("Frozen source bytes differ from file checksums")
+        texts = embedding_texts(nodes, files)
+        if len(texts) != old["planned_vector_chunks"]:
+            raise ToolError("Frozen vector text count differs from plan")
+        ident = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:10]
+        folder = data / "versions" / ident
+        folder.mkdir(parents=True)
+        atomic(folder / "build-state.json", dict(state="candidate", started=now()))
+        cache = Embeddings(c)
+        try:
+            vectors = cache.get_many([t["text"] for t in texts], offline=offline)
+            shutil.copy2(old_folder / "catalog.sqlite", folder / "catalog.sqlite")
+            partitions = defaultdict(list)
+            byid = {n["node_id"]: n for n in nodes}
+            for i, t in enumerate(texts):
+                n = byid[t["node_id"]]
+                partitions[n["repository"], n["kind"], n["is_test"]].append(i)
+            specs = []
+            for part, (key, indices) in enumerate(sorted(partitions.items())):
+                a = np.asarray([vectors[i] for i in indices], dtype=np.float32)
+                a /= np.linalg.norm(a, axis=1, keepdims=True)
+                stem = f"partition-{part}"
+                np.save(folder / (stem + ".npy"), a, allow_pickle=False)
+                index = Index(ndim=c["embedding"]["dimension"], metric="cos", dtype="f32", **c["hnsw"])
+                index.add(np.arange(len(a), dtype=np.uint64), a, threads=1)
+                index.save(str(folder / (stem + ".usearch")))
+                mapping = [texts[i]["node_id"] for i in indices]
+                atomic(folder / (stem + ".json"), mapping)
+                specs.append(dict(repository=key[0], kind=key[1], is_test=key[2],
+                                  stem=stem, chunks=len(indices), nodes=len(set(mapping))))
+            m = dict(old)
+            m.update(version=ident, completed=now(), program_hash=program_hash(),
+                     partitions=specs, dense_ready=True, vector_chunks=len(texts),
+                     embedding_run=dict(cache_hits=cache.hits, historical_hits=cache.historical_hits,
+                                        new_vectors=cache.new_vectors, requests=cache.requests),
+                     incremental=dict(previous=expected_version, nodes_updated=0, nodes_removed=0,
+                                      postings_updated=0, edges_added=0, edges_removed=0),
+                     seconds=round(time.monotonic() - started, 2))
+            m["artifacts"] = {}
+            m["artifact_sizes"] = {}
+            for rel in sorted(required_artifacts(specs)):
+                checksum, size = hash_artifact(folder, rel)
+                m["artifacts"][rel] = checksum
+                m["artifact_sizes"][rel] = size
+            if m["artifacts"]["catalog.sqlite"] != old["artifacts"]["catalog.sqlite"]:
+                raise ToolError("Frozen catalog changed during dense attachment")
+            atomic(folder / "manifest.json", m)
+            validate_folder(folder, m)
+            if fail_at == "before_publish":
+                raise ToolError("Injected interruption before dense publish")
+            if current(c) != expected_version:
+                raise ToolError("Dense attachment expected current version changed")
+            activate(c, ident)
+            freshness = data / "freshness.json"
+            if freshness.exists():
+                prior = load(freshness)
+                if prior.get("version") == expected_version:
+                    atomic(freshness, dict(prior, version=ident))
+            atomic(folder / "build-state.json", dict(state="published", completed=now()))
+            prune(c)
+            return m
+        except BaseException:
+            atomic(folder / "build-state.json", dict(
+                state="published" if current(c) == ident else "failed-or-interrupted", at=now()))
             raise
         finally:
             cache.close()
