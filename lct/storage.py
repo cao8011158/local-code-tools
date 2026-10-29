@@ -327,7 +327,8 @@ def estimate(c):
         cache.close()
 
 
-def build(c, offline=False, fail_at=None, lexical_only=False):
+def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False,
+          on_candidate=None):
     """Build all channels from captured source; publish only after rechecking source bytes.
 
     AST/Jedi relationships and HNSW are recomputed during update, not retrieval. SQLite
@@ -335,6 +336,11 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
     """
     data = Path(c["data"])
     with lock(data / "update.lock"):
+        previous = current(c)
+        if previous and on_candidate is None and not prepare_only:
+            _, prior_manifest = manifest(c, previous, compatible=False)
+            if prior_manifest.get("publication"):
+                raise ToolError("Bound publication requires update-coordinated")
         started = time.monotonic()
         files, repos, fingerprint = inventory(c)
         nodes, asts = extract(files)
@@ -344,7 +350,6 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
         folder = data / "versions" / ident
         folder.mkdir(parents=True)
         atomic(folder / "build-state.json", dict(state="candidate", started=now()))
-        previous = current(c)
         cache = Embeddings(c)
         try:
             vectors = (
@@ -512,6 +517,10 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
             atomic(folder / "summary.json", m)
             if fail_at == "before_publish":
                 raise ToolError("Injected interruption before atomic pointer publication")
+            if on_candidate is not None:
+                on_candidate(ident, folder, m, previous)
+            if prepare_only:
+                return m
             activate(c, ident)
             atomic(
                 data / "freshness.json",
@@ -527,13 +536,15 @@ def build(c, offline=False, fail_at=None, lexical_only=False):
             prune(c)
             return m
         except BaseException:
-            atomic(folder / "build-state.json", dict(state="failed-or-interrupted", at=now()))
+            atomic(folder / "build-state.json", dict(
+                state="published" if current(c) == ident else "failed-or-interrupted", at=now()))
             raise
         finally:
             cache.close()
 
 
-def attach_dense(c, expected_version, offline=False, expected_program_hash=None, fail_at=None):
+def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
+                 fail_at=None, prepare_only=False, on_candidate=None):
     """Attach real cached/provider vectors to one frozen lexical catalog, without source parsing.
 
     The expected-version fence and update lock make the new candidate atomic. The
@@ -545,6 +556,8 @@ def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
         if current(c) != expected_version:
             raise ToolError("Dense attachment expected current version mismatch")
         old_folder, old = manifest(c, expected_version, compatible=False)
+        if old.get("publication") and on_candidate is None and not prepare_only:
+            raise ToolError("Bound publication requires coordinated dense attachment")
         if (expected_program_hash is not None and old["program_hash"] != expected_program_hash or
             old["program_hash"] != program_hash() and expected_program_hash is None):
             raise ToolError("Frozen lexical program hash differs from explicit predecessor")
@@ -627,6 +640,10 @@ def attach_dense(c, expected_version, offline=False, expected_program_hash=None,
                 raise ToolError("Injected interruption before dense publish")
             if current(c) != expected_version:
                 raise ToolError("Dense attachment expected current version changed")
+            if on_candidate is not None:
+                on_candidate(ident, folder, m, expected_version)
+            if prepare_only:
+                return m
             activate(c, ident)
             freshness = data / "freshness.json"
             if freshness.exists():
@@ -721,6 +738,10 @@ def recover(c, version):
     """Explicitly validate a complete retained snapshot and atomically activate it."""
     with lock(Path(c["data"]) / "update.lock"):
         folder, m = manifest(c, version)
+        old_version = current(c)
+        if m.get("publication") or (old_version and
+            manifest(c, old_version)[1].get("publication")):
+            raise ToolError("Bound publication requires coordinated recovery")
         validate_folder(folder, m)
         previous = current(c)
         if previous == version:

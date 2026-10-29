@@ -732,6 +732,7 @@ class Neo4jGraph:
             "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
             "RETURN s.node_count AS nodes, s.edge_count AS edges, "
             "s.native_count AS native_edges, s.chunk_count AS chunks, "
+            "s.projection_schema AS projection_schema, "
             "s.graph_sha256 AS graph_sha256, s.source_sha256 AS source_sha256, "
             "s.source_fingerprint AS source_fingerprint, "
             "s.source_repository_count AS source_repository_count, "

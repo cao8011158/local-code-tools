@@ -244,14 +244,17 @@ class Query:
         cursor=None,
         exact=False,
         include_tests=False,
+        version=None,
     ):
         """Dense/BM25/RRF; all interleaves independently ranked levels without score comparison."""
         return self.search(
-            query, level, repositories, mode, candidates, limit, cursor, exact, None, include_tests
+            query, level, repositories, mode, candidates, limit, cursor, exact, None,
+            include_tests, version
         )
 
     def search_docs(
-        self, query, repositories=None, category=None, candidates=50, limit=10, cursor=None
+        self, query, repositories=None, category=None, candidates=50, limit=10, cursor=None,
+        version=None
     ):
         """Heading-aware DOC BM25; intentionally no paid document vectors."""
         return self.search(
@@ -265,6 +268,7 @@ class Query:
             False,
             category,
             False,
+            version,
         )
 
     def search(
@@ -279,6 +283,7 @@ class Query:
         exact,
         category,
         include_tests,
+        version=None,
     ):
         if level not in (*CODE_KINDS, "all", "documentsection") or mode not in (
             "dense",
@@ -301,7 +306,10 @@ class Query:
             include_tests=include_tests,
         )
         bound_cursor = self.decode_cursor(cursor, conditions) if cursor else None
-        folder, m = self.snapshot(bound_cursor["version"] if bound_cursor else None)
+        if bound_cursor and version is not None and version != bound_cursor["version"]:
+            raise ToolError("Explicit version differs from cursor version")
+        folder, m = self.snapshot(version if version is not None else
+                                  bound_cursor["version"] if bound_cursor else None)
         version = m["version"]
         qv = None
         if mode in ("dense", "rrf"):
