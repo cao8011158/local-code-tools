@@ -73,7 +73,7 @@ def test_bulk_roundtrip_and_query_bound(graph, monkeypatch, tmp_path):
     # Each bounded batch now commits independently with two fenced marker statements.
     assert len(queries) < 150
     chunks = [size for _, size in queries if size]
-    assert sum(chunks) == 1200 + 6000 + 4800 + 2
+    assert sum(chunks) == 1200 + 6000 + 6000 + 601 + 2
     assert max(chunks) <= 500
     assert graph.snapshot_info(namespace, 'bulk-v')['graph'] == data['graph']
     page = graph.list_nodes(namespace, 'bulk-v', limit=5000)
@@ -102,7 +102,7 @@ def test_bulk_roundtrip_and_query_bound(graph, monkeypatch, tmp_path):
         assert Counter(row[1] for row in actual) == {True: 4800, False: 1200}
         assert session.run('MATCH (:LCTNode {namespace:$namespace, version:$version})-[r:CALLS]->() '
                            'RETURN count(r) AS c', namespace=namespace,
-                           version='bulk-v').single()['c'] == 4800
+                           version='bulk-v').single()['c'] == 6000
     assert graph.import_snapshot(namespace, 'bulk-v', data)['already_present']
     with pytest.raises(ToolError, match='different content'):
         changed = dict(data, source={'changed': True})

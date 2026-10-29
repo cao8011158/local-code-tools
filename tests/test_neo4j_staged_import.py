@@ -107,10 +107,34 @@ def test_expired_owner_is_fenced_on_retry(db):
     with db.driver.session(database=db.database) as session:
         session.run('CREATE (s:LCTSnapshot {namespace:$namespace, version:$version, '
                     "fingerprint:$fingerprint, complete:false, owner:'stale', "
-                    "lease_until:0, state:'writing', storage_format:'chunks-v1'})",
+                    "lease_until:0, state:'writing', storage_format:'chunks-v1', "
+                    "projection_schema:'native-boundary-v2'})",
                     **scope, fingerprint=data['fingerprint']).consume()
     assert db.import_snapshot(ns, data['version'], data)['already_present'] is False
     with db.driver.session(database=db.database) as session:
         with pytest.raises(ToolError, match='ownership lost'):
             projection._write(session, scope, 'stale', 'RETURN 1')
     assert db.snapshot_info(ns, data['version'])['edges'] == 2
+
+
+def test_incomplete_old_projection_marker_is_rejected_without_rewrite(db):
+    ns = 'old-incomplete-' + uuid4().hex
+    data = sample()
+    scope = dict(namespace=ns, version=data['version'])
+    with db.driver.session(database=db.database) as session:
+        session.run('CREATE (s:LCTSnapshot {namespace:$namespace, version:$version, '
+                    "fingerprint:$fingerprint, complete:false, owner:'stale', "
+                    "lease_until:0, state:'writing', storage_format:'chunks-v1'})",
+                    **scope, fingerprint=data['fingerprint']).consume()
+        before = session.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                             'RETURN properties(s) AS marker', **scope).single()['marker']
+
+    with pytest.raises(ToolError, match='different projection'):
+        db.import_snapshot(ns, data['version'], data)
+
+    with db.driver.session(database=db.database) as session:
+        after = session.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                            'RETURN properties(s) AS marker', **scope).single()['marker']
+    assert after == before
+    with pytest.raises(ToolError, match='missing'):
+        db.snapshot_info(ns, data['version'])
