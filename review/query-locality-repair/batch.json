@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "batch_id": "Batch3",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/full-business-graph-indexes",
+  "base_sha": "655b78a834c40542bf62c09bdd508c17d7f46450",
+  "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "655b78a834c40542bf62c09bdd508c17d7f46450",
+  "implementation_actor": "GPT-6 SOL developer",
+  "merge_authorized": true,
+  "authorization_reference": "User:通过review就自动merge吧; no waiver of three-round/P0-P1 rules",
+  "scope": [
+    "real graph/index construction, retrieval, portable acceptance"
+  ],
+  "acceptance_criteria": [
+    "actual dense and graph retrieval",
+    "actual MCP tools",
+    "downloaded package restoration"
+  ],
+  "feature_complete": true,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "command": [
+        "pytest",
+        "tests/test_attach_dense.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "developer-targeted.log",
+      "log_sha256": "3a3c2a1889431af87bf78fc4d98a99b3af4135444a7f14264b05af8182db1426"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "command": [
+        "pytest",
+        "tests",
+        "--ignore=tests/test_neo4j_review_independent.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "developer-fast.log",
+      "log_sha256": "f8692889d26b8bdd61234c3a8074f057778fefe62207e0002acd51f048630914"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "command": [
+        "owned-neo4j",
+        "pytest",
+        "tests",
+        "review/dense-acceptance/test_independent_attach.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "independent-tests.log",
+      "log_sha256": "6d3920e51f935b2c21cabbebfa6394a592a2f0764eb8afe7f8575fb6cdc73595"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "command": [
+        "python",
+        "publish_and_verify.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "publication.log",
+      "log_sha256": "5ce9f56c292a4413d67816d8c77c3f5c9a83a190fa4d329633ef3e1440cb779f"
+    },
+    {
+      "role": "reviewer",
+      "kind": "feature_acceptance",
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "command": [
+        "python",
+        "mcp_actual.py"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "mcp-original.log",
+      "log_sha256": "f05307fef541964bc4282f0f43b046447de70accc51f8961dc1f777a5c1e9c6f"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "command": [
+        "pytest",
+        "tests",
+        "review/query-locality-repair/test_independent_locality.py",
+        "--ignore=tests/test_neo4j_review_independent.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "review-fast.log",
+      "log_sha256": "4d4fc31b2c18c6e3c89bec78b17881932585f3521517bef36c4dc64aacfaae05"
+    },
+    {
+      "role": "reviewer",
+      "kind": "feature_acceptance",
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "command": [
+        "python",
+        "real_acceptance.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "real-acceptance.log",
+      "log_sha256": "361914b543b6d1c476547f0a8827a7bd7fc5d28d73c8a6a72b371e0cd8871345"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "command": [
+        "owned-neo4j",
+        "python",
+        "real_neo4j.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "real-neo4j.log",
+      "log_sha256": "647736fb54d21443ae1f88b4b462be28a3a9a0a102f8c1e63140ef5f79475704"
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "remote_head_sha": "42b0acd95fd503551c22447613738c8d9e62bfe9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Historical round1 retained in BATCH3_REVIEW_ROUND1.md"
+    },
+    {
+      "round": 2,
+      "head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "remote_head_sha": "cb68331465cde30bf7333b0f41759669bf4ccb8d",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Staged-import bounded transactions and real native regression; partial acceptance only"
+    },
+    {
+      "round": 3,
+      "head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "remote_head_sha": "9da6e12288cdb32c4e0fc21a2e61185cf1a236b9",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "474pass1skip but actual stdio index_status timed out60s; B3-005. Dense recall and actual downloaded restore pass."
+    },
+    {
+      "round": 4,
+      "head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "remote_head_sha": "ff714c8b81f140733e9878ab68e2809a0efd92be",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Explicitly authorized narrow reopen; B3-005 fixed, PROFILE confirms prior global relationship scans B3-006. No round reset."
+    }
+  ],
+  "findings": [
+    {
+      "id": "B3-005",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "resolved",
+      "discovered_in_batch": "Batch3",
+      "owner_batch": "Batch2 LCT MCP",
+      "owner_step": "current graph/index tooling step",
+      "origin": "pre-existing system path exposed at real scale",
+      "dependency_core": false,
+      "location": "lct/query.py Query.index_status graph=m[graph]; lct/mcp_server.py index_status",
+      "actual": "60second real stdio timeout; status61,240,616bytes, graph61,238,037bytes; withoutgraph2570bytes; directstatus0.5656seconds",
+      "route": "human decision: third review limit and previous batch reopening",
+      "decision_reference": "用户：好的 那么先更新skill 然后修正我们上面的问题"
+    },
+    {
+      "id": "B3-006",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "owner_step": "current graph/index tooling step",
+      "owner_batch": "prior Neo4j query adapter",
+      "discovered_in_batch": "Batch3 extra authorized locality review",
+      "origin": "pre-existing system query",
+      "dependency_core": false,
+      "location": "Neo4jGraph.get_relations and _schema",
+      "route": "human decision after retained review limit",
+      "evidence": "query-plans-alternative.json",
+      "decision_reference": null
+    }
+  ],
+  "manual_reopen_authorization": "用户：好的 那么先更新skill 然后修正我们上面的问题"
+}

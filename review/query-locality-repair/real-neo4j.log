@@ -1,0 +1,164 @@
+Owned Neo4j 5.26.0 ready; running targeted command
+StreamableHTTP session manager started
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 401 Unauthorized"
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Negotiated protocol version: 2025-11-25
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 202 Accepted"
+Processing request of type ListToolsRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+Processing request of type CallToolRequest
+Terminating session: None
+HTTP Request: POST http://127.0.0.1:43023/mcp "HTTP/1.1 200 OK"
+StreamableHTTP session manager shutting down
+{
+  "status": "PASS",
+  "namespace": "batch3-real-staged-20261029-7a235bf36f",
+  "neo4j_version": "20261029T111748-7a235bf36f",
+  "index_version": "20261029T122833-1278b3bc4b",
+  "fingerprint": "db11a1db19ed3f524ba8309184ce6ccc27f44531830f83a0a467736d5150d568",
+  "imported_existing_parsed_graph": false,
+  "parsed_sources": false,
+  "paid_requests": 0,
+  "mcp_sizes": [
+    {
+      "tool": "graph_status",
+      "bytes": 1141
+    },
+    {
+      "tool": "graph_status",
+      "bytes": 1141
+    },
+    {
+      "tool": "snapshot_evidence",
+      "bytes": 11190
+    },
+    {
+      "tool": "list_nodes",
+      "bytes": 2123
+    },
+    {
+      "tool": "list_nodes",
+      "bytes": 2285
+    },
+    {
+      "tool": "list_nodes",
+      "bytes": 3039
+    },
+    {
+      "tool": "get_nodes",
+      "bytes": 6374
+    },
+    {
+      "tool": "get_relations",
+      "bytes": 15016
+    },
+    {
+      "tool": "list_nodes",
+      "bytes": 34001
+    },
+    {
+      "tool": "list_nodes",
+      "bytes": 31645
+    }
+  ],
+  "reads": [
+    {
+      "query": "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) RETURN s.node_count AS nodes, s.edge_count AS edges, s.native_count AS native_edges, s.chunk_count AS chunks, s.graph_sha256 AS graph_sha256, s.source_sha256 AS source_sha256, s.source_fingerprint AS source_fingerprint, s.source_repository_count AS source_repository_count, s.storage_format AS storage_format",
+      "rows": 1,
+      "decoded_bytes": 315
+    },
+    {
+      "query": "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) RETURN s.node_count AS nodes, s.edge_count AS edges, s.native_count AS native_edges, s.chunk_count AS chunks, s.graph_sha256 AS graph_sha256, s.source_sha256 AS source_sha256, s.source_fingerprint AS source_fingerprint, s.source_repository_count AS source_repository_count, s.storage_format AS storage_format",
+      "rows": 1,
+      "decoded_bytes": 315
+    },
+    {
+      "query": "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) RETURN s.storage_format AS format",
+      "rows": 1,
+      "decoded_bytes": 24
+    },
+    {
+      "query": "MATCH (c:LCTChunk {namespace:$namespace, version:$version, kind:$kind}) WHERE c.ordinal >= $ordinal RETURN c.ordinal AS ordinal, substring(c.data, $offset, 8192) AS data, size(c.data) AS length ORDER BY ordinal LIMIT 2",
+      "rows": 2,
+      "decoded_bytes": 17996
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE ($kind IS NULL OR n.kind=$kind) AND ($repository IS NULL OR n.repository=$repository) AND ($cursor IS NULL OR n.node_id > $cursor) RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 2,
+      "decoded_bytes": 3381
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE ($kind IS NULL OR n.kind=$kind) AND ($repository IS NULL OR n.repository=$repository) AND ($cursor IS NULL OR n.node_id > $cursor) RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 2,
+      "decoded_bytes": 3118
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE ($kind IS NULL OR n.kind=$kind) AND ($repository IS NULL OR n.repository=$repository) AND ($cursor IS NULL OR n.node_id > $cursor) RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 2,
+      "decoded_bytes": 5599
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE n.node_id IN $ids RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw",
+      "rows": 3,
+      "decoded_bytes": 5269
+    },
+    {
+      "query": "MATCH (a:LCTNode {namespace:$namespace, version:$version})-[r]->(b:LCTNode {namespace:$namespace, version:$version}) WHERE type(r) IN $allowed AND ($types IS NULL OR type(r) IN $types) AND ($cursor IS NULL OR r.edge_id > $cursor) AND (($direction='out' AND a.node_id IN $ids) OR ($direction='in' AND b.node_id IN $ids) OR ($direction='both' AND (a.node_id IN $ids OR b.node_id IN $ids))) MATCH (e:LCTEdge {namespace:$namespace, version:$version, edge_id:r.edge_id}) RETURN e.edge_id AS id, CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 6,
+      "decoded_bytes": 5735
+    },
+    {
+      "query": "MATCH (e:LCTEdge {namespace:$namespace, version:$version, internal:false}) WHERE ($types IS NULL OR e.kind IN $types) AND ($cursor IS NULL OR e.edge_id > $cursor) AND (($direction='out' AND e.source IN $ids) OR ($direction='in' AND e.target IN $ids) OR ($direction='both' AND (e.source IN $ids OR e.target IN $ids))) RETURN e.edge_id AS id, CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 10,
+      "decoded_bytes": 7252
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE ($kind IS NULL OR n.kind=$kind) AND ($repository IS NULL OR n.repository=$repository) AND ($cursor IS NULL OR n.node_id > $cursor) RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 17,
+      "decoded_bytes": 31550
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE ($kind IS NULL OR n.kind=$kind) AND ($repository IS NULL OR n.repository=$repository) AND ($cursor IS NULL OR n.node_id > $cursor) RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw ORDER BY id LIMIT $fetch",
+      "rows": 17,
+      "decoded_bytes": 29384
+    },
+    {
+      "query": "MATCH (n:LCTNode {namespace:$namespace, version:$version}) WHERE n.node_id IN $ids RETURN n.node_id AS id, CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw",
+      "rows": 1,
+      "decoded_bytes": 1950
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "status": "HUMAN_REQUIRED",
+  "batch_id": "Batch3",
+  "review_rounds": 4,
+  "reasons": [
+    "More than three formal review rounds; do not reset or continue automatically",
+    "Third formal review did not pass",
+    "Latest formal review did not pass",
+    "Unresolved blocking finding: B3-006",
+    "developer/fast_regression: missing evidence on current head",
+    "developer/targeted: missing evidence on current head"
+  ],
+  "limitation": "Recorded evidence only; independently inspect code, logs, authorization and remote refs."
+}

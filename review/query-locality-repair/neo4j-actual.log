@@ -1,0 +1,1101 @@
+Owned Neo4j 5.26.0 ready; running targeted command
+.F....F.......FFFFFF...............                                      [100%]
+=================================== FAILURES ===================================
+____________________________ test_neo4j_small_graph ____________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-38/test_neo4j_small_graph0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb50049dbb0>
+
+    def test_neo4j_small_graph(tmp_path, monkeypatch):
+        uri = os.getenv("LCT_TEST_NEO4J_URI")
+        if not uri:
+            pytest.skip("LCT_TEST_NEO4J_URI not set; real Neo4j service required")
+        pytest.importorskip("neo4j")
+        _, config_path, env = prepare(tmp_path)
+        built = subprocess.run(
+            [sys.executable, str(ROOT / "local_code_tools.py"), "--config", str(config_path),
+             "build", "--offline", "--lexical-only"],
+            cwd=tmp_path, env=env, capture_output=True, text=True, timeout=90,
+        )
+        assert built.returncode == 0, built.stderr
+        m = json.loads(built.stdout)
+        c = json.loads(config_path.read_text())
+        snapshot = load_snapshot(c, m["version"])
+        nodes, edges = snapshot["nodes"], snapshot["edges"]
+        assert len(nodes) == 17 and len(edges) == 30
+        assert Counter(n["kind"] for n in nodes)["function"] > 0
+        namespace = "test-" + tmp_path.name
+        version = m["version"]
+        password = os.getenv("LCT_TEST_NEO4J_PASSWORD", "synthetic-lct-batch1-only")
+        user = os.getenv("LCT_TEST_NEO4J_USER", "neo4j")
+        database = os.getenv("LCT_TEST_NEO4J_DATABASE", "neo4j")
+        with Neo4jGraph(uri, user, password, database) as graph:
+            with pytest.raises(ToolError, match="missing"):
+                graph.snapshot_info(namespace, "wrong-version")
+            with pytest.raises(ToolError, match="missing"):
+                graph.get_nodes(namespace, "wrong-version", [nodes[0]["node_id"]])
+            info = graph.import_snapshot(namespace, version, snapshot)
+            assert info["nodes"] == 17 and info["edges"] == 30
+>           assert graph.snapshot_info(namespace, version)["graph"] == m["graph"]
+E           AssertionError: assert {'analysis_li...: False}, ...} == {'engine': 'A...': False, ...}
+E             
+E             Omitting 9 identical items, use -vv to show
+E             Left contains 1 more item:
+E             {'sites': [{'boundaries': [],
+E                         'column': 5,
+E                         'complete': True,
+E                         'completeness_basis': ['reaching-lexical-binding',...
+E             
+E             ...Full output truncated (609 lines hidden), use '-vv' to show
+
+tests/test_neo4j_small_graph.py:55: AssertionError
+_________________________ test_real_http_mcp_read_only _________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-38/test_real_http_mcp_read_only0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb4fe624560>
+
+    def test_real_http_mcp_read_only(tmp_path, monkeypatch):
+        uri = os.getenv("LCT_TEST_NEO4J_URI")
+        if not uri:
+            pytest.skip("LCT_TEST_NEO4J_URI not set; real Neo4j service required")
+        monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
+        monkeypatch.setenv("no_proxy", "127.0.0.1,localhost")
+        for proxy_name in ("ALL_PROXY", "all_proxy", "HTTP_PROXY", "http_proxy",
+                           "HTTPS_PROXY", "https_proxy"):
+            monkeypatch.delenv(proxy_name, raising=False)
+        _, config_path, env = prepare(tmp_path)
+        built = subprocess.run(
+            [sys.executable, str(ROOT / "local_code_tools.py"), "--config", str(config_path),
+             "build", "--offline", "--lexical-only"], cwd=tmp_path, env=env,
+            capture_output=True, text=True, timeout=90,
+        )
+        assert built.returncode == 0, built.stderr
+        version = json.loads(built.stdout)["version"]
+        snapshot = load_snapshot(json.loads(config_path.read_text()), version)
+        nodes, edges = snapshot["nodes"], snapshot["edges"]
+        assert (len(nodes), len(edges)) == (17, 30)
+        namespace = "http-" + tmp_path.name
+        user = os.getenv("LCT_TEST_NEO4J_USER", "neo4j")
+        password = os.getenv("LCT_TEST_NEO4J_PASSWORD", "synthetic-lct-batch1-only")
+        database = os.getenv("LCT_TEST_NEO4J_DATABASE", "neo4j")
+        with Neo4jGraph(uri, user, password, database) as graph:
+            graph.import_snapshot(namespace, version, snapshot)
+    
+        async def exercise():
+            with socket.socket() as sock:
+                sock.bind(("127.0.0.1", 0))
+                port = sock.getsockname()[1]
+            base = f"http://127.0.0.1:{port}"
+            resource = base + "/mcp"
+            app = create_app(uri=uri, user=user, password=password, database=database,
+                             namespace=namespace, version=version,
+                             token_verifier=LocalTestVerifier(resource), auth=settings(resource),
+                             allowed_host=f"127.0.0.1:{port}", allowed_origin=base)
+            server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port,
+                                                    log_level="error", lifespan="on"))
+            task = asyncio.create_task(server.serve())
+            try:
+                for _ in range(100):
+                    if server.started:
+                        break
+                    if task.done():
+                        await task
+                    await asyncio.sleep(0.05)
+                assert server.started
+                async with httpx.AsyncClient() as client:
+                    for token, code in ((None, 401), ("wrong", 401),
+                                        ("local-wrong-audience", 401), ("local-no-scope", 403)):
+                        headers = {"Authorization": f"Bearer {token}"} if token else {}
+                        response = await client.post(resource, headers=headers, json={})
+                        assert response.status_code == code, response.text
+                    headers = {"Authorization": "Bearer local-full", "Origin": "https://evil.invalid"}
+                    assert (await client.post(resource, headers=headers, json={})).status_code == 403
+                    headers = {"Authorization": "Bearer local-full", "Host": "evil.invalid"}
+                    assert (await client.post(resource, headers=headers, json={})).status_code == 421
+    
+                async with streamablehttp_client(resource, headers={
+                    "Authorization": "Bearer local-full", "Origin": base,
+                }) as (read, write, _):
+                    async with ClientSession(read, write) as session:
+                        await session.initialize()
+                        tools = await session.list_tools()
+                        assert {t.name for t in tools.tools} == {
+                            "graph_status", "snapshot_evidence", "list_nodes", "get_nodes", "get_relations"}
+                        for tool in tools.tools:
+                            assert "namespace" not in tool.inputSchema.get("properties", {})
+                            assert "version" not in tool.inputSchema.get("properties", {})
+                            assert tool.annotations.readOnlyHint is True
+                            assert tool.annotations.destructiveHint is False
+                            assert tool.annotations.idempotentHint is True
+                            assert tool.annotations.openWorldHint is False
+    
+                        async def call(name, args=None):
+                            result = await session.call_tool(name, args or {})
+                            assert not result.isError, result.content
+                            payload = result.structuredContent
+                            if payload is None:
+                                payload = json.loads(next(c.text for c in result.content if c.type == "text"))
+                            assert (payload["namespace"], payload["version"], payload["fingerprint"]) == (
+                                namespace, version, snapshot["fingerprint"])
+                            return payload["data"]
+    
+                        status = await call("graph_status")
+                        assert (status["nodes"], status["edges"]) == (17, 30)
+                        assert status['storage_complete'] is True
+                        fragments, cursor = [], None
+                        while True:
+                            page = await call('snapshot_evidence', {'kind': 'graph', 'cursor': cursor})
+                            fragments.append(page['fragment'])
+                            if not page['has_more']:
+                                break
+                            cursor = page['next_cursor']
+                        assert json.loads(''.join(fragments)) == snapshot['graph']
+                        for kind in ("module", "class", "function", "documentsection"):
+                            listed = await call("list_nodes", {"kind": kind, "limit": 500})
+                            assert listed["nodes"] == [n for n in nodes if n["kind"] == kind]
+                        assert (await call("list_nodes", {"limit": 1}))["has_more"]
+                        selected = [n['node_id'] for n in nodes]
+                        found, cursor = [], 0
+                        while True:
+                            page = await call('get_nodes', {'ids': selected, 'cursor': cursor})
+                            found.extend(page['nodes'])
+                            if not page['has_more']:
+                                break
+                            cursor = page['next_cursor']
+                        assert found == nodes
+                        caller = next(n for n in nodes if n["qualname"] == "caller")
+                        relations = await call("get_relations", {
+                            "ids": [caller["node_id"]], "types": ["CALLS"], "direction": "out"})
+                        expected = [e for e in edges if e["kind"] == "CALLS" and
+                                    e["source"] == caller["node_id"]]
+                        assert relations["edges"] == expected
+                        assert any(e["unknown_origin"] and not e["complete"] for e in expected)
+                        assert (await call("get_nodes", {"ids": ["nonexistent"]}))['nodes'] == []
+                        bad = await session.call_tool("get_nodes", {
+                            "ids": [caller["node_id"]], "namespace": "other", "version": "other"})
+                        if not bad.isError:
+                            payload = bad.structuredContent or json.loads(
+                                next(c.text for c in bad.content if c.type == "text"))
+                            assert payload["namespace"] == namespace
+            finally:
+                server.should_exit = True
+                await asyncio.wait_for(task, timeout=15)
+    
+        asyncio.run(exercise())
+        with Neo4jGraph(uri, user, password, database) as graph:
+            assert graph.snapshot_info(namespace, version)["fingerprint"] == snapshot["fingerprint"]
+>           assert graph.list_nodes(namespace, version, limit=500)["nodes"] == nodes
+E           AssertionError: assert [{'brief': ''...'', ...}, ...] == [{'brief': ''...'', ...}, ...]
+E             
+E             Right contains one more item: {'brief': 'Parcel workflow with a cross-module call and lexical owners.', 'column': 0, 'definition_line': 1, 'docstring': 'Parcel workflow with a cross-module call and lexical owners.', ...}
+E             Use -v to get more diff
+
+tests/test_neo4j_http_mcp.py:188: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  mcp.server.auth.middleware.bearer_auth:bearer_auth.py:81 Bearer token resource 'https://other.invalid/mcp' is not resource_server_url http://127.0.0.1:48341/mcp
+WARNING  mcp.server.transport_security:transport_security.py:93 Invalid Origin header: https://evil.invalid
+WARNING  mcp.server.transport_security:transport_security.py:71 Invalid Host header: evil.invalid
+________________ test_complete_version_skips_batch_preparation _________________
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe6268a0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb4fe625910>
+
+    def test_complete_version_skips_batch_preparation(graph, monkeypatch):
+        snapshot = payload()
+        ns = 'independent-complete-' + uuid4().hex
+>       graph.import_snapshot(ns, 'v1', snapshot)
+
+tests/test_neo4j_staged_independent.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe6268a0>
+scope = {'namespace': 'independent-complete-7bb94dfbc20f47329eeb7596e9ced905', 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+___________ test_same_count_indexed_field_corruption_cannot_publish ____________
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe625c70>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb4fe6259a0>
+
+    def test_same_count_indexed_field_corruption_cannot_publish(graph, monkeypatch):
+        original = module._verify
+        ns = 'independent-property-' + uuid4().hex
+        def corrupt(session, scope, *args, **kwargs):
+            # Leave raw_json and row count unchanged; public filtering uses this separate field.
+            session.run('MATCH (n:LCTNode {namespace:$namespace,version:$version,node_id:"a"}) '
+                        'SET n.qualname="wrong indexed value"', **scope).consume()
+            return original(session, scope, *args, **kwargs)
+        monkeypatch.setattr(module, '_verify', corrupt)
+        with pytest.raises(ToolError, match='verification'):
+>           graph.import_snapshot(ns, 'v1', payload())
+
+tests/test_neo4j_staged_independent.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe625c70>
+scope = {'namespace': 'independent-property-f11db2d7a26f4d59a8b0bc155b49f2c5', 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+___________ test_fenced_owner_cannot_publish_or_release_replacement ____________
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe470d10>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb4fe471d90>
+
+    def test_fenced_owner_cannot_publish_or_release_replacement(graph, monkeypatch):
+        original = module._verify
+        ns = 'independent-fenced-' + uuid4().hex
+        def takeover(session, scope, *args, **kwargs):
+            original(session, scope, *args, **kwargs)
+            # Simulate a different claimant after validation's transaction has committed.
+            session.run('MATCH (s:LCTSnapshot {namespace:$namespace,version:$version}) '
+                        'SET s.owner="replacement",s.state="writing",s.lease_until=$lease',
+                        **scope, lease=10**12).consume()
+        monkeypatch.setattr(module, '_verify', takeover)
+        with pytest.raises(ToolError, match='ownership'):
+>           graph.import_snapshot(ns, 'v1', payload())
+
+tests/test_neo4j_staged_independent.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe470d10>
+scope = {'namespace': 'independent-fenced-098a98c15b1447948ce7ad7d2fc75a78', 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+_______ test_lost_publish_ack_does_not_unpublish_and_retry_is_idempotent _______
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe624a10>
+
+    def test_lost_publish_ack_does_not_unpublish_and_retry_is_idempotent(graph):
+        original = graph.driver
+        ns = 'independent-lost-ack-' + uuid4().hex
+        fired = []
+        class Tx:
+            def __init__(self, transaction): self.transaction = transaction; self.publishing = False
+            def __enter__(self): self.transaction.__enter__(); return self
+            def __exit__(self, *args):
+                result = self.transaction.__exit__(*args)
+                if self.publishing and args[0] is None and not fired:
+                    fired.append(True)
+                    raise RuntimeError('simulated lost commit acknowledgement')
+                return result
+            def run(self, query, **kwargs):
+                if 's.complete=true' in query:
+                    self.publishing = True
+                return self.transaction.run(query, **kwargs)
+        class Session:
+            def __init__(self, session): self.session = session
+            def __enter__(self): self.session.__enter__(); return self
+            def __exit__(self, *args): return self.session.__exit__(*args)
+            def run(self, *args, **kwargs): return self.session.run(*args, **kwargs)
+            def begin_transaction(self, **kwargs): return Tx(self.session.begin_transaction(**kwargs))
+        class Driver:
+            def session(self, **kwargs): return Session(original.session(**kwargs))
+        graph.driver = Driver()
+        try:
+            with pytest.raises(RuntimeError, match='lost commit acknowledgement'):
+>               graph.import_snapshot(ns, 'v1', payload())
+
+tests/test_neo4j_staged_independent.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe624a10>
+scope = {'namespace': 'independent-lost-ack-6b771253c1264291b9931806ae77f79e', 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+_____________ test_external_mixed_limits_native_and_literal_scope ______________
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe775e20>
+
+    def test_external_mixed_limits_native_and_literal_scope(graph):
+        p = payload(); ns = "review-' OR true //-" + uuid.uuid4().hex
+>       graph.import_snapshot(ns, 'v1', p)
+
+tests/test_neo4j_review_independent.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe775e20>
+scope = {'namespace': "review-' OR true //-808af023815940e992220d501e08ea29", 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+____________ test_concurrent_same_snapshot_and_conflicting_content _____________
+
+graph = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe776900>
+
+    def test_concurrent_same_snapshot_and_conflicting_content(graph):
+        p = payload(); ns='review-concurrent-'+uuid.uuid4().hex
+        with ThreadPoolExecutor(max_workers=2) as pool:
+>           results=list(pool.map(lambda _:graph.import_snapshot(ns,'v1',p),range(2)))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_neo4j_review_independent.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_neo4j_review_independent.py:60: in <lambda>
+    results=list(pool.map(lambda _:graph.import_snapshot(ns,'v1',p),range(2)))
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/neo4j_graph.py:445: in import_snapshot
+    return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+graph_db = <lct.neo4j_graph.Neo4jGraph object at 0x7fb4fe776900>
+scope = {'namespace': 'review-concurrent-a6696e0d28d84432ab6b156f39659689', 'version': 'v1'}
+nodes = [{'node_id': 'a', 'kind': 'function', 'repository': 'r', 'qualname': 'a'}, {'node_id': 'b', 'kind': 'function', 'repository': 'r', 'qualname': 'b'}]
+edges = [{'edge_id': '0', 'kind': 'CALLS', 'source': 'a', 'target': 'b', ...}, {'edge_id': '1', 'kind': 'CALLS', 'source': 'a'...d': 'CALLS', 'source': 'a', 'target': None, ...}, {'edge_id': '4', 'kind': 'CALLS', 'source': 'a', 'target': 'a', ...}]
+graph = {'sites': [{'reason': 'unknown callback'}]}
+source = {'repositories': [{'name': 'r', 'git_head': 'fixture-head'}]}
+fingerprint = '28a79afb9d25fc13031d05918a5d24533e3a378de3bf77c7486326a0b5dd2c09'
+node_ids = {'a', 'b'}
+
+    def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+        owner = uuid4().hex
+        with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
+            graph_db._schema(session)
+            deadline = time.monotonic() + CLAIM_WAIT_SECONDS
+            while True:
+                now = time.time()
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    row = tx.run(
+                        'MERGE (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                        'ON CREATE SET s.fingerprint=$fingerprint, s.complete=false, '
+                        "s.owner=$owner, s.lease_until=$lease, s.state='writing', "
+                        "s.storage_format='chunks-v1' "
+                        'SET s.lock_nonce=$nonce '
+                        'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
+                        's.owner AS owner, s.lease_until AS lease',
+                        **scope, fingerprint=fingerprint, owner=owner, nonce=uuid4().hex,
+                        lease=now + LEASE_SECONDS).single(strict=True)
+                    if row['fingerprint'] != fingerprint:
+                        raise ToolError('Snapshot scope already contains different content')
+                    if row['complete'] is not False and row['complete'] is not True:
+                        raise ToolError('Snapshot scope has invalid completion state')
+                    if row['complete'] is True:
+                        return dict(**scope, fingerprint=fingerprint, nodes=len(nodes),
+                                    edges=len(edges), already_present=True)
+                    if row['owner'] == owner:
+                        break
+                    if row['owner'] is None or row['lease'] is None or row['lease'] < now:
+                        tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                               "SET s.owner=$owner, s.lease_until=$lease, s.state='writing'",
+                               **scope, owner=owner, lease=now + LEASE_SECONDS).consume()
+                        break
+                if time.monotonic() >= deadline:
+                    raise ToolError('Snapshot import busy (active writer)')
+                time.sleep(.1)
+            try:
+                _cleanup(session, scope, owner)
+                metadata = {kind: canonical(value) for kind, value in
+                            (('graph', graph), ('source', source))}
+                for kind, label in NODE_LABELS.items():
+                    rows = (dict(node_id=n['node_id'], kind=n['kind'],
+                                 repository=n.get('repository'), path=n.get('path'),
+                                 qualname=n.get('qualname'), version_id=n.get('version_id'),
+                                 raw=canonical(n)) for n in nodes if n['kind'] == kind)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTNode:{label} {{namespace:$namespace, version:$version, '
+                               'node_id:row.node_id, kind:row.kind, repository:row.repository, '
+                               'path:row.path, qualname:row.qualname, version_id:row.version_id, '
+                               'raw_json:row.raw})', batch)
+                edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
+                                  target=e.get('target'), status=e.get('status'),
+                                  site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
+                                  complete=e.get('complete'),
+                                  source_version_id=e.get('source_version_id'),
+                                  target_version_id=e.get('target_version_id'), raw=canonical(e),
+                                  internal=e.get('source') in node_ids and
+                                  e.get('target') in node_ids) for e in edges)
+                for batch in _batches(edge_rows):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row '
+                           'CREATE (e:LCTEdge {namespace:$namespace, version:$version, '
+                           'edge_id:row.edge_id, kind:row.kind, source:row.source, '
+                           'target:row.target, status:row.status, site_id:row.site_id, '
+                           'unknown_origin:row.unknown_origin, complete:row.complete, '
+                           'source_version_id:row.source_version_id, '
+                           'target_version_id:row.target_version_id, internal:row.internal, '
+                           'raw_json:row.raw})', batch)
+                for kind in sorted(REL_TYPES):
+                    rows = (dict(edge_id=e['edge_id'], source=e['source'], target=e['target'])
+                            for e in edges if e['kind'] == kind and
+                            e.get('source') in node_ids and e.get('target') in node_ids)
+                    for batch in _batches(rows):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.source}) '
+                               'MATCH (b:LCTNode {namespace:$namespace, version:$version, '
+                               'node_id:row.target}) '
+                               f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
+                               'version:$version}]->(b)', batch)
+                for kind, value in metadata.items():
+                    for batch in _batches(dict(kind=kind, ordinal=i, data=part,
+                                               sha256=sha256(part.encode('utf-8')).hexdigest())
+                                          for i, part in enumerate(_chunks(value))):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
+                               'kind:row.kind, ordinal:row.ordinal, data:row.data, '
+                               'sha256:row.sha256})', batch)
+                with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
+                    _fence(tx, scope, owner, 'writing')
+                    tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
+                           "SET s.state='validating', s.node_count=$nodes, s.edge_count=$edges, "
+                           's.native_count=$native, s.chunk_count=$chunks, '
+                           's.graph_sha256=$graph_sha, '
+                           's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
+                           's.source_repository_count=$source_repository_count, '
+                           's.storage_format=$format',
+                           **scope, nodes=len(nodes), edges=len(edges),
+                           native=sum(e.get('source') in node_ids and e.get('target') in node_ids
+                                      for e in edges),
+                           chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
+                           graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
+                           source_sha=sha256(metadata['source'].encode('utf-8')).hexdigest(),
+>                          source_fingerprint=source['source_fingerprint'],
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                           source_repository_count=len(source['repositories']),
+                           format='chunks-v1').consume()
+E                          KeyError: 'source_fingerprint'
+
+lct/neo4j_graph.py:372: KeyError
+=============================== warnings summary ===============================
+tests/test_neo4j_http_mcp.py::test_real_http_mcp_read_only
+  /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py:105: DeprecationWarning: Use `streamable_http_client` instead.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_neo4j_small_graph.py::test_neo4j_small_graph - AssertionErr...
+FAILED tests/test_neo4j_http_mcp.py::test_real_http_mcp_read_only - Assertion...
+FAILED tests/test_neo4j_staged_independent.py::test_complete_version_skips_batch_preparation
+FAILED tests/test_neo4j_staged_independent.py::test_same_count_indexed_field_corruption_cannot_publish
+FAILED tests/test_neo4j_staged_independent.py::test_fenced_owner_cannot_publish_or_release_replacement
+FAILED tests/test_neo4j_staged_independent.py::test_lost_publish_ack_does_not_unpublish_and_retry_is_idempotent
+FAILED tests/test_neo4j_review_independent.py::test_external_mixed_limits_native_and_literal_scope
+FAILED tests/test_neo4j_review_independent.py::test_concurrent_same_snapshot_and_conflicting_content
+8 failed, 27 passed, 1 warning in 31.33s

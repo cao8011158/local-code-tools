@@ -1,0 +1,26 @@
+{
+  "archive_sha256": "79a40c53cca3f6b8fc041113b216b529e37d7a2cbe1eea1d47c04798db9cfe9e",
+  "archive_bytes": 194844240,
+  "members": 109,
+  "credential_files": false,
+  "parts": [
+    {
+      "path": "/tmp/lct-query-locality-20261029.zip.part01",
+      "bytes": 100663296,
+      "sha256": "63822351d7d13df888d4791d4b3cc341dc7ecbba1680b3186c60d45f75926127",
+      "drive_id": "1mQJ2hfXNvhcYFwctUvKSSit6vrOwkV74",
+      "url": "https://drive.google.com/file/d/1mQJ2hfXNvhcYFwctUvKSSit6vrOwkV74/view?usp=drivesdk",
+      "metadata_readback": true
+    },
+    {
+      "path": "/tmp/lct-query-locality-20261029.zip.part02",
+      "bytes": 94180944,
+      "sha256": "e9112318fb9fd318ba6d9d5651150e1f18ee6d0d66796773473d0574d4458403",
+      "drive_id": "1xZMJRR8vpUn1C40Voax7S7IIzp5F-vw_",
+      "url": "https://drive.google.com/file/d/1xZMJRR8vpUn1C40Voax7S7IIzp5F-vw_/view?usp=drivesdk",
+      "metadata_readback": true
+    }
+  ],
+  "disposition": "candidate; not merged or fully approved",
+  "remote_download_roundtrip_this_revision": false
+}

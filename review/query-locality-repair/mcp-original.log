@@ -1,0 +1,96 @@
+  + Exception Group Traceback (most recent call last):
+  |   File "/workspace/scratch/413372d9a5a5/lct-staged-import/review/dense-acceptance/mcp_actual.py", line 27, in <module>
+  |     asyncio.run(main())
+  |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "/workspace/scratch/413372d9a5a5/lct-staged-import/review/dense-acceptance/mcp_actual.py", line 12, in main
+  |     async with stdio_client(params,errlog=err) as (read,write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 847, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/workspace/scratch/413372d9a5a5/lct-staged-import/review/dense-acceptance/mcp_actual.py", line 13, in main
+    |     async with ClientSession(read,write,read_timeout_seconds=timedelta(seconds=60)) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 847, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 118, in receive
+      |     return self.receive_nowait()
+      |            ^^^^^^^^^^^^^^^^^^^^^
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 113, in receive_nowait
+      |     raise WouldBlock
+      | anyio._core._exceptions.WouldBlock
+      | 
+      | During handling of the above exception, another exception occurred:
+      | 
+      | Traceback (most recent call last):
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_core/_tasks.py", line 152, in fail_at
+      |     yield cancel_scope
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_core/_tasks.py", line 179, in fail_after
+      |     yield scope
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 292, in send_request
+      |     response_or_error = await response_stream_reader.receive()
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/streams/memory.py", line 126, in receive
+      |     await receive_event.wait()
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1936, in wait
+      |     await self._event.wait()
+      |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/locks.py", line 212, in wait
+      |     await fut
+      | asyncio.exceptions.CancelledError: Cancelled via cancel scope 7f472fcedf90; reason: deadline exceeded
+      | 
+      | During handling of the above exception, another exception occurred:
+      | 
+      | Traceback (most recent call last):
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 291, in send_request
+      |     with anyio.fail_after(timeout):
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 158, in __exit__
+      |     self.gen.throw(value)
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_core/_tasks.py", line 178, in fail_after
+      |     with fail_at(deadline, shield=shield, reason=reason) as scope:
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 158, in __exit__
+      |     self.gen.throw(value)
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/anyio/_core/_tasks.py", line 155, in fail_at
+      |     raise TimeoutError(reason) if reason else TimeoutError
+      | TimeoutError
+      | 
+      | During handling of the above exception, another exception occurred:
+      | 
+      | Traceback (most recent call last):
+      |   File "/workspace/scratch/413372d9a5a5/lct-staged-import/review/dense-acceptance/mcp_actual.py", line 18, in main
+      |     status=await call('index_status');assert status['status']=='ready' and status['dense_ready'];v=status['version']
+      |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/workspace/scratch/413372d9a5a5/lct-staged-import/review/dense-acceptance/mcp_actual.py", line 16, in call
+      |     r=await session.call_tool(name,args);assert not r.isError,name
+      |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/client/session.py", line 401, in call_tool
+      |     result = await self.send_request(
+      |              ^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/mcp/shared/session.py", line 294, in send_request
+      |     raise McpError(
+      | mcp.shared.exceptions.McpError: Timed out while waiting for response to ClientRequest. Waited 60.0 seconds.
+      +------------------------------------

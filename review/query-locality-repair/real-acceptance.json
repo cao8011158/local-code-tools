@@ -1,0 +1,289 @@
+{
+  "status": "PASS",
+  "program_hash": "6b4cd3fcc7a2d26e7a915a0500ee2d3067e8d9f7c7f3dfe23a0f2c29890b69dd",
+  "paid_requests": 0,
+  "migration": [
+    {
+      "version": "20261029T111748-7a235bf36f",
+      "already_migrated": false,
+      "graph_sites": 22416,
+      "manifest_bytes": 61341587,
+      "summary_bytes": 3961
+    },
+    {
+      "version": "20261029T122833-1278b3bc4b",
+      "already_migrated": false,
+      "graph_sites": 22416,
+      "manifest_bytes": 61344331,
+      "summary_bytes": 6705
+    }
+  ],
+  "graph_unchanged": true,
+  "observations": [
+    {
+      "cycle": "cold",
+      "interface": "index_status",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 3002,
+      "seconds": 0.001485617998696398
+    },
+    {
+      "cycle": "cold",
+      "interface": "get_nodes",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 1091,
+      "seconds": 0.0016230660003202502
+    },
+    {
+      "cycle": "cold",
+      "interface": "search_code",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        },
+        {
+          "file": "cursor-key.json",
+          "bytes": 67
+        }
+      ],
+      "reply_bytes": 1250,
+      "seconds": 0.02121205300136353
+    },
+    {
+      "cycle": "cold",
+      "interface": "search_docs",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        },
+        {
+          "file": "cursor-key.json",
+          "bytes": 67
+        }
+      ],
+      "reply_bytes": 1290,
+      "seconds": 0.01367439500245382
+    },
+    {
+      "cycle": "cold",
+      "interface": "get_relations",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 1242,
+      "seconds": 0.001628903999517206
+    },
+    {
+      "cycle": "cold",
+      "interface": "graph_evidence",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        }
+      ],
+      "reply_bytes": 3192,
+      "seconds": 0.001320019000559114
+    },
+    {
+      "cycle": "warm",
+      "interface": "index_status",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 3002,
+      "seconds": 0.002307077000295976
+    },
+    {
+      "cycle": "warm",
+      "interface": "get_nodes",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 1091,
+      "seconds": 0.00124523700287682
+    },
+    {
+      "cycle": "warm",
+      "interface": "search_code",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        },
+        {
+          "file": "cursor-key.json",
+          "bytes": 67
+        }
+      ],
+      "reply_bytes": 1250,
+      "seconds": 0.01926607999848784
+    },
+    {
+      "cycle": "warm",
+      "interface": "search_docs",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        },
+        {
+          "file": "cursor-key.json",
+          "bytes": 67
+        }
+      ],
+      "reply_bytes": 1290,
+      "seconds": 0.012065801001881482
+    },
+    {
+      "cycle": "warm",
+      "interface": "get_relations",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        },
+        {
+          "file": "freshness.json",
+          "bytes": 1591
+        }
+      ],
+      "reply_bytes": 1242,
+      "seconds": 0.0012813210014428478
+    },
+    {
+      "cycle": "warm",
+      "interface": "graph_evidence",
+      "reads": [
+        {
+          "file": "current.json",
+          "bytes": 170
+        },
+        {
+          "file": "summary.json",
+          "bytes": 6705
+        }
+      ],
+      "reply_bytes": 3192,
+      "seconds": 0.0013504950002243277
+    }
+  ],
+  "backup": {
+    "archive": "/tmp/lct-query-repair-toolkit.zip",
+    "sha256": "79a40c53cca3f6b8fc041113b216b529e37d7a2cbe1eea1d47c04798db9cfe9e",
+    "files": 108,
+    "bytes": 194844240
+  },
+  "restore": {
+    "restored_to": "/tmp/lct-query-repair-restored",
+    "version": "20261029T122833-1278b3bc4b",
+    "rebound_versions": [
+      "20261029T111748-7a235bf36f",
+      "20261029T122833-1278b3bc4b"
+    ],
+    "receipt": "/tmp/lct-query-repair-restored/restore-receipt.json",
+    "next": "Install locked dependencies and query or register the restored toolkit"
+  },
+  "original_data_unchanged": true
+}
