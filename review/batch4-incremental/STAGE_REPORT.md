@@ -1,7 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
-2026-10-30 当前研究切片：定向传播实验第三次独立审阅完成，原对象字段反例已修复；构造函数单独改变仍漏选调用者，按三轮上限暂停，等待人工决定。实现提交4560aee34db12ad01192bdeb0986d414c37ba846。正式生产接入仍暂停，未合并。
+2026-10-30 当前研究切片：用户批准后已修复构造器传播起点，追加独立复核通过该限定修复；严格26/27对照一致，剩余一组旧证据version_id未重绑定。实现提交dc8fa9b35bd3b398a7071ac676abf132a1f94d06。完整增量和生产接入仍未完成，未合并。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
@@ -180,3 +180,10 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - 定向命令PYTHONPATH=. <venv>/bin/python review/batch4-incremental/directional-experiment/v4.py，exit0；严格对照26/27匹配。旧20组及上一轮3组独立反例均匹配；新增构造器、跨文件同名方法和常量返回对照匹配。
 - 同一文件两个类的隔离样例仍strict equal=false：仅12处嵌套version_id不同，调用目标、UNKNOWN、complete及其他字段一致。保留原失败，不删字段或重算无关调用者掩盖。正式版本重绑定未完成，不称27/27全通过。
 - 下一步推送限定实验后独立复核；此为用户批准的三轮之后追加验证，不重置历史。无API、真实图或Drive操作。
+
+## 阶段28：用户批准后的追加独立复核完成
+检查dc8fa9b35bd3b398a7071ac676abf132a1f94d06，v4.py远端blob与本地一致；22个相关文件核对一致或仅换行差异。前三轮记录不变，本次是人工批准后的追加复核。
+- B4-DIR-SEED限定构造器修复已通过；旧对象状态反例保持通过。独立复跑27组严格26/27一致；新增方法转交及30无关文件两组均通过，断言exit0。
+- 30无关文件下只重审a/b共3个外层调用点、4次选择性Jedi；仍有32+32全AST准备和候选全局非CALLS分析，不能称端到端局部化。
+- B4-DIR-PROVENANCE明确保留：同文件另一类消费者目标和所有非版本字段相同，但12处嵌套version_id仍旧；逐路径证据已保存，不删除比较、不把结果记成27/27。版本重绑定未实现。
+- 详见directional-experiment/v4-independent-review.md、v4-proof-version-differences.json和原始日志。此次限定修复结束，未继续扩大到正式版本/发布实现；未合并、未调用付费API或改真实索引。
