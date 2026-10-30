@@ -61,3 +61,34 @@
 固定远端实现后的快速回归：479 passed、25 skipped，13.39秒，exit0（lookup-remote-fast.log）。真实Neo4j最终定向1 passed/7.94秒；独立PROFILE两种规模各两条查询通过。查询测试没有调用Embedding API。
 结论：用户本轮指定的命名未解析导入及LOOKUP_IN关系切片已实现并通过独立检查。不是整个Batch4验收或正式review，完整batch正式review仍0/3，不合并。剩余必须完成：正向成功导入/重导出等完整依赖捕获、影响闭包与分析复用、图/向量索引差分接线、统一发布与恢复、全量构建差分和规模验收。现有真实图和Drive包未迁移。
 本轮未确认生产P0/P1；两处新增Neo4j测试错误和一次跨编辑指纹冲突均保留原日志，修正后通过。没有将开发自测计为独立正式审阅，也没有将完整源码重算包装成增量分析。
+
+## 阶段8：继续Batch4与环境恢复
+用户授权“好的 请继续”。远端head6376f87a736abffcef766b02760b0dece5fa3631未变化。恢复固定提交的代码、测试、文档和Batch4记录：复用106个已有匹配文件，下载72个缺失文件并验证Git blob SHA；未恢复不相关历史review文件。
+恢复环境检查：478 passed/25 skipped/1 failed（register_mcp测试所需项目.venv链接缺失）；恢复指向已有可用环境的本地链接后该测试通过。未修改注册生产代码。该运行与开发编辑交叠，不作为冻结基线/合并证据。
+
+## 阶段9：HNSW分区复用辅助实现开发完成（未提交）
+开发子Agent GPT-6 SOL medium；新增lct/dense_update.py与tests/test_dense_update.py。
+按(repository,kind,is_test)定位旧分区；输入向量、节点映射、模型及HNSW设置相同且旧产物校验通过时，复制既有.npy/.json/.usearch，避免重新构建HNSW。变化分区明确重建，不声称逐向量原地增量。旧版本不变，无API调用。
+开发自测4项使用真实USearch通过，Ruff通过。覆盖新增/删除/修改、分区序号变化、损坏回退、参数变化以及24个无关分区不被打开。详见dense-development.md/targeted.log。首次交付时公共build尚未接入；另一开发Agent正在集成，尚未独立审阅/推送。
+
+## 阶段10：公共build接线开发完成（未提交）
+开发子Agent GPT-6 SOL medium完成：graph-sites.sqlite中索引化query_observations及import_dependencies/targets；storage.build在Python输入/config/program/runtime/pin语义相同才逐查询复用精确捕获定义的Jedi观察，重新生成公开版本证据。源码清单和旧证据在更新入口各做一次完整性检查；不是每次查询读取整份证据。
+成功导入、缺失名称及重导出记录了模块依赖，module_import_dependents可按反向索引扩展；并不覆盖回调/隐式效果/Jedi内部全部依赖，不能用于跳过任意Python修改后的分析。Python修改仍明确full fallback。
+HNSW helper已接入storage.build，新增复用/重建分区计数。开发全tests：488 passed/25 skipped，14.24秒；Ruff通过。docs提交复用和强制全量对照节点/边/站点一致；Python名称新增/删除/重导出/别名回调保持全量回退与对照一致。生产改动仅开发子Agent实施，主Agent开始独立验证。
+
+## 阶段11：独立反例发现B4-QUERY-001（本step新增P2，未提交）
+主Agent公开build检查：文档提交后3个HNSW分区复用/0重建、1次Jedi观察复用、0API请求；损坏旧query证据后回退新推断，两项通过（reuse-independent.log）。
+另独立反例失败：捕获源码`selected=external_choice.choose(first,second)`不变，仓库外Python依赖从返回first改为second，再提交文档。新缓存仍给first，而强制全量给second；两者均possible/complete=false，无错误确定性认证，但候选过期。根因：只检查捕获源码与运行时版本，无法证明Jedi未读取外部依赖。属于本轮我方缓存准入错误，不归因Jedi上游。
+按当前step P2权限修复：限制为有明确直接词法定义证明的Name查询，在捕获与复用两端检查；外部选择函数/别名/属性/参数等不能复用。每模块预计算绑定证书，禁止每个查询再次扫描模块。保留原失败日志reuse-external-probe-detail.log与独立复现测试，不以删除断言通过。正式完整Batch4审阅仍未开始。
+
+## 阶段12：B4-QUERY-001修复开发完成并冻结（未提交）
+开发子Agent GPT-6 SOL medium：每模块只遍历一次AST建立直接词法绑定证书；缓存写入/读取都验证。赋值/外部选择/导入别名/属性/参数/重复绑定等不满足证书，继续新推断。外部依赖选择first->second反例修复，保留原UNKNOWN语义。
+进一步接入Python变动时的有限查询单元复用：旧新清单一次计算未改模块集合；仅这些模块中函数局部的嵌套定义直接Name查询可复用。模块全局定义和其他推断在Python变化时仍重新执行。真实jedi.Script.infer调用计数确认changed other.py执行，unchanged local.py符合证书的查询不执行；与强制全量节点/边/站点一致。新增jedi_queries_executed/reused计数，不把总query项数冒充真实推断次数。
+开发冻结回归（含主Agent独立探针）：493 passed/25 skipped，16.14秒；Ruff通过。修复了依赖查询文件路径含#的URI处理。尚未提交，待主Agent固定内容验证。
+限制不变：这是查询单元级复用，所有LCT resolve/adjudication以及当前公开版本证据仍重建，非完整局部分析；完整Batch4未完成，不合并。
+
+## 阶段13：独立检查与B4-DENSE-002修复（未提交）
+冻结代码主Agent复跑：493 passed/25 skipped，16.46秒（reuse-root-frozen.log）。这是前一冻结点，之后新增反例另记，不冒充最终通过。
+主Agent新增实际公开prepare_only第二次dense build反例：UnboundLocalError，位置storage.build旧manifest变量仅在普通发布保护分支赋值。属于本step新引入P2，候选未发布，旧current保留。失败日志reuse-prepare-probe.log；稳定编号B4-DENSE-002。
+开发子Agent按明确方案修复：复制旧catalog时同时取得old_folder与old_dense_manifest，初始化为None；HNSW helper使用这个成对来源，不依赖入口保护变量。新增prepare_only和on_candidate第二次build测试，前者旧current不变、后者callback获得旧版本后正常发布；均复用全部分区且0API请求。
+修复定向含主Agent反例/发布/attach：13 passed，1.49秒，Ruff通过（dense-prior-fix-targeted.log）。再次冻结，待推送后独立回归。两个P2均处于本step自动修复范围，未确认P0/P1。完整Batch4正式review未开始，未合并。

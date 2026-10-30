@@ -36,6 +36,42 @@ embeddings. A later dependency-aware implementation must maintain complete
 positive, negative and unknown reverse dependencies, validate identity and
 coverage, and fall back to full analysis whenever its closure cannot be proved.
 
+## Narrow private Jedi observation reuse and import dependency inventory
+
+The public build now stores certified direct lexical definition observations in
+an indexed private table inside `graph-sites.sqlite`. A one-time AST pass per
+module checks for a unique undecorated definition without another name binder.
+On a later build it verifies
+the old source inventory and graph evidence artifact once, checks program/config,
+Python/Jedi runtime, relevant captured Python path/bytes/test membership and repository
+semantic metadata, and compares freshly computed dependency-pin bindings. A
+documentation-only commit can change HEAD and repository snapshot IDs without
+changing those Python semantic inputs. If another Python module changes, only
+an unchanged module's direct **function-local nested definition** is eligible;
+module globals remain fresh. `Analyzer.query` retrieves the requested observation
+by indexed position, verifies its row and current lexical certificate, and rebinds
+the exact target's current version ID. Assignment mappings,
+external/failed observations and incomplete input checks still invoke Jedi. AST
+inventory, LCT association, adjudication, all site evidence, nodes and edges are
+rebuilt under the current public repository-wide snapshot identity. The graph
+records `jedi_queries_reused` and `query_reuse_reason`; this is a narrow inference
+reuse path, **not** partial graph analysis for Python changes. Tests instrument
+`jedi.Script.infer` to confirm that the changed module still invokes Jedi while
+an unchanged nested local lookup does not. A changed external package that alters
+an assigned target also invokes Jedi anew.
+
+The same private graph evidence artifact stores each uniquely captured named
+import's source module, requested namespace/name, resolved target IDs and target
+modules (or unresolved status). Indexed namespace and target-module reverse
+lookups can trace successful imports through reexports as well as unresolved
+lookups. `module_import_dependents` exposes only that import reachability; it
+cannot certify all caller, callback, receiver/effect, Jedi or negative member
+dependencies. Python additions, edits, deletions, aliases and callbacks still
+run full graph analysis. Missing import dependencies outside uniquely captured
+namespaces remain unknown and require the full fallback. Dense partitions are
+reused only when their source vectors/order and configured representation match;
+the public build reports reused and rebuilt partition counts separately.
+
 ## Captured unresolved named-import lookup (foundational dependency slice)
 
 When `from A import name` has no resolved binding and `A` is one unique captured module allowed by the repository dependency pin, the graph retains an unresolved `IMPORTS` edge from its lexical importer to a named boundary endpoint. Its stable logical endpoint derives from the captured module's repository, module name, and requested name (not the alias or call spelling). A `LOOKUP_IN` edge joins that boundary to module `A`. The `IMPORTS` raw edge retains the original Jedi/LCT unresolved reasons, `unknown_origin`, and `complete=False`; the `LOOKUP_IN` edge says only that the lookup namespace was captured. It is not a call or proof that the name is absent. Multiple importers of the same missing name may share the boundary; different repositories or names cannot collide. A successful import retains its existing direct resolved `IMPORTS` target.

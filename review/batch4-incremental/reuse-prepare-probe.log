@@ -1,0 +1,166 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_prepare_only_second_build_accepts_existing_dense_partitions _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_prepare_only_second_build0')
+
+    def test_prepare_only_second_build_accepts_existing_dense_partitions(tmp_path):
+        c,repo=initialize(tmp_path/'sample')
+        seed_cache(c)
+        original=storage.build(c,offline=True)
+>       candidate=storage.build(c,offline=True,prepare_only=True)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+review/batch4-incremental/test_reuse_independent.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+c = {'data': '/tmp/pytest-of-root/pytest-19/test_prepare_only_second_build0/sample/data', 'embedding': {'batch_bytes': 700...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}
+offline = True, fail_at = None, lexical_only = False, prepare_only = True
+on_candidate = None
+
+    def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False,
+              on_candidate=None):
+        """Build all channels from captured source; publish only after rechecking source bytes.
+    
+        AST/Jedi relationships and HNSW are recomputed during update, not retrieval. SQLite
+        nodes/edges/postings update by content difference; unchanged vectors never call API.
+        """
+        data = Path(c["data"])
+        with lock(data / "update.lock"):
+            previous = current(c)
+            if previous and on_candidate is None and not prepare_only:
+                _, prior_manifest = manifest(c, previous, compatible=False)
+                if prior_manifest.get("publication"):
+                    raise ToolError("Bound publication requires update-coordinated")
+            started = time.monotonic()
+            files, repos, fingerprint = inventory(c)
+            nodes, asts = extract(files)
+            texts = embedding_texts(nodes, files)
+            graph = Graph(nodes, asts, repos)
+            reuse = None
+            reuse_reason = "no-previous-snapshot"
+            if previous:
+                try:
+                    old_folder, old_manifest = manifest(c, previous, compatible=False)
+                    eligible, reuse_reason, unchanged, python_changed = _same_python_inputs(
+                        old_folder, old_manifest, files, repos, c)
+                    if eligible and old_manifest["graph"].get("dependency_bindings") == graph.cross_bindings:
+                        checksum, size = hash_artifact(old_folder, GRAPH_SITES)
+                        if (checksum == old_manifest["artifacts"][GRAPH_SITES]
+                                and size == old_manifest["artifact_sizes"][GRAPH_SITES]):
+                            allowed = {n["node_id"] for n in nodes if n["kind"] == "module"
+                                       and (n["repository"], n["path"]) in unchanged}
+                            reuse = _QueryReuse(old_folder, allowed, python_changed)
+                        else:
+                            reuse_reason = "previous-query-cache-integrity-failed"
+                    elif eligible:
+                        reuse_reason = "dependency-bindings-changed"
+                except (OSError, ToolError, KeyError, sqlite3.Error):
+                    reuse_reason = "previous-query-cache-unavailable"
+            try:
+                edges, graph_info = graph.build(query_reuse=reuse)
+            finally:
+                if reuse is not None:
+                    reuse.close()
+            observations = graph_info.pop("_query_observations")
+            import_dependencies = graph_info.pop("_import_dependencies")
+            graph_info["query_reuse_reason"] = reuse_reason
+            graph_info["query_runtime"] = QUERY_RUNTIME
+            graph_info["import_dependency_count"] = len(import_dependencies)
+            ident = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:10]
+            folder = data / "versions" / ident
+            folder.mkdir(parents=True)
+            atomic(folder / "build-state.json", dict(state="candidate", started=now()))
+            cache = Embeddings(c)
+            try:
+                vectors = (
+                    [] if lexical_only else cache.get_many([t["text"] for t in texts], offline=offline)
+                )
+                if fail_at == "after_embeddings":
+                    raise ToolError("Injected interruption after durable embeddings")
+                old = None
+                if previous:
+                    try:
+                        old, _ = manifest(c, previous, compatible=False)
+                        shutil.copy2(old / "catalog.sqlite", folder / "catalog.sqlite")
+                    except (OSError, ToolError):
+                        old = None
+                db = sqlite3.connect(folder / "catalog.sqlite")
+                db.executescript(DDL)
+                old_nodes = {
+                    r[0]: r[1:] for r in db.execute("select node_id,data,search_hash from nodes")
+                }
+                old_edges = {r[0]: r[1] for r in db.execute("select edge_id,data from edges")}
+                new_ids = {n["node_id"] for n in nodes}
+                removed = set(old_nodes) - new_ids
+                for nid in removed:
+                    db.execute("delete from nodes where node_id=?", (nid,))
+                    db.execute("delete from postings where node_id=?", (nid,))
+                    db.execute("delete from lengths where node_id=?", (nid,))
+                changed = posting_updates = 0
+                byfile = {(f["repository"], f["path"]): f for f in files}
+                for n in nodes:
+                    # Versioned node data is stored once; index_version is supplied by reader.
+                    f = byfile.get((n["repository"], n["path"]))
+                    n["file_fingerprint"] = f["sha256"] if f else None
+                    lexical = source_text(n, byfile)
+                    sh = digest(lexical)
+                    encoded = canonical(n)
+                    prior = old_nodes.get(n["node_id"])
+                    if not prior or prior[0] != encoded:
+                        db.execute(
+                            "insert or replace into nodes values(?,?,?,?,?,?)",
+                            (n["node_id"], n["repository"], n["path"], n["kind"], encoded, sh),
+                        )
+                        changed += 1
+                    if not prior or prior[1] != sh:
+                        add_document(db, n, lexical)
+                        posting_updates += 1
+                incoming = {e["edge_id"]: e for e in edges}
+                for eid in set(old_edges) - set(incoming):
+                    db.execute("delete from edges where edge_id=?", (eid,))
+                for eid, e in incoming.items():
+                    if eid not in old_edges:
+                        db.execute(
+                            "insert into edges values(?,?,?,?,?,?)",
+                            (eid, e["source"], e["target"], e["kind"], e["status"], canonical(e)),
+                        )
+                db.execute("delete from terms")
+                db.execute("insert into terms select term,count(*) from postings group by term")
+                old_files = {
+                    (r[0], r[1]): r[2] for r in db.execute("select repository,path,sha256 from files")
+                }
+                for key in set(old_files) - set(byfile):
+                    db.execute("delete from files where repository=? and path=?", key)
+                for key, f in byfile.items():
+                    if old_files.get(key) != f["sha256"]:
+                        db.execute(
+                            "insert or replace into files values(?,?,?,?)",
+                            (*key, f["sha256"], f["text"]),
+                        )
+                db.commit()
+                db.execute("vacuum")
+                db.close()
+                partitions = defaultdict(list)
+                byid = {n["node_id"]: n for n in nodes}
+                for i, t in enumerate(texts if not lexical_only else []):
+                    n = byid[t["node_id"]]
+                    partitions[n["repository"], n["kind"], n["is_test"]].append(i)
+                def dense_parts():
+                    for key, indices in sorted(partitions.items()):
+                        a = np.asarray([vectors[i] for i in indices], dtype=np.float32)
+                        a /= np.linalg.norm(a, axis=1, keepdims=True)
+                        yield key, a, [texts[i]["node_id"] for i in indices]
+    
+                specs, dense_update = write_partitions(
+                    folder, dense_parts(),
+                    {k: c["embedding"][k] for k in ("model", "dimension", "dtype")},
+>                   c["hnsw"], prior_folder=old, prior_manifest=prior_manifest if old else None,
+                                                                ^^^^^^^^^^^^^^
+                )
+E               UnboundLocalError: cannot access local variable 'prior_manifest' where it is not associated with a value
+
+lct/storage.py:550: UnboundLocalError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_reuse_independent.py::test_prepare_only_second_build_accepts_existing_dense_partitions
+1 failed in 0.55s

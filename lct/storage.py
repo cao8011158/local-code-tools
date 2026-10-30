@@ -5,12 +5,14 @@ import json
 import shutil
 import sqlite3
 import stat
+import sys
 import time
 import uuid
 from collections import Counter, defaultdict
 from contextlib import closing
 from pathlib import Path
 
+import jedi
 import numpy as np
 from usearch.index import Index
 
@@ -31,10 +33,12 @@ from .common import (
     now,
     program_hash,
 )
+from .dense_update import write_partitions
 from .embedding import Embeddings, bound
 from .extract import embedding_texts, extract
 from .graph import Graph
 from .lexical import add_document
+from .python_analysis import Atom, Result
 
 DDL = """
 create table if not exists nodes(node_id text primary key, repository text, path text, kind text, data text, search_hash text);
@@ -50,6 +54,8 @@ create table if not exists terms(term text primary key,df integer);
 """
 GRAPH_SITES = "graph-sites.sqlite"
 SOURCE_FILES = "source-files.json"
+QUERY_RUNTIME = {"python": sys.version, "implementation": sys.implementation.cache_tag,
+                 "jedi": jedi.__version__}
 
 
 def current(c):
@@ -222,7 +228,7 @@ def source_files(folder, m):
     return files
 
 
-def split_graph(folder, m):
+def split_graph(folder, m, query_observations=(), import_dependencies=()):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -232,6 +238,22 @@ def split_graph(folder, m):
     try:
         db.execute("create table sites(ordinal integer primary key, data text not null)")
         db.executemany("insert into sites values(?,?)", ((i, canonical(site)) for i, site in enumerate(sites)))
+        db.execute("create table query_observations(key text primary key, data text not null, checksum text not null)")
+        db.executemany("insert into query_observations values(?,?,?)", (
+            (canonical(record["key"]), canonical(record), digest(canonical(record)))
+            for record in query_observations
+        ))
+        db.execute("create table import_dependencies(ordinal integer primary key, source_module text not null, namespace_module text not null, requested_name text not null, data text not null)")
+        db.execute("create index import_dependency_namespace on import_dependencies(namespace_module)")
+        db.execute("create table import_dependency_targets(ordinal integer not null, target_module text not null, primary key(ordinal,target_module))")
+        db.execute("create index import_dependency_target on import_dependency_targets(target_module)")
+        for ordinal, dependency in enumerate(import_dependencies):
+            db.execute("insert into import_dependencies values(?,?,?,?,?)", (
+                ordinal, dependency["source_module"], dependency["namespace_module"],
+                dependency["requested_name"], canonical(dependency)))
+            db.executemany("insert into import_dependency_targets values(?,?)", (
+                (ordinal, target) for target in dependency["target_modules"]
+            ))
         db.commit()
     finally:
         db.close()
@@ -245,6 +267,67 @@ def split_graph(folder, m):
         checksum, size = hash_artifact(folder, rel)
         m["artifacts"][rel] = checksum
         m["artifact_sizes"][rel] = size
+
+
+class _QueryReuse:
+    """Indexed private observations; one row is checked only when a site asks for it."""
+
+    def __init__(self, folder, allowed_modules, python_changed):
+        self.db = sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)
+        self.allowed_modules = allowed_modules
+        self.python_changed = python_changed
+
+    def get(self, key):
+        if key[0] not in self.allowed_modules:
+            return None
+        try:
+            row = self.db.execute("select data,checksum from query_observations where key=?",
+                                  (canonical(list(key)),)).fetchone()
+            if not row or digest(row[0]) != row[1]:
+                return None
+            record = json.loads(row[0])
+            if record["key"] != list(key):
+                return None
+            return (Result(frozenset(Atom(**atom) for atom in record["atoms"]),
+                           frozenset(record["reasons"]), frozenset(record["proofs"])), record["raw"])
+        except (sqlite3.Error, KeyError, TypeError, ValueError):
+            return None
+
+    def close(self):
+        self.db.close()
+
+
+def _same_python_inputs(previous_folder, previous_manifest, files, repos, c):
+    """Locate unchanged captured modules; only certified local queries may reuse."""
+    if (previous_manifest.get("program_hash") != program_hash()
+            or previous_manifest.get("config_hash") != identity(c)
+            or previous_manifest.get("graph", {}).get("query_runtime") != QUERY_RUNTIME
+            or previous_manifest.get("graph_detail") != GRAPH_SITES):
+        return False, "program-or-config-or-cache-changed", set(), False
+    # HEAD/tree/branch/status describe provenance. A committed documentation edit
+    # changes them without changing Jedi's captured Python input. The separately
+    # computed dependency_bindings gate checks pin/head/cleanliness semantics.
+    provenance = {"head", "tree", "branch", "status", "source_manifest_sha256"}
+    if [{k: v for k, v in repo.items() if k not in provenance} for repo in previous_manifest["repositories"]] != [
+        {k: v for k, v in repo.items() if k not in provenance} for repo in repos
+    ]:
+        return False, "repository-or-pin-metadata-changed", set(), False
+    try:
+        old_files = source_files(previous_folder, previous_manifest)
+    except (OSError, ValueError, KeyError, ToolError):
+        return False, "previous-source-inventory-unavailable", set(), False
+    def python_keys(items):
+        return sorted((f["repository"], f["path"], f["sha256"], f["is_test"])
+                      for f in items if f["path"].endswith(".py"))
+    old_python = python_keys(old_files)
+    new_python = python_keys(files)
+    unchanged = set(old_python) & set(new_python)
+    if not unchanged:
+        return False, "no-unchanged-python-modules", set(), old_python != new_python
+    return True, ("python-inputs-identical" if old_python == new_python
+                  else "python-source-or-membership-changed;local-query-only"), {
+        (repo, path) for repo, path, _, _ in unchanged
+    }, old_python != new_python
 
 
 def migrate_metadata(c, version, expected_program_hash):
@@ -345,7 +428,37 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         files, repos, fingerprint = inventory(c)
         nodes, asts = extract(files)
         texts = embedding_texts(nodes, files)
-        edges, graph_info = Graph(nodes, asts, repos).build()
+        graph = Graph(nodes, asts, repos)
+        reuse = None
+        reuse_reason = "no-previous-snapshot"
+        if previous:
+            try:
+                old_folder, old_manifest = manifest(c, previous, compatible=False)
+                eligible, reuse_reason, unchanged, python_changed = _same_python_inputs(
+                    old_folder, old_manifest, files, repos, c)
+                if eligible and old_manifest["graph"].get("dependency_bindings") == graph.cross_bindings:
+                    checksum, size = hash_artifact(old_folder, GRAPH_SITES)
+                    if (checksum == old_manifest["artifacts"][GRAPH_SITES]
+                            and size == old_manifest["artifact_sizes"][GRAPH_SITES]):
+                        allowed = {n["node_id"] for n in nodes if n["kind"] == "module"
+                                   and (n["repository"], n["path"]) in unchanged}
+                        reuse = _QueryReuse(old_folder, allowed, python_changed)
+                    else:
+                        reuse_reason = "previous-query-cache-integrity-failed"
+                elif eligible:
+                    reuse_reason = "dependency-bindings-changed"
+            except (OSError, ToolError, KeyError, sqlite3.Error):
+                reuse_reason = "previous-query-cache-unavailable"
+        try:
+            edges, graph_info = graph.build(query_reuse=reuse)
+        finally:
+            if reuse is not None:
+                reuse.close()
+        observations = graph_info.pop("_query_observations")
+        import_dependencies = graph_info.pop("_import_dependencies")
+        graph_info["query_reuse_reason"] = reuse_reason
+        graph_info["query_runtime"] = QUERY_RUNTIME
+        graph_info["import_dependency_count"] = len(import_dependencies)
         ident = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:10]
         folder = data / "versions" / ident
         folder.mkdir(parents=True)
@@ -357,13 +470,13 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             )
             if fail_at == "after_embeddings":
                 raise ToolError("Injected interruption after durable embeddings")
-            old = None
+            old = old_dense_manifest = None
             if previous:
                 try:
-                    old, _ = manifest(c, previous, compatible=False)
+                    old, old_dense_manifest = manifest(c, previous, compatible=False)
                     shutil.copy2(old / "catalog.sqlite", folder / "catalog.sqlite")
                 except (OSError, ToolError):
-                    old = None
+                    old = old_dense_manifest = None
             db = sqlite3.connect(folder / "catalog.sqlite")
             db.executescript(DDL)
             old_nodes = {
@@ -425,29 +538,17 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             for i, t in enumerate(texts if not lexical_only else []):
                 n = byid[t["node_id"]]
                 partitions[n["repository"], n["kind"], n["is_test"]].append(i)
-            specs = []
-            for part, (key, indices) in enumerate(sorted(partitions.items())):
-                a = np.asarray([vectors[i] for i in indices], dtype=np.float32)
-                a /= np.linalg.norm(a, axis=1, keepdims=True)
-                stem = f"partition-{part}"
-                np.save(folder / (stem + ".npy"), a, allow_pickle=False)
-                index = Index(
-                    ndim=c["embedding"]["dimension"], metric="cos", dtype="f32", **c["hnsw"]
-                )
-                index.add(np.arange(len(a), dtype=np.uint64), a, threads=1)
-                index.save(str(folder / (stem + ".usearch")))
-                mapping = [texts[i]["node_id"] for i in indices]
-                atomic(folder / (stem + ".json"), mapping)
-                specs.append(
-                    dict(
-                        repository=key[0],
-                        kind=key[1],
-                        is_test=key[2],
-                        stem=stem,
-                        chunks=len(indices),
-                        nodes=len(set(mapping)),
-                    )
-                )
+            def dense_parts():
+                for key, indices in sorted(partitions.items()):
+                    a = np.asarray([vectors[i] for i in indices], dtype=np.float32)
+                    a /= np.linalg.norm(a, axis=1, keepdims=True)
+                    yield key, a, [texts[i]["node_id"] for i in indices]
+
+            specs, dense_update = write_partitions(
+                folder, dense_parts(),
+                {k: c["embedding"][k] for k in ("model", "dimension", "dtype")},
+                c["hnsw"], prior_folder=old, prior_manifest=old_dense_manifest,
+            )
             # Detect edits/additions/deletions during API/build, never publish a mixed snapshot.
             _, end_repos, end_fingerprint = inventory(c)
             if end_fingerprint != fingerprint or [(r["head"], r["branch"]) for r in end_repos] != [
@@ -495,6 +596,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                     postings_updated=posting_updates,
                     edges_added=len(set(incoming) - set(old_edges)),
                     edges_removed=len(set(old_edges) - set(incoming)),
+                    dense_partitions_reused=dense_update["reused"],
+                    dense_partitions_rebuilt=dense_update["rebuilt"],
                 ),
                 embedding_run=dict(
                     cache_hits=cache.hits,
@@ -511,7 +614,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 checksum, size = hash_artifact(folder, rel)
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
-            split_graph(folder, m)
+            split_graph(folder, m, observations, import_dependencies)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

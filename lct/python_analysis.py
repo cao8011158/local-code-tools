@@ -90,7 +90,7 @@ def invalid(rule):
 class Analyzer:
     """Resolve one private source capture with recursion and work budgets."""
 
-    def __init__(self, nodes, trees, repos, imported):
+    def __init__(self, nodes, trees, repos, imported, query_reuse=None):
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
         self.owner = {id(t): ident for ident, t in trees.items()}
@@ -99,6 +99,10 @@ class Analyzer:
             i: t.body if not isinstance(t, ast.Lambda) else [] for i, t in trees.items()
         }
         self.queries, self.memo, self.container_exprs = {}, {}, {}
+        self._query_context = {}
+        self.query_reuse = query_reuse or {}
+        self.reused_queries = 0
+        self.executed_queries = 0
         self._query_inflight = 0
         self.active = set()
         self.stack, self.traces, self.dependencies = [], {}, {}
@@ -169,6 +173,8 @@ class Analyzer:
             )
             self.inventory(tree, ident, ident, "module", deferred)
 
+        self._query_certificates = self._build_query_certificates()
+
         self._site_index_size = len(self.sites)
         self._site_keys = defaultdict(set)
         self._site_spellings = defaultdict(set)
@@ -214,6 +220,85 @@ class Analyzer:
     def close(self):
         """Release only this analyzer's private captured sources."""
         self.temp.cleanup()
+
+    def _build_query_certificates(self):
+        """Scan each captured module once for uniquely bound direct declarations."""
+        certificates = {}
+        for module, tree in self.modules.items():
+            declarations, unsafe_names = defaultdict(list), set()
+            unsafe_module = False
+            for obj in ast.walk(tree):
+                if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    declarations[obj.name].append(obj)
+                elif isinstance(obj, ast.Name) and isinstance(obj.ctx, (ast.Store, ast.Del)):
+                    unsafe_names.add(obj.id)
+                elif isinstance(obj, ast.arg):
+                    unsafe_names.add(obj.arg)
+                elif isinstance(obj, ast.alias):
+                    if obj.name == "*":
+                        unsafe_module = True
+                    unsafe_names.add(obj.asname or obj.name.split(".")[0])
+                elif isinstance(obj, (ast.Global, ast.Nonlocal)):
+                    unsafe_names.update(obj.names)
+                elif isinstance(obj, ast.ExceptHandler) and obj.name:
+                    unsafe_names.add(obj.name)
+                elif isinstance(obj, ast.Match):
+                    # Captures have a separate binding grammar; decline the module.
+                    unsafe_module = True
+                elif isinstance(obj, ast.Call) and isinstance(obj.func, ast.Name) and obj.func.id in (
+                    "eval", "exec", "locals", "globals", "vars"
+                ):
+                    unsafe_module = True
+            if unsafe_module:
+                continue
+            for name, matches in declarations.items():
+                if len(matches) != 1 or name in unsafe_names:
+                    continue
+                obj = matches[0]
+                target = self.owner.get(id(obj))
+                if target is None or self.nodes[target]["name"] != name:
+                    continue
+                parent = self.nodes[target]["parent"]
+                owner = self.trees.get(parent)
+                if (not isinstance(owner, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef))
+                        or obj not in owner.body or obj.decorator_list):
+                    continue
+                if isinstance(obj, ast.ClassDef):
+                    if obj.bases or obj.keywords:
+                        continue
+                elif (any(not isinstance(default, ast.Constant) for default in obj.args.defaults)
+                      or any(default is not None and not isinstance(default, ast.Constant)
+                             for default in obj.args.kw_defaults)):
+                    continue
+                certificates[module, name] = target, parent
+        return certificates
+
+    def _direct_lexical_query(self, scope, expr, result, raw, *, local_only=False):
+        """Proof for one direct local name; opaque imported/assigned origins are excluded."""
+        if not isinstance(expr, ast.Name) or len(raw) != 1 or len(result.atoms) != 1 or result.requirements:
+            return False
+        module = self.module_for[scope]
+        certificate = self._query_certificates.get((module, expr.id))
+        if certificate is None:
+            return False
+        target, owner = certificate
+        if local_only and isinstance(self.trees[owner], ast.Module):
+            # Other Python modules may write a module global. Function locals
+            # cannot be rebound from another captured module's lexical body.
+            return False
+        atom = next(iter(result.atoms))
+        record = raw[0]
+        if (atom.target != target or atom.kind not in ("callable", "class")
+                or record.get("mapping") != "exact-captured-definition"
+                or record.get("target") != target or record.get("name") != expr.id
+                or record.get("source_sha256") != self.nodes[target]["source_sha256"]):
+            return False
+        current = scope
+        while current != owner:
+            current = self.nodes[current]["parent"]
+            if current is None or current not in self.nodes or current == module and owner != module:
+                return False
+        return True
 
     def inventory(self, obj, lexical, execution, phase, deferred):
         """Record syntax positions and definition-time execution owners."""
@@ -414,12 +499,31 @@ class Analyzer:
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
             return self.queries[key][0]
+        self._query_context[key] = (scope, expr)
+        cached = self.query_reuse.get(key)
+        if cached is not None:
+            result, previous_raw = cached
+            # The old observation is admitted only for unchanged captured Python.
+            # Rebind snapshot-scoped evidence from freshly extracted definitions.
+            raw = [dict(record) for record in previous_raw]
+            if self._direct_lexical_query(
+                scope, expr, result, raw,
+                local_only=getattr(self.query_reuse, "python_changed", False),
+            ):
+                for record in raw:
+                    if "target" in record:
+                        record["version_id"] = self.nodes[record["target"]]["version_id"]
+                self.queries[key] = result, raw
+                self._observe_query(key, result)
+                self.reused_queries += 1
+                return result
         line = self._source_lines[module][expr.end_lineno - 1]
         column = len(line.encode("utf-8")[: expr.end_col_offset].decode("utf-8"))
         raw, results = [], []
         self._query_inflight += 1
         try:
             script = self.scripts[module]
+            self.executed_queries += 1
             names = (
                 script.goto(expr.end_lineno, column, follow_imports=True)
                 if goto
@@ -449,6 +553,18 @@ class Analyzer:
         self.queries[key] = result, raw
         self._observe_query(key, result)
         return result
+
+    def reusable_queries(self):
+        """Only side-effect-free, captured-definition observations can cross snapshots."""
+        records = []
+        for key, (result, raw) in self.queries.items():
+            context = self._query_context.get(key)
+            if context is None or not self._direct_lexical_query(*context, result, raw):
+                continue
+            records.append(dict(key=list(key), atoms=[vars(a) for a in sorted(
+                result.atoms, key=lambda a: (a.kind, a.target, a.bound, a.receiver, a.allocation))],
+                reasons=sorted(result.reasons), proofs=sorted(result.proofs), raw=raw))
+        return records
 
     def reaching(self, scope, name, before):
         """Select one name's reaching bindings, killing unconditional older values.

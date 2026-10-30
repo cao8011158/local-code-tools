@@ -4,7 +4,36 @@ This module does not inspect a checkout, resolve a graph, or authorize reuse of
 analysis results. The current analyzer has no persistent dependency closure.
 """
 
-IDENTITY_STRATEGY = "repository-wide-snapshot-id; no-cross-snapshot-analysis-reuse"
+import sqlite3
+from collections import deque
+from pathlib import Path
+
+
+def module_import_dependents(graph_sites, changed_modules):
+    """Indexed reverse import reachability (a hint, not complete Python invalidation).
+
+    Namespace reads include negative named lookups. Target reads include successful
+    imports that resolve through a reexport to a different captured module.
+    Caller/callback/Jedi dependencies are outside this index and must still fall back.
+    """
+    affected = set(changed_modules)
+    pending = deque(sorted(affected))
+    with sqlite3.connect(Path(graph_sites).resolve().as_uri() + "?mode=ro&immutable=1", uri=True) as db:
+        while pending:
+            target = pending.popleft()
+            sources = db.execute(
+                "select source_module from import_dependencies where namespace_module=? "
+                "union select d.source_module from import_dependency_targets t "
+                "join import_dependencies d on d.ordinal=t.ordinal where t.target_module=?",
+                (target, target),
+            )
+            for (source,) in sources:
+                if source not in affected:
+                    affected.add(source)
+                    pending.append(source)
+    return affected
+
+IDENTITY_STRATEGY = "repository-wide-snapshot-id; certified-local-query-reuse"
 
 
 def _files(capture):

@@ -76,12 +76,8 @@ class Graph:
                 return {"boundary:dependency-version-unmatched:" + name}
         return {"boundary:external-or-excluded:" + name}
 
-    def import_lookup(self, scope, stmt, alias):
-        """Identify one captured namespace for an unresolved named import.
-
-        Do not turn a Jedi failure into a claim about external, ambiguous, or
-        unpinned modules. This is a dependency hint, not proof of name absence.
-        """
+    def named_import_namespace(self, scope, stmt, alias):
+        """Identify one captured namespace used by a named import, including reexports."""
         if not isinstance(stmt, ast.ImportFrom) or alias.name == "*":
             return None
         caller = self.nodes[scope]
@@ -99,7 +95,7 @@ class Graph:
             name = ".".join([*prefix, *([stmt.module] if stmt.module else [])])
         else:
             name = stmt.module or ""
-        if not name or self.modules.get((caller["repository"], name + "." + alias.name)):
+        if not name:
             return None
         allowed = self.imported(caller["repository"], name)
         if len(allowed) != 1:
@@ -109,6 +105,16 @@ class Graph:
             return None
         owner = self.nodes[module]
         identity = dict(repository=owner["repository"], module=name, name=alias.name)
+        return module, identity
+
+    def import_lookup(self, scope, stmt, alias):
+        """Keep a named boundary only for an unresolved, unique captured namespace."""
+        match = self.named_import_namespace(scope, stmt, alias)
+        if not match:
+            return None
+        module, identity = match
+        if self.modules.get((self.nodes[scope]["repository"], identity["module"] + "." + alias.name)):
+            return None
         return module, "boundary:unresolved-import:" + digest(canonical(identity)), identity
 
     def add_edge(
@@ -131,7 +137,7 @@ class Graph:
         edge["edge_id"] = digest(canonical(edge))
         self.edges.append(edge)
 
-    def build(self):
+    def build(self, query_reuse=None):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
         self.edges = []
         for n in self.nodes.values():
@@ -145,9 +151,10 @@ class Graph:
                     n["start"],
                     n.get("column", 0),
                 )
-        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported)
+        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported, query_reuse)
         try:
             sites = []
+            import_dependencies = []
             for item in analyzer.sites:
                 expr, scope = item["_expr"], item["execution_owner"]
                 # Always retain the actual Jedi observation, including rejected descriptors.
@@ -357,6 +364,16 @@ class Graph:
             for scope, stmt in analyzer.import_sites:
                 for alias in stmt.names:
                     result = analyzer.binding(scope, "import", (stmt, alias))
+                    namespace = self.named_import_namespace(scope, stmt, alias)
+                    if namespace:
+                        source_module = self.nodes[scope]["module"]
+                        targets = sorted(a.target for a in result.atoms if a.target in self.nodes)
+                        import_dependencies.append(dict(
+                            source_module=source_module, namespace_module=namespace[0],
+                            requested_name=namespace[1]["name"],
+                            target_modules=sorted({self.nodes[target]["module"] for target in targets}),
+                            target_ids=targets, resolved=bool(targets),
+                        ))
                     for a in result.atoms:
                         external = a.kind in ("boundary", "external-module", "external-value")
                         target = a.target
@@ -417,6 +434,10 @@ class Graph:
                 analysis_limited=analyzer.limited,
                 association_evaluations=20000 - analyzer.budget,
                 jedi_queries=len(analyzer.queries),
+                jedi_queries_reused=analyzer.reused_queries,
+                jedi_queries_executed=analyzer.executed_queries,
+                _query_observations=analyzer.reusable_queries(),
+                _import_dependencies=import_dependencies,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
                 limits="20k associations; recursion 40; unsupported constructs remain unknown",
