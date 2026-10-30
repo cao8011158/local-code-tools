@@ -49,9 +49,9 @@ def test_python_edit_add_delete_and_corrupt_sidecar_force_full(tmp_path, monkeyp
         parsed.append(file["path"])
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
-    for path, content in (("src/weights.py", "def changed(): pass\n"),
-                          ("src/added.py", "def added(): pass\n"),
-                          ("src/added.py", None)):
+    for path, content, expected in (("src/weights.py", "def changed(): pass\n", "full-graph"),
+                                    ("src/added.py", "def added(): pass\n", "certified-simple-python-component"),
+                                    ("src/added.py", None, "full-graph")):
         target = repo / path
         if content is None:
             target.unlink()
@@ -59,7 +59,7 @@ def test_python_edit_add_delete_and_corrupt_sidecar_force_full(tmp_path, monkeyp
             target.write_text(content)
         parsed.clear()
         result = storage.build(c, lexical_only=True)
-        assert result["incremental"]["analysis_scope"]["mode"] == "full-graph"
+        assert result["incremental"]["analysis_scope"]["mode"] == expected
         assert parsed
     folder, _ = storage.manifest(c, result["version"])
     (folder / "graph-sites.sqlite").write_bytes(b"corrupt")

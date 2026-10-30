@@ -15,10 +15,14 @@ class EvidenceReuseRejected(ValueError):
 class RebindContext:
     """Prepare identity indexes once; memoize per-definition AST checks."""
 
-    def __init__(self, *, old_nodes, new_nodes, old_trees, new_trees, selected_paths):
+    def __init__(self, *, old_nodes, new_nodes, old_trees, new_trees, selected_paths,
+                 verified_sources=None):
         self.old_nodes, self.new_nodes = old_nodes, new_nodes
         self.old_trees, self.new_trees = old_trees, new_trees
         self.selected_paths = selected_paths
+        # Mapping (repository,path) -> (old captured-text digest, new digest).
+        # The source preparation caller must hash both captured byte strings.
+        self.verified_sources = verified_sources or {}
         self.old_by_key, self.new_by_key = {}, {}
         self._matches = {}
         self.match_evaluations = 0
@@ -45,7 +49,17 @@ class RebindContext:
             if old.get(field) != new.get(field):
                 raise EvidenceReuseRejected("definition span or fingerprint changed")
         prior, current = self.old_trees.get(ident), self.new_trees.get(ident)
-        if prior is None or current is None or ast.dump(prior, include_attributes=False) != ast.dump(current, include_attributes=False):
+        if prior is None or current is None:
+            source = old["repository"], old["path"]
+            fingerprints = self.verified_sources.get(source)
+            if (not isinstance(fingerprints, tuple) or len(fingerprints) != 2
+                    or any(not isinstance(hash_value, str) or not hash_value
+                           for hash_value in fingerprints)
+                    or fingerprints[0] != fingerprints[1]
+                    or old.get("source_sha256") != fingerprints[0]
+                    or new.get("source_sha256") != fingerprints[1]):
+                raise EvidenceReuseRejected("definition source not verified")
+        elif ast.dump(prior, include_attributes=False) != ast.dump(current, include_attributes=False):
             raise EvidenceReuseRejected("definition AST changed")
         self._matches[ident] = (old, new)
         return old, new

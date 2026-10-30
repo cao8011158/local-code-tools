@@ -39,6 +39,7 @@ from .extract import embedding_texts, extract
 from .graph import Graph
 from .lexical import add_document
 from .python_analysis import Atom, Result
+from .simple_python import certify
 
 DDL = """
 create table if not exists nodes(node_id text primary key, repository text, path text, kind text, data text, search_hash text);
@@ -229,7 +230,7 @@ def source_files(folder, m):
 
 
 def split_graph(folder, m, query_observations=(), import_dependencies=(),
-                import_requests=None, nodes=(), edges=()):
+                import_requests=None, nodes=(), edges=(), certified_files=()):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -242,6 +243,10 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create table node_order(ordinal integer primary key, node_id text not null unique)")
         db.executemany("insert into node_order values(?,?)", (
             (i, node["node_id"]) for i, node in enumerate(nodes)))
+        db.execute("create table simple_python_certificates(repository text not null, path text not null, sha256 text not null, primary key(repository,path))")
+        db.executemany("insert into simple_python_certificates values(?,?,?)", (
+            (f["repository"], f["path"], f["sha256"]) for f in certified_files
+            if f["path"].endswith(".py")))
         db.execute("create table query_observations(key text primary key, data text not null, checksum text not null)")
         db.executemany("insert into query_observations values(?,?,?)", (
             (canonical(record["key"]), canonical(record), digest(canonical(record)))
@@ -609,6 +614,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         files, repos, fingerprint = inventory(c)
         prepared = None
         preparation_reason = "no-previous-snapshot"
+        local_metrics = None
+        local_attempts = {"python_files_parsed": 0}
         if previous:
             try:
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
@@ -616,6 +623,29 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                     old_folder, old_manifest, files, repos, c)
             except (OSError, ToolError, KeyError, ValueError, sqlite3.Error):
                 preparation_reason = "previous-graph-evidence-unavailable"
+        if previous and prepared is None:
+            try:
+                old_folder, old_manifest = manifest(c, previous, compatible=False)
+                compatible, reason, _, _ = _same_python_inputs(
+                    old_folder, old_manifest, files, repos, c)
+                if compatible and old_manifest.get("dependency_store") == "indexed-v1":
+                    checksum, size = hash_artifact(old_folder, "catalog.sqlite")
+                    if (checksum != old_manifest["artifacts"]["catalog.sqlite"]
+                            or size != old_manifest["artifact_sizes"]["catalog.sqlite"]):
+                        reason = "previous-catalog-integrity-failed"
+                    else:
+                        from .python_incremental import prepare
+                        with FileDependencies(old_folder, old_manifest) as dependencies:
+                            candidate, reason = prepare(
+                                old_folder, old_manifest, files, repos,
+                                dependencies=dependencies, graph_sites=GRAPH_SITES,
+                                attempts=local_attempts)
+                        if candidate is not None:
+                            nodes, edges, graph_info, local_metrics = candidate
+                            prepared = nodes, edges, graph_info
+                preparation_reason = reason
+            except (OSError, ToolError, KeyError, ValueError, sqlite3.Error, SyntaxError):
+                preparation_reason = "previous-local-evidence-unavailable"
         if prepared is None:
             nodes, asts = extract(files)
         else:
@@ -651,6 +681,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             finally:
                 if reuse is not None:
                     reuse.close()
+        if prepared is None:
+            graph_info["association_bound"] = graph_info["association_evaluations"]
         observations = graph_info.pop("_query_observations")
         import_dependencies = graph_info.pop("_import_dependencies")
         import_requests = graph_info.pop("_import_requests", None)
@@ -658,22 +690,36 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
         analysis_scope = dict(
-            mode="identical-python-capture-reuse" if prepared is not None else "full-graph",
+            mode=("certified-simple-python-component" if local_metrics is not None else
+                  "identical-python-capture-reuse" if prepared is not None else "full-graph"),
             reason=preparation_reason,
-            python_files_parsed=0 if prepared is not None else sum(
+            python_files_parsed=local_metrics["parsed_python_files"] if local_metrics else 0 if prepared is not None else sum(
                 f["path"].endswith(".py") for f in files),
-            python_ast_context_files=0 if prepared is not None else sum(
+            python_ast_context_files=local_metrics["selected_files"] if local_metrics else 0 if prepared is not None else sum(
                 f["path"].endswith(".py") for f in files),
-            reused_python_nodes=sum(n["path"].endswith(".py") for n in nodes)
-            if prepared is not None else 0,
+            reused_python_nodes=(sum(n["path"].endswith(".py") and
+                                     (n["repository"], n["path"]) not in local_metrics["selected_keys"]
+                                     for n in nodes) if local_metrics else
+                                 sum(n["path"].endswith(".py") for n in nodes)
+                                 if prepared is not None else 0),
             document_files_parsed=sum(not f["path"].endswith(".py") for f in files),
-            reused_graph_sites=graph_info["call_sites"] if prepared is not None else 0,
-            sites_analyzed=0 if prepared is not None else graph_info["call_sites"],
+            reused_graph_sites=(local_metrics["reused_sites"] if local_metrics else
+                                graph_info["call_sites"] if prepared is not None else 0),
+            sites_analyzed=(graph_info["call_sites"] - local_metrics["reused_sites"]
+                            if local_metrics else 0 if prepared is not None else graph_info["call_sites"]),
             jedi_queries_executed=graph_info["jedi_queries_executed"],
-            reused_graph_edges=sum(e["kind"] != "CONTAINS" for e in edges)
-            if prepared is not None else 0,
+            reused_graph_edges=(local_metrics["reused_edges"] if local_metrics else
+                                sum(e["kind"] != "CONTAINS" for e in edges)
+                                if prepared is not None else 0),
             output_nodes=len(nodes), output_edges=len(edges),
         )
+        if local_metrics:
+            analysis_scope.update(local_metrics)
+        else:
+            analysis_scope["local_preflight_python_files_parsed"] = local_attempts["python_files_parsed"]
+        analysis_scope["total_python_files_parsed"] = (
+            analysis_scope["python_files_parsed"] if local_metrics else
+            analysis_scope["python_files_parsed"] + local_attempts["python_files_parsed"])
         ident = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:10]
         folder = data / "versions" / ident
         folder.mkdir(parents=True)
@@ -802,6 +848,10 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 edges=dict(Counter(e["kind"] for e in edges)),
                 call_resolution=dict(Counter(e["status"] for e in edges if e["kind"] == "CALLS")),
                 graph=graph_info,
+                simple_python_certificate=(
+                    old_manifest["simple_python_certificate"] if local_metrics else
+                    certify(files, asts) if prepared is None else
+                    old_manifest.get("simple_python_certificate")),
                 vector_chunks=0 if lexical_only else len(texts),
                 planned_vector_chunks=len(texts),
                 incremental=dict(
@@ -831,7 +881,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
             split_graph(folder, m, observations, import_dependencies, import_requests,
-                        nodes, edges)
+                        nodes, edges, files if m.get("simple_python_certificate") else ())
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

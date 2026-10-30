@@ -1,14 +1,13 @@
 """Bounded validation of typed evidence reuse across captured versions."""
 
-from copy import deepcopy
 import importlib.util
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
 from lct.evidence_reuse import EvidenceReuseRejected, RebindContext
 from lct.extract import python_nodes
-
 
 OLD_A = "def first(): pass\ndef extra(): return 1\n"
 NEW_A = "def first(): pass\ndef extra(): return 2\n"
@@ -110,6 +109,22 @@ def test_raw_mapping_checks_both_old_stamps_and_rebinds_source_fingerprint():
     record["raw"][0]["source_sha256"] = "tampered"
     with pytest.raises(EvidenceReuseRejected, match="raw source fingerprint mismatch"):
         ctx.rebind(record, owner_id=ids["owner"])
+
+
+@pytest.mark.parametrize("proof", [None, (), ("one",), ("wrong", "wrong"), ("", "")])
+def test_source_only_rebinding_requires_two_matching_captured_hashes(proof):
+    _, ids, old, new = context()
+    owner = ids["owner"]
+    source = old[owner]["source_sha256"]
+    ctx = RebindContext(old_nodes=old, new_nodes=new, old_trees={}, new_trees={},
+                        selected_paths={"src/a.py"},
+                        verified_sources={("fixture", "src/b.py"): proof} if proof is not None else {})
+    with pytest.raises(EvidenceReuseRejected, match="source not verified"):
+        ctx.rebind(nested_record(owner, old[owner]), owner_id=owner)
+    ctx = RebindContext(old_nodes=old, new_nodes=new, old_trees={}, new_trees={},
+                        selected_paths={"src/a.py"},
+                        verified_sources={("fixture", "src/b.py"): (source, source)})
+    assert ctx.rebind(nested_record(owner, old[owner]), owner_id=owner)
 
 
 def test_v5_reanalyzes_owner_after_tampered_retained_evidence():

@@ -1,0 +1,252 @@
+"""Certified local graph preparation for a small, closed Python subset."""
+
+import ast
+import json
+import sqlite3
+from collections import deque
+from contextlib import closing
+
+from . import extract as extraction
+from .common import canonical, digest
+from .evidence_reuse import EvidenceReuseRejected, RebindContext
+from .extract import definition_version, extract, module_name
+from .graph import Graph
+from .simple_python import CERTIFICATE, certify
+
+
+def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=None):
+    """Return (nodes, edges, graph, metrics) or (None, reason)."""
+    if prior.get("simple_python_certificate") != CERTIFICATE:
+        return None, "previous-simple-python-certificate-unavailable"
+    if prior["graph"].get("analysis_limited"):
+        return None, "previous-association-budget-limited"
+    prior_bound = prior["graph"].get("association_bound")
+    if not isinstance(prior_bound, int) or not 0 <= prior_bound <= 20000:
+        return None, "previous-association-bound-unavailable"
+    python = {(f["repository"], f["path"]): f for f in files if f["path"].endswith(".py")}
+    if not python or len({key[0] for key in python}) != 1:
+        return None, "single-python-repository-required"
+    repo = next(iter(python))[0]
+    bymodule = {}
+    for key in python:
+        name = module_name(key[1])
+        if name in bymodule:
+            return None, "ambiguous-module-name"
+        bymodule[name] = key
+    snapshots = {name: digest(canonical(sorted((f["path"], digest(f["text"]))
+                                            for f in files if f["repository"] == name)))
+                 for name in {f["repository"] for f in files}}
+    decoded_hashes = {(f["repository"], f["path"]): digest(f["text"]) for f in files}
+    with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+        old_files = {(r, p): (sha, source) for r, p, sha, source in db.execute(
+            "select repository,path,sha256,text from files")}
+        if {key: sha for key, (sha, _) in old_files.items() if not key[1].endswith('.py')} != {
+                (f["repository"], f["path"]): f["sha256"] for f in files
+                if not f["path"].endswith('.py')}:
+            return None, "document-or-other-input-changed"
+        changed = {key for key in python.keys() | {k for k in old_files if k[1].endswith('.py')}
+                   if key not in python or key not in old_files or old_files[key][0] != python[key]["sha256"]}
+        if not changed:
+            return None, "no-python-source-change"
+        if any(key[0] != repo for key in changed):
+            return None, "cross-repository-python-change"
+        # The old sidecar certifies all old modules. New/changed modules must fit
+        # the subset; parse the selected closure later, never all unchanged ASTs.
+        selected = set(changed)
+        queue = deque(changed)
+        parsed = {}
+        while queue:
+            key = queue.popleft()
+            candidates = dependencies.adjacent(*key)
+            candidates.update(dependencies.importers(repo, module_name(key[1])))
+            if key in python:
+                if key not in parsed:
+                    parsed[key] = extraction.python_nodes(dict(
+                        python[key], snapshot_id=snapshots[key[0]]))
+                    if attempts is not None:
+                        attempts["python_files_parsed"] += 1
+                tree = parsed[key][1][f"{repo}:{key[1]}:module:{module_name(key[1])}#1"]
+                for stmt in tree.body:
+                    if isinstance(stmt, ast.ImportFrom) and stmt.level == 0:
+                        candidates.add(bymodule.get(stmt.module))
+            for candidate in candidates:
+                if candidate is not None and candidate not in selected:
+                    selected.add(candidate)
+                    queue.append(candidate)
+        selected_present = selected & python.keys()
+        # Certify every selected current AST, including all imported targets. An
+        # omitted old module must have no active importer or the gate fails.
+        selected_files = [python[k] for k in sorted(selected_present)]
+        local_nodes, local_asts = [], {}
+        for key in sorted(selected_present):
+            if key not in parsed:
+                parsed[key] = extraction.python_nodes(dict(
+                    python[key], snapshot_id=snapshots[key[0]]))
+                if attempts is not None:
+                    attempts["python_files_parsed"] += 1
+            ns, trees = parsed[key]
+            local_nodes.extend(ns)
+            local_asts.update(trees)
+        # Certification requires the full import universe but only selected ASTs.
+        # Supply unchanged module trees from old frozen source only if referenced
+        # by a selected import, in which case closure should have selected it.
+        if certify(selected_files, local_asts) != CERTIFICATE:
+            return None, "selected-python-syntax-unsupported"
+        with closing(sqlite3.connect((folder / graph_sites).as_uri() + "?mode=ro&immutable=1", uri=True)) as evidence:
+            try:
+                certified = {(r, p): sha for r, p, sha in evidence.execute(
+                    "select repository,path,sha256 from simple_python_certificates")}
+            except sqlite3.Error:
+                return None, "old-syntax-certificates-unavailable"
+            old_python = {key: item[0] for key, item in old_files.items()
+                          if key[1].endswith(".py")}
+            if certified != old_python:
+                return None, "old-syntax-certificates-incomplete"
+            old_order = [nid for (nid,) in evidence.execute("select node_id from node_order order by ordinal")]
+            old_sites = [json.loads(raw) for (raw,) in evidence.execute("select data from sites order by ordinal")]
+            old_observations = [json.loads(raw) for (raw,) in evidence.execute("select data from query_observations order by key")]
+            old_deps = [json.loads(raw) for (raw,) in evidence.execute("select data from import_dependencies order by ordinal")]
+            old_requests = [json.loads(raw) for (raw,) in evidence.execute("select data from import_requests order by ordinal")]
+        old_nodes = {nid: json.loads(raw) for nid, raw in db.execute("select node_id,data from nodes")}
+        old_edges = [json.loads(raw) for (raw,) in db.execute("select data from edges")]
+    if len(old_order) != len(old_nodes) or any(nid not in old_nodes for nid in old_order):
+        return None, "old-node-order-invalid"
+    if any(key not in old_files or old_files[key][0] != f["sha256"] or
+           digest(old_files[key][1]) != decoded_hashes[key]
+           for key, f in python.items() if key not in changed):
+        return None, "unchanged-source-proof-failed"
+    # Re-run the exact extractor's capture digest and definition identity logic.
+    document_nodes, _ = extract([f for f in files if not f["path"].endswith(".py")])
+    documents = {(n["repository"], n["path"]): [] for n in document_nodes if n["path"]}
+    for n in document_nodes:
+        if n["path"]:
+            documents[n["repository"], n["path"]].append(n)
+    nodes = []
+    for name in sorted(snapshots):
+        nodes.append(dict(node_id=f"{name}::repository", repository=name, path="",
+                          kind="repository", qualname=name, parent=None, start=0, end=0,
+                          signature="", docstring="", brief="", fingerprint=digest(name),
+                          is_test=False))
+    by_old_file = {}
+    for nid in old_order:
+        n = old_nodes[nid]
+        by_old_file.setdefault((n["repository"], n["path"]), []).append(n)
+    by_new_file = {}
+    for n in local_nodes:
+        if n["path"]:
+            by_new_file.setdefault((n["repository"], n["path"]), []).append(n)
+    verified = {}
+    for f in files:
+        key = f["repository"], f["path"]
+        if key in python:
+            if key in selected_present:
+                nodes.extend(by_new_file.get(key, ()))
+            else:
+                old = by_old_file.get(key, ())
+                if not old or old[0]["kind"] != "module":
+                    return None, "old-module-catalog-unavailable"
+                for original in old:
+                    n = dict(original)
+                    if (n.get("source_sha256") != decoded_hashes[key]
+                            or n.get("file_fingerprint") != f["sha256"]):
+                        return None, "old-source-catalog-mismatch"
+                    n["snapshot_id"] = snapshots[f["repository"]]
+                    n["version_id"] = definition_version(n)
+                    nodes.append(n)
+                verified[key] = (digest(old_files[key][1]), decoded_hashes[key])
+        else:
+            nodes.extend(documents.get(key, ()))
+    byid = {n["node_id"]: n for n in nodes}
+    if len(byid) != len(nodes):
+        return None, "new-node-identity-collision"
+    # An import added in a selected module can pull in an unchanged target;
+    # the bounded graph must see every selected target and no outside module.
+    selected_graph_nodes = [n for n in nodes if n["kind"] == "repository"
+                            or (n["repository"], n["path"]) in selected_present]
+    graph = Graph(selected_graph_nodes, local_asts, repos)
+    full_graph = Graph(nodes, {}, repos)
+    if graph.cross_bindings != prior["graph"].get("dependency_bindings"):
+        return None, "dependency-bindings-changed"
+    local_edges, info = graph.build()
+    if info["analysis_limited"]:
+        return None, "local-association-budget-limited"
+    if prior_bound + info["association_evaluations"] > 20000:
+        return None, "combined-association-budget-uncertified"
+    info["association_bound"] = prior_bound + info["association_evaluations"]
+    context = RebindContext(old_nodes=old_nodes, new_nodes=byid, old_trees={},
+                            new_trees={}, selected_paths={path for _, path in selected},
+                            verified_sources=verified)
+    def owner_key(ident):
+        n = old_nodes.get(ident)
+        return (n["repository"], n["path"]) if n else None
+    try:
+        site_ids = {}
+        reused_sites = []
+        for site in old_sites:
+            owner = owner_key(site["execution_owner"])
+            if owner in selected:
+                continue
+            if owner not in verified:
+                return None, "old-site-owner-unsupported"
+            updated = context.rebind(site, owner_id=site["execution_owner"])
+            module = byid[site["execution_owner"]]["module"]
+            source = byid[module]
+            updated["site_id"] = digest(canonical([
+                source["repository"], source["path"], source["snapshot_id"],
+                site["line"], site["column"], site["end_line"],
+                site["end_column"], site["kind"],
+            ]))
+            site_ids[site["site_id"]] = updated["site_id"]
+            reused_sites.append(updated)
+        edges = []
+        for e in old_edges:
+            source, target = owner_key(e["source"]), owner_key(e["target"])
+            if e["kind"] == "CONTAINS":
+                continue
+            if source in selected or target in selected:
+                continue
+            if source and source[1] and source not in verified:
+                return None, "old-edge-source-unsupported"
+            updated = dict(e)
+            updated.pop("edge_id")
+            if "site_id" in updated:
+                updated["site_id"] = site_ids[updated["site_id"]]
+            updated["source_version_id"] = byid.get(e["source"], {}).get("version_id")
+            updated["target_version_id"] = byid.get(e["target"], {}).get("version_id")
+            updated["edge_id"] = digest(canonical(updated))
+            edges.append(updated)
+        reused_edge_count = len(edges)
+        for n in nodes:
+            if n["parent"] and (n["repository"], n["path"]) not in selected_present:
+                full_graph.add_edge(n["parent"], n["node_id"], "CONTAINS", "resolved",
+                               "AST lexical ownership", n["start"], n.get("column", 0))
+        edges.extend(local_edges)
+        edges.extend(full_graph.edges)
+        def retained(records, key):
+            return [r for r in records if owner_key(r[key]) not in selected]
+        observations = []
+        for record in old_observations:
+            if owner_key(record["key"][0]) not in selected:
+                observations.append(context.rebind(record, owner_id=record["key"][0]))
+        observations.extend(info.pop("_query_observations"))
+        deps = retained(old_deps, "source_module") + info.pop("_import_dependencies")
+        requests = retained(old_requests, "source_module") + info.pop("_import_requests")
+    except (EvidenceReuseRejected, KeyError, TypeError, ValueError):
+        return None, "old-evidence-rebind-uncertified"
+    sites_by_file = {}
+    for site in reused_sites + info["sites"]:
+        owner = byid[site["execution_owner"]]
+        sites_by_file.setdefault((owner["repository"], owner["path"]), []).append(site)
+    info["sites"] = [site for f in files
+                     for site in sites_by_file.get((f["repository"], f["path"]), ())]
+    info["call_sites"] = len(info["sites"])
+    info["_query_observations"] = observations
+    info["_import_dependencies"] = deps
+    info["_import_requests"] = requests
+    info["dependency_bindings"] = graph.cross_bindings
+    edges = list({e["edge_id"]: e for e in edges}.values())
+    return (nodes, edges, info, dict(changed_files=len(changed), selected_files=len(selected_present),
+                                    parsed_python_files=len(selected_present),
+                                    reused_python_files=len(python) - len(selected_present),
+                                    reused_sites=len(reused_sites), reused_edges=reused_edge_count,
+                                    selected_keys=sorted(selected_present))), "certified-simple-python-component"
