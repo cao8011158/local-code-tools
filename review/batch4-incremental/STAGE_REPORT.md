@@ -1,7 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
-2026-10-30 当前研究切片：用户批准后已修复构造器传播起点，追加独立复核通过该限定修复；严格26/27对照一致，剩余一组旧证据version_id未重绑定。实现提交dc8fa9b35bd3b398a7071ac676abf132a1f94d06。完整增量和生产接入仍未完成，未合并。
+2026-10-30 当前状态：版本引用修复ac8bfd31f0d007d5cb17a9c508e90c5e21199644已完成限定独立验证，v5为29/29；正式增量接入的依赖索引持久化正在开发。完整增量和生产接入仍未完成，未合并。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
@@ -196,3 +196,11 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - 明确成本退化：变化helper的旧证据引用了变化定义，保守拒绝全部20消费者，21/21文件、20/20外层调用点、40/40 Jedi；不继续沿用v4节省数字。全AST准备仍在；外层site/edge身份未在实验中全面重绑定，不能称生产完成。
 - 并行只读接入检查已完成，报告integration-plan.md。正式入口仍全量extract+Graph.build，草稿期待的file_adjacency/import_requests表未持久化，不直接启用。需顺序补齐依赖索引、解析前分流、有效性证书及版本发布；没有确认外部核心依赖故障。
 - 接下来固定远端后独立验证。未调用付费API或改真实图/Drive。
+
+## 阶段30：版本引用修复固定提交后独立复核通过限定范围
+检查ac8bfd31f0d007d5cb17a9c508e90c5e21199644。独立副本恢复远端graph.py和lookup测试，排除原副本两份未提交文件；75个lct/tests文件按Git blob核对。
+- 独立运行v5：29/29限定语义比较一致。新增3项独立测试通过：篡改旧版本证据后所属c.py真正重新分析并与fresh结果一致、旧对象不变；跨仓库同路径同名定义不混淆；0/1000无关节点增长下连续10次复用均只做1次相关定义匹配。
+- 固定远端tests/加独立测试首次因未复制experiment truth样例收集失败，补齐17个远端样例文件后运行502 passed/25 skipped/1 failed，18.18秒；唯一失败是隔离副本缺少.venv链接导致MCP注册脚本拒绝启动。补齐现有环境链接后仅复跑此项1 passed（日志v5-root-registration-retry.log）。未修改实现来消除环境失败；不将多次结果伪装为单次完整通过。
+- B4-DIR-PROVENANCE的12处嵌套定义引用问题，在已验证可复用的限定场景已解决。helper索引一次准备，多条记录复用；未知格式、错误旧版本、定义变动/移位均拒绝。
+- 尚未接入storage的实际增量路径，外层site_id/edge_id以及完整跨快照身份仍属后续正式接线工作。调度器影响范围仍为实验限定假设；全AST准备、全局非CALLS工作未消除，共享helper变化的保守重审成本已如实报告。
+- 第二步已开始：开发持久化import_requests/file_adjacency和索引查询，未启用file_incremental草稿。未付费、未改真实图/Drive、未合并；历史审阅与用户授权保留。
