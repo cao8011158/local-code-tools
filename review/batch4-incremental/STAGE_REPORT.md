@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+最新：阶段61，固定eb5ff65局部容器写入候选索引限定修复独立第1/3轮通过，563 passed、25 skipped/30.89秒。0/30无关写入下实际检查2scope/3事件不变。整体依赖驱动准入仍未完成、未合并。
 最新：阶段60，局部容器写入scope索引开发完成，550项快回归通过、25跳过，待固定远端独立审阅。Batch4未完成，未合并。
 最新：阶段58，5dd7ed4潜在子模块依赖索引限定修复独立通过；生产tests547通过、25跳过，独立边界适配旧索引断言后6通过。全局slot_scopes读取与整体依赖准入仍待处理，未合并。
 最新：阶段57，通用潜在子模块查找索引修复开发完成；18项定向与547项快速回归通过，待固定远端独立审阅。仍保留全捕获认证，Batch4未完成、未合并。
@@ -413,3 +414,9 @@ GPT-6 SOL medium实现：Analyzer初始化EffectCatalog后一次构建局部lite
 - 公开build 0/20/100无关local writer：准备scope数0/20/100，目标候选scope2/2/2、事件3/3/3，覆盖required3/3/3；准备成本明确单列。旧全局反例的A事件不再进入B证明，目标/完整性保持。
 - 历史定向251 passed/4.42秒，最终复用指标接线6 passed/2.26秒，快速全仓550 passed、25 skipped/27.09秒，ruff通过。identical复用四个本次执行指标置0，site不变。
 - 变更python_analysis.py、graph.py、storage.py少量接线及测试/契约/证据。开发报告container-local-scope-development.md。尚未推送本轮；接下来主Agent固定提交独立审阅。不确定scope仍可能大范围检查，不宣称全库局部分析完成。
+
+## 阶段61：局部容器写入索引独立第1/3轮审阅通过
+固定eb5ff65f0f236f898b4f2a055e079c6b8d75cfd6，405份支持文件按远端blob核对，全部非review文件齐全。快速回归加独立/历史反例563 passed、25 skipped/30.89秒；新4项计数用例输出4 passed/0.39秒（已包含在563内）。
+- 实际Graph.build/Analyzer路径中0/30无关局部alias writer，EffectCatalog.before只访问B.run与B模块，共2scope/3事件；固定B身份完整site记录相同。导入别名、参数重绑保留other候选及UNKNOWN；动态键/闭包保留fallback。
+- 原基线1 failed、2 passed/0.53秒与修复后日志保存。本轮未发现新阻塞，细节container-scope-independent-review.md。
+- 未消除所有未知scope检查，未修改整批simple认证；后续仍需持久化真实分析依赖/不确定范围并接入增量准入。无真实全库、服务、付费、Drive或合并。
