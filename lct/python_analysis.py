@@ -1259,7 +1259,68 @@ class Analyzer:
     def receiver_relation(self, receiver, values):
         """A missing allocation is an association gap, never proof of independence."""
         instances = [a for a in values.atoms if a.kind in ("instance", "deferred-result")]
-        supported_reasons = {"deferred-call…640 tokens truncated…argets.unknown
+        supported_reasons = {"deferred-call-result-not-modeled"}
+        if any(a.allocation == receiver.allocation and a.allocation for a in instances):
+            return (
+                "same"
+                if all(a.allocation == receiver.allocation for a in instances)
+                and not (values.reasons - supported_reasons)
+                else "unknown"
+            )
+        if (
+            instances
+            and all(a.allocation for a in instances)
+            and not (values.reasons - supported_reasons)
+        ):
+            return "independent"
+        if not instances and values.atoms and not values.unknown:
+            return "non-receiver"
+        return "unknown"
+
+    def event_bindings(self, node):
+        """Identify implicit binding syntax without evaluating its protocol or values."""
+        targets = []
+        if isinstance(node, (ast.For, ast.AsyncFor)):
+            targets = [node.target]
+        elif isinstance(node, (ast.With, ast.AsyncWith)):
+            targets = [i.optional_vars for i in node.items if i.optional_vars]
+        names = {
+            n.id
+            for t in targets
+            for n in ast.walk(t)
+            if isinstance(n, ast.Name) and isinstance(n.ctx, (ast.Store, ast.Del))
+        }
+        if isinstance(
+            node, (ast.ExceptHandler, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+        ):
+            if node.name:
+                names.add(node.name)
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names.update(a.asname or a.name.split(".")[0] for a in node.names)
+        if isinstance(node, (ast.MatchAs, ast.MatchStar)) and node.name:
+            names.add(node.name)
+        if isinstance(node, ast.MatchMapping) and node.rest:
+            names.add(node.rest)
+        return names
+
+    def call_field_effect(self, event, receiver, name, receiver_name=None):
+        """Certify call effects only from complete access checks or a verified body summary."""
+        call, scope = event.node, event.scope
+        frames = {scope: call}
+        bindings = (
+            {
+                (scope, receiver_name): Result(
+                    frozenset([receiver]), proofs=frozenset(["bound-receiver-origin"])
+                )
+            }
+            if receiver_name
+            else {}
+        )
+        origin = self.allocations.get(receiver.allocation)
+        targets = self.method_target(receiver, scope, call)
+        resolved = (
+            bool(targets.atoms)
+            and not targets.unknown
             and self.requirements_complete(targets)
             and all(a.kind in CALLABLE_KINDS for a in targets.atoms)
         )
