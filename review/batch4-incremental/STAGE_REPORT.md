@@ -169,3 +169,14 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - 已明确尚未执行的修复：完整qualname对齐包括方法；构造器字段变化映射到所属类，反向找构造调用者，再使用已修复的对象状态传播。详细证据和限制见directional-experiment/v3-independent-review.md。
 - 本实验承接阶段21/23共3次独立审阅，停止第四轮自动修复；不以Batch4最终审阅尚未开始重置该循环。请求人工批准后才能继续。
 - 只跑定向实验，不跑无关全仓库测试；未修改生产解析流程、未调用Voyage、未重建真实图或Drive包，未合并。
+
+## 阶段26：用户批准三轮后的限定构造器修复
+用户回复“好的 请继续”，授权处理B4-DIR-SEED，承接此前3次实验审阅，不重置轮次。基线8313de4636fade59dd199a11214e75900381e84f，分支feat/incremental-index-updates。
+开发者继续使用GPT-6 SOL medium。限定实验v4：完整qualname对齐方法；变化构造器映射到所属类并反向查找创建者，沿v3规则继续。保留v1-v3、生产接入暂停，不新增付费请求、不更新真实图。定向覆盖原20组、上一轮3独立反例、构造器及同名方法隔离。主Agent另检查经方法返回转交和30个无关文件对照。完成后进行用户授权的追加独立复核，不自动开启无限修复循环。
+
+## 阶段27：用户批准的v4构造器修复开发完成，未提交
+开发者GPT-6 SOL medium，基线8313de4636fade59dd199a11214e75900381e84f。仅新增v4.py和结果/日志/开发报告四文件，生产代码未改。
+- definition_index用(path,完整qualname,kind)匹配定义；__init__变化沿CONTAINS找到所属类，再沿已有CALLS反向找到构造者；新增构造器映射到旧类；调用者返回摘要不再截断qualname。
+- 定向命令PYTHONPATH=. <venv>/bin/python review/batch4-incremental/directional-experiment/v4.py，exit0；严格对照26/27匹配。旧20组及上一轮3组独立反例均匹配；新增构造器、跨文件同名方法和常量返回对照匹配。
+- 同一文件两个类的隔离样例仍strict equal=false：仅12处嵌套version_id不同，调用目标、UNKNOWN、complete及其他字段一致。保留原失败，不删字段或重算无关调用者掩盖。正式版本重绑定未完成，不称27/27全通过。
+- 下一步推送限定实验后独立复核；此为用户批准的三轮之后追加验证，不重置历史。无API、真实图或Drive操作。
