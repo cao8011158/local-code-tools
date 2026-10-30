@@ -118,12 +118,27 @@ The old file adjacency, provider import lookup, and requester import-name
 indexes find callers, affected targets, and local modules that newly shadow or
 stop shadowing a dependency. A selected module's new imports add their captured
 targets to the component. The requester lookup uses
-`import_request_requester(source_repository, requested_module, source_path)`;
+`import_lookup_requester(source_repository, module, source_path)`;
 the same module-name index includes captured package ancestors of a selected
 module, the requesting repository's import path, and an authorized target's
 path. These ancestors supply Jedi's package context without parsing unrelated
 modules. If a necessary namespace is ambiguous, certification fails closed.
-Old sidecars without the requester index fall back to full graph analysis. An added,
+The private `indexed-v2` sidecar also records prospective module lookup keys
+without changing the original `import_requests` evidence: a named
+`from pkg import foo` records both its normalized `pkg` request and possible
+child module `pkg.foo`, ignoring a source alias. Repository-scoped indexes
+resolve provider requests and new local shadows. This captures a formerly
+missing child in a namespace package. The ancestor-layout gate checks child
+requests that lack an exact base-module request from the same source: a source
+requesting `pkg` is already selected by that key, while a direct request for
+`pkg.child` still falls back if a new `pkg.py` can shadow it. Old `indexed-v1`
+sidecars or missing v2 table, columns or indexes fall back. This repairs one
+negative module lookup, not all unknown member, callback, effect or Jedi
+dependencies. A pinned provider namespace absent from the captured module
+catalog may leave its prospective child request scoped to the requester;
+provider HEAD or cleanliness changes still cause full analysis, so this does
+not certify cross-repository negative namespace lookups.
+An added,
 removed or modified package `__init__.py` also falls
 back: an initializer can shadow dotted child requests beyond an exact-name
 reverse index. For a matched
@@ -134,8 +149,9 @@ substitute for the Git cleanliness proof in that policy. Changes to documents,
 `pyproject.toml`, other non-Python input, configuration or incompatible old
 evidence retain their existing conservative fallback.
 Adding or deleting an ancestor module such as `pkg.py` also falls back when
-indexed old requests include `pkg.child`; the bounded path does not infer
-Jedi's package-shadow semantics from an exact child module lookup.
+indexed old requests include `pkg.child` without an exact `pkg` request from
+that same source; the bounded path does not infer Jedi's package-shadow
+semantics from an uncovered child lookup.
 
 Jedi analyzes a requesting repository in its own captured project, with its
 source roots ahead of only graph-authorized, exact-pin dependency roots and

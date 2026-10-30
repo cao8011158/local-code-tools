@@ -267,6 +267,13 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create index import_request_lookup on import_requests(lookup_repository,requested_module)")
         db.execute("create index import_request_source on import_requests(source_repository,source_path)")
         db.execute("create index import_request_requester on import_requests(source_repository,requested_module,source_path)")
+        # A named `from pkg import foo` may resolve to the child module
+        # `pkg.foo` even when `pkg` is an implicit namespace package and the
+        # child did not exist in this snapshot. Keep this prospective lookup
+        # separate from the syntactic import_requests evidence.
+        db.execute("create table import_lookup_keys(ordinal integer not null, source_repository text not null, source_path text not null, lookup_repository text not null, module text not null, primary key(ordinal,module))")
+        db.execute("create index import_lookup_namespace on import_lookup_keys(lookup_repository,module,source_repository,source_path)")
+        db.execute("create index import_lookup_requester on import_lookup_keys(source_repository,module,source_path)")
         owners = {n["node_id"]: (n["repository"], n["path"]) for n in nodes}
         for ordinal, request in enumerate(import_requests or ()):
             owner = owners.get(request["source_module"])
@@ -275,6 +282,14 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
             db.execute("insert into import_requests values(?,?,?,?,?,?)", (
                 ordinal, *owner, request["lookup_repository"],
                 request["requested_module"] or "", canonical(request)))
+            namespace = request["requested_module"]
+            if namespace and all(part.isidentifier() for part in namespace.split(".")):
+                keys = [namespace]
+                name = request["requested_name"]
+                if request["request_kind"] == "from" and isinstance(name, str) and name.isidentifier():
+                    keys.append(namespace + "." + name)
+                db.executemany("insert into import_lookup_keys values(?,?,?,?,?)", (
+                    (ordinal, *owner, request["lookup_repository"], module) for module in keys))
         db.execute("create table file_adjacency(source_repository text not null, source_path text not null, target_repository text not null, target_path text not null, primary key(source_repository,source_path,target_repository,target_path))")
         db.execute("create index file_adjacency_target on file_adjacency(target_repository,target_path,source_repository,source_path)")
         boundary_owners = defaultdict(set)
@@ -307,7 +322,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     m["graph"] = {k: v for k, v in graph.items() if k != "sites"}
     m.pop("dependency_store", None)
     if nodes and import_requests is not None:
-        m["dependency_store"] = "indexed-v1"
+        m["dependency_store"] = "indexed-v2"
     m["graph_detail"] = GRAPH_SITES
     m["metadata_layout"] = 2
     for rel in (GRAPH_SITES, SOURCE_FILES):
@@ -320,7 +335,7 @@ class FileDependencies:
     """Read-only indexed old-snapshot relations; missing/legacy evidence fails closed."""
 
     def __init__(self, folder, manifest):
-        if (manifest.get("dependency_store") != "indexed-v1"
+        if (manifest.get("dependency_store") != "indexed-v2"
                 or manifest.get("graph_detail") != GRAPH_SITES):
             raise ToolError("Previous file dependency index unavailable")
         checksum, size = hash_artifact(folder, GRAPH_SITES)
@@ -329,14 +344,20 @@ class FileDependencies:
             raise ToolError("Previous file dependency index integrity failed")
         self.db = sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)
         try:
-            expected = {"file_adjacency", "import_requests"}
+            expected = {"file_adjacency", "import_requests", "import_lookup_keys"}
             present = {row[0] for row in self.db.execute(
-                "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests')")}
+                "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests','import_lookup_keys')")}
             if present != expected:
                 raise ToolError("Previous file dependency index unavailable")
             if not any(row[1] == "import_request_requester" for row in self.db.execute(
                     "pragma index_list('import_requests')")):
                 raise ToolError("Previous import requester index unavailable")
+            if not {"ordinal", "source_repository", "source_path", "lookup_repository", "module"} <= {
+                    row[1] for row in self.db.execute("pragma table_info('import_lookup_keys')")}:
+                raise ToolError("Previous import lookup key columns unavailable")
+            indexes = {row[1] for row in self.db.execute("pragma index_list('import_lookup_keys')")}
+            if not {"import_lookup_namespace", "import_lookup_requester"} <= indexes:
+                raise ToolError("Previous import lookup key indexes unavailable")
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -350,24 +371,32 @@ class FileDependencies:
 
     def importers(self, repository, module):
         rows = self.db.execute(
-            "select source_repository,source_path from import_requests "
-            "where lookup_repository=? and requested_module=?", (repository, module))
+            "select source_repository,source_path from import_lookup_keys "
+            "where lookup_repository=? and module=?", (repository, module))
         return set(rows)
 
     def requesters(self, repository, module):
         """Find old same-repository requests that a new local module may shadow."""
         rows = self.db.execute(
-            "select source_repository,source_path from import_requests "
-            "where source_repository=? and requested_module=?", (repository, module))
+            "select source_repository,source_path from import_lookup_keys "
+            "where source_repository=? and module=?", (repository, module))
         return set(rows)
 
     def has_descendant_requesters(self, repository, module):
-        """Detect package layout shadows using the requester index's prefix range."""
+        """Detect layout shadows not already covered by an exact base requester.
+
+        A `from pkg import child` requester has both `pkg` and the possible
+        `pkg.child` key, so it is selected by the exact base lookup. A direct
+        `from pkg.child import name` requester lacks `pkg` and cannot be
+        certified when a newly added `pkg.py` changes ancestor layout.
+        """
         prefix = module + "."
         row = self.db.execute(
-            "select 1 from import_requests where source_repository=? "
-            "and requested_module>=? and requested_module<? limit 1",
-            (repository, prefix, module + "/")).fetchone()
+            "select 1 from import_lookup_keys child where child.source_repository=? "
+            "and child.module>=? and child.module<? and not exists ("
+            "select 1 from import_lookup_keys base where base.source_repository=child.source_repository "
+            "and base.module=? and base.source_path=child.source_path) limit 1",
+            (repository, prefix, module + "/", module)).fetchone()
         return row is not None
 
     def close(self):
@@ -452,7 +481,7 @@ def _reuse_python_graph(folder, prior, files, repos, c):
     eligible, reason, _, python_changed = _same_python_inputs(folder, prior, files, repos, c)
     if not eligible or python_changed:
         return None, reason
-    if prior.get("dependency_store") != "indexed-v1":
+    if prior.get("dependency_store") != "indexed-v2":
         return None, "previous-graph-evidence-unavailable"
     old_files = source_files(folder, prior)
     # SOURCE_FILES stores inventory without text. Its source hashes certify the
@@ -648,7 +677,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
                 compatible, reason, _, _ = _same_python_inputs(
                     old_folder, old_manifest, files, repos, c)
-                if compatible and old_manifest.get("dependency_store") == "indexed-v1":
+                if compatible and old_manifest.get("dependency_store") == "indexed-v2":
                     checksum, size = hash_artifact(old_folder, "catalog.sqlite")
                     if (checksum != old_manifest["artifacts"]["catalog.sqlite"]
                             or size != old_manifest["artifact_sizes"]["catalog.sqlite"]):
