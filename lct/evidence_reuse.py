@@ -72,7 +72,10 @@ class RebindContext:
         exact-captured-definition. Other shapes fail closed.
         """
         owner_old, _ = self.matched(owner_id)
-        if owner_old["path"] in self.selected_paths:
+        if ((owner_old["repository"], owner_old["path"]) in self.selected_paths
+                or owner_old["path"] in self.selected_paths):
+            # Path-only input remains a conservative legacy experiment guard;
+            # production supplies repository/path identities exclusively.
             raise EvidenceReuseRejected("owner selected for reanalysis")
 
         def walk(value, parent=None):

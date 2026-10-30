@@ -29,12 +29,9 @@ capture all negative name lookups, alias/callback candidates, Jedi project
 dependencies or transitive effects across snapshots. Reusing site proofs or
 recomputing only edited files would lose candidates and UNKNOWN origins.
 
-The planner does not implement true incremental analysis and is deliberately
-not wired into `storage.build`. The existing `storage.build` still analyzes the
-whole captured graph and uses content differences for SQLite writes and cached
-embeddings. A later dependency-aware implementation must maintain complete
-positive, negative and unknown reverse dependencies, validate identity and
-coverage, and fall back to full analysis whenever its closure cannot be proved.
+The planner remains separate from `storage.build`. The build path now has
+additional private, certified reuse and bounded graph preparation described
+below; the planner's `full-capture` flag does not describe those later gates.
 
 ## Narrow private Jedi observation reuse and import dependency inventory
 
@@ -66,8 +63,8 @@ modules (or unresolved status). Indexed namespace and target-module reverse
 lookups can trace successful imports through reexports as well as unresolved
 lookups. `module_import_dependents` exposes only that import reachability; it
 cannot certify all caller, callback, receiver/effect, Jedi or negative member
-dependencies. Python additions, edits, deletions, aliases and callbacks still
-run full graph analysis. Missing import dependencies outside uniquely captured
+dependencies. Python changes outside the certified subset still run full graph
+analysis. Missing import dependencies outside uniquely captured
 namespaces remain unknown and require the full fallback. Dense partitions are
 reused only when their source vectors/order and configured representation match;
 the public build reports reused and rebuilt partition counts separately.
@@ -78,4 +75,55 @@ When `from A import name` has no resolved binding and `A` is one unique captured
 
 SQLite persists both relations in the snapshot's edges table, with existing `(source,kind)` and `(target,kind)` indexes. The public relation traversal can follow this one boundary class in either direction, including the reverse `A <- LOOKUP_IN <- boundary <- IMPORTS <- B` path. Neo4j projects the logical endpoint into a scoped `LCTBoundary` with category `unresolved`, lookup repository/module/name/status and a generic `named-import-unresolved` reason; the precise per-site reasons remain on raw `LCTEdge`. Its physical boundary ID retains the v2 `external:<logical-endpoint>` convention. `Neo4jGraph.get_relations` accepts the logical endpoint; official `node_read_cypher_requests(..., boundary=True)` accepts the physical boundary ID returned with a relation row. Native `IMPORTS` and `LOOKUP_IN` relationships are both indexed by scoped endpoint identities. Existing null-target unknown imports, external boundaries, ambiguous module names and pin mismatches retain their previous behavior.
 
-This captures one negative lookup dependency. It does not establish complete invalidation for successful imports, reexports, conditional imports, Jedi internals, aliases and callbacks, or cross-snapshot reuse. The planner still requests full-capture analysis for source changes. Old snapshots remain immutable and readable; the new edge appears only in a newly built snapshot. No public schema or parser replacement is introduced.
+This captures one negative lookup dependency. By itself it does not establish
+complete invalidation for successful imports, reexports, conditional imports,
+Jedi internals, aliases and callbacks, or cross-snapshot reuse. The separate
+bounded gate below certifies a strict subset. The planner still requests
+full-capture analysis for source changes. Old snapshots remain immutable and
+readable; the new edge appears only in a newly built snapshot. No public schema
+or parser replacement is introduced.
+
+## Certified bounded Python components across repositories
+
+`storage.build` can prepare a changed Python component from an old immutable
+catalog and indexed graph evidence. Its `simple-python-v3` certificate accepts
+only closed, explicit, absolute `from module import definition` relationships
+and a narrow syntax for undecorated functions and ordinary classes. It excludes
+inheritance, annotations, decorators, dynamic assignment, relative and star
+imports, unknown target namespaces, ambiguous modules within one repository,
+and constructs whose receiver or effects cannot be certified. It is not a
+general contract for real project code. The old snapshot must contain complete
+per-file certificates. The new path parses changed modules and every file in
+their transitive dependency component; unchanged, unselected Python ASTs remain
+unparsed. Both syntax certification and component selection identify files by
+`(repository, path)` and use the graph's existing local-first import resolver.
+
+The old file adjacency, provider import lookup, and requester import-name
+indexes find callers, affected targets, and local modules that newly shadow or
+stop shadowing a dependency. A selected module's new imports add their captured
+targets to the component. The requester lookup uses
+`import_request_requester(source_repository, requested_module, source_path)`;
+old sidecars without that index fall back to full graph analysis. An added,
+removed or modified package `__init__.py` also falls
+back: an initializer can shadow dotted child requests beyond an exact-name
+reverse index. For a matched
+dependency, `Graph.imported` requires the exact configured revision, target
+HEAD, and a clean target Python worktree. A pin, HEAD, or cleanliness binding
+change also falls back to the full graph. A verified source snapshot does not
+substitute for the Git cleanliness proof in that policy. Changes to documents,
+`pyproject.toml`, other non-Python input, configuration or incompatible old
+evidence retain their existing conservative fallback.
+Adding or deleting an ancestor module such as `pkg.py` also falls back when
+indexed old requests include `pkg.child`; the bounded path does not infer
+Jedi's package-shadow semantics from an exact child module lookup.
+
+Jedi analyzes a requesting repository in its own captured project, with its
+source roots ahead of only graph-authorized, exact-pin dependency roots and
+the controlled library paths. The graph still checks each returned definition
+against the import policy. This avoids another repository with the same full
+module name winning a query through a shared project. Captured-source hashes,
+definition identities, versioned site evidence and the association budget
+are checked before unchanged evidence is rebound; unsupported ownership or
+versioned evidence returns to full analysis. Public graph records are exact
+under this gate; `analysis_scope.mode=certified-simple-python-component`
+reports the bounded path and its parsed/reused file counts.

@@ -126,14 +126,15 @@ class Analyzer:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(t._lct_source, encoding="utf-8")
             self.paths[path.resolve()] = ident
-        roots = set()
+        roots = defaultdict(set)
         for path, ident in self.paths.items():
-            mod = nodes[ident]["qualname"]
+            module = nodes[ident]
+            mod = module["qualname"]
             depth = len(mod.split(".")) if path.name == "__init__.py" else len(mod.split(".")) - 1
             root = path.parent
             for _ in range(depth):
                 root = root.parent
-            roots.add(str(root))
+            roots[module["repository"]].add(str(root))
         library_paths = [
             p
             for p in sys.path
@@ -141,15 +142,26 @@ class Analyzer:
             and ("site-packages" in p or "python" in p.lower())
             and str(Path(p).resolve()) != str(Path.cwd().resolve())
         ]
-        project = jedi.Project(
-            self.root,
-            sys_path=sorted(roots) + library_paths,
-            smart_sys_path=False,
-            load_unsafe_extensions=False,
-        )
+        projects = {}
+        for repository in roots:
+            dependencies = set()
+            for ident in self.modules:
+                module = nodes[ident]
+                if module["repository"] == repository:
+                    continue
+                if ident in self.imported(repository, module["qualname"]):
+                    dependencies.update(roots[module["repository"]])
+            projects[repository] = jedi.Project(
+                self.root / repository,
+                sys_path=sorted(roots[repository]) + sorted(dependencies - roots[repository])
+                + library_paths,
+                smart_sys_path=False,
+                load_unsafe_extensions=False,
+            )
         for path, ident in self.paths.items():
             self.scripts[ident] = jedi.Script(
-                code=trees[ident]._lct_source, path=path, project=project
+                code=trees[ident]._lct_source, path=path,
+                project=projects[nodes[ident]["repository"]],
             )
         for ident in trees:
             mod = ident

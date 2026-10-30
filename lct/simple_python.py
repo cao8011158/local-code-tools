@@ -3,8 +3,9 @@
 import ast
 
 from .extract import module_name
+from .graph import Graph
 
-CERTIFICATE = "simple-python-v2"
+CERTIFICATE = "simple-python-v3"
 _EXPRESSIONS = (ast.Name, ast.Constant, ast.Call, ast.keyword, ast.Attribute,
                 ast.Load, ast.Store)
 _STATEMENTS = (ast.Return, ast.Assign, ast.Expr, ast.Pass)
@@ -79,17 +80,21 @@ def _function(fn, globals_, *, method=False):
     return not local_assignments & (params | globals_)
 
 
-def certify(files, asts):
+def certify(files, asts, *, graph=None):
     """Certify a closed explicit-import universe; never infer missing source."""
     python = [f for f in files if f["path"].endswith(".py")]
-    if not python or len({f["repository"] for f in python}) != 1:
+    if not python:
         return None
-    modules = {}
-    for f in python:
-        key = (f["repository"], module_name(f["path"]))
-        if key in modules:
-            return None
-        modules[key] = f
+    if graph is None:
+        # Direct certificate callers need the same graph import policy. Production
+        # supplies the complete current module catalog and repository metadata.
+        modules = [dict(node_id=f'{f["repository"]}:{f["path"]}:module:{module_name(f["path"])}#1',
+                        kind="module", repository=f["repository"], path=f["path"],
+                        qualname=module_name(f["path"])) for f in python]
+        graph = Graph(modules, asts, [])
+    selected = {(f["repository"], f["path"]) for f in python}
+    if any(len(ids) != 1 for ids in graph.modules.values()):
+        return None
     for f in python:
         repo, path = f["repository"], f["path"]
         tree = asts.get(f"{repo}:{path}:module:{module_name(path)}#1")
@@ -105,10 +110,15 @@ def certify(files, asts):
             if isinstance(stmt, ast.ImportFrom):
                 if stmt.level or not stmt.module or any(a.name == "*" for a in stmt.names):
                     return None
-                target = modules.get((repo, stmt.module))
-                if target is None:
+                allowed = graph.imported(repo, stmt.module)
+                if len(allowed) != 1:
                     return None
-                target_tree = asts.get(f"{repo}:{target['path']}:module:{stmt.module}#1")
+                target_id = next(iter(allowed))
+                target = graph.nodes.get(target_id)
+                if (target is None or target["kind"] != "module"
+                        or (target["repository"], target["path"]) not in selected):
+                    return None
+                target_tree = asts.get(target_id)
                 if target_tree is None:
                     return None
                 exports = {s.name for s in target_tree.body

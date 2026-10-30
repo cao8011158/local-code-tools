@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31 最新：用户“把么现在要refactor 吗 如果需要就开始”已批准修正Jedi项目环境及遮蔽失效索引，恢复限定开发。基线39b6d0ab3e18e9a5642078bde8c71a23999cd599，分支feat/incremental-index-updates；此前暂停记录保留。
 2026-10-31 当前暂停：类切片独立通过；跨仓库候选发现旧Jedi搜索环境隔离问题及新模块遮蔽失效遗漏，独立定向3 failed/2 passed。候选仅归档patch，未应用远端生产代码；需要用户确认是否限定修复核心解析接入环境。详见阶段43及crossrepo-paused-report.md。
 2026-10-31 最新：类与实例方法限定局部更新1ca7ca32cf5e0b816eee95a01956417308f38407已推送；第1/3轮独立审阅545 passed、25 skipped（26.45秒）。构造器字段变化与绑定方法参数变化全字段对照通过；0/20无关类文件时仅解析a/b。Batch4仍待跨仓库及完整功能验收，未合并。以下保留历史状态。
 2026-10-31 最新：906dd60e9b17a2607983cd0bcac9f4eda07db288已推送；限定普通函数/直接导入/回调局部更新第1/3轮独立审阅通过，526 passed/25 skipped，另两项独立检查分别通过。实际查询走索引，3→43文件时仅解析a/b，查询4次、相关行3条保持不变。类、多代码仓库等仍全量，实际业务全范围增量未完成，不合并。
@@ -302,3 +303,11 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - B4-CROSSREPO-PROJECT：Analyzer.__init__合并所有仓库根到同一个Jedi Project，导致候选错库，后置校验保留UNKNOWN；没有错误确定目标证据，P1怀疑已撤回，确认P2精度/局部性问题。旧证据重绑定正确拒绝并完整回退。建议请求仓库独立Project、复用既有精确依赖授权根；涉及旧核心解析语义，按skill请求人工确认。
 - B4-CROSSREPO-SHADOW：旧导入请求只按provider查找，新增本库同名模块找不到consumer。需补请求方+模块名反查索引并扩展闭包，或明确保守回退；当前step内P2，不允许忽略错误结果。
 - 具体复现、修复位置、验证方案和归档见crossrepo-paused-report.md；原始root日志及诊断JSON已保留。未运行真实服务/付费/Drive。历史review轮次保留，无正式跨库review完成、无合并。
+
+## 阶段44：用户授权限定核心接入修正，恢复开发
+用户已明确要求开始refactor。范围仅每仓库Jedi搜索环境、复用既有包名/依赖版本规则、请求方模块反查索引及其跨库增量接入。沿用GPT-6 SOL medium开发、主Agent固定提交独立review；尚无跨库正式review完成。定向开发测试→快速回归→push后独立反例，禁止付费/真实全图/Drive操作。通过本切片不等于整个Batch4完成，不合并。
+
+## 阶段45：跨仓库环境与索引限定重构开发冻结
+2026-10-31，GPT-6 SOL medium。B4-CROSSREPO-PROJECT改为每请求仓库Jedi环境，B4-CROSSREPO-SHADOW补requester索引；祖先pkg.py/包__init__.py布局变动对照确有影响，保守完整回退并覆盖新增/删除，不伪装局部成功。
+- 开发定向16 passed（6.05秒），快速全tests/536 passed/25 skipped（20.29秒），Ruff通过；原始日志已保存。开发未push，待root固定提交review。
+- 5个生产文件、2个测试文件、1个契约文档；未改Jedi版本、未执行真实服务/API/Drive。完整清单和限制见crossrepo-development.md。

@@ -28,7 +28,7 @@ def context(old_a=OLD_A, new_a=NEW_A):
     ids = {n["qualname"]: ident for ident, n in old_nodes.items()}
     prepared = RebindContext(old_nodes=old_nodes, new_nodes=new_nodes,
                              old_trees=old_trees, new_trees=new_trees,
-                             selected_paths={"src/a.py"})
+                             selected_paths={("fixture", "src/a.py")})
     return prepared, ids, old_nodes, new_nodes
 
 
@@ -89,7 +89,7 @@ def test_owner_invalidation_and_repeated_lookup_use_prepared_index_only():
     first_count = ctx.match_evaluations
     ctx.rebind(record, owner_id=ids["owner"])
     assert ctx.match_evaluations == first_count == 2
-    ctx.selected_paths.add("src/b.py")
+    ctx.selected_paths.add(("fixture", "src/b.py"))
     with pytest.raises(EvidenceReuseRejected, match="owner selected"):
         ctx.rebind(record, owner_id=ids["owner"])
 
@@ -117,12 +117,12 @@ def test_source_only_rebinding_requires_two_matching_captured_hashes(proof):
     owner = ids["owner"]
     source = old[owner]["source_sha256"]
     ctx = RebindContext(old_nodes=old, new_nodes=new, old_trees={}, new_trees={},
-                        selected_paths={"src/a.py"},
+                        selected_paths={("fixture", "src/a.py")},
                         verified_sources={("fixture", "src/b.py"): proof} if proof is not None else {})
     with pytest.raises(EvidenceReuseRejected, match="source not verified"):
         ctx.rebind(nested_record(owner, old[owner]), owner_id=owner)
     ctx = RebindContext(old_nodes=old, new_nodes=new, old_trees={}, new_trees={},
-                        selected_paths={"src/a.py"},
+                        selected_paths={("fixture", "src/a.py")},
                         verified_sources={("fixture", "src/b.py"): (source, source)})
     assert ctx.rebind(nested_record(owner, old[owner]), owner_id=owner)
 

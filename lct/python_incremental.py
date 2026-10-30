@@ -24,15 +24,18 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     if not isinstance(prior_bound, int) or not 0 <= prior_bound <= 20000:
         return None, "previous-association-bound-unavailable"
     python = {(f["repository"], f["path"]): f for f in files if f["path"].endswith(".py")}
-    if not python or len({key[0] for key in python}) != 1:
-        return None, "single-python-repository-required"
-    repo = next(iter(python))[0]
-    bymodule = {}
-    for key in python:
-        name = module_name(key[1])
-        if name in bymodule:
-            return None, "ambiguous-module-name"
-        bymodule[name] = key
+    if not python:
+        return None, "no-python-modules"
+    # The graph's existing local-first, exact-pin resolver is the only authority
+    # for imports. Module identities do not require parsing unchanged ASTs.
+    module_catalog = [dict(node_id=f"{repo}:{path}:module:{module_name(path)}#1",
+                           kind="module", repository=repo, path=path,
+                           qualname=module_name(path)) for repo, path in python]
+    resolver = Graph(module_catalog, {}, repos)
+    if any(len(ids) != 1 for ids in resolver.modules.values()):
+        return None, "ambiguous-module-name"
+    if resolver.cross_bindings != prior["graph"].get("dependency_bindings"):
+        return None, "dependency-bindings-changed"
     snapshots = {name: digest(canonical(sorted((f["path"], digest(f["text"]))
                                             for f in files if f["repository"] == name)))
                  for name in {f["repository"] for f in files}}
@@ -48,27 +51,40 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                    if key not in python or key not in old_files or old_files[key][0] != python[key]["sha256"]}
         if not changed:
             return None, "no-python-source-change"
-        if any(key[0] != repo for key in changed):
-            return None, "cross-repository-python-change"
+        # A package initializer can shadow every dotted child import of a
+        # dependency; exact requested-module indexes cannot certify that set.
+        if any(path == "__init__.py" or path.endswith("/__init__.py")
+               for _, path in changed):
+            return None, "package-initializer-changed"
+        if any((key not in python or key not in old_files)
+               and dependencies.has_descendant_requesters(key[0], module_name(key[1]))
+               for key in changed):
+            return None, "ancestor-module-layout-changed"
         # The old sidecar certifies all old modules. New/changed modules must fit
         # the subset; parse the selected closure later, never all unchanged ASTs.
         selected = set(changed)
-        queue = deque(changed)
+        queue = deque(sorted(changed))
         parsed = {}
         while queue:
             key = queue.popleft()
             candidates = dependencies.adjacent(*key)
-            candidates.update(dependencies.importers(repo, module_name(key[1])))
+            if key[1].endswith(".py"):
+                candidates.update(dependencies.importers(key[0], module_name(key[1])))
+                if key in changed:
+                    candidates.update(dependencies.requesters(key[0], module_name(key[1])))
             if key in python:
                 if key not in parsed:
                     parsed[key] = extraction.python_nodes(dict(
                         python[key], snapshot_id=snapshots[key[0]]))
                     if attempts is not None:
                         attempts["python_files_parsed"] += 1
-                tree = parsed[key][1][f"{repo}:{key[1]}:module:{module_name(key[1])}#1"]
+                tree = parsed[key][1][f"{key[0]}:{key[1]}:module:{module_name(key[1])}#1"]
                 for stmt in tree.body:
                     if isinstance(stmt, ast.ImportFrom) and stmt.level == 0:
-                        candidates.add(bymodule.get(stmt.module))
+                        for ident in resolver.imported(key[0], stmt.module):
+                            target = resolver.nodes.get(ident)
+                            if target is not None:
+                                candidates.add((target["repository"], target["path"]))
             for candidate in candidates:
                 if candidate is not None and candidate not in selected:
                     selected.add(candidate)
@@ -90,7 +106,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         # Certification requires the full import universe but only selected ASTs.
         # Supply unchanged module trees from old frozen source only if referenced
         # by a selected import, in which case closure should have selected it.
-        if certify(selected_files, local_asts) != CERTIFICATE:
+        if certify(selected_files, local_asts, graph=resolver) != CERTIFICATE:
             return None, "selected-python-syntax-unsupported"
         with closing(sqlite3.connect((folder / graph_sites).as_uri() + "?mode=ro&immutable=1", uri=True)) as evidence:
             try:
@@ -174,7 +190,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         return None, "combined-association-budget-uncertified"
     info["association_bound"] = prior_bound + info["association_evaluations"]
     context = RebindContext(old_nodes=old_nodes, new_nodes=byid, old_trees={},
-                            new_trees={}, selected_paths={path for _, path in selected},
+                            new_trees={}, selected_paths=selected,
                             verified_sources=verified)
     def owner_key(ident):
         n = old_nodes.get(ident)

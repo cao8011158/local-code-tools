@@ -266,6 +266,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create table import_requests(ordinal integer primary key, source_repository text not null, source_path text not null, lookup_repository text not null, requested_module text not null, data text not null)")
         db.execute("create index import_request_lookup on import_requests(lookup_repository,requested_module)")
         db.execute("create index import_request_source on import_requests(source_repository,source_path)")
+        db.execute("create index import_request_requester on import_requests(source_repository,requested_module,source_path)")
         owners = {n["node_id"]: (n["repository"], n["path"]) for n in nodes}
         for ordinal, request in enumerate(import_requests or ()):
             owner = owners.get(request["source_module"])
@@ -333,6 +334,9 @@ class FileDependencies:
                 "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests')")}
             if present != expected:
                 raise ToolError("Previous file dependency index unavailable")
+            if not any(row[1] == "import_request_requester" for row in self.db.execute(
+                    "pragma index_list('import_requests')")):
+                raise ToolError("Previous import requester index unavailable")
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -349,6 +353,22 @@ class FileDependencies:
             "select source_repository,source_path from import_requests "
             "where lookup_repository=? and requested_module=?", (repository, module))
         return set(rows)
+
+    def requesters(self, repository, module):
+        """Find old same-repository requests that a new local module may shadow."""
+        rows = self.db.execute(
+            "select source_repository,source_path from import_requests "
+            "where source_repository=? and requested_module=?", (repository, module))
+        return set(rows)
+
+    def has_descendant_requesters(self, repository, module):
+        """Detect package layout shadows using the requester index's prefix range."""
+        prefix = module + "."
+        row = self.db.execute(
+            "select 1 from import_requests where source_repository=? "
+            "and requested_module>=? and requested_module<? limit 1",
+            (repository, prefix, module + "/")).fetchone()
+        return row is not None
 
     def close(self):
         self.db.close()
@@ -850,7 +870,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 graph=graph_info,
                 simple_python_certificate=(
                     old_manifest["simple_python_certificate"] if local_metrics else
-                    certify(files, asts) if prepared is None else
+                    certify(files, asts, graph=graph) if prepared is None else
                     old_manifest.get("simple_python_certificate")),
                 vector_chunks=0 if lexical_only else len(texts),
                 planned_vector_chunks=len(texts),
