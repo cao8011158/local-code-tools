@@ -1,0 +1,102 @@
+[
+  {
+    "unrelated_files": 0,
+    "calls": [
+      {
+        "operation": "reverse",
+        "temperature": "cold",
+        "vm_steps": 53,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "reverse",
+        "temperature": "repeat",
+        "vm_steps": 39,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "cold",
+        "vm_steps": 20,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_requests USING INDEX import_request_lookup (lookup_repository=? AND requested_module=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "repeat",
+        "vm_steps": 17,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_requests USING INDEX import_request_lookup (lookup_repository=? AND requested_module=?)"
+        ]
+      }
+    ]
+  },
+  {
+    "unrelated_files": 100,
+    "calls": [
+      {
+        "operation": "reverse",
+        "temperature": "cold",
+        "vm_steps": 53,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "reverse",
+        "temperature": "repeat",
+        "vm_steps": 39,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "cold",
+        "vm_steps": 20,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_requests USING INDEX import_request_lookup (lookup_repository=? AND requested_module=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "repeat",
+        "vm_steps": 17,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_requests USING INDEX import_request_lookup (lookup_repository=? AND requested_module=?)"
+        ]
+      }
+    ]
+  }
+]
+.
+1 passed in 0.90s

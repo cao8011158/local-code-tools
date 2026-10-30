@@ -1,7 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
-2026-10-30 当前状态：版本引用修复ac8bfd31f0d007d5cb17a9c508e90c5e21199644已完成限定独立验证，v5为29/29；正式增量接入的依赖索引持久化正在开发。完整增量和生产接入仍未完成，未合并。
+2026-10-30 当前状态：版本引用修复已完成限定独立验证（v5 29/29）；正式构建已保存可反查依赖索引，e1500d2c35a960dd0688871f1ac6daa659f5e886经第二轮独立审阅，508 passed/25 skipped。真正局部解析与完整增量接入尚未完成，未合并。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
@@ -220,3 +220,11 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 
 ## 阶段33：迁移标记整改开发完成
 开发者将dependency_store改为顶层快照元数据，FileDependencies跟随读取，graph保持原样；没有修改management或放宽graph相等断言。定向迁移/依赖索引/查询复用13 passed、2.86秒，Ruff通过。接下来固定修复提交后第二轮独立审阅。
+
+## 阶段34：持久依赖索引第二轮独立审阅通过限定范围
+检查修复提交e1500d2c35a960dd0688871f1ac6daa659f5e886。独立副本用正确候选文件固定后运行tests/及4项主Agent独立检查：508 passed、25 skipped，18.21秒，exit0；复核76个lct/tests文件与远端Git blob。先前两次因审阅副本旧文件覆盖产生的指纹失败不计作实现缺陷或通过证据，原日志保留。最终日志depstore-root-fixed-tests.log。
+- B4-DEPSTORE-MIGRATION已关闭：标记位于快照顶层，graph内容保留；迁移和备份恢复原严格测试通过。
+- 真实public build保存缺失模块请求及实际跨文件关系；旧版本不变，未捕获目标不伪造边；已存在目标但名称缺失时，IMPORTS+LOOKUP_IN仍能反向定位请求者。
+- 实际FileDependencies.adjacent/importers执行语句经trace提取，EXPLAIN QUERY PLAN显示源/目标及请求名称索引SEARCH；SQLite进度处理器实测VM指令。0→100无关文件（均带额外无关导入/调用关系）下，adjacent冷/热53/39步，importers冷/热20/17步，两组完全相同，每次只返回1条。独立定向1 passed、0.90秒，日志depstore-root-fixed-plans.log。
+- 上述计数不包含打开快照时的一次完整sidecar哈希校验；该校验用于构建/更新准入，连接复用后查询不重做。不把查询局部性推广为整个build局部。完整输出、inventory、AST准备、Graph分析目前仍全量。
+- 本切片通过，但Batch4未完成、不合并。版本引用helper只在实验接入；下一具体工作是在extract之前接入受影响范围选择，并实际复用未受影响分析/身份，完整统一发布和真实验收仍待完成。此轮未开启付费API、Neo4j服务或真实图/Drive更新。
