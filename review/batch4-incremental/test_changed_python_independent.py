@@ -95,3 +95,27 @@ def test_new_import_pulls_previously_disconnected_module_into_component(tmp_path
     oracle = dict(c, data=str(tmp_path / "oracle"))
     full = build(oracle, offline=True, lexical_only=True)
     assert records(c, changed["version"]) == records(oracle, full["version"])
+
+
+def test_returned_function_and_keyword_callback_propagate_across_three_files(tmp_path, monkeypatch):
+    c, repo = fixture(tmp_path, 5)
+    source = "def first(): pass\ndef second(): pass\ndef factory():\n    return first\n"
+    (repo / "src/a.py").write_text(source)
+    (repo / "src/b.py").write_text(
+        "from a import factory\nfrom c import execute\ndef main():\n    execute(callback=factory())\n")
+    (repo / "src/c.py").write_text(B)
+    build(c, offline=True, lexical_only=True)
+    (repo / "src/a.py").write_text(source.replace("return first", "return second"))
+    parsed = []
+    actual = extraction.python_nodes
+
+    def counted(file):
+        parsed.append(file["path"])
+        return actual(file)
+
+    monkeypatch.setattr(extraction, "python_nodes", counted)
+    changed = build(c, offline=True, lexical_only=True)
+    assert sorted(parsed) == ["src/a.py", "src/b.py", "src/c.py"]
+    oracle = dict(c, data=str(tmp_path / "oracle"))
+    full = build(oracle, offline=True, lexical_only=True)
+    assert records(c, changed["version"]) == records(oracle, full["version"])
