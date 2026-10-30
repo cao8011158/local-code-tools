@@ -1,7 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
-2026-10-30 当前研究切片：定向传播v3开发完成，20/20合成对照一致，等待第三次独立实验审阅。正式生产接入仍暂停，未合并。此前阶段21、23的两次实验审阅计数保留；不是重置为新问题。
+2026-10-30 当前研究切片：定向传播实验第三次独立审阅完成，原对象字段反例已修复；构造函数单独改变仍漏选调用者，按三轮上限暂停，等待人工决定。实现提交4560aee34db12ad01192bdeb0986d414c37ba846。正式生产接入仍暂停，未合并。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
@@ -162,3 +162,10 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - 定向命令：PYTHONPATH=. /workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python review/batch4-incremental/directional-experiment/v3.py，退出0；20/20组与全量语义对照一致，日志v3-run.log。包含15组旧样例、两组旧独立样例及3组新样例，有重复根因，不称20种独立机制。
 - 修改只涉及v3.py、v3-results.json、v3-run.log、v3-development.md四个新增实验文件。v1/v2失败记录保留。共享helper仍0/20外层调用点、20/40选择性阶段Jedi；新旧21+21 AST准备和全局非CALLS成本仍在。
 - 未验证构造函数/方法单独改变、正式版本重绑定、真实数据与数据库发布；未调用付费API、未更新真实图或Drive。接下来第三次独立实验审阅；整个Batch4未完成。
+
+## 阶段25：固定提交后的第三次独立实验审阅，暂停自动修复
+检查4560aee34db12ad01192bdeb0986d414c37ba846，v3.py与远端Git blob逐字节一致。根Agent复跑20/20开发样例匹配；独立3组2匹配/1失败。字段提取再转交正确；丢弃对象返回常量会在中间函数停止；仅修改Box.__init__字段而factory原文不变时仍漏选b.py。
+- B4-DIR-STATE已关闭；B4-DIR-SEED为P2实验覆盖遗漏，非发布图退化。根因在direct_functions只找顶层函数，方法变动未加入传播起点。旧图已有CONTAINS Box→__init__、CALLS factory→Box及run→factory，可据此扩展，不要求换解析工具。
+- 已明确尚未执行的修复：完整qualname对齐包括方法；构造器字段变化映射到所属类，反向找构造调用者，再使用已修复的对象状态传播。详细证据和限制见directional-experiment/v3-independent-review.md。
+- 本实验承接阶段21/23共3次独立审阅，停止第四轮自动修复；不以Batch4最终审阅尚未开始重置该循环。请求人工批准后才能继续。
+- 只跑定向实验，不跑无关全仓库测试；未修改生产解析流程、未调用Voyage、未重建真实图或Drive包，未合并。
