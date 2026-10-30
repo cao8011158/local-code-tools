@@ -103,7 +103,11 @@ indexes find callers, affected targets, and local modules that newly shadow or
 stop shadowing a dependency. A selected module's new imports add their captured
 targets to the component. The requester lookup uses
 `import_request_requester(source_repository, requested_module, source_path)`;
-old sidecars without that index fall back to full graph analysis. An added,
+the same module-name index includes captured package ancestors of a selected
+module, the requesting repository's import path, and an authorized target's
+path. These ancestors supply Jedi's package context without parsing unrelated
+modules. If a necessary namespace is ambiguous, certification fails closed.
+Old sidecars without the requester index fall back to full graph analysis. An added,
 removed or modified package `__init__.py` also falls
 back: an initializer can shadow dotted child requests beyond an exact-name
 reverse index. For a matched
@@ -127,3 +131,15 @@ are checked before unchanged evidence is rebound; unsupported ownership or
 versioned evidence returns to full analysis. Public graph records are exact
 under this gate; `analysis_scope.mode=certified-simple-python-component`
 reports the bounded path and its parsed/reused file counts.
+
+# Parso cache compatibility
+
+The Python analyzer installs a process-wide compatibility wrapper for Parso
+0.8.7 before constructing Jedi scripts. On insertion, including loading a
+pickled tree from disk, it records the current use time. Parso still compares
+the source modification time with `change_time` to invalidate changed source,
+and its ordinary 600-entry cleanup still removes inactive entries. The
+dependency is pinned because this wrapper uses Parso's private insertion API;
+an unsupported Parso version fails explicitly. This fixes newly loaded old
+source being immediately classified as inactive. It does not extend the
+lifetime of a tree that really has been inactive for more than ten minutes.

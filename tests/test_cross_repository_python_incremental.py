@@ -8,7 +8,7 @@ from lct.storage import FileDependencies, build, manifest
 from tests.synthetic_support import initialize
 
 
-def fixture(tmp_path, *, pinned=False, local_shadow=False):
+def fixture(tmp_path, *, pinned=False, local_shadow=False, provider_package=False):
     config, consumer = initialize(tmp_path / "fixture")
     (consumer / "src/weights.py").unlink()
     provider = tmp_path / "provider"
@@ -16,6 +16,8 @@ def fixture(tmp_path, *, pinned=False, local_shadow=False):
     source.mkdir(parents=True)
     (source / "evaluation.py").write_text("def target(): pass\n")
     (source / "unrelated.py").write_text("def idle(): pass\n")
+    if provider_package:
+        (source / "__init__.py").write_text("")
     if local_shadow:
         own = consumer / "src/dnd5e_engine"
         own.mkdir()
@@ -191,3 +193,23 @@ def test_ancestor_module_shadow_changes_fall_back(tmp_path):
     assert removed["incremental"]["analysis_scope"]["mode"] == "full-graph"
     assert removed["incremental"]["analysis_scope"]["reason"] == "ancestor-module-layout-changed"
     same_as_full(config, removed, tmp_path / "removed")
+
+
+def test_pinned_provider_package_context_parses_only_actual_prefix(tmp_path):
+    config, consumer, provider = fixture(tmp_path, pinned=True, provider_package=True)
+    (consumer / "src/noise.py").write_text("def idle(): pass\n")
+    caller = consumer / "src/caller.py"
+    caller.write_text(
+        "from dnd5e_engine.evaluation import target as action\ndef run(): action()\n")
+    build(config, offline=True, lexical_only=True)
+    caller.write_text(caller.read_text() + "def again(): action()\n")
+    updated = build(config, offline=True, lexical_only=True)
+    scope = updated["incremental"]["analysis_scope"]
+    assert scope["mode"] == "certified-simple-python-component"
+    assert scope["selected_keys"] == [
+        ("synthetic-review", "src/caller.py"),
+        ("trpg-rules-engine", "src/dnd5e_engine/__init__.py"),
+        ("trpg-rules-engine", "src/dnd5e_engine/evaluation.py"),
+    ]
+    assert scope["python_files_parsed"] == 3
+    same_as_full(config, updated, tmp_path)

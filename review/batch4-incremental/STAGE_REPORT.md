@@ -326,3 +326,12 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - 主Agent栈定位Jedi get_parso_cache_node对contextlib.py的缓存KeyError（-x:1 failed/442 passed/25 skipped，15.06秒）。纯观测Parso缓存>=600时实际淘汰contextlib，last_used年龄419741.6秒，保留阈值600秒（-x:1 failed/442 passed/25 skipped，14.16秒）。代码初始化/磁盘load时间语义与此一致。
 - B4-JEDI-PARSO-CACHE为核心外部依赖缓存交互问题；未确认P0P1，但按skill核心依赖规则暂停扩大修复。建议独立最小复现+官方修复/有限兼容补丁评估，保持解析器和正确性断言，不以清缓存规避、不无界保留。
 - 详细crossrepo-package-context-and-cache-report.md，第二轮正式review尚未开始，旧轮次保留，未合并/真实建图/API/Drive。
+
+## 阶段48：用户授权Parso缓存有限修复；本地开发完成，未提交
+
+2026-10-30 UTC。用户明确授权修复“新加载的旧文件缓存条目被错误判作不活跃”，不扩展一般Jedi生命周期设计。工作分支feat/incremental-index-updates，远端基线efc90d46bdd74e74325b0460c9578a4303b11d1b，生产合并目标d9ecf8538b0078b30edbf0e92dd2f78b2e85bbe4。当前目录非Git checkout；此阶段代码未提交/推送，正式第2/3轮review尚未开始。
+
+- Parso 0.8.7精确版本包装原`_set_cache_item`：插入前只刷新`last_used`，包括新解析和真实磁盘pickle恢复；原函数仍负责达到600时清理超过600秒的旧条目。`change_time`及源码修改失效保留，Analyzer构造Jedi Script前幂等安装，版本不支持时显式失败。pyproject直接pin 0.8.7、uv.lock元数据同步，旧requirements.lock.txt已pin；现有包上下文候选保持。
+- 定向84 passed/3.87秒；全tests/539 passed、25 skipped/23.35秒（exit0）；随后仅新增版本guard测试，最终定向含跨库94 passed/6.42秒（exit0），Ruff通过。完整日志`parso-cache-development-fast.log`、`parso-cache-development-targeted.log`及Ruff日志。`uv lock --offline`因本地uv缓存缺Jedi 0.20.1未能解析，手动对齐现有lock元数据；没有将其称作锁定解析成功。
+- 真实Parso冷解析、pickle恢复、600项触发下新旧淘汰、源码修改失效和安装幂等/版本失败均有项目测试。包装每次插入O(1)刷新，不增加全局遍历；原阈值O(N)扫描依旧。未验证十分钟以上仍活跃Jedi引用或完整真实规模，兼容补丁不作此保证。
+- 详细实现、持有者/成本、允许文件与限制见`parso-cache-development.md`。未启动真实服务、付费API、真实图或Drive，未合并；下一步由主Agent固定候选提交并独立第2轮review。

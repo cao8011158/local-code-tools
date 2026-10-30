@@ -34,6 +34,12 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     resolver = Graph(module_catalog, {}, repos)
     if any(len(ids) != 1 for ids in resolver.modules.values()):
         return None, "ambiguous-module-name"
+    def package_context(repository, name):
+        """Locate only captured modules along one actual dotted import path."""
+        parts = name.split(".")
+        return {(resolver.nodes[ident]["repository"], resolver.nodes[ident]["path"])
+                for size in range(1, len(parts) + 1)
+                for ident in resolver.modules.get((repository, ".".join(parts[:size])), ())}
     if resolver.cross_bindings != prior["graph"].get("dependency_bindings"):
         return None, "dependency-bindings-changed"
     snapshots = {name: digest(canonical(sorted((f["path"], digest(f["text"]))
@@ -79,12 +85,18 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     if attempts is not None:
                         attempts["python_files_parsed"] += 1
                 tree = parsed[key][1][f"{key[0]}:{key[1]}:module:{module_name(key[1])}#1"]
+                candidates.update(package_context(key[0], module_name(key[1])))
                 for stmt in tree.body:
                     if isinstance(stmt, ast.ImportFrom) and stmt.level == 0:
+                        # Jedi also observes local package/module ancestors,
+                        # even when the exact target is a pinned provider.
+                        candidates.update(package_context(key[0], stmt.module))
                         for ident in resolver.imported(key[0], stmt.module):
                             target = resolver.nodes.get(ident)
                             if target is not None:
                                 candidates.add((target["repository"], target["path"]))
+                                candidates.update(package_context(target["repository"],
+                                                                  target["qualname"]))
             for candidate in candidates:
                 if candidate is not None and candidate not in selected:
                     selected.add(candidate)
