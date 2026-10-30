@@ -27,8 +27,11 @@ def test_shadow_update_uses_requester_index(tmp_path, monkeypatch):
             self.db.set_progress_handler(None, 0)
         plans = [row[3] for sql in statements if sql.lower().startswith('select')
                  for row in self.db.execute('explain query plan ' + sql)]
-        assert plans and all('SEARCH import_requests' in p for p in plans), plans
-        assert all('import_request_requester' in p for p in plans), plans
+        searches = [p for p in plans if p.startswith('SEARCH ')]
+        assert searches and not any('SCAN ' in p for p in plans), plans
+        assert all('import_lookup_requester' in p for p in searches), plans
+        assert all(p.startswith('SEARCH ') or p.startswith('CORRELATED SCALAR SUBQUERY')
+                   for p in plans), plans
         rows = int(result) if isinstance(result, bool) else len(result)
         active['queries'].append(dict(method=label, target=args, rows=rows, vm_steps=ticks[0], plans=plans))
         return result

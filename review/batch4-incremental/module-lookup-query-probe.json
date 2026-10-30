@@ -1,0 +1,36 @@
+[
+  {
+    "noise": 0,
+    "query_count": 2,
+    "vm_steps": 42,
+    "result_rows": [
+      1,
+      1
+    ],
+    "plans": [
+      [
+        "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+      ],
+      [
+        "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_requester (source_repository=? AND module=?)"
+      ]
+    ]
+  },
+  {
+    "noise": 100,
+    "query_count": 2,
+    "vm_steps": 44,
+    "result_rows": [
+      1,
+      1
+    ],
+    "plans": [
+      [
+        "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+      ],
+      [
+        "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_requester (source_repository=? AND module=?)"
+      ]
+    ]
+  }
+]
