@@ -74,8 +74,7 @@ def test_indexed_growth_and_legacy_or_corrupt_evidence_fails_closed(tmp_path):
             plan = " ".join(row[3] for row in db.execute("explain query plan " + sql, args))
             assert "SEARCH" in plan and index in plan and "SCAN" not in plan, plan
         assert len(relations.adjacent("synthetic-review", "src/caller.py")) == 1
-    legacy = dict(meta, graph={k: v for k, v in meta["graph"].items()
-                                if k != "dependency_store"})
+    legacy = {k: v for k, v in meta.items() if k != "dependency_store"}
     with pytest.raises(ToolError, match="unavailable"):
         FileDependencies(folder, legacy)
     corrupted = dict(meta, artifacts={**meta["artifacts"], GRAPH_SITES: "0" * 64})

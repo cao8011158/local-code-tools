@@ -296,9 +296,9 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     m["file_count"] = len(m["files"])
     del m["files"]
     m["graph"] = {k: v for k, v in graph.items() if k != "sites"}
-    m["graph"].pop("dependency_store", None)
+    m.pop("dependency_store", None)
     if nodes and import_requests is not None:
-        m["graph"]["dependency_store"] = "indexed-v1"
+        m["dependency_store"] = "indexed-v1"
     m["graph_detail"] = GRAPH_SITES
     m["metadata_layout"] = 2
     for rel in (GRAPH_SITES, SOURCE_FILES):
@@ -311,7 +311,7 @@ class FileDependencies:
     """Read-only indexed old-snapshot relations; missing/legacy evidence fails closed."""
 
     def __init__(self, folder, manifest):
-        if (manifest.get("graph", {}).get("dependency_store") != "indexed-v1"
+        if (manifest.get("dependency_store") != "indexed-v1"
                 or manifest.get("graph_detail") != GRAPH_SITES):
             raise ToolError("Previous file dependency index unavailable")
         checksum, size = hash_artifact(folder, GRAPH_SITES)

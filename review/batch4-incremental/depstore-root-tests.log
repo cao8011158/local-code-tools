@@ -1,0 +1,235 @@
+.........................................s......................s....... [ 13%]
+....................F.ssFFsss.......s.....s...sss.s.ssssssssssss........ [ 27%]
+........................................................................ [ 40%]
+........................................................................ [ 54%]
+........................................................................ [ 67%]
+........................................................................ [ 81%]
+........................................................................ [ 94%]
+.............................                                            [100%]
+=================================== FAILURES ===================================
+_____________ test_actual_process_interruption_leaves_old_version ______________
+
+sandbox = ({'data': '/tmp/pytest-of-root/pytest-36/test_actual_process_interrupti0/data', 'include_tests': False, 'retained_versions': 2, 'retained_backups': 2, ...}, PosixPath('/tmp/pytest-of-root/pytest-36/test_actual_process_interrupti0/sample'))
+
+    def test_actual_process_interruption_leaves_old_version(sandbox):
+        import sys
+    
+        c, _ = sandbox
+        first = build(c, lexical_only=True)
+        code = """import os,sys
+    from lct.common import config
+    import lct.storage as storage
+    c=config(sys.argv[1])
+    real=storage.atomic
+    def crash(path,value):
+        if path.name=='current.json': os._exit(17)
+        return real(path,value)
+    storage.atomic=crash
+    storage.build(c,lexical_only=True)
+    """
+        result = subprocess.run(
+            [sys.executable, "-c", code, c["_path"]],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+        assert result.returncode == 17
+        assert current(c) == first["version"]
+>       assert Query(c).search_code("weight", mode="bm25")["results"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_lifecycle.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/query.py:250: in search_code
+    return self.search(
+lct/query.py:311: in search
+    folder, m = self.snapshot(version if version is not None else
+lct/query.py:33: in snapshot
+    folder, m = manifest(self.c, version)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+c = {'data': '/tmp/pytest-of-root/pytest-36/test_actual_process_interrupti0/data', 'include_tests': False, 'retained_versions': 2, 'retained_backups': 2, ...}
+version = '20261030T133636-a4aa9dec66', compatible = True
+
+    def manifest(c, version=None, compatible=True):
+        """Validate schema/config/build compatibility before allowing queries."""
+        version = version or current(c)
+        if not version or "/" in version or "\\" in version or ".." in version:
+            raise ToolError("Index missing or invalid version")
+        folder = Path(c["data"]) / "versions" / version
+        if not (folder / "manifest.json").exists():
+            raise ToolError("Index version expired or incomplete")
+        if not (folder / "summary.json").exists():
+            raise ToolError("Legacy index metadata requires explicit migrate-metadata")
+        m = load(folder / "summary.json")
+        if m.get("metadata_layout") != 2:
+            raise ToolError("Legacy index metadata requires explicit migrate-metadata")
+        if m.get("state") != "complete":
+            raise ToolError("Index incomplete")
+        if compatible and (
+            m.get("schema") != SCHEMA
+            or m.get("format") != FORMAT
+            or m.get("template") != TEMPLATE
+            or m.get("tokenizer") != TOKENIZER
+            or m.get("config_hash") != identity(c)
+            or m.get("program_hash") != program_hash()
+        ):
+>           raise ToolError("Index incompatible with program/config; rebuild before querying")
+E           lct.common.ToolError: Index incompatible with program/config; rebuild before querying
+
+lct/storage.py:90: ToolError
+____ test_migration_scales_public_reads_with_summary_not_unrelated_evidence ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-36/test_migration_scales_public_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f48e1690890>
+
+    def test_migration_scales_public_reads_with_summary_not_unrelated_evidence(tmp_path, monkeypatch):
+        c, _ = initialize(tmp_path / "fixture")
+        folder, old = legacy_version(c, multiplier=400)
+        original = (folder / "manifest.json").read_bytes()
+        assert current(c) == old["version"]
+        assert Query(c).index_status()["status"] == "missing_or_incompatible"
+        with pytest.raises(ToolError, match="migrate-metadata"):
+            backup(c)
+        with pytest.raises(ToolError, match="program hash"):
+            migrate_metadata(c, old["version"], "0" * 64)
+        result = migrate_metadata(c, old["version"], old["program_hash"])
+        assert result["summary_bytes"] < 20000
+        assert (folder / "manifest.json").read_bytes() == original
+        assert current(c) == old["version"]
+        _, summary = manifest(c)
+>       assert graph_detail(folder, summary) == old["graph"]
+E       AssertionError: assert {'analysis_li...: False}, ...} == {'analysis_li...: False}, ...}
+E         
+E         Omitting 15 identical items, use -vv to show
+E         Right contains 1 more item:
+E         {'dependency_store': 'indexed-v1'}
+E         Use -v to get more diff
+
+tests/test_metadata_locality.py:53: AssertionError
+__________ test_migrated_evidence_backup_restore_and_retained_version __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-36/test_migrated_evidence_backup_0')
+
+    def test_migrated_evidence_backup_restore_and_retained_version(tmp_path):
+        c, _ = initialize(tmp_path / "fixture")
+        folder, old = legacy_version(c, multiplier=10)
+        migrate_metadata(c, old["version"], old["program_hash"])
+        archive = backup(c)["archive"]
+>       restored = restore(c, archive, tmp_path / "restored")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_metadata_locality.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+c = {'data': '/tmp/pytest-of-root/pytest-36/test_migrated_evidence_backup_0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}
+archive = PosixPath('/tmp/pytest-of-root/pytest-36/test_migrated_evidence_backup_0/fixture/data/backups/local-code-tools-20261030T133637.zip')
+destination = PosixPath('/tmp/pytest-of-root/pytest-36/test_migrated_evidence_backup_0/restored')
+
+    def restore(c, archive, destination):
+        """Verify and rebind a complete snapshot before publishing a new toolkit."""
+        target = Path(destination).resolve()
+        if target.exists():
+            raise ToolError("Restore destination must not exist")
+        archive = Path(archive)
+        with zipfile.ZipFile(archive) as z:
+            names = z.namelist()
+            if names.count("backup-manifest.json") != 1:
+                raise ToolError("Backup manifest membership mismatch")
+            meta = json.loads(z.read("backup-manifest.json"))
+            if meta.get("schema") != 2:
+                raise ToolError("Portable relocation requires a schema-2 backup; recreate the archive with the current toolkit")
+            checks = meta.get("files")
+            if not isinstance(checks, dict) or set(names) != set(checks) | {"backup-manifest.json"} or len(names) != len(set(names)):
+                raise ToolError("Backup manifest membership mismatch")
+            for info in z.infolist():
+                name = info.filename
+                parts = Path(name).parts
+                mode = info.external_attr >> 16
+                if (not name or name.startswith("/") or name.endswith("/") or
+                    ":" in name or "\\" in name or ".." in parts or "." in parts or
+                    (mode and stat.S_IFMT(mode) not in (0, stat.S_IFREG)) or
+                    not (target / name).resolve().is_relative_to(target)):
+                    raise ToolError("Unsafe backup member path")
+            for name, expected in checks.items():
+                if not isinstance(expected, str) or len(expected) != 64:
+                    raise ToolError("Invalid backup checksum metadata")
+                h = hashlib.sha256()
+                with z.open(name) as stream:
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                        h.update(chunk)
+                if h.hexdigest() != expected:
+                    raise ToolError("Backup checksum mismatch")
+            archived = json.loads(z.read("config.json"))
+            current = json.loads(z.read("data/current.json"))["version"]
+        if not isinstance(archived, dict) or not Path(archived.get("data", "")).is_absolute():
+            raise ToolError("Backup configuration has no resolved data location")
+        original_hash = digest(canonical(archived))
+        if original_hash != meta.get("config_hash") or identity(c) != original_hash:
+            raise ToolError("Restore configuration differs from archived configuration")
+        program_names = sorted(name for name in checks if name.startswith("lct/") and
+                               name.count("/") == 1 and name.endswith(".py"))
+        program_names += [name for name in ("uv.lock", "pyproject.toml", "local_code_tools.py", "register_mcp.py") if name in checks]
+        captured_program = digest(canonical([(Path(name).name, checks[name]) for name in program_names]))
+        if captured_program != meta.get("program_hash") or meta.get("index_schema") != SCHEMA or meta.get("index_format") != FORMAT:
+            raise ToolError("Backup program or index format incompatible with this toolkit")
+        rebound = dict(archived, data=str(target / "data"))
+        rebound_hash = digest(canonical(rebound))
+        versions = []
+        manifests = {}
+        prefix = "data/versions/"
+        for name in checks:
+            if name.startswith(prefix) and name.endswith("/summary.json"):
+                version = name[len(prefix):-len("/summary.json")]
+                if not version or "/" in version or version in manifests:
+                    raise ToolError("Invalid backed-up version")
+                with zipfile.ZipFile(archive) as snapshot:
+                    raw = snapshot.read(name)
+                vm = json.loads(raw)
+                compatible = (vm.get("state") == "complete" and vm.get("version") == version and
+                              vm.get("config_hash") == original_hash and
+                              vm.get("program_hash") == captured_program and
+                              vm.get("schema") == SCHEMA and vm.get("format") == FORMAT and
+                              vm.get("template") == TEMPLATE and vm.get("tokenizer") == TOKENIZER and
+                              vm.get("embedding") == {k: archived["embedding"][k] for k in ("model", "dimension", "dtype")} and
+                              vm.get("hnsw") == archived["hnsw"])
+                manifests[version] = (vm, compatible, digest(raw))
+                if compatible:
+                    versions.append(version)
+        if current != meta.get("version") or current not in versions:
+            raise ToolError("Current backup version is incompatible with archived configuration/program")
+        # Stage beside the target, so a failed validation cannot publish a partial restore.
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=target.parent, prefix=".restore-stage-") as tmp:
+            stage = Path(tmp) / "toolkit"
+            stage.mkdir()
+            with zipfile.ZipFile(archive) as snapshot:
+                for name in checks:
+                    p = stage / name
+                    p.parent.mkdir(parents=True, exist_ok=True)
+                    with snapshot.open(name) as source, p.open("wb") as output:
+                        shutil.copyfileobj(source, output)
+            for version, (vm, compatible, _) in manifests.items():
+                folder = stage / prefix / version
+                validate_folder(folder, vm)
+                original = load(folder / "manifest.json")
+                if original.get("metadata_layout") == 2:
+                    if original != vm:
+                        raise ToolError("Original manifest differs from summary")
+                elif (original.get("graph") != graph_detail(folder, vm) or
+                      original.get("files") != source_files(folder, vm) or
+                      original.get("program_hash") != vm.get("migrated_from_program_hash") or
+                      original.get("config_hash") != vm.get("migrated_from_config_hash") or
+                      any(original.get(k) != vm.get(k) for k in
+                          ("version", "schema", "format", "source_fingerprint", "repositories"))):
+>                   raise ToolError("Migrated summary differs from original manifest")
+E                   lct.common.ToolError: Migrated summary differs from original manifest
+
+lct/management.py:221: ToolError
+=========================== short test summary info ============================
+FAILED tests/test_lifecycle.py::test_actual_process_interruption_leaves_old_version
+FAILED tests/test_metadata_locality.py::test_migration_scales_public_reads_with_summary_not_unrelated_evidence
+FAILED tests/test_metadata_locality.py::test_migrated_evidence_backup_restore_and_retained_version
+3 failed, 505 passed, 25 skipped in 18.84s

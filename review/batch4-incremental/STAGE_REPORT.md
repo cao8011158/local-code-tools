@@ -212,3 +212,11 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - 开发较早全tests/504 passed/25 skipped，最终标记边界补充后定向11 passed，Ruff通过；最终固定源码仍待主Agent独立回归。详见depstore-development.md及depstore日志。
 - public build合成验证缺失模块请求持久化、目标新增后关系、旧版本可读、双向查询、35个无关文件及SQLite索引计划；未测完整增量调度、真实Neo4j/规模/发布统一增量。
 - 本批接入只建立正式流程可消费的数据，不宣称停止全量解析。未付费、未更新真实图/Drive，下一步独立审阅。
+
+## 阶段32：持久依赖索引第一轮独立审阅，需要修复迁移兼容
+检查d293038208f4c2c19a78f603772950a564c5a31f。独立回归出现两个可确认P2迁移/恢复失败：dependency_store可用性标记加入graph，迁移重建sidecar时删除，违反原graph完全保留契约，恢复也拒绝。B4-DEPSTORE-MIGRATION为本step新引入，候选未合并，已给开发者明确修法：标记移到顶层快照元数据，保留graph原内容和旧断言。
+原回归另有进程中断后program_hash不匹配；检查发现独立副本graph.py/lookup测试意外回到旧基线，不符合固定提交，故整次运行不作为最终固定提交通过证据。已重新恢复并核对新blob，单独复查中断测试；不把这一项直接归因为生产缺陷。原日志depstore-root-tests.log保留。
+依赖索引本身的已知ID查询、缺失导入及常见边界定向通过，但最终证据待固定修复后重跑。三轮上限适用于本持久化切片整改链（当前1轮），历史定向实验轮次及人工批准保持，不重置旧问题。
+
+## 阶段33：迁移标记整改开发完成
+开发者将dependency_store改为顶层快照元数据，FileDependencies跟随读取，graph保持原样；没有修改management或放宽graph相等断言。定向迁移/依赖索引/查询复用13 passed、2.86秒，Ruff通过。接下来固定修复提交后第二轮独立审阅。
