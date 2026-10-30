@@ -228,7 +228,8 @@ def source_files(folder, m):
     return files
 
 
-def split_graph(folder, m, query_observations=(), import_dependencies=()):
+def split_graph(folder, m, query_observations=(), import_dependencies=(),
+                import_requests=None, nodes=(), edges=()):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -254,6 +255,40 @@ def split_graph(folder, m, query_observations=(), import_dependencies=()):
             db.executemany("insert into import_dependency_targets values(?,?)", (
                 (ordinal, target) for target in dependency["target_modules"]
             ))
+        db.execute("create table import_requests(ordinal integer primary key, source_repository text not null, source_path text not null, lookup_repository text not null, requested_module text not null, data text not null)")
+        db.execute("create index import_request_lookup on import_requests(lookup_repository,requested_module)")
+        db.execute("create index import_request_source on import_requests(source_repository,source_path)")
+        owners = {n["node_id"]: (n["repository"], n["path"]) for n in nodes}
+        for ordinal, request in enumerate(import_requests or ()):
+            owner = owners.get(request["source_module"])
+            if owner is None or not owner[1] or owner[0] != request["source_repository"]:
+                raise ToolError("Import request source ownership unavailable")
+            db.execute("insert into import_requests values(?,?,?,?,?,?)", (
+                ordinal, *owner, request["lookup_repository"],
+                request["requested_module"] or "", canonical(request)))
+        db.execute("create table file_adjacency(source_repository text not null, source_path text not null, target_repository text not null, target_path text not null, primary key(source_repository,source_path,target_repository,target_path))")
+        db.execute("create index file_adjacency_target on file_adjacency(target_repository,target_path,source_repository,source_path)")
+        boundary_owners = defaultdict(set)
+        for edge in edges:
+            if edge["kind"] == "IMPORTS" and edge["target"] and edge["target"].startswith("boundary:"):
+                owner = owners.get(edge["source"])
+                if owner and owner[1]:
+                    boundary_owners[edge["target"]].add(owner)
+        adjacent = set()
+        for edge in edges:
+            if edge["kind"] == "CONTAINS":
+                continue  # repository CONTAINS would connect every file in a repository
+            sources = ({owners[edge["source"]]} if edge["source"] in owners else
+                       boundary_owners.get(edge["source"], set())
+                       if edge["kind"] == "LOOKUP_IN" else set())
+            # Two files importing the same external boundary are not related
+            # to each other. An unresolved target has no captured file owner.
+            targets = {owners[edge["target"]]} if edge["target"] in owners else set()
+            for source in sources:
+                for target in targets:
+                    if source[1] and target[1] and source != target:
+                        adjacent.add((*source, *target))
+        db.executemany("insert into file_adjacency values(?,?,?,?)", sorted(adjacent))
         db.commit()
     finally:
         db.close()
@@ -261,12 +296,60 @@ def split_graph(folder, m, query_observations=(), import_dependencies=()):
     m["file_count"] = len(m["files"])
     del m["files"]
     m["graph"] = {k: v for k, v in graph.items() if k != "sites"}
+    m["graph"].pop("dependency_store", None)
+    if nodes and import_requests is not None:
+        m["graph"]["dependency_store"] = "indexed-v1"
     m["graph_detail"] = GRAPH_SITES
     m["metadata_layout"] = 2
     for rel in (GRAPH_SITES, SOURCE_FILES):
         checksum, size = hash_artifact(folder, rel)
         m["artifacts"][rel] = checksum
         m["artifact_sizes"][rel] = size
+
+
+class FileDependencies:
+    """Read-only indexed old-snapshot relations; missing/legacy evidence fails closed."""
+
+    def __init__(self, folder, manifest):
+        if (manifest.get("graph", {}).get("dependency_store") != "indexed-v1"
+                or manifest.get("graph_detail") != GRAPH_SITES):
+            raise ToolError("Previous file dependency index unavailable")
+        checksum, size = hash_artifact(folder, GRAPH_SITES)
+        if (checksum != manifest["artifacts"][GRAPH_SITES]
+                or size != manifest["artifact_sizes"][GRAPH_SITES]):
+            raise ToolError("Previous file dependency index integrity failed")
+        self.db = sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)
+        try:
+            expected = {"file_adjacency", "import_requests"}
+            present = {row[0] for row in self.db.execute(
+                "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests')")}
+            if present != expected:
+                raise ToolError("Previous file dependency index unavailable")
+        except (sqlite3.Error, ToolError):
+            self.close()
+            raise
+
+    def adjacent(self, repository, path):
+        rows = self.db.execute(
+            "select target_repository,target_path from file_adjacency where source_repository=? and source_path=? "
+            "union select source_repository,source_path from file_adjacency where target_repository=? and target_path=?",
+            (repository, path, repository, path))
+        return set(rows)
+
+    def importers(self, repository, module):
+        rows = self.db.execute(
+            "select source_repository,source_path from import_requests "
+            "where lookup_repository=? and requested_module=?", (repository, module))
+        return set(rows)
+
+    def close(self):
+        self.db.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
 
 
 class _QueryReuse:
@@ -456,6 +539,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 reuse.close()
         observations = graph_info.pop("_query_observations")
         import_dependencies = graph_info.pop("_import_dependencies")
+        import_requests = graph_info.pop("_import_requests", None)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
@@ -614,7 +698,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 checksum, size = hash_artifact(folder, rel)
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
-            split_graph(folder, m, observations, import_dependencies)
+            split_graph(folder, m, observations, import_dependencies, import_requests,
+                        nodes, edges)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

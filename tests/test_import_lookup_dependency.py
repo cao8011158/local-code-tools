@@ -12,14 +12,19 @@ from tests.test_core import file
 
 
 def build(files, repos=None):
+    nodes, edges, _ = build_with_info(files, repos)
+    return nodes, edges
+
+
+def build_with_info(files, repos=None):
     nodes, asts = [], {}
     for source in files:
         ns, trees = python_nodes(source)
         nodes.extend(ns)
         asts.update(trees)
     repos = repos or [dict(name='demo', path='.', head='x', status='', closed_world=True)]
-    edges, _ = Graph(nodes, asts, repos).build()
-    return nodes, edges
+    edges, info = Graph(nodes, asts, repos).build()
+    return nodes, edges, info
 
 
 def lookup_edges(edges):
@@ -74,10 +79,12 @@ def test_shared_missing_name_and_ambiguous_module_do_not_guess():
     assert {e['target'] for e in imports} == {lookups[0]['source']}
 
     duplicate = file('def other(): pass\n', 'packages/other/src/helper.py')
-    _, edges = build(files + [duplicate])
+    _, edges, info = build_with_info(files + [duplicate])
     imports, lookups = lookup_edges(edges)
     assert not lookups
     assert all(e['target'] is None for e in imports)
+    assert all(r['namespace_module'] is None and r['requested_module'] == 'helper'
+               for r in info['_import_requests'])
 
 
 def test_package_submodule_name_is_not_claimed_missing():
@@ -88,19 +95,58 @@ def test_package_submodule_name_is_not_claimed_missing():
     assert not lookup_edges(edges)[1]
 
 
-def test_uncaptured_and_unpinned_module_keep_original_unknown(tmp_path):
+def test_absent_module_boundary_is_requester_scoped_and_becomes_resolved(tmp_path):
     unowned, edges = build([file('from external import fresh\n')])
+    imports, lookups = lookup_edges(edges)
+    assert not lookups
+    pending = imports[0]
+    assert pending['status'] == 'unresolved'
+    assert pending['lookup'] == dict(repository='demo', module='external',
+                                     name='fresh', scope='requester')
+    assert pending['target'].startswith('boundary:unresolved-import:')
+    boundary = _boundaries(edges, {n['node_id'] for n in unowned})
+    assert boundary[_boundary_id(pending, 'target', {n['node_id'] for n in unowned})]['lookup_module'] == 'external'
+    _, edges, info = build_with_info([file('from external import fresh\n')])
+    assert info['_import_requests'][0]['namespace_module'] is None
+    assert info['_import_requests'][0]['requested_module'] == 'external'
+    assert info['_import_requests'][0]['requested_name'] == 'fresh'
+    resolved, edges = build([file('from external import fresh\n'),
+                             file('def fresh(): pass\n', 'src/external.py')])
+    assert lookup_edges(edges)[0][0]['target'] == next(n['node_id'] for n in resolved if n['kind'] == 'function')
     assert not lookup_edges(edges)[1]
-    assert lookup_edges(edges)[0][0]['target'] is None
+    _, edges = build([file('from external import fresh\n')])
+    assert lookup_edges(edges)[0][0]['target'] == pending['target']
+
+
+def test_absent_relative_request_and_ordinary_import_inventory():
+    sources = [file('from .missing import fresh\nimport missing.other\n', 'src/pkg/caller.py'),
+               file('from pkg.missing import fresh\n', 'src/other.py', 'another')]
+    repos = [dict(name=name, path='.', head='x', status='', closed_world=True)
+             for name in ('demo', 'another')]
+    _, edges, info = build_with_info(sources, repos)
+    requests = info['_import_requests']
+    assert {(r['source_repository'], r['requested_module'], r['requested_name']) for r in requests} == {
+        ('demo', 'pkg.missing', 'fresh'), ('demo', 'missing.other', None),
+        ('another', 'pkg.missing', 'fresh')}
+    imports, lookups = lookup_edges(edges)
+    assert not lookups
+    named = [e for e in imports if e.get('lookup')]
+    assert len(named) == 2 and len({e['target'] for e in named}) == 2
+    assert {e['lookup']['repository'] for e in named} == {'demo', 'another'}
+
+
+def test_unpinned_module_keeps_original_unknown(tmp_path):
     (tmp_path / 'pyproject.toml').write_text(
         '[tool.uv.sources]\ndnd5e-engine={git="https://github.com/agentic-trpg/trpg-rules-engine.git",rev="old"}')
     sources = [file('from dnd5e_engine.evaluation import fresh\n', repo='sm'),
                file('def old(): pass\n', 'src/dnd5e_engine/evaluation.py', 'trpg-rules-engine')]
     repos = [dict(name='sm', path=str(tmp_path), head='sm', status=''),
              dict(name='trpg-rules-engine', path='none', head='new', status='')]
-    _, edges = build(sources, repos)
+    _, edges, info = build_with_info(sources, repos)
     assert not lookup_edges(edges)[1]
     assert all(not e.get('lookup') for e in edges)
+    assert info['_import_requests'][0]['requested_module'] == 'dnd5e_engine.evaluation'
+    assert info['_import_requests'][0]['namespace_module'] is None
 
 
 def test_matching_cross_repository_pin_can_locate_missing_name(tmp_path):

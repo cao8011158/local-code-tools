@@ -204,3 +204,11 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - B4-DIR-PROVENANCE的12处嵌套定义引用问题，在已验证可复用的限定场景已解决。helper索引一次准备，多条记录复用；未知格式、错误旧版本、定义变动/移位均拒绝。
 - 尚未接入storage的实际增量路径，外层site_id/edge_id以及完整跨快照身份仍属后续正式接线工作。调度器影响范围仍为实验限定假设；全AST准备、全局非CALLS工作未消除，共享helper变化的保守重审成本已如实报告。
 - 第二步已开始：开发持久化import_requests/file_adjacency和索引查询，未启用file_incremental草稿。未付费、未改真实图/Drive、未合并；历史审阅与用户授权保留。
+
+## 阶段31：正式接入前的持久依赖索引开发完成，未提交
+GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDependencies，图解析采用此前保留的缺失模块请求修复；尚未启用file_incremental。
+- graph-sites.sqlite保存import_requests和实际跨文件file_adjacency，正反方向索引；显式请求清单和nodes均提供才标记indexed-v1。旧版本/未提供清单的默认split_graph不冒充完整索引。
+- build消费并移除私有_import_requests；源模块归属校验、摘要和sidecar校验和沿用现有候选发布流程。两个文件共同导入外部json不虚构文件关联；只有LOOKUP_IN边界源通过IMPORTS归属映射到已捕获目标。
+- 开发较早全tests/504 passed/25 skipped，最终标记边界补充后定向11 passed，Ruff通过；最终固定源码仍待主Agent独立回归。详见depstore-development.md及depstore日志。
+- public build合成验证缺失模块请求持久化、目标新增后关系、旧版本可读、双向查询、35个无关文件及SQLite索引计划；未测完整增量调度、真实Neo4j/规模/发布统一增量。
+- 本批接入只建立正式流程可消费的数据，不宣称停止全量解析。未付费、未更新真实图/Drive，下一步独立审阅。

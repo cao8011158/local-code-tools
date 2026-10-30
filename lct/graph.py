@@ -78,9 +78,24 @@ class Graph:
 
     def named_import_namespace(self, scope, stmt, alias):
         """Identify one captured namespace used by a named import, including reexports."""
-        if not isinstance(stmt, ast.ImportFrom) or alias.name == "*":
+        name = self.import_request_module(scope, stmt, alias)
+        if not isinstance(stmt, ast.ImportFrom) or alias.name == "*" or not name:
             return None
         caller = self.nodes[scope]
+        allowed = self.imported(caller["repository"], name)
+        if len(allowed) != 1:
+            return None
+        module = next(iter(allowed))
+        if module not in self.nodes or self.nodes[module]["kind"] != "module":
+            return None
+        owner = self.nodes[module]
+        identity = dict(repository=owner["repository"], module=name, name=alias.name)
+        return module, identity
+
+    def import_request_module(self, scope, stmt, alias):
+        """Syntactic module search key; it does not certify module ownership."""
+        if isinstance(stmt, ast.Import):
+            return alias.name
         module_node = scope
         while self.nodes[module_node]["kind"] != "module":
             module_node = self.nodes[module_node]["parent"]
@@ -95,24 +110,26 @@ class Graph:
             name = ".".join([*prefix, *([stmt.module] if stmt.module else [])])
         else:
             name = stmt.module or ""
-        if not name:
-            return None
-        allowed = self.imported(caller["repository"], name)
-        if len(allowed) != 1:
-            return None
-        module = next(iter(allowed))
-        if module not in self.nodes or self.nodes[module]["kind"] != "module":
-            return None
-        owner = self.nodes[module]
-        identity = dict(repository=owner["repository"], module=name, name=alias.name)
-        return module, identity
+        return name or None
 
     def import_lookup(self, scope, stmt, alias):
-        """Keep a named boundary only for an unresolved, unique captured namespace."""
+        """Keep a named boundary for a unique namespace or scoped absent module."""
         match = self.named_import_namespace(scope, stmt, alias)
-        if not match:
-            return None
-        module, identity = match
+        if match:
+            module, identity = match
+        else:
+            name = self.import_request_module(scope, stmt, alias)
+            if not isinstance(stmt, ast.ImportFrom) or alias.name == "*" or not name:
+                return None
+            repository = self.nodes[scope]["repository"]
+            allowed = self.imported(repository, name)
+            # A pinned but unmatched dependency, or two captured modules with the
+            # same name, cannot be used as evidence of a unique search namespace.
+            if allowed != {"boundary:external-or-excluded:" + name}:
+                return None
+            identity = dict(repository=repository, module=name, name=alias.name,
+                            scope="requester")
+            module = None
         if self.modules.get((self.nodes[scope]["repository"], identity["module"] + "." + alias.name)):
             return None
         return module, "boundary:unresolved-import:" + digest(canonical(identity)), identity
@@ -155,6 +172,7 @@ class Graph:
         try:
             sites = []
             import_dependencies = []
+            import_requests = []
             for item in analyzer.sites:
                 expr, scope = item["_expr"], item["execution_owner"]
                 # Always retain the actual Jedi observation, including rejected descriptors.
@@ -365,11 +383,24 @@ class Graph:
                 for alias in stmt.names:
                     result = analyzer.binding(scope, "import", (stmt, alias))
                     namespace = self.named_import_namespace(scope, stmt, alias)
+                    source = self.nodes[scope]
+                    requested_module = self.import_request_module(scope, stmt, alias)
+                    targets = sorted(a.target for a in result.atoms if a.target in self.nodes)
+                    import_requests.append(dict(
+                        source_module=source["module"],
+                        source_repository=source["repository"],
+                        requested_module=requested_module,
+                        requested_name=alias.name if isinstance(stmt, ast.ImportFrom) else None,
+                        request_kind="from" if isinstance(stmt, ast.ImportFrom) else "import",
+                        lookup_repository=namespace[1]["repository"] if namespace else source["repository"],
+                        namespace_module=namespace[0] if namespace else None,
+                        status="resolved" if targets else "boundary" if result.atoms else "unresolved",
+                        target_ids=targets,
+                        target_modules=sorted({self.nodes[target]["module"] for target in targets}),
+                    ))
                     if namespace:
-                        source_module = self.nodes[scope]["module"]
-                        targets = sorted(a.target for a in result.atoms if a.target in self.nodes)
                         import_dependencies.append(dict(
-                            source_module=source_module, namespace_module=namespace[0],
+                            source_module=source["module"], namespace_module=namespace[0],
                             requested_name=namespace[1]["name"],
                             target_modules=sorted({self.nodes[target]["module"] for target in targets}),
                             target_ids=targets, resolved=bool(targets),
@@ -405,7 +436,7 @@ class Graph:
                             "; ".join(reasons), stmt.lineno, stmt.col_offset,
                             alias.name, **detail,
                         )
-                        if lookup:
+                        if lookup and lookup[0] is not None:
                             self.add_edge(
                                 target, lookup[0], "LOOKUP_IN", "resolved",
                                 "unique captured import lookup namespace; name unresolved",
@@ -438,6 +469,7 @@ class Graph:
                 jedi_queries_executed=analyzer.executed_queries,
                 _query_observations=analyzer.reusable_queries(),
                 _import_dependencies=import_dependencies,
+                _import_requests=import_requests,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
                 limits="20k associations; recursion 40; unsupported constructs remain unknown",
