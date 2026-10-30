@@ -1,0 +1,109 @@
+[
+  {
+    "case": "forward_return_through_local",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py",
+        "src/c.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:resolved-return-change"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 7,
+      "full_ast_context_files": 3,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 3,
+        "new_ast_context_files": 3,
+        "old_jedi_queries": 1,
+        "new_jedi_queries": 1,
+        "old_associations": 5,
+        "new_associations": 5,
+        "summary_evaluations": 10
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 3,
+      "sites": 3,
+      "actual_jedi_queries": 5
+    },
+    "full": {
+      "files": 3,
+      "sites": 3,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 7
+    }
+  },
+  {
+    "case": "returned_same_class_different_field",
+    "equal": false,
+    "differences": {
+      "edges": {
+        "missing": 1,
+        "extra": 1,
+        "missing_examples": [
+          "{\"basis\": \"mapped AST/Jedi/LCT site\", \"column\": 11, \"complete\": false, \"executes_body\": null, \"expression\": \"factory().cb\", \"invocation_phase\": \"ordinary-call\", \"kind\": \"CALLS\", \"line\": 2, \"source\": \"fixture:src/b.py:function:run#1.1\", \"status\": \"possible\", \"target\": \"fixture:src/a.py:function:second#1.1\", \"target_role\": \"definition\", \"unknown_origin\": true}"
+        ],
+        "extra_examples": [
+          "{\"basis\": \"mapped AST/Jedi/LCT site\", \"column\": 11, \"complete\": false, \"executes_body\": null, \"expression\": \"factory().cb\", \"invocation_phase\": \"ordinary-call\", \"kind\": \"CALLS\", \"line\": 2, \"source\": \"fixture:src/b.py:function:run#1.1\", \"status\": \"possible\", \"target\": \"fixture:src/a.py:function:first#1.1\", \"target_role\": \"definition\", \"unknown_origin\": true}"
+        ]
+      },
+      "sites": {
+        "missing": 1,
+        "extra": 1,
+        "missing_examples": [
+          "{\"boundaries\": [], \"column\": 11, \"complete\": false, \"completeness_basis\": null, \"execution_owner\": \"fixture:src/b.py:function:run#1.1\", \"expression\": \"factory().cb\", \"kind\": \"call\", \"line\": 2, \"resolution_decision\": {\"conflict\": false, \"excluded_jedi_targets\": [], \"excluded_lct_targets\": [], \"jedi_targets\": [\"fixture:src/a.py:function:second#1.1\"], \"lct_targets\": [\"fixture:src/a.py:function:second#1.1\"], \"reason\": \"matching-signals\", \"selected_targets\": [\"fixture:src/a.py:function:second#1.1\"], \"semantic_rules\": [\"constructor-argument-origin\", \"constructor-field-origin\", \"python-instance-field-precedence\", \"reaching-lexical-binding\", \"source-value:callable\"], \"unresolved_jedi_targets\": [], \"write_source_coverage\": {\"checks\": [{\"column\": 25, \"conditional\": false, \"event_id\": \"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"event_kind\": \"write\", \"kind\": \"write\", \"line\": 4, \"ordered\": true, \"outcome\": \"KNOWN_EFFECT\", \"phase\": \"body\", \"reachable\": true, \"reason\": \"direct-field-store-or-delete\", \"scope\": \"fixture:src/a.py:function:Box.__init__#1.1.1\", \"syntax\": \"Assign\"}, {\"call_access\": {\"definitions\": [{\"target\": \"fixture:src/a.py:function:factory#1.1\", \"version_id\": \"5de08ebd4e3b61d2e7ea6f0507599158894c92a047a3ce8823fb44cd86cfdf14\"}], \"entries\": [{\"evidence\": [{\"reason\": \"local-allocation-effects-not-modeled\"}], \"gaps\": [\"local-allocation-effects-not-modeled\"], \"state\": \"UNKNOWN\"}], \"phases\": [\"ordinary-call\"], \"target_state\": \"RESOLVED\", \"targets\": [\"fixture:src/a.py:function:factory#1.1\"]}, \"column\": 11, \"conditional\": false, \"event_id\": \"fixture:src/b.py:function:run#1.1:4:call\", \"event_kind\": \"call\", \"kind\": \"call\", \"line\": 2, \"ordered\": true, \"outcome\": \"UNKNOWN_EFFECT\", \"phase\": \"body\", \"reachable\": true, \"reason\": \"unresolved-call-access:local-allocation-effects-not-modeled\", \"scope\": \"fixture:src/b.py:function:run#1.1\", \"syntax\": \"Call\"}], \"complete\": false, \"events\": [{\"column\": 25, \"conditional\": false, \"event_id\": \"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"event_kind\": \"write\", \"kind\": \"write\", \"line\": 4, \"ordered\": true, \"phase\": \"body\", \"reachable\": true, \"reason\": \"direct-field-store-or-delete\", \"scope\": \"fixture:src/a.py:function:Box.__init__#1.1.1\", \"syntax\": \"Assign\"}, {\"call_access\": {\"definitions\": [{\"target\": \"fixture:src/a.py:function:factory#1.1\", \"version_id\": \"5de08ebd4e3b61d2e7ea6f0507599158894c92a047a3ce8823fb44cd86cfdf14\"}], \"entries\": [{\"evidence\": [{\"reason\": \"local-allocation-effects-not-modeled\"}], \"gaps\": [\"local-allocation-effects-not-modeled\"], \"state\": \"UNKNOWN\"}], \"phases\": [\"ordinary-call\"], \"target_state\": \"RESOLVED\", \"targets\": [\"fixture:src/a.py:function:factory#1.1\"]}}, {\"column\": 11, \"conditional\": false, \"event_id\": \"fixture:src/b.py:function:run#1.1:4:call\", \"event_kind\": \"call\", \"kind\": \"call\", \"line\": 2, \"ordered\": true, \"phase\": \"body\", \"reachable\": true, \"reason\": \"unresolved-call-access:local-allocation-effects-not-modeled\", \"scope\": \"fixture:src/b.py:function:run#1.1\", \"syntax\": \"Call\"}], \"gaps\": [], \"required_events\": [\"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"fixture:src/b.py:function:run#1.1:4:call\"], \"rule\": \"instance-field-coverage\", \"sources\": [{\"source\": \"supported-construction-protocol\", \"supported\": true}, {\"source\": \"receiver-origin\", \"supported\": true}]}}, \"resolution_kind\": \"partial-targets\", \"targets\": [\"fixture:src/a.py:function:second#1.1\"], \"unknown_origin\": true, \"unresolved_reasons\": [\"unresolved-call-access:local-allocation-effects-not-modeled\"]}"
+        ],
+        "extra_examples": [
+          "{\"boundaries\": [], \"column\": 11, \"complete\": false, \"completeness_basis\": null, \"execution_owner\": \"fixture:src/b.py:function:run#1.1\", \"expression\": \"factory().cb\", \"kind\": \"call\", \"line\": 2, \"resolution_decision\": {\"conflict\": false, \"excluded_jedi_targets\": [], \"excluded_lct_targets\": [], \"jedi_targets\": [\"fixture:src/a.py:function:first#1.1\"], \"lct_targets\": [\"fixture:src/a.py:function:first#1.1\"], \"reason\": \"matching-signals\", \"selected_targets\": [\"fixture:src/a.py:function:first#1.1\"], \"semantic_rules\": [\"constructor-argument-origin\", \"constructor-field-origin\", \"python-instance-field-precedence\", \"reaching-lexical-binding\", \"source-value:callable\"], \"unresolved_jedi_targets\": [], \"write_source_coverage\": {\"checks\": [{\"column\": 25, \"conditional\": false, \"event_id\": \"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"event_kind\": \"write\", \"kind\": \"write\", \"line\": 4, \"ordered\": true, \"outcome\": \"KNOWN_EFFECT\", \"phase\": \"body\", \"reachable\": true, \"reason\": \"direct-field-store-or-delete\", \"scope\": \"fixture:src/a.py:function:Box.__init__#1.1.1\", \"syntax\": \"Assign\"}, {\"call_access\": {\"definitions\": [{\"target\": \"fixture:src/a.py:function:factory#1.1\", \"version_id\": \"de63486a0297ffbcf315c0880ffe0dfdae580c4e916b3965370a62045a62bbfe\"}], \"entries\": [{\"evidence\": [{\"reason\": \"local-allocation-effects-not-modeled\"}], \"gaps\": [\"local-allocation-effects-not-modeled\"], \"state\": \"UNKNOWN\"}], \"phases\": [\"ordinary-call\"], \"target_state\": \"RESOLVED\", \"targets\": [\"fixture:src/a.py:function:factory#1.1\"]}, \"column\": 11, \"conditional\": false, \"event_id\": \"fixture:src/b.py:function:run#1.1:4:call\", \"event_kind\": \"call\", \"kind\": \"call\", \"line\": 2, \"ordered\": true, \"outcome\": \"UNKNOWN_EFFECT\", \"phase\": \"body\", \"reachable\": true, \"reason\": \"unresolved-call-access:local-allocation-effects-not-modeled\", \"scope\": \"fixture:src/b.py:function:run#1.1\", \"syntax\": \"Call\"}], \"complete\": false, \"events\": [{\"column\": 25, \"conditional\": false, \"event_id\": \"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"event_kind\": \"write\", \"kind\": \"write\", \"line\": 4, \"ordered\": true, \"phase\": \"body\", \"reachable\": true, \"reason\": \"direct-field-store-or-delete\", \"scope\": \"fixture:src/a.py:function:Box.__init__#1.1.1\", \"syntax\": \"Assign\"}, {\"call_access\": {\"definitions\": [{\"target\": \"fixture:src/a.py:function:factory#1.1\", \"version_id\": \"de63486a0297ffbcf315c0880ffe0dfdae580c4e916b3965370a62045a62bbfe\"}], \"entries\": [{\"evidence\": [{\"reason\": \"local-allocation-effects-not-modeled\"}], \"gaps\": [\"local-allocation-effects-not-modeled\"], \"state\": \"UNKNOWN\"}], \"phases\": [\"ordinary-call\"], \"target_state\": \"RESOLVED\", \"targets\": [\"fixture:src/a.py:function:factory#1.1\"]}}, {\"column\": 11, \"conditional\": false, \"event_id\": \"fixture:src/b.py:function:run#1.1:4:call\", \"event_kind\": \"call\", \"kind\": \"call\", \"line\": 2, \"ordered\": true, \"phase\": \"body\", \"reachable\": true, \"reason\": \"unresolved-call-access:local-allocation-effects-not-modeled\", \"scope\": \"fixture:src/b.py:function:run#1.1\", \"syntax\": \"Call\"}], \"gaps\": [], \"required_events\": [\"fixture:src/a.py:function:Box.__init__#1.1.1:5:write\", \"fixture:src/b.py:function:run#1.1:4:call\"], \"rule\": \"instance-field-coverage\", \"sources\": [{\"source\": \"supported-construction-protocol\", \"supported\": true}, {\"source\": \"receiver-origin\", \"supported\": true}]}}, \"resolution_kind\": \"partial-targets\", \"targets\": [\"fixture:src/a.py:function:first#1.1\"], \"unknown_origin\": true, \"unresolved_reasons\": [\"unresolved-call-access:local-allocation-effects-not-modeled\"]}"
+        ]
+      }
+    },
+    "directional": {
+      "selected": [
+        "src/a.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 1,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 9,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 3,
+        "new_associations": 3,
+        "summary_evaluations": 6
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 9
+    }
+  }
+]
