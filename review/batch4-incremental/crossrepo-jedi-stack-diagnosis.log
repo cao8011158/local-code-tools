@@ -1,0 +1,93 @@
+.........................................................s....................................s.............................ss..sss.......s.....s...sss.s.ssssssssssss.............................................................................................................................................................................................................................................................................................................ROOT JEDI GOTO KEYERROR KeyError(PosixPath('/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py'))
+Traceback (most recent call last):
+  File "<stdin>", line 5, in traced
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/api/helpers.py", line 49, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/api/helpers.py", line 531, in wrapper
+    return func(self, line, column, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/api/__init__.py", line 303, in goto
+    names = convert_names(
+            ^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/gradual/conversion.py", line 154, in convert_names
+    return _try_stub_to_python_names(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/utils.py", line 16, in wrapper
+    return list(func(*args, **kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/gradual/conversion.py", line 83, in _try_stub_to_python_names
+    converted_names = converted.goto(name.get_public_name())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/base_value.py", line 512, in goto
+    return reduce(add, [c.goto(*args, **kwargs) for c in self._set], [])
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/base_value.py", line 86, in goto
+    names = finder.filter_name(filters, name_or_str)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/finder.py", line 34, in filter_name
+    for filter in filters:
+                  ^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/base_value.py", line 76, in _get_value_filters
+    yield from self.get_filters(origin_scope=origin_scope)
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py", line 75, in get_filters
+    ParserTreeFilter(
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/filters.py", line 137, in __init__
+    super().__init__(parent_context, node_context)
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/inference/filters.py", line 99, in __init__
+    self._parso_cache_node = get_parso_cache_node(
+                             ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/413372d9a5a5/lct-round5-review/.venv/lib/python3.12/site-packages/jedi/parser_utils.py", line 287, in get_parso_cache_node
+    return parser_cache[grammar._hashed][path]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+KeyError: PosixPath('/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py')
+F
+=================================== FAILURES ===================================
+_________________ test_contextlib_alias_and_complex_generator __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-109/test_contextlib_alias_and_comp0')
+
+    def test_contextlib_alias_and_complex_generator(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """from contextlib import contextmanager as cm
+    class R:
+     def work(self): pass
+    @cm
+    def simple(): yield R()
+    @cm
+    def complex(flag):
+     if flag: yield R()
+     else: yield R()
+    def caller(flag):
+     with simple() as first: first.work()
+     with complex(flag) as second: second.work()
+    """
+            },
+            closed=False,
+        )
+>       first = expect(r, "first.work", "caller", {"R.work"}, unknown=True, complete=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_regressions.py:347: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ler#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}, ...], 'call_sites': 9, ...})
+expression = 'first.work', owner = 'caller', targets = {'R.work'}
+unknown = True, complete = False, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'R.work'}
+E         
+E         Extra items in the right set:
+E         'R.work'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_python_review_regressions.py::test_contextlib_alias_and_complex_generator
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 442 passed, 25 skipped in 15.06s

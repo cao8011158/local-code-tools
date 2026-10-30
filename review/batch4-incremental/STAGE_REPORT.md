@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31 最新：授权重构已提交d9ec，跨库第1/3轮review发现包上下文遗漏；限定整改19项通过，但快回归暴露Jedi0.20.1/Parso0.8.7缓存条目淘汰后被继续引用的KeyError。栈和实际淘汰已证实；候选以patch归档，暂停并请求将核心依赖缓存兼容性纳入范围。未开始第2轮正式review、未合并。
 2026-10-31 最新：用户“把么现在要refactor 吗 如果需要就开始”已批准修正Jedi项目环境及遮蔽失效索引，恢复限定开发。基线39b6d0ab3e18e9a5642078bde8c71a23999cd599，分支feat/incremental-index-updates；此前暂停记录保留。
 2026-10-31 当前暂停：类切片独立通过；跨仓库候选发现旧Jedi搜索环境隔离问题及新模块遮蔽失效遗漏，独立定向3 failed/2 passed。候选仅归档patch，未应用远端生产代码；需要用户确认是否限定修复核心解析接入环境。详见阶段43及crossrepo-paused-report.md。
 2026-10-31 最新：类与实例方法限定局部更新1ca7ca32cf5e0b816eee95a01956417308f38407已推送；第1/3轮独立审阅545 passed、25 skipped（26.45秒）。构造器字段变化与绑定方法参数变化全字段对照通过；0/20无关类文件时仅解析a/b。Batch4仍待跨仓库及完整功能验收，未合并。以下保留历史状态。
@@ -318,3 +319,10 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - 新增同根因变体B4-CROSSREPO-PACKAGE-CONTEXT（P2）：本库已有未变化的包__init__.py或祖先pkg.py，调用方导入依赖库pkg.child。局部Graph只携带选择的AST源码，遗漏本库已有包边界；它的Jedi环境与完整构建不同。新增包时的fallback不能覆盖“包早就存在，本次只改caller”。独立探针确认edges/sites/import_dependencies/import_requests不一致，证据crossrepo-existing-package-probe.json及test_existing_package_context_independent.py。
 - 明确修复：在闭包中通过现有module目录加入所选模块的包祖先，以及import请求在请求仓库/目标仓库中的祖先模块（含__init__与普通模块遮蔽），继续沿已有依赖扩展；只加入实际前缀上下文，不全仓库解析。不能放宽证据或抹去UNKNOWN；不更换Jedi。按当前step P2自行限定整改，再第2轮review，轮次不重置。
 - 未合并、未调用付费或真实服务。完整通过数不掩盖独立新增失败。
+
+## 阶段47：包上下文整改定向通过；核心依赖缓存问题人工介入
+开发GPT-6 SOL medium完成resolver.modules索引前缀上下文，原2反例及正常provider包对照合计19 passed（5.52秒）。候选未应用远端生产，保存patch/哈希。
+- 快回归两次6 failed/531 passed/25 skipped；单独contextlib6通过，固定d9ec536/25通过。保留失败，不改断言。
+- 主Agent栈定位Jedi get_parso_cache_node对contextlib.py的缓存KeyError（-x:1 failed/442 passed/25 skipped，15.06秒）。纯观测Parso缓存>=600时实际淘汰contextlib，last_used年龄419741.6秒，保留阈值600秒（-x:1 failed/442 passed/25 skipped，14.16秒）。代码初始化/磁盘load时间语义与此一致。
+- B4-JEDI-PARSO-CACHE为核心外部依赖缓存交互问题；未确认P0P1，但按skill核心依赖规则暂停扩大修复。建议独立最小复现+官方修复/有限兼容补丁评估，保持解析器和正确性断言，不以清缓存规避、不无界保留。
+- 详细crossrepo-package-context-and-cache-report.md，第二轮正式review尚未开始，旧轮次保留，未合并/真实建图/API/Drive。

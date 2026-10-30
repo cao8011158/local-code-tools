@@ -1,0 +1,283 @@
+.........................................................s.............. [ 12%]
+......................s.............................ss..sss.......s..... [ 25%]
+s...sss.s.ssssssssssss.................................................. [ 38%]
+........................................................................ [ 51%]
+........................................................................ [ 64%]
+........................................................................ [ 76%]
+...................................F.......F......FFF................... [ 89%]
+......F...................................................               [100%]
+=================================== FAILURES ===================================
+_________________ test_contextlib_alias_and_complex_generator __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_contextlib_alias_and_comp0')
+
+    def test_contextlib_alias_and_complex_generator(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """from contextlib import contextmanager as cm
+    class R:
+     def work(self): pass
+    @cm
+    def simple(): yield R()
+    @cm
+    def complex(flag):
+     if flag: yield R()
+     else: yield R()
+    def caller(flag):
+     with simple() as first: first.work()
+     with complex(flag) as second: second.work()
+    """
+            },
+            closed=False,
+        )
+>       first = expect(r, "first.work", "caller", {"R.work"}, unknown=True, complete=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_regressions.py:347: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ler#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}, ...], 'call_sites': 9, ...})
+expression = 'first.work', owner = 'caller', targets = {'R.work'}
+unknown = True, complete = False, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'R.work'}
+E         
+E         Extra items in the right set:
+E         'R.work'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+__________________ test_verified_asynccontextmanager_protocol __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_verified_asynccontextmana0')
+
+    def test_verified_asynccontextmanager_protocol(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """from contextlib import asynccontextmanager as cm
+    class R:
+     def work(self): pass
+    @cm
+    async def acquire(): yield R()
+    async def caller():
+     async with acquire() as resource: resource.work()
+    """
+            },
+            closed=False,
+        )
+>       s = expect(r, "resource.work", "caller", {"R.work"}, unknown=True, complete=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_regressions.py:517: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'resource.work', owner = 'caller', targets = {'R.work'}
+unknown = True, complete = False, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'R.work'}
+E         
+E         Extra items in the right set:
+E         'R.work'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+______________ test_context_factory_create_and_enter[False-False] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_context_factory_create_an0')
+asynchronous = False, alias = False
+
+    @pytest.mark.parametrize("asynchronous,alias", [(False, False), (False, True), (True, True)])
+    def test_context_factory_create_and_enter(tmp_path, asynchronous, alias):
+        deco = "asynccontextmanager" if asynchronous else "contextmanager"
+        binding = "cm" if alias else deco
+        source = (
+            f"from contextlib import {deco}"
+            + (" as cm" if alias else "")
+            + "\nclass C:\n def work(self): pass\n@"
+            + binding
+            + "\n"
+            + ("async " if asynchronous else "")
+            + "def acquire():\n yield C()\n"
+            + ("async " if asynchronous else "")
+            + "def caller():\n "
+            + ("async " if asynchronous else "")
+            + "with acquire() as obj: obj.work()\n"
+        )
+        r = analyze(tmp_path, {"demo.py": source}, closed=False)
+>       s = check(r, "acquire", {"acquire"})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_round3.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+______________ test_context_factory_create_and_enter[False-True] _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_context_factory_create_an1')
+asynchronous = False, alias = True
+
+    @pytest.mark.parametrize("asynchronous,alias", [(False, False), (False, True), (True, True)])
+    def test_context_factory_create_and_enter(tmp_path, asynchronous, alias):
+        deco = "asynccontextmanager" if asynchronous else "contextmanager"
+        binding = "cm" if alias else deco
+        source = (
+            f"from contextlib import {deco}"
+            + (" as cm" if alias else "")
+            + "\nclass C:\n def work(self): pass\n@"
+            + binding
+            + "\n"
+            + ("async " if asynchronous else "")
+            + "def acquire():\n yield C()\n"
+            + ("async " if asynchronous else "")
+            + "def caller():\n "
+            + ("async " if asynchronous else "")
+            + "with acquire() as obj: obj.work()\n"
+        )
+        r = analyze(tmp_path, {"demo.py": source}, closed=False)
+>       s = check(r, "acquire", {"acquire"})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_round3.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+_______________ test_context_factory_create_and_enter[True-True] _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_context_factory_create_an2')
+asynchronous = True, alias = True
+
+    @pytest.mark.parametrize("asynchronous,alias", [(False, False), (False, True), (True, True)])
+    def test_context_factory_create_and_enter(tmp_path, asynchronous, alias):
+        deco = "asynccontextmanager" if asynchronous else "contextmanager"
+        binding = "cm" if alias else deco
+        source = (
+            f"from contextlib import {deco}"
+            + (" as cm" if alias else "")
+            + "\nclass C:\n def work(self): pass\n@"
+            + binding
+            + "\n"
+            + ("async " if asynchronous else "")
+            + "def acquire():\n yield C()\n"
+            + ("async " if asynchronous else "")
+            + "def caller():\n "
+            + ("async " if asynchronous else "")
+            + "with acquire() as obj: obj.work()\n"
+        )
+        r = analyze(tmp_path, {"demo.py": source}, closed=False)
+>       s = check(r, "acquire", {"acquire"})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_round3.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'acquire', owner = 'caller', targets = {'acquire'}, unknown = False
+complete = True, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'acquire'}
+E         
+E         Extra items in the right set:
+E         'acquire'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+_____________________ test_imported_context_factory_alias ______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_imported_context_factory_0')
+
+    def test_imported_context_factory_alias(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "helper.py": """from contextlib import contextmanager as cm
+    class C:
+     def work(self): pass
+    @cm
+    def acquire(): yield C()
+    """,
+                "demo.py": """from helper import acquire as alias
+    def caller():
+     with alias() as obj: obj.work()
+    """,
+            },
+            closed=False,
+        )
+        s = check(r, "alias", {"acquire"})
+>       work = check(r, "obj.work", {"C.work"}, unknown=True)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_round3.py:404: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_review_round3.py:87: in check
+    s = expect(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:helper.py:module:helper#1', 'repository': 'fixture', 'path': 'helper.py', 'kind': 'module', ......n:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}], 'call_sites': 4, ...})
+expression = 'obj.work', owner = 'caller', targets = {'C.work'}, unknown = True
+complete = False, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'C.work'}
+E         
+E         Extra items in the right set:
+E         'C.work'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_python_review_regressions.py::test_contextlib_alias_and_complex_generator
+FAILED tests/test_python_review_regressions.py::test_verified_asynccontextmanager_protocol
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[False-False]
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[False-True]
+FAILED tests/test_python_review_round3.py::test_context_factory_create_and_enter[True-True]
+FAILED tests/test_python_review_round3.py::test_imported_context_factory_alias
+6 failed, 531 passed, 25 skipped in 24.40s

@@ -1,0 +1,52 @@
+.........................................................s....................................s.............................ss..sss.......s.....s...sss.s.ssssssssssss.....................................................................................................................................................................................................................................................................................................ROOT PARSO EVICT {'path': '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py', 'entries_before': 600, 'age_seconds': 419741.6, 'trigger': 600, 'minimum_survival': 600}
+........ROOT PARSO EVICT {'path': '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py', 'entries_before': 604, 'age_seconds': 419741.7, 'trigger': 600, 'minimum_survival': 600}
+F
+=================================== FAILURES ===================================
+_________________ test_contextlib_alias_and_complex_generator __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-110/test_contextlib_alias_and_comp0')
+
+    def test_contextlib_alias_and_complex_generator(tmp_path):
+        r = analyze(
+            tmp_path,
+            {
+                "demo.py": """from contextlib import contextmanager as cm
+    class R:
+     def work(self): pass
+    @cm
+    def simple(): yield R()
+    @cm
+    def complex(flag):
+     if flag: yield R()
+     else: yield R()
+    def caller(flag):
+     with simple() as first: first.work()
+     with complex(flag) as second: second.work()
+    """
+            },
+            closed=False,
+        )
+>       first = expect(r, "first.work", "caller", {"R.work"}, unknown=True, complete=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_regressions.py:347: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = ([{'node_id': 'fixture:demo.py:module:demo#1', 'repository': 'fixture', 'path': 'demo.py', 'kind': 'module', ...}, {'n...ler#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}, ...], 'call_sites': 9, ...})
+expression = 'first.work', owner = 'caller', targets = {'R.work'}
+unknown = True, complete = False, forbidden = ()
+
+    def expect(result, expression, owner, targets, *, unknown=False, complete=True, forbidden=()):
+        s = site(result, expression, owner)
+>       assert s["names"] == set(targets)
+E       AssertionError: assert set() == {'R.work'}
+E         
+E         Extra items in the right set:
+E         'R.work'
+E         Use -v to get more diff
+
+tests/test_python_pipeline.py:50: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_python_review_regressions.py::test_contextlib_alias_and_complex_generator
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 442 passed, 25 skipped in 14.16s
