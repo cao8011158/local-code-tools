@@ -86,17 +86,33 @@ or parser replacement is introduced.
 ## Certified bounded Python components across repositories
 
 `storage.build` can prepare a changed Python component from an old immutable
-catalog and indexed graph evidence. Its `simple-python-v3` certificate accepts
+catalog and indexed graph evidence. Its `simple-python-v4` certificate accepts
 only closed, explicit, absolute `from module import definition` relationships
 and a narrow syntax for undecorated functions and ordinary classes. It excludes
 inheritance, annotations, decorators, dynamic assignment, relative and star
-imports, unknown target namespaces, ambiguous modules within one repository,
+imports (except the narrowly admitted `import re` below), unknown target namespaces, ambiguous modules within one repository,
 and constructs whose receiver or effects cannot be certified. It is not a
 general contract for real project code. The old snapshot must contain complete
 per-file certificates. The new path parses changed modules and every file in
 their transitive dependency component; unchanged, unselected Python ASTs remain
 unparsed. Both syntax certification and component selection identify files by
 `(repository, path)` and use the graph's existing local-first import resolver.
+
+The v4 certificate admits an exact unaliased `import re` only when no captured
+local `re` namespace exists. It also recognizes a bounded expression form:
+exact built-in `type` checks in earlier positive `and` clauses establish dict,
+string or integer operands for later comparison and subscript expressions.
+It accepts `set` of an exactly guarded dict, constant set literals, integer
+power/subtraction and `re.fullmatch` with guarded string arguments. Built-in
+names cannot be shadowed by imports, definitions, parameters or local writes.
+An expression with a newly admitted operator and an arbitrary call is rejected;
+the newly admitted `re`, `re.fullmatch`, `type`, and `set` bindings cannot
+escape as callable values. Plain calls allowed by the earlier certificate
+remain unchanged. This certifies
+the captured `item_units.py` leaf in a closed universe, but does not certify
+its unsupported `availability.py` and `errors.py` siblings. Their three-file
+capture still uses full analysis. A changed Python file on a v3 snapshot also
+falls back because the predecessor lacks the v4 certificate.
 
 The old file adjacency, provider import lookup, and requester import-name
 indexes find callers, affected targets, and local modules that newly shadow or
