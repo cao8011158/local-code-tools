@@ -26,6 +26,7 @@ from .python_effects import (
 )
 
 _DYNAMIC = object()
+ANALYSIS_DEPENDENCY_LIMIT = 20000
 CALLABLE_KINDS = frozenset(("callable", "class", "context-factory", "async-context-factory"))
 
 
@@ -214,7 +215,18 @@ class Analyzer:
         self.slot_scope_index_build_scopes = len(self.effects.slot_scopes)
         self.slot_scope_candidates_checked = 0
         self.slot_events_checked = 0
+        self.analysis_reads = set()
+        self.analysis_watches = set()
+        self.analysis_dependency_truncated = False
         self.access = ReceiverAccess(self, Atom, Result)
+
+    def _record_analysis_dependency(self, destination, record):
+        if record in destination:
+            return
+        if len(self.analysis_reads) + len(self.analysis_watches) >= ANALYSIS_DEPENDENCY_LIMIT:
+            self.analysis_dependency_truncated = True
+            return
+        destination.add(record)
 
     def _index_local_slot_scopes(self):
         """Exclude only nonescaping, straight-line function-local containers.
@@ -1921,6 +1933,9 @@ class Analyzer:
 
     def container_slots(self, atom, scope, anchor, lookup, seen=None, coverage=None):
         """Read a finite literal/copy snapshot, with ordered writes and explicit coverage."""
+        consumer = self.module_for[scope]
+        self._record_analysis_dependency(
+            self.analysis_watches, (consumer, "slot-writer-universe", "all-captured-python"))
         coverage = coverage if coverage is not None else EffectCoverage("container-state")
         seen = set() if seen is None else seen
         if atom.target in seen:
@@ -2042,6 +2057,8 @@ class Analyzer:
                       self._slot_fallback_scopes | {scope, owner})
         self.slot_scope_candidates_checked += len(candidates)
         for function in sorted(candidates):
+            self._record_analysis_dependency(
+                self.analysis_reads, (consumer, self.module_for[function], "container-effects"))
             tree = self.trees[function]
             scoped_events = self.effects.before(function, anchor if function == scope else None)
             for event in scoped_events:

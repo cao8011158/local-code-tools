@@ -192,6 +192,44 @@ component's new analysis, not all reused graph sites. This candidate index
 does not change the separate Python source incremental certificate or make
 unknown global dependencies complete.
 
+## Partial analysis-read and writer-universe evidence
+
+The private `indexed-v3` graph sidecar records an observed module-to-module
+`container-effects` analysis read whenever `container_slots` inspects a
+candidate writer scope. It also records one capture-wide
+`slot-writer-universe` watch for each module whose container read may change if
+a new fallback writer appears, even when no such writer exists yet. These
+records are not `CALLS` or public graph edges. Nested dictionary expansion
+uses the actual analysis scope at each recursive read: an outer B read of A's
+copied container and A's read of C's source form B→A→C. Other association,
+Jedi, callback and global analysis reads are still unrecorded; the manifest
+therefore declares `analysis_dependency_coverage=partial` and these records
+must not certify Python update admission.
+
+`graph-sites.sqlite` stores deduplicated stable module IDs, repository/path
+ownership and kind in separate indexed `analysis_reads` and
+`analysis_watches` tables. `FileDependencies.analysis_readers(repo,path)`
+returns only observed consumers for that producer, while
+`analysis_watchers(kind)` returns capture-wide consumers for a future writer
+class. The latter intentionally has no repository filter. Both APIs use
+indexed lookups; absent v3 schema, required columns or indexes fails closed.
+Up to 20,000 combined distinct records are retained per full analysis. If the
+budget is exceeded, the graph analysis still completes, but the sidecar is
+marked truncated and both analysis APIs raise instead of returning an
+incomplete impact set. The manifest contains only schema, partial/truncated
+status and record counts, never the record lists.
+
+Identical-capture reuse copies these relations. A certified local component
+replaces selected consumers' old relations with current analysis and retains
+unselected consumers only when old reads do not cross the selected boundary
+and no unselected capture-wide watcher could be affected by the change;
+otherwise it falls back to full analysis. It also falls back on old truncated
+records, missing endpoints or a combined record budget overflow. The current
+simple-Python certificate does not admit literal container readers, so a
+real certified local build presently exercises the empty-relation case; the
+nonempty merge is verified separately as sidecar maintenance, not as a broader
+admission claim. Old `indexed-v2` snapshots safely rebuild graph analysis.
+
 # Parso cache compatibility
 
 The Python analyzer installs a process-wide compatibility wrapper for Parso

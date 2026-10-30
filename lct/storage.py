@@ -16,6 +16,7 @@ import jedi
 import numpy as np
 from usearch.index import Index
 
+from . import python_analysis
 from .common import (
     FORMAT,
     SCHEMA,
@@ -230,12 +231,17 @@ def source_files(folder, m):
 
 
 def split_graph(folder, m, query_observations=(), import_dependencies=(),
-                import_requests=None, nodes=(), edges=(), certified_files=()):
+                import_requests=None, nodes=(), edges=(), certified_files=(),
+                analysis_reads=None, analysis_watches=None,
+                analysis_dependency_truncated=False):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
     if len(sites) != graph["call_sites"]:
         raise ToolError("Graph evidence site count mismatch")
+    if (analysis_reads is not None and analysis_watches is not None and
+            len(analysis_reads) + len(analysis_watches) > python_analysis.ANALYSIS_DEPENDENCY_LIMIT):
+        raise ToolError("Analysis dependency record budget exceeded")
     db = sqlite3.connect(folder / GRAPH_SITES)
     try:
         db.execute("create table sites(ordinal integer primary key, data text not null)")
@@ -275,6 +281,23 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create index import_lookup_namespace on import_lookup_keys(lookup_repository,module,source_repository,source_path)")
         db.execute("create index import_lookup_requester on import_lookup_keys(source_repository,module,source_path)")
         owners = {n["node_id"]: (n["repository"], n["path"]) for n in nodes}
+        modules = {n["node_id"]: (n["repository"], n["path"])
+                   for n in nodes if n["kind"] == "module"}
+        db.execute("create table analysis_reads(consumer_module text not null, consumer_repository text not null, consumer_path text not null, producer_module text not null, producer_repository text not null, producer_path text not null, kind text not null, primary key(consumer_module,producer_module,kind))")
+        db.execute("create index analysis_read_producer on analysis_reads(producer_repository,producer_path,kind,consumer_repository,consumer_path)")
+        db.execute("create table analysis_watches(consumer_module text not null, consumer_repository text not null, consumer_path text not null, kind text not null, universe text not null, primary key(consumer_module,kind,universe))")
+        db.execute("create index analysis_watch_kind on analysis_watches(kind,universe,consumer_repository,consumer_path)")
+        for consumer, producer, kind in analysis_reads or ():
+            if consumer not in modules or producer not in modules or kind != "container-effects":
+                raise ToolError("Analysis read module ownership unavailable")
+            db.execute("insert into analysis_reads values(?,?,?,?,?,?,?)", (
+                consumer, *modules[consumer], producer, *modules[producer], kind))
+        for consumer, kind, universe in analysis_watches or ():
+            if (consumer not in modules or kind != "slot-writer-universe"
+                    or universe != "all-captured-python"):
+                raise ToolError("Analysis watch module ownership unavailable")
+            db.execute("insert into analysis_watches values(?,?,?,?,?)", (
+                consumer, *modules[consumer], kind, universe))
         for ordinal, request in enumerate(import_requests or ()):
             owner = owners.get(request["source_module"])
             if owner is None or not owner[1] or owner[0] != request["source_repository"]:
@@ -321,8 +344,13 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     del m["files"]
     m["graph"] = {k: v for k, v in graph.items() if k != "sites"}
     m.pop("dependency_store", None)
-    if nodes and import_requests is not None:
-        m["dependency_store"] = "indexed-v2"
+    if nodes and import_requests is not None and analysis_reads is not None and analysis_watches is not None:
+        m["dependency_store"] = "indexed-v3"
+        m["analysis_dependency_schema"] = 1
+        m["analysis_dependency_coverage"] = "partial"
+        m["analysis_read_count"] = len(analysis_reads)
+        m["analysis_watch_count"] = len(analysis_watches)
+        m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
     m["graph_detail"] = GRAPH_SITES
     m["metadata_layout"] = 2
     for rel in (GRAPH_SITES, SOURCE_FILES):
@@ -335,7 +363,9 @@ class FileDependencies:
     """Read-only indexed old-snapshot relations; missing/legacy evidence fails closed."""
 
     def __init__(self, folder, manifest):
-        if (manifest.get("dependency_store") != "indexed-v2"
+        if (manifest.get("dependency_store") != "indexed-v3"
+                or manifest.get("analysis_dependency_schema") != 1
+                or manifest.get("analysis_dependency_coverage") != "partial"
                 or manifest.get("graph_detail") != GRAPH_SITES):
             raise ToolError("Previous file dependency index unavailable")
         checksum, size = hash_artifact(folder, GRAPH_SITES)
@@ -344,9 +374,10 @@ class FileDependencies:
             raise ToolError("Previous file dependency index integrity failed")
         self.db = sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)
         try:
-            expected = {"file_adjacency", "import_requests", "import_lookup_keys"}
+            expected = {"file_adjacency", "import_requests", "import_lookup_keys",
+                        "analysis_reads", "analysis_watches"}
             present = {row[0] for row in self.db.execute(
-                "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests','import_lookup_keys')")}
+                "select name from sqlite_master where type='table' and name in ('file_adjacency','import_requests','import_lookup_keys','analysis_reads','analysis_watches')")}
             if present != expected:
                 raise ToolError("Previous file dependency index unavailable")
             if not any(row[1] == "import_request_requester" for row in self.db.execute(
@@ -358,6 +389,24 @@ class FileDependencies:
             indexes = {row[1] for row in self.db.execute("pragma index_list('import_lookup_keys')")}
             if not {"import_lookup_namespace", "import_lookup_requester"} <= indexes:
                 raise ToolError("Previous import lookup key indexes unavailable")
+            for table, columns, index in (
+                ("analysis_reads", {"consumer_module", "consumer_repository", "consumer_path",
+                                    "producer_module", "producer_repository", "producer_path", "kind"},
+                 "analysis_read_producer"),
+                ("analysis_watches", {"consumer_module", "consumer_repository", "consumer_path",
+                                      "kind", "universe"}, "analysis_watch_kind"),
+            ):
+                if not columns <= {row[1] for row in self.db.execute(f"pragma table_info('{table}')")}:
+                    raise ToolError("Previous analysis dependency columns unavailable")
+                if index not in {row[1] for row in self.db.execute(f"pragma index_list('{table}')")}:
+                    raise ToolError("Previous analysis dependency index unavailable")
+            if (type(manifest.get("analysis_read_count")) is not int or
+                    manifest["analysis_read_count"] < 0 or
+                    type(manifest.get("analysis_watch_count")) is not int or
+                    manifest["analysis_watch_count"] < 0 or
+                    not isinstance(manifest.get("analysis_dependency_truncated"), bool)):
+                raise ToolError("Previous analysis dependency summary unavailable")
+            self.analysis_dependency_truncated = manifest["analysis_dependency_truncated"]
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -367,6 +416,25 @@ class FileDependencies:
             "select target_repository,target_path from file_adjacency where source_repository=? and source_path=? "
             "union select source_repository,source_path from file_adjacency where target_repository=? and target_path=?",
             (repository, path, repository, path))
+        return set(rows)
+
+    def analysis_readers(self, repository, path):
+        """Observed container-effect consumers, not a complete invalidation set."""
+        if self.analysis_dependency_truncated:
+            raise ToolError("Previous analysis dependency records truncated")
+        rows = self.db.execute(
+            "select consumer_repository,consumer_path from analysis_reads "
+            "where producer_repository=? and producer_path=? and kind='container-effects'",
+            (repository, path))
+        return set(rows)
+
+    def analysis_watchers(self, kind):
+        """Consumers of a capture-wide future writer class; coverage is partial."""
+        if self.analysis_dependency_truncated:
+            raise ToolError("Previous analysis dependency records truncated")
+        rows = self.db.execute(
+            "select consumer_repository,consumer_path from analysis_watches "
+            "where kind=? and universe='all-captured-python'", (kind,))
         return set(rows)
 
     def importers(self, repository, module):
@@ -481,7 +549,7 @@ def _reuse_python_graph(folder, prior, files, repos, c):
     eligible, reason, _, python_changed = _same_python_inputs(folder, prior, files, repos, c)
     if not eligible or python_changed:
         return None, reason
-    if prior.get("dependency_store") != "indexed-v2":
+    if prior.get("dependency_store") != "indexed-v3":
         return None, "previous-graph-evidence-unavailable"
     old_files = source_files(folder, prior)
     # SOURCE_FILES stores inventory without text. Its source hashes certify the
@@ -554,10 +622,16 @@ def _reuse_python_graph(folder, prior, files, repos, c):
         observations = private("query_observations")
         dependencies = private("import_dependencies")
         requests = private("import_requests")
+        analysis_reads = list(db.execute(
+            "select consumer_module,producer_module,kind from analysis_reads order by consumer_module,producer_module,kind"))
+        analysis_watches = list(db.execute(
+            "select consumer_module,kind,universe from analysis_watches order by consumer_module,kind,universe"))
     if len(sites) != prior["graph"]["call_sites"]:
         return None, "previous-graph-evidence-count-mismatch"
     info = dict(prior["graph"], sites=sites, _query_observations=observations,
-                _import_dependencies=dependencies, _import_requests=requests)
+                _import_dependencies=dependencies, _import_requests=requests,
+                _analysis_reads=analysis_reads, _analysis_watches=analysis_watches,
+                _analysis_dependency_truncated=prior["analysis_dependency_truncated"])
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
     info["association_evaluations"] = 0
@@ -680,7 +754,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
                 compatible, reason, _, _ = _same_python_inputs(
                     old_folder, old_manifest, files, repos, c)
-                if compatible and old_manifest.get("dependency_store") == "indexed-v2":
+                if compatible and old_manifest.get("dependency_store") == "indexed-v3":
                     checksum, size = hash_artifact(old_folder, "catalog.sqlite")
                     if (checksum != old_manifest["artifacts"]["catalog.sqlite"]
                             or size != old_manifest["artifact_sizes"]["catalog.sqlite"]):
@@ -738,6 +812,9 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         observations = graph_info.pop("_query_observations")
         import_dependencies = graph_info.pop("_import_dependencies")
         import_requests = graph_info.pop("_import_requests", None)
+        analysis_reads = graph_info.pop("_analysis_reads", None)
+        analysis_watches = graph_info.pop("_analysis_watches", None)
+        analysis_dependency_truncated = graph_info.pop("_analysis_dependency_truncated", False)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
@@ -933,7 +1010,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 m["artifacts"][rel] = checksum
                 m["artifact_sizes"][rel] = size
             split_graph(folder, m, observations, import_dependencies, import_requests,
-                        nodes, edges, files if m.get("simple_python_certificate") else ())
+                        nodes, edges, files if m.get("simple_python_certificate") else (),
+                        analysis_reads, analysis_watches, analysis_dependency_truncated)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

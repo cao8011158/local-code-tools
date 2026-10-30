@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+最新：阶段63，容器分析读取依赖/未来writer订阅的partial sidecar开发完成，557 passed、25 skipped，待固定远端独立审阅。尚未把partial记录当作增量准入，Batch4未完成。
 最新：阶段61，固定eb5ff65局部容器写入候选索引限定修复独立第1/3轮通过，563 passed、25 skipped/30.89秒。0/30无关写入下实际检查2scope/3事件不变。整体依赖驱动准入仍未完成、未合并。
 最新：阶段60，局部容器写入scope索引开发完成，550项快回归通过、25跳过，待固定远端独立审阅。Batch4未完成，未合并。
 最新：阶段58，5dd7ed4潜在子模块依赖索引限定修复独立通过；生产tests547通过、25跳过，独立边界适配旧索引断言后6通过。全局slot_scopes读取与整体依赖准入仍待处理，未合并。
@@ -420,3 +421,16 @@ GPT-6 SOL medium实现：Analyzer初始化EffectCatalog后一次构建局部lite
 - 实际Graph.build/Analyzer路径中0/30无关局部alias writer，EffectCatalog.before只访问B.run与B模块，共2scope/3事件；固定B身份完整site记录相同。导入别名、参数重绑保留other候选及UNKNOWN；动态键/闭包保留fallback。
 - 原基线1 failed、2 passed/0.53秒与修复后日志保存。本轮未发现新阻塞，细节container-scope-independent-review.md。
 - 未消除所有未知scope检查，未修改整批simple认证；后续仍需持久化真实分析依赖/不确定范围并接入增量准入。无真实全库、服务、付费、Drive或合并。
+
+## 阶段62：开始持久化容器分析读取依赖及未来候选订阅
+用户“请继续”授权。基线9dad3d1def60dc850dd379bbb61756fdd7c6c6c4，固定生产eb5ff65，GPT-6 SOL medium开发、主Agent独立审阅。
+- 实际container_slots consumer模块到候选producer模块的container-effects读依赖；即使当前fallback为空仍保存slot-writer-universe/all-captured-python订阅，以覆盖未来新增不确定writer。读取关系不是CALLS，递归copy按实际scope形成可传递链；明确仅partial，不涵盖全部resolve/Jedi内部依赖。
+- 独立SQL表及反向索引，manifest只摘要；完整构建、相同输入复用、既有局部组件准备均保留/替换记录。旧格式不冒充新证据，不接入新局部准入、不删除simple证书。
+- 去重记录总预算20000；截断显式标记，新反查接口不可把截断记录当完整返回。完整分析继续，合并后预算亦校验。
+- 定向实证实际读取/零旧候选订阅/新增writer/孤立writer排除、嵌套copy链、SQL实际索引与无关记录扩容、旧格式/失败恢复；一次快速回归后固定提交独立审阅。无全库/服务/付费/Drive/合并。
+
+## 阶段63：部分分析依赖持久化开发完成
+GPT-6 SOL medium完成Analyzer实际container读取记录与全capture writer订阅；graph-sites.sqlite独立reads/watches表及反向索引，indexed-v3、schema1、coverage=partial，manifest仅数量/截断摘要。预算20000共享一处常量，超限仍完整分析但新反查API显式不可用。
+- 完整构建/identical保留记录；现有local路径通过纯merge helper维护，选中consumer替换，保留旧记录需端点存在且验证，跨selected producer或未重算的全capture watcher存在则回退full。没有把新API用作增量准入。
+- 定向31 passed/7.85秒、快速全仓557 passed、25 skipped/25.06秒、ruff通过。嵌套copy B->A->C链、原无图边读取、孤立writer无依赖、未来订阅、记录预算、旧格式、失败发布均有测试。真实certified local验证零记录；非空merge用纯helper单测，未伪造已发布证书。
+- 生产变更python_analysis.py、graph.py、storage.py、python_incremental.py及新测试/契约。不改simple证书，不宣称完整Python/Jedi依赖覆盖。尚未推送本轮，下一步主Agent固定远端独立审阅。无全库/服务/付费/Drive/合并。

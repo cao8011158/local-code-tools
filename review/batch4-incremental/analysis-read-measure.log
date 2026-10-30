@@ -1,0 +1,2 @@
+{"query_vm_steps": 25, "sql_plan": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)"], "target_rows": [["synthetic-review", "src/b.py"]], "total_read_rows": 1, "unrelated_modules": 0}
+{"query_vm_steps": 26, "sql_plan": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)"], "target_rows": [["synthetic-review", "src/b.py"]], "total_read_rows": 101, "unrelated_modules": 100}

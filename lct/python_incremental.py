@@ -7,6 +7,7 @@ from collections import deque
 from contextlib import closing
 
 from . import extract as extraction
+from . import python_analysis
 from .common import canonical, digest
 from .evidence_reuse import EvidenceReuseRejected, RebindContext
 from .extract import definition_version, extract, module_name
@@ -14,10 +15,53 @@ from .graph import Graph
 from .simple_python import CERTIFICATE, certify
 
 
+def merge_analysis_dependencies(old_reads, old_watches, new_reads, new_watches, *,
+                                selected, old_nodes, new_nodes, verified,
+                                old_truncated=False, new_truncated=False):
+    """Replace selected consumers' records without trusting missing endpoints.
+
+    This is only sidecar maintenance. Its partial result is never an admission
+    certificate or a substitute for the existing syntax/closure gate.
+    """
+    if old_truncated or new_truncated:
+        return None, "previous-analysis-dependency-evidence-unavailable"
+
+    def owner(ident):
+        node = old_nodes.get(ident)
+        return (node["repository"], node["path"]) if node else None
+
+    reads = set(new_reads)
+    watches = set(new_watches)
+    for consumer, producer, kind in old_reads:
+        if owner(consumer) in selected:
+            continue
+        if owner(producer) in selected:
+            return None, "old-analysis-read-crosses-selected-boundary"
+        if (owner(consumer) not in verified or consumer not in new_nodes or
+                producer not in new_nodes or new_nodes[consumer]["kind"] != "module" or
+                new_nodes[producer]["kind"] != "module"):
+            return None, "old-analysis-read-endpoint-unavailable"
+        reads.add((consumer, producer, kind))
+    for consumer, kind, universe in old_watches:
+        if owner(consumer) in selected:
+            continue
+        if selected and universe == "all-captured-python":
+            return None, "old-analysis-watch-crosses-selected-boundary"
+        if (owner(consumer) not in verified or consumer not in new_nodes or
+                new_nodes[consumer]["kind"] != "module"):
+            return None, "old-analysis-watch-consumer-unavailable"
+        watches.add((consumer, kind, universe))
+    if len(reads) + len(watches) > python_analysis.ANALYSIS_DEPENDENCY_LIMIT:
+        return None, "combined-analysis-dependency-budget-uncertified"
+    return (sorted(reads), sorted(watches)), None
+
+
 def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=None):
     """Return (nodes, edges, graph, metrics) or (None, reason)."""
     if prior.get("simple_python_certificate") != CERTIFICATE:
         return None, "previous-simple-python-certificate-unavailable"
+    if prior.get("analysis_dependency_schema") != 1 or prior.get("analysis_dependency_truncated"):
+        return None, "previous-analysis-dependency-evidence-unavailable"
     if prior["graph"].get("analysis_limited"):
         return None, "previous-association-budget-limited"
     prior_bound = prior["graph"].get("association_bound")
@@ -135,6 +179,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             old_observations = [json.loads(raw) for (raw,) in evidence.execute("select data from query_observations order by key")]
             old_deps = [json.loads(raw) for (raw,) in evidence.execute("select data from import_dependencies order by ordinal")]
             old_requests = [json.loads(raw) for (raw,) in evidence.execute("select data from import_requests order by ordinal")]
+            old_analysis_reads = list(evidence.execute(
+                "select consumer_module,producer_module,kind from analysis_reads"))
+            old_analysis_watches = list(evidence.execute(
+                "select consumer_module,kind,universe from analysis_watches"))
         old_nodes = {nid: json.loads(raw) for nid, raw in db.execute("select node_id,data from nodes")}
         old_edges = [json.loads(raw) for (raw,) in db.execute("select data from edges")]
     if len(old_order) != len(old_nodes) or any(nid not in old_nodes for nid in old_order):
@@ -259,6 +307,15 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         observations.extend(info.pop("_query_observations"))
         deps = retained(old_deps, "source_module") + info.pop("_import_dependencies")
         requests = retained(old_requests, "source_module") + info.pop("_import_requests")
+        merged, reason = merge_analysis_dependencies(
+            old_analysis_reads, old_analysis_watches,
+            info.pop("_analysis_reads"), info.pop("_analysis_watches"),
+            selected=selected, old_nodes=old_nodes, new_nodes=byid, verified=verified,
+            old_truncated=prior["analysis_dependency_truncated"],
+            new_truncated=info.pop("_analysis_dependency_truncated"))
+        if merged is None:
+            return None, reason
+        analysis_reads, analysis_watches = merged
     except (EvidenceReuseRejected, KeyError, TypeError, ValueError):
         return None, "old-evidence-rebind-uncertified"
     sites_by_file = {}
@@ -271,6 +328,9 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     info["_query_observations"] = observations
     info["_import_dependencies"] = deps
     info["_import_requests"] = requests
+    info["_analysis_reads"] = analysis_reads
+    info["_analysis_watches"] = analysis_watches
+    info["_analysis_dependency_truncated"] = False
     info["dependency_bindings"] = graph.cross_bindings
     edges = list({e["edge_id"]: e for e in edges}.values())
     return (nodes, edges, info, dict(changed_files=len(changed), selected_files=len(selected_present),
