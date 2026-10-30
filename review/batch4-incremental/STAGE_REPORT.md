@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-30 当前研究切片：定向传播v3开发完成，20/20合成对照一致，等待第三次独立实验审阅。正式生产接入仍暂停，未合并。此前阶段21、23的两次实验审阅计数保留；不是重置为新问题。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
@@ -154,3 +155,10 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 根因在实验direct_return_values摘要只比较类型/目标等，没有覆盖对象字段，不能据摘要相同认证不受影响。建议未证明等价的对象/容器返回沿消费者保守传播，后续验证；本轮不扩展新引擎。
 共享helper实验降低外层调用点和Jedi查询，但旧新summary全AST准备和非CALLS全局处理仍在，不能声称生产级局部更新完成。
 实验脚本、冻结graph_under_test及原始v1/v2失败结果独立保存；只推送实验材料及累计报告，不推送未完成的生产接入。没有新API/真实图构建/Drive修改，未合并。整个Batch4未完成。
+
+## 阶段24：返回对象状态传播v3开发完成，未提交
+2026-10-30。分支feat/incremental-index-updates，远端基线7398cab6b651f27b21ac2114fd89614d4f066587。GPT-6 SOL medium子Agent实现；只新增v3实验及证据，不改生产代码。
+- 根因：相同(kind,target)并不能证明返回对象的字段相同。新增state_may_escape；修改函数或受影响调用者返回未证明完整的值时，沿原有CALLS调用者方向继续传播；可证明的简单常量保持停止。
+- 定向命令：PYTHONPATH=. /workspace/scratch/413372d9a5a5/lct-round5-review/.venv/bin/python review/batch4-incremental/directional-experiment/v3.py，退出0；20/20组与全量语义对照一致，日志v3-run.log。包含15组旧样例、两组旧独立样例及3组新样例，有重复根因，不称20种独立机制。
+- 修改只涉及v3.py、v3-results.json、v3-run.log、v3-development.md四个新增实验文件。v1/v2失败记录保留。共享helper仍0/20外层调用点、20/40选择性阶段Jedi；新旧21+21 AST准备和全局非CALLS成本仍在。
+- 未验证构造函数/方法单独改变、正式版本重绑定、真实数据与数据库发布；未调用付费API、未更新真实图或Drive。接下来第三次独立实验审阅；整个Batch4未完成。
