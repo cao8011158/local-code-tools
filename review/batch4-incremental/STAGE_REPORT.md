@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31 最新：用户授权缓存时间修复已实现并推送，固定ee6bbb9a72dbd8dd08129ede23e9d4a271dcdaa6第2/3轮限定审阅通过；570 passed、25 skipped（30.53秒）。未启用修复的独立对照2 failed，启用后通过；包上下文遗漏关闭。整个Batch4尚待功能验收，未合并。以下为历史记录。
 2026-10-31 最新：授权重构已提交d9ec，跨库第1/3轮review发现包上下文遗漏；限定整改19项通过，但快回归暴露Jedi0.20.1/Parso0.8.7缓存条目淘汰后被继续引用的KeyError。栈和实际淘汰已证实；候选以patch归档，暂停并请求将核心依赖缓存兼容性纳入范围。未开始第2轮正式review、未合并。
 2026-10-31 最新：用户“把么现在要refactor 吗 如果需要就开始”已批准修正Jedi项目环境及遮蔽失效索引，恢复限定开发。基线39b6d0ab3e18e9a5642078bde8c71a23999cd599，分支feat/incremental-index-updates；此前暂停记录保留。
 2026-10-31 当前暂停：类切片独立通过；跨仓库候选发现旧Jedi搜索环境隔离问题及新模块遮蔽失效遗漏，独立定向3 failed/2 passed。候选仅归档patch，未应用远端生产代码；需要用户确认是否限定修复核心解析接入环境。详见阶段43及crossrepo-paused-report.md。
@@ -335,3 +336,10 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - 定向84 passed/3.87秒；全tests/539 passed、25 skipped/23.35秒（exit0）；随后仅新增版本guard测试，最终定向含跨库94 passed/6.42秒（exit0），Ruff通过。完整日志`parso-cache-development-fast.log`、`parso-cache-development-targeted.log`及Ruff日志。`uv lock --offline`因本地uv缓存缺Jedi 0.20.1未能解析，手动对齐现有lock元数据；没有将其称作锁定解析成功。
 - 真实Parso冷解析、pickle恢复、600项触发下新旧淘汰、源码修改失效和安装幂等/版本失败均有项目测试。包装每次插入O(1)刷新，不增加全局遍历；原阈值O(N)扫描依旧。未验证十分钟以上仍活跃Jedi引用或完整真实规模，兼容补丁不作此保证。
 - 详细实现、持有者/成本、允许文件与限制见`parso-cache-development.md`。未启动真实服务、付费API、真实图或Drive，未合并；下一步由主Agent固定候选提交并独立第2轮review。
+
+## 阶段49：跨库整改第2/3轮独立审阅通过，缓存误删关闭
+2026-10-31，固定ee6bbb9a72dbd8dd08129ede23e9d4a271dcdaa6，远端核对一致。开发定向94 passed；完整自测539 passed/25 skipped后新增版本guard测试，最终独立回归覆盖全部：570 passed/25 skipped、30.53秒、exit0。
+- B4-JEDI-PARSO-CACHE及B4-CROSSREPO-PACKAGE-CONTEXT关闭。真实冷解析/磁盘恢复/620文件清理及源码改变检查通过；停用修复的原行为对照2 failed、0.73秒，均KeyError，原始证据保留。
+- 357个支持文件按远端blob核对。初次传输大源码被截断，在验收前追加提交恢复并核对；未使用截断代码验收。报告parso-cache-independent-review.md，日志parso-cache-root-fixed/unpatched.log。
+- 新增兼容层单次插入O(1)，原过期清理保留；不提高阈值、不全局刷新时间、不改变源有效性。版本固定0.8.7，不扩展长期缓存生命周期承诺。
+- 第2轮通过，不开启第3轮；整个Batch4未完成、未合并。没有真实服务、付费、建图和Drive操作。
