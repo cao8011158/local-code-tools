@@ -210,7 +210,69 @@ class Analyzer:
             if key in self.queries:
                 self._observe_query(key, self.queries[key][0])
         self.effects = EffectCatalog(trees, self.execution_nodes)
+        self._slot_scopes_by_origin, self._slot_fallback_scopes = self._index_local_slot_scopes()
+        self.slot_scope_index_build_scopes = len(self.effects.slot_scopes)
+        self.slot_scope_candidates_checked = 0
+        self.slot_events_checked = 0
         self.access = ReceiverAccess(self, Atom, Result)
+
+    def _index_local_slot_scopes(self):
+        """Exclude only nonescaping, straight-line function-local containers.
+
+        This is an admission proof for a scope, not an approximation of its
+        receivers. A failed proof keeps the entire scope in the original scan.
+        No resolution/Jedi work is performed while building this index.
+        """
+        by_origin = defaultdict(set)
+        fallback = set()
+        for scope in self.effects.slot_scopes:
+            tree = self.trees[scope]
+            if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                fallback.add(scope)
+                continue
+            bindings = {}
+            written = set()
+            safe = True
+            for stmt in tree.body:
+                if isinstance(stmt, ast.Pass):
+                    continue
+                if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
+                    continue
+                if isinstance(stmt, ast.Return) and (stmt.value is None or
+                        isinstance(stmt.value, ast.Constant)):
+                    continue
+                if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
+                    safe = False
+                    break
+                dest, value = stmt.targets[0], stmt.value
+                if isinstance(dest, ast.Name):
+                    if isinstance(value, (ast.Dict, ast.List, ast.Tuple)):
+                        parts = ([*value.keys, *value.values] if isinstance(value, ast.Dict)
+                                 else value.elts)
+                        if any(part is None or not isinstance(part, ast.Constant) for part in parts):
+                            safe = False
+                            break
+                        bindings[dest.id] = f"{scope}:{value.lineno}:{value.col_offset}"
+                    elif isinstance(value, ast.Name) and value.id in bindings:
+                        bindings[dest.id] = bindings[value.id]
+                    else:
+                        safe = False
+                        break
+                elif (isinstance(dest, ast.Subscript) and isinstance(dest.value, ast.Name)
+                      and dest.value.id in bindings and
+                      isinstance(dest.ctx, ast.Store) and
+                      self.literal_key(dest.slice)[0] and
+                      isinstance(value, ast.Constant)):
+                    written.add(bindings[dest.value.id])
+                else:
+                    safe = False
+                    break
+            if safe and written:
+                for origin in written:
+                    by_origin[origin].add(scope)
+            else:
+                fallback.add(scope)
+        return by_origin, fallback
 
     def _observe_query(self, key, result):
         """Index only observations already made by the ordinary query path."""
@@ -1976,10 +2038,14 @@ class Analyzer:
                         sealed.add(k)
                     else:
                         uncertain("dynamic-literal-dict-key")
-        for function in sorted(self.effects.slot_scopes | {scope, owner}):
+        candidates = (self._slot_scopes_by_origin.get(atom.target, set()) |
+                      self._slot_fallback_scopes | {scope, owner})
+        self.slot_scope_candidates_checked += len(candidates)
+        for function in sorted(candidates):
             tree = self.trees[function]
             scoped_events = self.effects.before(function, anchor if function == scope else None)
             for event in scoped_events:
+                self.slot_events_checked += 1
                 statement = event.node
                 coverage.require(event)
                 coverage.record(

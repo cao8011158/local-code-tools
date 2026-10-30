@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+最新：阶段60，局部容器写入scope索引开发完成，550项快回归通过、25跳过，待固定远端独立审阅。Batch4未完成，未合并。
 最新：阶段58，5dd7ed4潜在子模块依赖索引限定修复独立通过；生产tests547通过、25跳过，独立边界适配旧索引断言后6通过。全局slot_scopes读取与整体依赖准入仍待处理，未合并。
 最新：阶段57，通用潜在子模块查找索引修复开发完成；18项定向与547项快速回归通过，待固定远端独立审阅。仍保留全捕获认证，Batch4未完成、未合并。
 最新：阶段55，真实item_units限定扩展25d415f第1/3轮独立审阅通过；561 passed、25 skipped，另历史/边界31 passed（有重叠）。仅支持已认证捕获；整个Batch4未完成、未合并。
@@ -400,3 +401,15 @@ GPT-6 SOL medium在c09fd56基线完成通用indexed-v2依赖键。import_request
 固定远端5dd7ed4dbbc742149978f06fc69c79a3c24e28b3，390份支持文件blob匹配。联合回归552 passed、1 failed、25 skipped/27.79秒；唯一失败是历史独立测试写死旧表/索引名，生产tests547项均通过。保留原始日志，按新SEARCH计划适配断言后独立6 passed/2.69秒，无生产修改。
 - namespace反例旧版0/25无关文件均无法反查，修复后均能查到caller；实际SQL均SEARCH。0/100无关导入时2次查询各1行，VM42/44；公开跨库遮蔽0/20对噪声仍解析3文件、查询结果1行，VM87/88。没有把索引开启前完整性哈希算成局部读取。
 - 修复仅补齐潜在子模块反向键，未删除simple认证，namespace案例仍全量但依赖反查已正确。全局slot_scopes依赖/跨库namespace根归属及业务总体局部准入仍未完成。详细module-lookup-independent-review.md。未合并，无全库/服务/付费/Drive。
+
+## 阶段59：开始局部容器写入候选索引修复
+用户“请继续”授权处理Analyzer.container_slots全局slot_scopes读取。基线40e15d328ddae8996c3d4e352b40190d07de5fba（生产5dd7ed4），仍在feat/incremental-index-updates。按batch-dev-review/locality-review，GPT-6 SOL medium子Agent实现、主Agent独立审阅。
+- 基线已实证A无关系局部字典写入进入B的NO_EFFECT证明。候选设计为一次性写入scope来源索引：能证明仅指向本函数局部literal的写入按来源身份归类，无法排除的scope保留fallback；查询目标取相关bucket、未知scope、当前scope及owner，不在每次查询前全量resolve/过滤。
+- 不按变量名猜测排除；保留别名、参数、导入registry、调用逃逸和协议UNKNOWN。不修改simple-python认证、不开放未经证明的全库局部更新。
+- 定向先证0/20/100无关局部writer下目标检查量，准备索引O(N)单列；相关写入/历史副作用对照、一次快速回归、固定远端独立review。无付费/服务/Drive/合并。
+
+## 阶段60：局部容器写入候选索引开发完成
+GPT-6 SOL medium实现：Analyzer初始化EffectCatalog后一次构建局部literal来源桶及fallback集合，container_slots取目标桶、fallback和scope/owner。仅完整函数体可证明fresh literal/别名/常量键值且无逃逸的写入scope入桶；模块、参数、导入、未知调用/控制协议等仍保留原检查。不修改simple-python及增量准入。
+- 公开build 0/20/100无关local writer：准备scope数0/20/100，目标候选scope2/2/2、事件3/3/3，覆盖required3/3/3；准备成本明确单列。旧全局反例的A事件不再进入B证明，目标/完整性保持。
+- 历史定向251 passed/4.42秒，最终复用指标接线6 passed/2.26秒，快速全仓550 passed、25 skipped/27.09秒，ruff通过。identical复用四个本次执行指标置0，site不变。
+- 变更python_analysis.py、graph.py、storage.py少量接线及测试/契约/证据。开发报告container-local-scope-development.md。尚未推送本轮；接下来主Agent固定提交独立审阅。不确定scope仍可能大范围检查，不宣称全库局部分析完成。

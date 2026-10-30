@@ -1,0 +1,44 @@
+F..                                                                      [100%]
+=================================== FAILURES ===================================
+______ test_target_processing_and_evidence_ignore_unrelated_local_writers ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-141/test_target_processing_and_evi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ff8ca02b1d0>
+
+    def test_target_processing_and_evidence_ignore_unrelated_local_writers(tmp_path, monkeypatch):
+        actual_slots, actual_before = Analyzer.container_slots, EffectCatalog.before
+        active = [0]
+        visited = []
+        def slots(self, atom, *args, **kwargs):
+            target = ':src/b.py:' in atom.target
+            active[0] += int(target)
+            try:
+                return actual_slots(self, atom, *args, **kwargs)
+            finally:
+                active[0] -= int(target)
+        def before(self, scope, *args, **kwargs):
+            events = actual_before(self, scope, *args, **kwargs)
+            if active[0]:
+                visited.append((scope, len(events)))
+            return events
+        monkeypatch.setattr(Analyzer, 'container_slots', slots)
+        monkeypatch.setattr(EffectCatalog, 'before', before)
+        results = []
+        evidence = []
+        for noise in (0, 30):
+            sources = {'src/b.py': B}
+            for i in range(noise):
+                sources[f'src/noise_{i}.py'] = 'def write_local():\n values={}\n alias=values\n alias["x"]=1\n'
+            visited.clear()
+            result = analyze(tmp_path / str(noise), sources)
+            selected = site(result, 'registry[\'go\']', 'run')
+            assert selected['names'] == {'target'} and selected['complete']
+>           assert all(':src/b.py:' in scope for scope, _ in visited), visited
+E           AssertionError: [('fixture:src/b.py:function:run#1.1', 0), ('fixture:src/b.py:module:b#1', 3), ('fixture:src/noise_0.py:function:write... ('fixture:src/noise_10.py:function:write_local#1.1', 3), ('fixture:src/noise_11.py:function:write_local#1.1', 3), ...]
+E           assert False
+E            +  where False = all(<generator object test_target_processing_and_evidence_ignore_unrelated_local_writers.<locals>.<genexpr> at 0x7ff8c881b9f0>)
+
+review/batch4-incremental/test_container_scope_independent.py:40: AssertionError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_container_scope_independent.py::test_target_processing_and_evidence_ignore_unrelated_local_writers
+1 failed, 2 passed in 0.53s

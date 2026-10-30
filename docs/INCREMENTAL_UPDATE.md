@@ -164,6 +164,34 @@ versioned evidence returns to full analysis. Public graph records are exact
 under this gate; `analysis_scope.mode=certified-simple-python-component`
 reports the bounded path and its parsed/reused file counts.
 
+## Local container write-scope candidate index
+
+Within one full or selected graph analysis, `Analyzer` previously examined
+every scope containing a subscript write for each literal container read. It
+even included an unrelated function's fresh local dictionary write as a
+`NO_EFFECT` check in another file's site evidence. The effect catalog now
+classifies each such scope once: only a complete straight-line function body
+whose writes reach fresh local dict/list/tuple literals through explicit local
+name aliases, with constant literal contents and constant-index/value writes,
+is put in buckets keyed by the existing literal allocation identity. A scope
+with a parameter or imported receiver, return/escape/call, nested or dynamic
+operation, rebind to an unproven value, module global or unsupported control
+flow stays in the conservative fallback set. A container read inspects its
+bucket, the fallback set and its own execution/owner scopes. The index does
+not resolve receivers or invoke Jedi during preparation, and the historical
+effect handlers still inspect all retained candidate events. Removing a
+provably unrelated scope also removes its old redundant `NO_EFFECT` rows from
+that site's coverage receipt; relevant and unknown origins remain.
+
+`graph` records `slot_scope_index_build_scopes` and
+`slot_scope_fallback_scopes` for one analysis preparation, separately from
+`slot_scope_candidates_checked` and `slot_events_checked` for actual reads.
+Identical-capture reuse performs no new preparation or checks and reports
+zeros. On a selected incremental component, these counters describe that
+component's new analysis, not all reused graph sites. This candidate index
+does not change the separate Python source incremental certificate or make
+unknown global dependencies complete.
+
 # Parso cache compatibility
 
 The Python analyzer installs a process-wide compatibility wrapper for Parso
