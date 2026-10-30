@@ -239,6 +239,9 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     try:
         db.execute("create table sites(ordinal integer primary key, data text not null)")
         db.executemany("insert into sites values(?,?)", ((i, canonical(site)) for i, site in enumerate(sites)))
+        db.execute("create table node_order(ordinal integer primary key, node_id text not null unique)")
+        db.executemany("insert into node_order values(?,?)", (
+            (i, node["node_id"]) for i, node in enumerate(nodes)))
         db.execute("create table query_observations(key text primary key, data text not null, checksum text not null)")
         db.executemany("insert into query_observations values(?,?,?)", (
             (canonical(record["key"]), canonical(record), digest(canonical(record)))
@@ -413,6 +416,100 @@ def _same_python_inputs(previous_folder, previous_manifest, files, repos, c):
     }, old_python != new_python
 
 
+def _reuse_python_graph(folder, prior, files, repos, c):
+    """Prepare an exact graph when captured Python and owning repository IDs persist.
+
+    Documentation in a Python-owning repository changes that repository's capture
+    identity, so this path deliberately declines it. The returned products are
+    fresh documents plus verified immutable Python evidence, not a local Python
+    dependency scheduler.
+    """
+    eligible, reason, _, python_changed = _same_python_inputs(folder, prior, files, repos, c)
+    if not eligible or python_changed:
+        return None, reason
+    if prior.get("dependency_store") != "indexed-v1":
+        return None, "previous-graph-evidence-unavailable"
+    old_files = source_files(folder, prior)
+    # SOURCE_FILES stores inventory without text. Its source hashes certify the
+    # identical decoded captures only when the whole repository inventory agrees.
+    def captures(items):
+        return {repo: digest(canonical(sorted((f["path"], f["sha256"])
+                                                   for f in items if f["repository"] == repo)))
+                for repo in {f["repository"] for f in items}}
+    old_capture, new_capture = captures(old_files), captures(files)
+    decoded_hashes = {(f["repository"], f["path"]): digest(f["text"]) for f in files}
+    node_snapshots = {
+        repo: digest(canonical(sorted((f["path"], decoded_hashes[f["repository"], f["path"]])
+                                      for f in files if f["repository"] == repo)))
+        for repo in {f["repository"] for f in files}
+    }
+    python_repos = {f["repository"] for f in files if f["path"].endswith(".py")}
+    if any(old_capture.get(repo) != new_capture.get(repo) for repo in python_repos):
+        return None, "python-repository-capture-changed"
+    for rel in ("catalog.sqlite", GRAPH_SITES):
+        checksum, size = hash_artifact(folder, rel)
+        if checksum != prior["artifacts"][rel] or size != prior["artifact_sizes"][rel]:
+            return None, "previous-graph-evidence-integrity-failed"
+    # This constructor checks live dependency pins and configured repository
+    # bindings, without preparing a Jedi project or visiting a Python AST.
+    document_nodes, _ = extract([f for f in files if not f["path"].endswith(".py")])
+    present_repositories = {n["repository"] for n in document_nodes if n["kind"] == "repository"}
+    for repo in sorted({f["repository"] for f in files} - present_repositories):
+        document_nodes.append(dict(
+            node_id=f"{repo}::repository", repository=repo, path="", kind="repository",
+            qualname=repo, parent=None, start=0, end=0, signature="", docstring="",
+            brief="", fingerprint=digest(repo), is_test=False,
+        ))
+    with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() + "?mode=ro&immutable=1",
+                                 uri=True)) as db:
+        python_records = {node_id: json.loads(raw) for node_id, raw in db.execute(
+            "select node_id,data from nodes where path like '%.py'")}
+        with closing(sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1",
+                                     uri=True)) as evidence:
+            order = [node_id for (node_id,) in evidence.execute(
+                "select node_id from node_order order by ordinal")]
+        python_nodes = [python_records[node_id] for node_id in order if node_id in python_records]
+        if len(python_nodes) != len(python_records) or len(order) != prior["node_count"]:
+            return None, "previous-node-order-unavailable"
+        edges = [json.loads(raw) for (raw,) in db.execute(
+            "select data from edges where kind!='CONTAINS' order by edge_id")]
+    expected = {(f["repository"], f["path"]): f for f in files if f["path"].endswith(".py")}
+    if (not all((n["repository"], n["path"]) in expected
+                and n["source_sha256"] == decoded_hashes[n["repository"], n["path"]]
+                and n["snapshot_id"] == node_snapshots[n["repository"]]
+                and n["file_fingerprint"] == expected[n["repository"], n["path"]]["sha256"]
+                for n in python_nodes)
+            or {(n["repository"], n["path"]) for n in python_nodes if n["kind"] == "module"} != set(expected)):
+        return None, "previous-python-catalog-mismatch"
+    nodes = document_nodes + python_nodes
+    graph = Graph(nodes, {}, repos)
+    if graph.cross_bindings != prior["graph"].get("dependency_bindings"):
+        return None, "dependency-bindings-changed"
+    for n in nodes:
+        if n["parent"]:
+            graph.add_edge(n["parent"], n["node_id"], "CONTAINS", "resolved",
+                           "AST lexical ownership", n["start"], n.get("column", 0))
+    edges = list({e["edge_id"]: e for e in (*graph.edges, *edges)}.values())
+    with closing(sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1",
+                                 uri=True)) as db:
+        sites = [json.loads(raw) for (raw,) in db.execute("select data from sites order by ordinal")]
+        def private(table):
+            return [json.loads(raw) for (raw,) in db.execute(
+                "select data from " + table + " order by " +
+                ("key" if table == "query_observations" else "ordinal"))]
+        observations = private("query_observations")
+        dependencies = private("import_dependencies")
+        requests = private("import_requests")
+    if len(sites) != prior["graph"]["call_sites"]:
+        return None, "previous-graph-evidence-count-mismatch"
+    info = dict(prior["graph"], sites=sites, _query_observations=observations,
+                _import_dependencies=dependencies, _import_requests=requests)
+    info["jedi_queries_reused"] = info["jedi_queries"]
+    info["jedi_queries_executed"] = 0
+    info["association_evaluations"] = 0
+    return (nodes, edges, info), "python-capture-identical"
+
+
 def migrate_metadata(c, version, expected_program_hash):
     """Explicit offline migration of a frozen version; publish only the small sidecar last.
 
@@ -497,7 +594,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
           on_candidate=None):
     """Build all channels from captured source; publish only after rechecking source bytes.
 
-    AST/Jedi relationships and HNSW are recomputed during update, not retrieval. SQLite
+    AST/Jedi relationships are reused only for identical captured Python repositories;
+    HNSW is maintained during update, not retrieval. SQLite
     nodes/edges/postings update by content difference; unchanged vectors never call API.
     """
     data = Path(c["data"])
@@ -509,12 +607,25 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 raise ToolError("Bound publication requires update-coordinated")
         started = time.monotonic()
         files, repos, fingerprint = inventory(c)
-        nodes, asts = extract(files)
-        texts = embedding_texts(nodes, files)
-        graph = Graph(nodes, asts, repos)
-        reuse = None
-        reuse_reason = "no-previous-snapshot"
+        prepared = None
+        preparation_reason = "no-previous-snapshot"
         if previous:
+            try:
+                old_folder, old_manifest = manifest(c, previous, compatible=False)
+                prepared, preparation_reason = _reuse_python_graph(
+                    old_folder, old_manifest, files, repos, c)
+            except (OSError, ToolError, KeyError, ValueError, sqlite3.Error):
+                preparation_reason = "previous-graph-evidence-unavailable"
+        if prepared is None:
+            nodes, asts = extract(files)
+        else:
+            nodes, edges, graph_info = prepared
+            asts = {}
+        texts = embedding_texts(nodes, files)
+        reuse = None
+        reuse_reason = preparation_reason
+        if previous and prepared is None:
+            graph = Graph(nodes, asts, repos)
             try:
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
                 eligible, reuse_reason, unchanged, python_changed = _same_python_inputs(
@@ -532,17 +643,37 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                     reuse_reason = "dependency-bindings-changed"
             except (OSError, ToolError, KeyError, sqlite3.Error):
                 reuse_reason = "previous-query-cache-unavailable"
-        try:
-            edges, graph_info = graph.build(query_reuse=reuse)
-        finally:
-            if reuse is not None:
-                reuse.close()
+        if prepared is None:
+            if not previous:
+                graph = Graph(nodes, asts, repos)
+            try:
+                edges, graph_info = graph.build(query_reuse=reuse)
+            finally:
+                if reuse is not None:
+                    reuse.close()
         observations = graph_info.pop("_query_observations")
         import_dependencies = graph_info.pop("_import_dependencies")
         import_requests = graph_info.pop("_import_requests", None)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
+        analysis_scope = dict(
+            mode="identical-python-capture-reuse" if prepared is not None else "full-graph",
+            reason=preparation_reason,
+            python_files_parsed=0 if prepared is not None else sum(
+                f["path"].endswith(".py") for f in files),
+            python_ast_context_files=0 if prepared is not None else sum(
+                f["path"].endswith(".py") for f in files),
+            reused_python_nodes=sum(n["path"].endswith(".py") for n in nodes)
+            if prepared is not None else 0,
+            document_files_parsed=sum(not f["path"].endswith(".py") for f in files),
+            reused_graph_sites=graph_info["call_sites"] if prepared is not None else 0,
+            sites_analyzed=0 if prepared is not None else graph_info["call_sites"],
+            jedi_queries_executed=graph_info["jedi_queries_executed"],
+            reused_graph_edges=sum(e["kind"] != "CONTAINS" for e in edges)
+            if prepared is not None else 0,
+            output_nodes=len(nodes), output_edges=len(edges),
+        )
         ident = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:10]
         folder = data / "versions" / ident
         folder.mkdir(parents=True)
@@ -675,6 +806,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 planned_vector_chunks=len(texts),
                 incremental=dict(
                     previous=previous,
+                    analysis_scope=analysis_scope,
                     nodes_updated=changed,
                     nodes_removed=len(removed),
                     postings_updated=posting_updates,

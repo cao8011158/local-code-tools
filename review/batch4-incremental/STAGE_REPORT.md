@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-30 新进展：阶段35完成解析前的严格同Python捕获复用开发，待固定提交后的独立审阅。只覆盖Python仓库捕获完全不变（含独立文档仓库变化）；Python变动后的依赖局部重分析仍未接入，Batch4未完成。
 2026-10-30 当前状态：版本引用修复已完成限定独立验证（v5 29/29）；正式构建已保存可反查依赖索引，e1500d2c35a960dd0688871f1ac6daa659f5e886经第二轮独立审阅，508 passed/25 skipped。真正局部解析与完整增量接入尚未完成，未合并。
 最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
@@ -228,3 +229,11 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - 实际FileDependencies.adjacent/importers执行语句经trace提取，EXPLAIN QUERY PLAN显示源/目标及请求名称索引SEARCH；SQLite进度处理器实测VM指令。0→100无关文件（均带额外无关导入/调用关系）下，adjacent冷/热53/39步，importers冷/热20/17步，两组完全相同，每次只返回1条。独立定向1 passed、0.90秒，日志depstore-root-fixed-plans.log。
 - 上述计数不包含打开快照时的一次完整sidecar哈希校验；该校验用于构建/更新准入，连接复用后查询不重做。不把查询局部性推广为整个build局部。完整输出、inventory、AST准备、Graph分析目前仍全量。
 - 本切片通过，但Batch4未完成、不合并。版本引用helper只在实验接入；下一具体工作是在extract之前接入受影响范围选择，并实际复用未受影响分析/身份，完整统一发布和真实验收仍待完成。此轮未开启付费API、Neo4j服务或真实图/Drive更新。
+
+## 阶段35：解析前同Python捕获复用开发完成，未提交
+开发子Agent GPT-6 SOL medium；基线71da2eea831f6358287bc931e757851187ef8525，分支feat/incremental-index-updates，合并目标仍为feat/local-code-tools-import（fc857f395a381e5dfec9941d60ca685bcbe0b3fd）。
+- storage.build在extract之前调用_reuse_python_graph：Python源文件及所属仓库整个捕获身份相同，程序/配置/运行时和依赖绑定匹配、旧产物校验通过，才复用Python节点、关系和证据。独立文档仓库重新提取文档并重建所属关系；代码仓库本身的文档改变仍回退全量。
+- 保留Python-only仓库节点；graph-sites新增node_order，保存原提取顺序，防止SQLite行顺序改变模块成员摘要和向量输入。源码文本摘要按文件准备一次，不逐定义重复哈希。旧格式缺少顺序表则回退。
+- 开发定向18 passed（4.42秒）；迁移/恢复相关12 passed；最终tests/507 passed、25 skipped（16.20秒）；Ruff通过。原始日志及source-prepare-development.md保留。生产修改限storage.py；新测试test_source_prepare.py；没有启用旧file_incremental草稿。
+- 主Agent开发期间额外4项独立样例通过（1.99秒），尚不作为固定SHA正式审阅：0/20无关Python文件下文档变动均零Python解析；发布前失败保留旧版本；同代码仓库文档修改回退；先插入函数后复用仍保持完整构建的向量输入。
+- 本路径仍做必要全量inventory、旧产物校验、节点/边装配及输出；不是Python文件发生变化后的局部调度。没有Python的纯文档项目仍走原路径。无API、真实图、Neo4j或Drive操作；下一步推送并独立审阅，本切片不等于Batch4完成。
