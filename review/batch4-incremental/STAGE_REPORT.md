@@ -187,3 +187,12 @@ GPT-6 SOL medium子Agent完成directional-experiment脚本与冻结graph_under_t
 - 30无关文件下只重审a/b共3个外层调用点、4次选择性Jedi；仍有32+32全AST准备和候选全局非CALLS分析，不能称端到端局部化。
 - B4-DIR-PROVENANCE明确保留：同文件另一类消费者目标和所有非版本字段相同，但12处嵌套version_id仍旧；逐路径证据已保存，不删除比较、不把结果记成27/27。版本重绑定未实现。
 - 详见directional-experiment/v4-independent-review.md、v4-proof-version-differences.json和原始日志。此次限定修复结束，未继续扩大到正式版本/发布实现；未合并、未调用付费API或改真实索引。
+
+## 阶段29：用户授权版本引用修复与后续正式接入；开发完成
+基线6f153214c253b6106b43202aff04d70ab7474723，feat/incremental-index-updates。GPT-6 SOL medium开发子Agent完成lct/evidence_reuse.py、定向测试及v5实验；正式storage/graph入口尚未接线。
+- RebindContext每对捕获准备一次身份索引，按(repository,path,完整qualname,kind)定位；定义检查按ID记忆，避免每条记录重复扫全表。核对旧版本、AST/指纹/位置，限已知引用格式；失败则重分析所属文件，旧记录不变。
+- 开发定向8 passed；v5严格限定语义比较29/29一致（保留v4原失败）。同文件未受影响的另一类调用者可以复用，旧12处版本引用已更新。
+- 开发tests/回归502 passed/25 skipped；这是含既有未提交graph修复的开发副本，主Agent将另准备固定远端源码副本复核。无路径限定pytest因实验目录缺psutil/冻结脚本相对导入在收集阶段失败，日志保留，不称全仓库通过。
+- 明确成本退化：变化helper的旧证据引用了变化定义，保守拒绝全部20消费者，21/21文件、20/20外层调用点、40/40 Jedi；不继续沿用v4节省数字。全AST准备仍在；外层site/edge身份未在实验中全面重绑定，不能称生产完成。
+- 并行只读接入检查已完成，报告integration-plan.md。正式入口仍全量extract+Graph.build，草稿期待的file_adjacency/import_requests表未持久化，不直接启用。需顺序补齐依赖索引、解析前分流、有效性证书及版本发布；没有确认外部核心依赖故障。
+- 接下来固定远端后独立验证。未调用付费API或改真实图/Drive。
