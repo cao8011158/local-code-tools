@@ -311,3 +311,10 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 2026-10-31，GPT-6 SOL medium。B4-CROSSREPO-PROJECT改为每请求仓库Jedi环境，B4-CROSSREPO-SHADOW补requester索引；祖先pkg.py/包__init__.py布局变动对照确有影响，保守完整回退并覆盖新增/删除，不伪装局部成功。
 - 开发定向16 passed（6.05秒），快速全tests/536 passed/25 skipped（20.29秒），Ruff通过；原始日志已保存。开发未push，待root固定提交review。
 - 5个生产文件、2个测试文件、1个契约文档；未改Jedi版本、未执行真实服务/API/Drive。完整清单和限制见crossrepo-development.md。
+
+## 阶段46：跨库第1/3轮正式review，需修复包上下文遗漏
+固定提交d9ecf8538b0078b30edbf0e92dd2f78b2e85bbe4，远端核对一致；独立目录332个可用文件按远端blob核对，生产/测试/必要支持文件无缺失。快速回归及既有独立反例561 passed、25 skipped，33.15秒。
+- B4-CROSSREPO-PROJECT同名完整包路径用例修复；不同包名正常对照保留。requester索引先前独立测量在0/20无关pairs时仍1相关行、3解析文件，正式固定测量将在整改后补齐。
+- 新增同根因变体B4-CROSSREPO-PACKAGE-CONTEXT（P2）：本库已有未变化的包__init__.py或祖先pkg.py，调用方导入依赖库pkg.child。局部Graph只携带选择的AST源码，遗漏本库已有包边界；它的Jedi环境与完整构建不同。新增包时的fallback不能覆盖“包早就存在，本次只改caller”。独立探针确认edges/sites/import_dependencies/import_requests不一致，证据crossrepo-existing-package-probe.json及test_existing_package_context_independent.py。
+- 明确修复：在闭包中通过现有module目录加入所选模块的包祖先，以及import请求在请求仓库/目标仓库中的祖先模块（含__init__与普通模块遮蔽），继续沿已有依赖扩展；只加入实际前缀上下文，不全仓库解析。不能放宽证据或抹去UNKNOWN；不更换Jedi。按当前step P2自行限定整改，再第2轮review，轮次不重置。
+- 未合并、未调用付费或真实服务。完整通过数不掩盖独立新增失败。
