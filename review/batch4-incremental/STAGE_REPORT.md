@@ -1,6 +1,7 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+最新进展：实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a已推送；已接入有证明的有限查询单元复用、HNSW未变化分区复用与导入依赖索引。完整Python依赖局部分析、图差分与最终验收仍未完成，未合并。
 最新进展：未解析导入LOOKUP_IN依赖切片已实现并完成SQLite/Neo4j独立验证，实现提交b345475259b951dbcb18fd3a97982fb1c1a9afb8已推送；完整增量分析仍未实现，未合并。
 2026-10-30（北京时间）：已开始；新分支feat/incremental-index-updates，基线/目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。未合并；正式审阅0/3。用户授权：好 那开始batch 4；通过review自动merge授权延续。Batch3旧问题历史不重置。
 
@@ -92,3 +93,10 @@ HNSW helper已接入storage.build，新增复用/重建分区计数。开发全t
 主Agent新增实际公开prepare_only第二次dense build反例：UnboundLocalError，位置storage.build旧manifest变量仅在普通发布保护分支赋值。属于本step新引入P2，候选未发布，旧current保留。失败日志reuse-prepare-probe.log；稳定编号B4-DENSE-002。
 开发子Agent按明确方案修复：复制旧catalog时同时取得old_folder与old_dense_manifest，初始化为None；HNSW helper使用这个成对来源，不依赖入口保护变量。新增prepare_only和on_candidate第二次build测试，前者旧current不变、后者callback获得旧版本后正常发布；均复用全部分区且0API请求。
 修复定向含主Agent反例/发布/attach：13 passed，1.49秒，Ruff通过（dense-prior-fix-targeted.log）。再次冻结，待推送后独立回归。两个P2均处于本step自动修复范围，未确认P0/P1。完整Batch4正式review未开始，未合并。
+
+## 阶段14：固定远端实现后的独立验证结论
+实现提交14d4e7581ffdb7309ba619741ded91fd75bfad9a，分支feat/incremental-index-updates；27个变更文件Git blob SHA核对一致。最终独立命令：python -m pytest -q tests review/batch4-incremental/test_reuse_independent.py → 496 passed、25 skipped，19.74秒，exit0（reuse-remote-final.log）。本轮未启动真实Neo4j，没有付费API或真实图/向量重建，未改Drive包。
+B4-QUERY-001 addressed：外部依赖变化候选first/second反例通过；缓存只接受绑定证书，原UNKNOWN语义保留。
+B4-DENSE-002 addressed：prepare_only及on_candidate第二次dense构建通过，旧版本/发布条件按原契约保持。
+独立公开build确认3个HNSW分区复用/0重建/0API，禁止Index构造仍成功；损坏旧推断缓存后重新推断，与强制全量对照一致。新增Python变动测试记录真实Jedi.infer：变化文件执行，未变化嵌套函数的合格查询跳过；公开节点、边、站点与强制全量一致。根Agent未改生产代码。
+本阶段部分功能检查通过，但不是完整Batch4审阅通过，完整正式review仍0/3。剩余：全量LCT解析/判断还会执行；完整跨文件/回调/隐式影响依赖证书与安全复用未完成；Neo4j差分、完整统一发布恢复、真实规模与备份验收待完成。不合并，不将有限查询缓存冒充完整局部分析。
