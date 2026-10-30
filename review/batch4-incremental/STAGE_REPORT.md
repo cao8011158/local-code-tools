@@ -271,3 +271,18 @@ GPT-6 SOL medium开发子Agent修改storage.split_graph/build并新增FileDepend
 - public build中trace实际SQL，再EXPLAIN并记录VM指令：3→43个Python文件（增加20对真实无关导入关系），依赖查询仍4次、返回仍3行，解析仍2文件；VM总计138→141。使用源主键、目标索引与请求索引SEARCH。完整产物读取/哈希/装配成本仍全量，未掩盖。
 - 本切片限定通过，不等于实际项目全面增量。整个捕获必须满足单代码仓库严格语法认证；类/装饰器/注解、未解析或外部导入、多代码仓库等仍完整分析。后续需要覆盖实际业务用法，完成真实统一发布/恢复/规模验收，Batch4才可合并。
 - 详细changed-python-independent-review.md及三份root日志已保存。固定生产代码未改；独立测试追加返回函数反例和访问计数文件属于审阅证据。未调用API、未改真实图/Drive，未合并。
+
+## 阶段40：跨仓库后续接入点只读诊断完成；类支持开发进行中
+2026-10-31，基线a052f88d25646ee515523053898fe77463dbc526。GPT-6 SOL medium只读子Agent完成具体接点分析，无实现改动/真实数据/API操作，详见crossrepo-next-plan.md。
+- 后续复用Graph.imported既有本库优先和精确pin规则；闭包使用(repository,path)和现有跨库索引。RebindContext路径字符串需要改为带仓库身份。绑定状态变化继续完整回退，不能只删除单仓库限制。
+- source_snapshot非Git目录不能自动通过现有工作区干净性检查；不得直接拿head字段替代证明。后续需要明确处理这一契约边界。
+- 当前类支持开发对照已定位B4-CLASS-MARKER（P2，既有我方解析组件）：共享AST Load/Store标记被按scope所有权过滤并参与clock，导致无关文件改变真实事件的证据编号。调用目标未见差异，完整JSON比较正确阻止误报通过。主Agent核对EffectCatalog.visit后批准仅跳过无执行意义的上下文/运算符标记，保留实际事件顺序与UNKNOWN。
+- 类支持新增3项固定旧提交基线均因仍全量解析失败（1.34秒），日志class-component-root-baseline.log。正式类切片审阅尚未开始，旧审阅轮次不变。
+
+## 阶段41：类与实例方法局部更新开发完成，未推送
+2026-10-31。开发者GPT-6 SOL medium；基线a052f88d25646ee515523053898fe77463dbc526，分支feat/incremental-index-updates。
+- simple-python-v2支持普通类、构造器self字段、明确工厂返回对象及保存的绑定方法；未知参数属性、继承/装饰器/反射等仍完整回退。
+- B4-CLASS-MARKER仅跳过无执行意义的AST标记；主Agent固定旧实现独立复现1 failed、1 passed（0.30秒），完整日志保留。
+- 开发快速回归543 passed、25 skipped，21.50秒；Ruff通过。独立样例0/20无关类文件下均只解析a/b且完整记录等于全量构建；此处为开发者复跑，尚非固定SHA独立review。
+- 生产改动仅simple_python.py和python_effects.py，测试调整类的正向/继承回退边界并增加标记、实例返回和错误接收者反例。详细class-component-development.md。
+- 下一步推送固定代码并独立审阅；没有生成真实图、调用API或操作Drive。整个Batch4尚未完成。
