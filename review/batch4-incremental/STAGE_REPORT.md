@@ -434,3 +434,11 @@ GPT-6 SOL medium完成Analyzer实际container读取记录与全capture writer订
 - 完整构建/identical保留记录；现有local路径通过纯merge helper维护，选中consumer替换，保留旧记录需端点存在且验证，跨selected producer或未重算的全capture watcher存在则回退full。没有把新API用作增量准入。
 - 定向31 passed/7.85秒、快速全仓557 passed、25 skipped/25.06秒、ruff通过。嵌套copy B->A->C链、原无图边读取、孤立writer无依赖、未来订阅、记录预算、旧格式、失败发布均有测试。真实certified local验证零记录；非空merge用纯helper单测，未伪造已发布证书。
 - 生产变更python_analysis.py、graph.py、storage.py、python_incremental.py及新测试/契约。不改simple证书，不宣称完整Python/Jedi依赖覆盖。尚未推送本轮，下一步主Agent固定远端独立审阅。无全库/服务/付费/Drive/合并。
+
+
+## 阶段64：部分分析依赖持久化独立第1/3轮审阅通过
+固定远端358b63f4c07a8e847b74345eb1a214804e415e14，tree6dc999e3846145be5b19091efea8decec2a1baa1，416份文件blob核对，全部非review文件齐全。主Agent仅修正自己的测试，未改生产代码。
+- 联合回归571 passed、1 failed、25 skipped/31.58秒；557项仓库测试全部通过。失败是独立用例读取已被默认两版保留策略淘汰的版本；保留日志，改查仍保留的上一版本后3 passed/1.08秒，计数重叠，未把首次整套称为全绿。
+- 实际公开build验证未来writer订阅、无普通图边的实际读取、失败发布、identical复用、删除过时读取及旧视图隔离。预算降到1仍保持nodes/edges/sites完全相同，截断仅影响依赖证据可用性。
+- 0/40无关模块，目标/异库负对照共2次真实API查询、目标1行、SQLite VM均38步；均SEARCH覆盖索引，无SCAN。构造器全量完整性哈希单独说明。
+- 完整结论analysis-read-independent-review.md；本限定补充通过，Batch4仍未完成，未合并。尚未将partial记录用于增量准入，其他分析依赖与真实业务局部/全量对照仍需完成。无服务、付费、全库或Drive操作。

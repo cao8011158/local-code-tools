@@ -52,7 +52,9 @@ def test_subscription_precedes_new_writer_and_failed_publish_keeps_old_reads(tmp
     with FileDependencies(new_folder, new_meta) as deps:
         assert deps.analysis_readers('synthetic-review', 'src/a.py') == set()
         assert deps.analysis_watchers('slot-writer-universe') == {consumer}
-    with FileDependencies(folder, meta) as deps:
+    # Default retention keeps current and previous publication; the identical
+    # capture is the retained previous view, not the older second publication.
+    with FileDependencies(same_folder, same_meta) as deps:
         assert deps.analysis_readers('synthetic-review', 'src/a.py') == {consumer}
 
 
