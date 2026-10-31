@@ -978,3 +978,12 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - B4-OWN-04明确关闭：真实六文件数值变化按被选opaque receiver实际来源覆盖不足full，100步骤/1134gaps等来源轨迹与fresh一致，未改Full精度/UNKNOWN。含opaque方法但无真实依赖的idle函数变化仍owner；旧parameter-origin实际读不抹除；self()的None receipt边界不崩溃；普通开放callback仍owner。新04链的原红例、错误“无关”假设和初修None退化均保留。
 - 当前头再次0/20/100扩容：selected7、Jedi10、association12、sites3不变，仅变动文件解析；来源SQL冷161/162/162、热157/158/158、索引SEARCH与输出数不变。实际准备/整工件验证/序列化仍全量成本，未声称全流程O(K)。
 - BATCH2_OWNER_REVIEW追加第2轮pass，EVIDENCE保留第1轮及所有findings；04resolved，刚核对7f1d86与fc857f3时gate READY、正式两轮、无blocking。下一提交仅关闭证据，生产不变，再恢复B3有界真实输入/发布恢复/离线dense验收。旧九文件诊断不冒充新program hash验收，不抬20k预算、不扩83/三库、不执行源码/付费API/服务；整体仍未合并。
+
+## 阶段124：Batch 3有界真实输入与发布恢复开发冻结
+
+- 生产保持已审7f1d86e代码，新增项目test_batch3_actual_acceptance.py；DEVELOPER_BATCH3_ACCEPTANCE.md、九原字节SOURCE_PROVENANCE.json、work JSON与9项SHA清单保存并逐项校验。主tests完整含九文件长测一次678 passed/27 skipped/178.08秒，三/六文件+root独立发布定向3 passed/1 nine deselected/14.03秒，跨库pin/协调/portable restore/USearch/attach相关26 passed/5.30秒；F/E9及diff空白通过，重合项不相加。尚无B3正式review通过。
+- 真实三文件actor语义变动owner，仅变动文件解析，28 Jedi/51 associations对full51/81；失败旧指针、旧BM25视图、recover后继续owner、合成文件增删明确membership full，均与fresh的20语义/私有表相同。六文件注释仅同语义控制；实际item_units约束变化按已修opaque证据full并保留fresh来源轨迹，未虚称该组局部收益。
+- 九文件97节点/696边/408sites、20k association、limited；修改后仍明确full，原始/编辑版本与同输入fresh一致。冻结lexical catalog填96个synthetic chunks，attach真实USearch三分区、0provider；BM25/dense/精确/RRF/节点/关系版本一致。缺外部模块仍boundary/UNKNOWN，没有stub、业务代码执行、付费API、Neo4j或三库/83全业务图。
+- root另补实际公开build的透明计数preflight，0/20/100无关活跃文件下solver固定7owners/10Jedi/12association/3sites、只parse1；AST decode1次、模块inventory/源码挂载均N一次。捕获实际2次为开始捕获和发布前围栏，最初测量脚本误断言一次的红日志保留并纠正，没有删除必要围栏。
+- 明确全量成本：storage.hash_artifact实际流式校验均8次、读取1,225,862/2,666,916/8,140,436字节；新snapshot工件450,946/1,040,524/3,284,188字节。公开单节点回复882字节、单关系1059字节，首次/重复相同；小回复不被当成内部IO局部的证明。源码文本观察/哈希函数/AST/挂载/写盘分列，JSON与可复现脚本保存，不声称全流程O(K)，不虚构未独立计时阶段。
+- 下一步固定B3远端候选，独立完整回归+真实/发布/恢复/规模检查；B1通过、B2第2轮通过状态保留，B3正式0/3。满足所有门槛与既有合并授权后才合并，当前尚未合并。

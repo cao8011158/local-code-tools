@@ -1,0 +1,4 @@
+{"group": "three", "owner_mode": "incremental-owners", "parsed": 1, "membership_add": "python-membership-changed", "membership_delete": "python-membership-changed"}
+.{"group": "six", "mode": "incremental-owners", "reason": "incremental-owners", "association": 12807, "jedi": 174}
+.
+2 passed, 1 deselected in 6.96s
