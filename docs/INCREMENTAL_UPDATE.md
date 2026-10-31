@@ -1,5 +1,40 @@
 # Incremental update planner contract (Batch 4, first layer)
 
+## Observed source origins (Batch 1)
+
+Full graph analysis now writes private, source-located observations for ordinary
+call targets, actual callback parameters, definition-time defaults, returned
+values, and container reads and writes. Each support names a producer owner and
+site, a consumer owner and site, a kind, status and location details. Parameter
+supports are recorded when the analyzer actually resolves that parameter;
+separate consuming call sites retain separate supports. A memoized getter's
+container read is subscribed again for each final caller that consumes it.
+
+`FileDependencies.unit_sources(owner, site=None, limit=100, max_bytes=100000)`
+pages inspection results with `supports` and `has_more`. A row exceeding the
+byte budget raises an error. `unit_readers(producer, site=None)` returns every
+observed dependent owner/site through an indexed reverse lookup.
+`unit_container_readers(origin, key)` returns **all** readers of that container
+origin, marking `key_relation` as `same`, `range`, or `other-conservative`; it
+does not exclude another key without a complete proof. `unit_container_writes`
+without a key lists every known writer of the origin; its optional key selects
+exact/range writes for inspection, not a complete invalidation closure. An
+instance container origin includes the analyzer's existing unique constructor
+allocation identity, so two unique instances do not share one origin. An
+omitted key differs from the literal `None` key. `True`, `1`, and `1.0` share
+one exact key identity; unsupported constant keys remain ranges.
+
+The manifest declares `origin_dependency_schema=1` and
+`origin_dependency_coverage=observed-source-supports-partial`. These records
+retain candidates and `UNKNOWN`; they do not claim all Jedi or dynamic Python
+inputs are enumerated and do not change full graph targets or precision. Old or
+incompatible origin schemas raise an explicit source-origin error at this API.
+Identical Python capture reuse copies the verified observations. The existing
+strict/general changed-Python local routes mark origin evidence unavailable,
+because they cannot yet merge a complete source ledger. Owner-level scheduling
+will be integrated in a later batch; the public build gate remains the existing
+source certificate policy in this batch.
+
 ## Function-value dependency design status
 
 The private analysis dependency sidecar now writes schema 2 (schema 1 remains

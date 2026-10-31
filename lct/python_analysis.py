@@ -14,6 +14,7 @@ from pathlib import Path
 import jedi
 
 from .common import canonical, digest
+from .dependency_origins import LIMIT as ORIGIN_LIMIT, key_identity
 from .analysis_inputs import AnalysisInputs
 from .parso_cache_compat import ensure_parso_cache_timestamps
 from .python_access import AccessKind, ReceiverAccess, access, combine
@@ -196,6 +197,12 @@ class Analyzer:
             self.module_for[ident] = mod
         self.analysis_reads = set()
         self.analysis_watches = set()
+        self.unit_supports = {}
+        self.unit_container_subscriptions = {}
+        self.unit_container_writes = {}
+        self._unit_writes_by_origin = defaultdict(list)
+        self._unit_subscriptions_by_query = defaultdict(dict)
+        self.unit_dependency_truncated = False
         self.analysis_dependency_truncated = False
         self._source_lines = {
             ident: tree._lct_source.splitlines() for ident, tree in self.modules.items()
@@ -213,6 +220,11 @@ class Analyzer:
                 for s in tree.body
             )
             self.inventory(tree, ident, ident, "module", deferred)
+        self._unit_site_by_expr = {(s["execution_owner"], id(s["_expr"])):
+                                   (s["site_id"], s["_expr"])
+                                   for s in self.sites}
+        self._unit_site_by_id = {s["site_id"]: (s["execution_owner"], s["_expr"])
+                                 for s in self.sites}
 
         self._query_certificates = self._build_query_certificates()
 
@@ -286,6 +298,140 @@ class Analyzer:
             self.analysis_dependency_truncated = True
             return
         destination.add(record)
+
+    def _unit_site(self, scope, expr, role):
+        """Source-located private site for noncall reads/writes and returns."""
+        existing = self._unit_site_by_expr.get((scope, id(expr)))
+        if existing is not None and role == "call":
+            return existing[0]
+        module = self.nodes[self.module_for[scope]]
+        return digest(canonical([module["repository"], module["path"],
+                                 module["snapshot_id"], getattr(expr, "lineno", 0),
+                                 getattr(expr, "col_offset", 0),
+                                 getattr(expr, "end_lineno", 0),
+                                 getattr(expr, "end_col_offset", 0), role]))
+
+    def _unit_consumer(self, scope, expr):
+        if self.stack:
+            root_scope, root_expr, _ = self.stack[0]
+            indexed = self._unit_site_by_expr.get((root_scope, root_expr))
+            if indexed is not None:
+                root = indexed[1]
+                return root_scope, self._unit_site(root_scope, root, "call")
+        return scope, self._unit_site(scope, expr, "read")
+
+    def _unit_consumer_in(self, scope, expr):
+        for owner, expression, _ in reversed(self.stack):
+            if owner == scope and (owner, expression) in self._unit_site_by_expr:
+                site, original = self._unit_site_by_expr[owner, expression]
+                return site, original
+        return self._unit_site(scope, expr, "read"), expr
+
+    def _unit_record(self, collection, record):
+        if self.unit_dependency_truncated:
+            return
+        if (len(self.unit_supports) + len(self.unit_container_subscriptions) +
+                len(self.unit_container_writes) >= ORIGIN_LIMIT):
+            self.unit_dependency_truncated = True
+            return
+        collection[canonical(record)] = record
+
+    @staticmethod
+    def _unit_expression(expr):
+        if isinstance(expr, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            return expr.name
+        return ast.unparse(expr)[:240]
+
+    @staticmethod
+    def _unit_origin(atom):
+        # The existing finite container model distinguishes constructor
+        # allocations even when the dictionary expression is one __init__ AST.
+        return atom.target if not atom.allocation else atom.target + "@" + atom.allocation
+
+    def _unit_support(self, producer_owner, producer_expr, consumer_owner,
+                      consumer_expr, kind, detail, status="observed", *,
+                      producer_site=None, consumer_site=None):
+        producer_site = producer_site or self._unit_site(producer_owner, producer_expr, "source")
+        consumer_site = consumer_site or self._unit_site(consumer_owner, consumer_expr, "read")
+        self._unit_record(self.unit_supports, dict(
+            producer_owner=producer_owner, producer_site=producer_site,
+            producer_location=dict(repository=self.nodes[producer_owner]["repository"],
+                                   path=self.nodes[producer_owner]["path"],
+                                   line=getattr(producer_expr, "lineno", 0),
+                                   column=getattr(producer_expr, "col_offset", 0),
+                                   end_line=getattr(producer_expr, "end_lineno", 0),
+                                   end_column=getattr(producer_expr, "end_col_offset", 0),
+                                   expression=self._unit_expression(producer_expr)),
+            consumer_owner=consumer_owner, consumer_site=consumer_site,
+            consumer_location=dict(repository=self.nodes[consumer_owner]["repository"],
+                                   path=self.nodes[consumer_owner]["path"],
+                                   line=getattr(consumer_expr, "lineno", 0),
+                                   column=getattr(consumer_expr, "col_offset", 0),
+                                   end_line=getattr(consumer_expr, "end_lineno", 0),
+                                   end_column=getattr(consumer_expr, "end_col_offset", 0),
+                                   expression=self._unit_expression(consumer_expr)),
+            kind=kind, status=status, detail=detail))
+
+    def _unit_write(self, origin, key_kind, key, owner, expr, kind, status):
+        record = dict(origin=origin, key_kind=key_kind, key=key,
+                      producer_owner=owner, producer_site=self._unit_site(owner, expr, "write"),
+                      producer_location=dict(repository=self.nodes[owner]["repository"],
+                                             path=self.nodes[owner]["path"],
+                                             line=expr.lineno, column=expr.col_offset,
+                                             end_line=expr.end_lineno,
+                                             end_column=expr.end_col_offset,
+                                             expression=self._unit_expression(expr)),
+                      kind=kind, status=status)
+        if canonical(record) not in self.unit_container_writes:
+            self._unit_record(self.unit_container_writes, record)
+            if not self.unit_dependency_truncated:
+                self._unit_writes_by_origin[origin].append(record)
+        return record
+
+    def _unit_subscribe(self, origin, key_kind, key, scope, expr, reasons):
+        # Resolution memo entries may be consumed by several distinct outer
+        # call sites. Retain their actual reads for every later consumer.
+        observation = (origin, key_kind, key, scope, expr, frozenset(reasons))
+        for query in self.stack:
+            self._unit_subscriptions_by_query[query][(origin, key_kind, key,
+                                                        scope, id(expr))] = observation
+        consumer_owner, consumer_site = self._unit_consumer(scope, expr)
+        consumer_expr = self._unit_site_by_id.get(consumer_site, (consumer_owner, expr))[1]
+        read_site = self._unit_site(scope, expr, "container-read")
+        consumer_location = dict(repository=self.nodes[consumer_owner]["repository"],
+                                 path=self.nodes[consumer_owner]["path"],
+                                 line=consumer_expr.lineno, column=consumer_expr.col_offset,
+                                 end_line=consumer_expr.end_lineno,
+                                 end_column=consumer_expr.end_col_offset,
+                                 expression=ast.unparse(consumer_expr)[:240])
+        record = dict(origin=origin, key_kind=key_kind, key=key,
+                      read_owner=scope, read_site=read_site,
+                      read_location=dict(repository=self.nodes[scope]["repository"],
+                                         path=self.nodes[scope]["path"],
+                                         line=expr.lineno, column=expr.col_offset,
+                                         end_line=expr.end_lineno,
+                                         end_column=expr.end_col_offset,
+                                         expression=ast.unparse(expr)[:240]),
+                      consumer_owner=consumer_owner, consumer_site=consumer_site,
+                      consumer_location=consumer_location,
+                      unknown_reasons=sorted(reasons))
+        self._unit_record(self.unit_container_subscriptions, record)
+        for write in self._unit_writes_by_origin.get(origin, ()):
+            if (key_kind == "exact" and write["key_kind"] == "exact"
+                    and write["key"] != key):
+                continue
+            support = dict(producer_owner=write["producer_owner"],
+                           producer_site=write["producer_site"],
+                           producer_location=write["producer_location"],
+                           consumer_owner=consumer_owner, consumer_site=consumer_site,
+                           consumer_location=consumer_location,
+                           kind="container-writer", status="candidate",
+                           detail=dict(origin=origin, key_kind=key_kind, key=key,
+                                       read_owner=scope, read_site=read_site,
+                                       read_location=record["read_location"],
+                                       write_kind=write["kind"],
+                                       unknown_reasons=sorted(reasons)))
+            self._unit_record(self.unit_supports, support)
 
     def _record_scope_read(self, producer_scope, kind, consumer_scope=None):
         """Record an observed cross-module read at the current evaluation scope."""
@@ -787,7 +933,8 @@ class Analyzer:
             context = self._query_context.get(key)
             if context is None or not self._direct_lexical_query(*context, result, raw):
                 continue
-            records.append(dict(key=list(key), atoms=[vars(a) for a in sorted(
+            records.append(dict(key=list(key),
+                atoms=[vars(a) for a in sorted(
                 result.atoms, key=lambda a: (a.kind, a.target, a.bound, a.receiver, a.allocation))],
                 reasons=sorted(result.reasons), proofs=sorted(result.proofs), raw=raw))
         return records
@@ -899,6 +1046,8 @@ class Analyzer:
             if key not in deps:
                 deps.append(key)
         if key in self.memo:
+            for observation in tuple(self._unit_subscriptions_by_query.get(key, {}).values()):
+                self._unit_subscribe(*observation)
             return self.memo[key]
         if key in self.active:
             self.recursions += 1
@@ -1026,7 +1175,16 @@ class Analyzer:
                         continue
                     obj = self.trees[a.target]
                     returns = [obj.body] if isinstance(obj, ast.Lambda) else self.return_values(obj)
-                    results.extend(self.resolve(a.target, r) for r in returns)
+                    for returned in returns:
+                        value = self.resolve(a.target, returned)
+                        results.append(value)
+                        self._unit_support(a.target, returned, scope, expr,
+                                           "return-value", dict(
+                                               call_expression=ast.unparse(expr),
+                                               target_ids=sorted(atom.target for atom in value.atoms
+                                                                 if atom.kind in CALLABLE_KINDS),
+                                               unknown_reasons=sorted(value.reasons)),
+                                           "unknown" if value.unknown else "observed")
             if results:
                 return union(
                     *results,
@@ -2057,11 +2215,43 @@ class Analyzer:
                 else:
                     arg = next((kw.value for kw in call.keywords if kw.arg == param.arg), arg)
                     if arg is not None:
-                        results.append(self.resolve(site["execution_owner"], arg))
+                        supplied = self.resolve(site["execution_owner"], arg)
+                        results.append(supplied)
+                        use_site, use_expr = self._unit_consumer_in(scope, param)
+                        self._unit_support(site["execution_owner"], arg, scope, use_expr,
+                                           "actual-parameter", dict(
+                                               parameter=dict(name=param.arg, index=index,
+                                                              kind="keyword" if any(
+                                                                  kw.arg == param.arg for kw in call.keywords)
+                                                              else "positional"),
+                                               argument_source=dict(kind="keyword" if any(
+                                                   kw.arg == param.arg for kw in call.keywords)
+                                                                    else "positional",
+                                                                    call_site=site["site_id"],
+                                                                    expression=ast.unparse(arg)),
+                                               target_ids=sorted(a.target for a in supplied.atoms
+                                                                 if a.kind in CALLABLE_KINDS),
+                                               unknown_reasons=sorted(supplied.reasons)),
+                                           "unknown" if supplied.unknown else "observed",
+                                           producer_site=site["site_id"], consumer_site=use_site)
                     else:
                         default = self.parameter_default(t, param.arg)
                         if default is not None:
-                            results.append(self.resolve(self.nodes[scope]["parent"], default))
+                            default_scope = self.nodes[scope]["parent"]
+                            supplied = self.resolve(default_scope, default)
+                            results.append(supplied)
+                            use_site, use_expr = self._unit_consumer_in(scope, param)
+                            self._unit_support(default_scope, default, scope, use_expr,
+                                               "default-parameter", dict(
+                                                   parameter=dict(name=param.arg, index=index,
+                                                                  kind="default"),
+                                                   argument_source=dict(kind="definition-time-default",
+                                                                        expression=ast.unparse(default)),
+                                                   target_ids=sorted(a.target for a in supplied.atoms
+                                                                     if a.kind in CALLABLE_KINDS),
+                                                   unknown_reasons=sorted(supplied.reasons)),
+                                               "unknown" if supplied.unknown else "observed",
+                                               consumer_site=use_site)
                         else:
                             results.append(unknown("missing-required-argument"))
         if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
@@ -2127,6 +2317,12 @@ class Analyzer:
             )
             last_override = max(overrides, default=-1)
             for index, (key, value) in enumerate(zip(obj.keys, obj.values)):
+                if key is not None:
+                    literal_fixed, literal_value = self.literal_key(key)
+                    address = key_identity(literal_value) if literal_fixed else None
+                    self._unit_write(self._unit_origin(atom), "exact" if address is not None else "range",
+                                     address, owner, key, "dictionary-literal",
+                                     "observed" if address is not None else "unknown")
                 if key is None:
                     if index < last_override:
                         # The queried key is definitely overwritten later in this literal.
@@ -2282,6 +2478,11 @@ class Analyzer:
                     if isinstance(statement, ast.AnnAssign) and statement.value is None:
                         continue
                     write_fixed, key = self.literal_key(dest.slice)
+                    address = key_identity(key) if write_fixed else None
+                    self._unit_write(self._unit_origin(atom), "exact" if address is not None else "range",
+                                     address, function, statement, type(statement).__name__,
+                                     "candidate" if event.conditional or not event.ordered
+                                     else "observed")
                     if sequence and write_fixed and isinstance(key, int) and key < 0:
                         key += len(slots)
                     direct = not event.conditional and event.ordered and function in (scope, owner)
@@ -2409,6 +2610,9 @@ class Analyzer:
             slots, sealed, extra, observed = self.container_slots(
                 atom, scope, expr, key if fixed else None, coverage=cov
             )
+            address = key_identity(key) if fixed else None
+            self._unit_subscribe(self._unit_origin(atom), "exact" if address is not None else "range",
+                                 address, scope, expr, containers.reasons)
             events.extend(observed)
             sequence = not isinstance(self.container_exprs[atom.target][1], ast.Dict)
             lookup = key
@@ -2436,6 +2640,8 @@ class Analyzer:
                 else invalid("missing-literal-slot")
             )
         if containers.unknown:
+            self._unit_subscribe("unknown-container-universe", "range", None,
+                                 scope, expr, containers.reasons)
             results.append(unknown("unknown-container-origin"))
         result = union(*results) if results else unknown("unresolved-container-slot")
         cov.events.extend(events)

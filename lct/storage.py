@@ -43,6 +43,7 @@ from .python_analysis import Atom, Result
 from .simple_python import CERTIFICATE, certify
 from . import analysis_inputs
 from . import passive_python
+from . import dependency_origins
 from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
@@ -237,7 +238,8 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 import_requests=None, nodes=(), edges=(), certified_files=(),
                 analysis_reads=None, analysis_watches=None,
                 analysis_dependency_truncated=False, value_flow=None,
-                analysis_input_payload=None, passive_certificates=()):
+                analysis_input_payload=None, passive_certificates=(),
+                origin_observations=None):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -379,6 +381,17 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
                     if source[1] and target[1] and source != target:
                         adjacent.add((*source, *target))
         db.executemany("insert into file_adjacency values(?,?,?,?)", sorted(adjacent))
+        source_records, read_records, writer_records, complete_origin_capture, truncated = (
+            origin_observations or ((), (), (), False, False))
+        origin_status = dependency_origins.save(
+            db, source_records, read_records, writer_records, nodes,
+            available=complete_origin_capture, truncated=truncated)
+        m.update(origin_dependency_schema=origin_status["schema"],
+                 origin_dependency_coverage=origin_status["coverage"],
+                 origin_dependency_truncated=origin_status["truncated"],
+                 origin_support_count=origin_status["support_count"],
+                 origin_subscription_count=origin_status["subscription_count"],
+                 origin_write_count=origin_status["write_count"])
         db.commit()
     finally:
         db.close()
@@ -576,6 +589,7 @@ class FileDependencies:
                     self.db.execute("select count(*) from value_edges").fetchone()[0]
                     != manifest["value_flow_edge_count"]):
                 raise ToolError("Previous value-flow count mismatch")
+            self.origin_available = dependency_origins.verify(self.db, manifest)
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -586,6 +600,37 @@ class FileDependencies:
             "union select source_repository,source_path from file_adjacency where target_repository=? and target_path=?",
             (repository, path, repository, path))
         return set(rows)
+
+    def _require_origins(self):
+        if not self.origin_available:
+            raise ToolError("Previous source-origin evidence unavailable")
+
+    def unit_sources(self, consumer_owner, consumer_site=None, limit=100,
+                     max_bytes=100000):
+        self._require_origins()
+        try:
+            return dependency_origins.sources(self.db, consumer_owner, consumer_site,
+                                              limit, max_bytes)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
+
+    def unit_readers(self, producer_owner, producer_site=None):
+        self._require_origins()
+        return dependency_origins.readers(self.db, producer_owner, producer_site)
+
+    def unit_container_readers(self, origin, key=dependency_origins._UNSET):
+        self._require_origins()
+        try:
+            return dependency_origins.container_readers(self.db, origin, key)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
+
+    def unit_container_writes(self, origin, key=dependency_origins._UNSET):
+        self._require_origins()
+        try:
+            return dependency_origins.container_writes(self.db, origin, key)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
 
     def entry_ids_for_file(self, repository, path):
         """Seed only entries belonging to one changed producer file."""
@@ -874,6 +919,12 @@ def _reuse_python_graph(folder, prior, files, repos, c):
                 complete=prior.get("value_flow_coverage") == "certified-dictionary-v1")
         else:
             value_flow = dict(nodes=[], edges=[], reads=[], complete=False)
+        origin_observations = None
+        if dependency_origins.verify(db, prior):
+            origin_observations = tuple(
+                [json.loads(raw) for (raw,) in db.execute("select data from " + table)]
+                for table in ("unit_source_supports", "unit_container_subscriptions",
+                              "unit_container_writes"))
     if len(sites) != prior["graph"]["call_sites"]:
         return None, "previous-graph-evidence-count-mismatch"
     info = dict(prior["graph"], sites=sites, _query_observations=observations,
@@ -883,6 +934,9 @@ def _reuse_python_graph(folder, prior, files, repos, c):
                 _passive_python=passive_certificates,
                 _analysis_dependency_truncated=prior["analysis_dependency_truncated"],
                 _value_flow=value_flow)
+    if origin_observations is not None:
+        info["_unit_supports"], info["_unit_subscriptions"], info["_unit_writes"] = origin_observations
+        info["_unit_dependency_truncated"] = False
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
     info["association_evaluations"] = 0
@@ -1083,6 +1137,16 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                                         f, asts.get(f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1")))
                                     is not None]
         value_flow = graph_info.pop("_value_flow", None)
+        origin_observations = (graph_info.pop("_unit_supports", None),
+                               graph_info.pop("_unit_subscriptions", None),
+                               graph_info.pop("_unit_writes", None))
+        origin_truncated = graph_info.pop("_unit_dependency_truncated", True)
+        if origin_truncated:
+            origin_observations = ((), (), (), False, True)
+        elif any(item is None for item in origin_observations):
+            origin_observations = None
+        else:
+            origin_observations = (*origin_observations, local_metrics is None, False)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
@@ -1286,7 +1350,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             split_graph(folder, m, observations, import_dependencies, import_requests,
                         nodes, edges, files if m.get("simple_python_certificate") else (),
                         analysis_reads, analysis_watches, analysis_dependency_truncated,
-                        value_flow, input_payload, passive_certificates)
+                        value_flow, input_payload, passive_certificates,
+                        origin_observations)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

@@ -242,6 +242,14 @@ class Graph:
                     ],
                 )
                 sites.append(record)
+                for target in targets:
+                    if target in analyzer.trees:
+                        analyzer._unit_support(
+                            target, analyzer.trees[target], scope, expr, "call-target",
+                            dict(call_site=item["site_id"], target_id=target,
+                                 unknown_reasons=reasons),
+                            "observed" if complete and len(targets) == 1 and not boundaries
+                            else "candidate", consumer_site=item["site_id"])
                 status = (
                     "resolved" if complete and len(targets) + len(boundaries) == 1 else "possible"
                 )
@@ -485,6 +493,10 @@ class Graph:
                 _analysis_reads=sorted(analyzer.analysis_reads),
                 _analysis_watches=sorted(analyzer.analysis_watches),
                 _analysis_inputs=analyzer.analysis_inputs.export(),
+                _unit_supports=list(analyzer.unit_supports.values()),
+                _unit_subscriptions=list(analyzer.unit_container_subscriptions.values()),
+                _unit_writes=list(analyzer.unit_container_writes.values()),
+                _unit_dependency_truncated=analyzer.unit_dependency_truncated,
                 _value_flow=flow,
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,

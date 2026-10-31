@@ -889,3 +889,19 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 远端工作头2daba56cd3e94969b585aaaa51727c075787e865/tree3a40e85530bd7c58086a3db3edf2ed56ff8eecf3，生产仍4537843；目标fc857f395a381e5dfec9941d60ca685bcbe0b3fd/tree a1d862fc34a56e82e367087ccd4ae8055601ee7c，均已重新核对。暂停前14文件594699字节已检查点保存，索引CHECKPOINT.json SHA256=6c9cf598e4d5e9a7f350e4b7a12a1c5ce2dc948ebd9abe3d31c418ccbdec7a1c。
 - GPT-6 SOL/medium原开发者恢复，root仍独立审阅。先隔离公开owner调度草稿，使Batch1只交付实际来源记录、持久化和有界索引反查；Batch2再取回可用调度实现。避免将56项未核清旧回归失败夹带成Batch1完成。来源必须区分实际callback提供调用点和被传入函数定义；参数函数不能一律假作callback，容器相同key不能跨身份混合。
 - 已向用户纠正下游定义：其原有函数值依赖规则可以解决C变更触发B审阅，应接通现有记录，而非另造规则；运行顺序不确定仅影响结果精度。继续保留完整分析的UNKNOWN。当前Batch1开发中，正式review0/3；未宣称生产已推送、验收或合并。
+
+## 阶段113：Batch 1来源支持开发完成并冻结，待独立审阅
+
+- GPT-6 SOL/medium开发者完成B4-SOURCES。普通call记录定义来源与消费site；callback记录实际传参点、形参位置/default与消费site；容器记录origin/key或range、writer/read及最终消费位置。多来源分开，getter memo给后续消费者继承来源，已有Atom.allocation身份保留。具体字段、API、范围见DEVELOPER_BATCH1_SOURCE_ORIGINS.md。
+- 新的私有source-support/subscription/write三表与producer/consumer/origin索引由完整分析实际产生，FileDependencies提供有界来源检查及完整相关反查；字节预算先检查SQLite字节长度再取JSON。相同捕获继承来源，旧格式/旧局部流程不完整时明确unavailable；预算截断如实truncated，UNKNOWN和原完整分析精度保持。
+- 本批移除暂停草稿的公开owner调度、AST缓存和旧粗owner账本，后续Batch2再按已验来源接通。生产白名单只有lct/dependency_origins.py、graph.py、python_analysis.py、storage.py，另架构文档及开发tests；DEVELOPER_BATCH1_SHA256.txt记录精确哈希。工作树偶见未启用unit_evidence.py，明确不纳入B1发布；正式审阅将用独立固定目录，不使用该草稿。
+- 静止源码最终回归822 passed/32 skipped/78.52秒，退出0；来源专项开发6+root11共17 passed，与全集重合，不相加。主tests单独653 passed/27 skipped/43.24秒为此前开发阶段结果，最终以冻结全集为准。原program_hash中途变化/已移除owner测试竞态、早期残留owner账本重复枚举失败及修正日志保留，不作为最终通过证据。已知旧基线6项历史诊断/无Neo4j URI及未来Batch2控制不纳B1门槛，名单在开发报告。
+- root专项初稿将SQLite冷/热VM机械等同，观测0组161/157、SQL同4后修正为冷/热分别横向对比无关扩容；输出、SQL、SEARCH/无SCAN和20/100工作稳定断言保留。root另用固定原4537843完整分析对六文件18节点/57边/11调用点做全部旧语义表hash对照，当前草稿全部一致；此为提交前独立预检，正式固定远端仍待复跑。
+- 本次生产尚未推送，正式review0/3；开发通过不等于独立验收。下一步root核对冻结哈希、固定远端完整diff和静止审阅副本，再独立回归/语义/局部性检查。Batch2/3尚未开始本计划中的实施，不合并。
+
+## 阶段114：Batch 1提交前独立预检通过，测试清理后固定候选
+
+- root隔离目录按生产冻结SHA全部核对一致，排除未启用的unit_evidence/unit_incremental/旧owner开发测试。独立11例11 passed/3.51秒，原始日志source-origins-root-preflight.log。来源反查实际0/20/100冷VM161/162/162、热157/158/158，均4条SQL；返回支持2、读者1、订阅1，真实SQL逐条EXPLAIN均SEARCH索引无SCAN。这里不含构造器的整工件哈希验证及完整建图成本，不能称全流程O(K)。
+- 六文件旧语义对照的全部16个旧表/元数据摘要与4537843一致，含18节点、57边、11sites、查询/导入/分析依赖/值流/证书，未剥离UNKNOWN或来源字段。可复现脚本check_source_origin_semantics.py及旧/预检JSON已保存；远端固定后继续复跑。
+- F/E9静态检查仅开发tests一条未使用sqlite3 import。开发者按root指令只删除该import，生产四文件和测试断言未改；定向6 passed/0.89秒、F/E9通过，冻结SHA清单更新并逐项校验。未重置/消耗正式review轮次；最终固定提交仍将独立重跑全部要求测试。
+- 这是提交前预检，不是正式审阅。下一步将白名单候选推到既有工作分支，核对远端blob与隔离源码，再完成B4-SOURCES第1/3轮审阅。Batch2仅待命，尚不启用其调度草稿；不合并。
