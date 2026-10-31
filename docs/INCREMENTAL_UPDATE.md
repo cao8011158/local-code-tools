@@ -9,12 +9,16 @@ parameter callers and captured Jedi definition targets in addition to container
 effects. `prepare` queries all these kinds through the producer-file index, and
 checks retained records when merging a local component. Coverage stays `partial`:
 future callers, absent names and broad Jedi observations have no complete
-reverse witness. The whole-capture v5 syntax certificate and value-flow gate
-remain mandatory; this does not admit unsupported business modules or certify
-a real three-file local update. Schema 1 accepts only its original kind vocabulary; new kinds under schema 1
+reverse witness. The whole-capture v6 syntax certificate and value-flow gate
+remain mandatory; the partial ledger alone does not admit unsupported modules.
+The separate closed-form v6 certificate and component policy admit the exact
+three-file real-source fixture described below, while arbitrary business captures
+still fall back. Schema 1 accepts only its original kind vocabulary; new kinds under schema 1
 or unknown kinds under either schema fail sidecar validation.
 
-The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v5` slice now admits captured, straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings and unsupported imports. The existing Analyzer decides targets and `UNKNOWN`; the structural proof only governs reuse.
+The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v6` slice retains the v5 captured dictionary forms: straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It also admits annotations limited to exact unshadowed built-in scalar names or `None` (no forward strings), primitive literal **keyword-only** defaults (positional defaults still reject), straight-line ordinary self/constructor-rooted fields, exact external `dataclasses.dataclass(frozen=True, slots=True)` annotation-only classes with no methods, field defaults or factories, direct built-in `Exception` subclasses with exact `super().__init__`, and a passive self-field `@property`. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings, arbitrary annotations/decorators/default factories/descriptors, unsupported imports and shadowed helpers. The analyzer still decides targets and `UNKNOWN`.
+
+For a whole-capture validated v6 graph, candidate caller and constructor-site searches are scoped to undirected components of exact resolved captured top-level `from` imports. These closed forms have no other cross-module value bridge; an imported function may pass values, callbacks, constructors and fields in either direction within its component. External `re` and passive `dataclasses` remain explicit boundaries. The same validated policy applies when analyzing the selected local component; unsupported captures retain the original unrestricted searches. Import/layout/pin changes and old incompatible certificates still fall back through the existing whole-capture gate. The component policy affects analyzer candidate enumeration and its provenance, not persistence schema, public node kinds or value-flow coverage. This is not general per-unit witness coverage.
 
 The private `graph-sites.sqlite` sidecar has optional `value_flow_schema=1` container, entry, binding, write and read records. A missing entry has `present=false` and an exact subscription, not an asserted runtime dictionary key. `BINDS` connects source-identified aliases to one container, `ADDRESSES` the container to an entry, `WRITES`/`REACHES` supports to a read, and `USES_BINDING`/`READS`/`POSSIBLE_CALLS` link the read to its binding, entry and existing callable definition. These records are **not catalog/search/vector nodes**. The SQLite manifest reports compact counts, schema, coverage and `internal-sqlite-only` for this authoritative sidecar; that field is not the optional Neo4j publication status. Complete certified records can also be projected through `native-value-v3`, as described below and in [the Neo4j projection contract](NEO4J_FULL_GRAPH.md). The publication binding identifies the actual Neo4j projection schema and fingerprint. `FileDependencies` validates the sidecar and offers indexed exact-entry readers and bounded node/relation inspection. `python_incremental.prepare` consumes old entry subscribers, observed module readers and the one capture-wide writer-watch set alongside existing adjacency/import indexes. The broad watch can expand a real closure; it is not a key-precise performance guarantee. Old/missing/partial evidence, unsupported source shapes or incomplete analyzer witnesses fall back to full graph analysis. Identical-capture reuse copies records; local reuse replaces selected records and retains verified unrelated source records. This does not certify arbitrary dictionary or callback flow.
 
@@ -104,13 +108,14 @@ or parser replacement is introduced.
 ## Certified bounded Python components across repositories
 
 `storage.build` can prepare a changed Python component from an old immutable
-catalog and indexed graph evidence. Its `simple-python-v4` certificate accepts
+catalog and indexed graph evidence. The retained strict `simple-python-v4` subset accepts
 only closed, explicit, absolute `from module import definition` relationships
 and a narrow syntax for undecorated functions and ordinary classes. It excludes
 inheritance, annotations, decorators, dynamic assignment, relative and star
 imports (except the narrowly admitted `import re` below), unknown target namespaces, ambiguous modules within one repository,
 and constructs whose receiver or effects cannot be certified. It is not a
-general contract for real project code. The old snapshot must contain complete
+general contract for real project code; the v6 closed-form extension above admits
+the specific passive annotations, dataclass and property forms. The old snapshot must contain complete
 per-file certificates. The new path parses changed modules and every file in
 their transitive dependency component; unchanged, unselected Python ASTs remain
 unparsed. Both syntax certification and component selection identify files by
@@ -126,11 +131,12 @@ names cannot be shadowed by imports, definitions, parameters or local writes.
 An expression with a newly admitted operator and an arbitrary call is rejected;
 the newly admitted `re`, `re.fullmatch`, `type`, and `set` bindings cannot
 escape as callable values. Plain calls allowed by the earlier certificate
-remain unchanged. This certifies
-the captured `item_units.py` leaf in a closed universe, but does not certify
-its unsupported `availability.py` and `errors.py` siblings. Their three-file
-capture still uses full analysis. A changed Python file on a v3 snapshot also
-falls back because the predecessor lacks the v4 certificate.
+remain unchanged. This strict subset certifies
+the captured `item_units.py` leaf. The v6 closed-form extension additionally
+certifies its `availability.py` and `errors.py` siblings; changing the delegated
+availability argument in this exact three-file capture locally selects one file
+and reuses two, matching an independent full build. An old predecessor without
+the compatible current certificate falls back to full analysis.
 
 The old file adjacency, provider import lookup, and requester import-name
 indexes find callers, affected targets, and local modules that newly shadow or

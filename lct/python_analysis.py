@@ -94,10 +94,12 @@ def invalid(rule):
 class Analyzer:
     """Resolve one private source capture with recursion and work budgets."""
 
-    def __init__(self, nodes, trees, repos, imported, query_reuse=None):
+    def __init__(self, nodes, trees, repos, imported, query_reuse=None,
+                 candidate_components=None):
         ensure_parso_cache_timestamps()
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
+        self.candidate_components = candidate_components
         self.owner = {id(t): ident for ident, t in trees.items()}
         self.modules = {i: t for i, t in trees.items() if isinstance(t, ast.Module)}
         self.statements = {
@@ -201,6 +203,20 @@ class Analyzer:
         self._site_unqueried = set()
         self._site_no_atoms = set()
         self._site_targets = defaultdict(set)
+        component_sites = {component: [] for component in (candidate_components or {}).values()}
+        if self.candidate_components is not None:
+            for pos, site in enumerate(self.sites):
+                owner = self.module_for.get(site["execution_owner"])
+                component = self.candidate_components.get(owner)
+                if component is None:
+                    # Unknown owners cannot be excluded from any candidate set.
+                    self.candidate_components = None
+                    component_sites.clear()
+                    break
+                component_sites[component].append(pos)
+        self._component_site_order = dict(component_sites)
+        self._component_site_positions = {key: frozenset(positions)
+                                          for key, positions in component_sites.items()}
         for pos, site in enumerate(self.sites):
             if site["_call"] is None:
                 continue
@@ -315,12 +331,35 @@ class Analyzer:
 
     def candidate_sites(self, function):
         """Preserve may_call's admission and original site order, including unknowns."""
+        component = self._candidate_component(function)
         if self._query_inflight or len(self.sites) != self._site_index_size:
-            return self.sites
-        positions = (self._site_spellings.get(self.nodes[function]["name"], set())
-                     | self._site_targets.get(function, set())
-                     | self._site_no_atoms | self._site_unqueried)
+            return self.sites if component is None or len(self.sites) != self._site_index_size else self.sites_for(function)
+        if component is None:
+            positions = (self._site_spellings.get(self.nodes[function]["name"], set())
+                         | self._site_targets.get(function, set())
+                         | self._site_no_atoms | self._site_unqueried)
+        else:
+            allowed = self._component_site_positions[component]
+            positions = ((self._site_spellings.get(self.nodes[function]["name"], set()) & allowed)
+                         | (self._site_targets.get(function, set()) & allowed)
+                         | (self._site_no_atoms & allowed) | (self._site_unqueried & allowed))
         return (self.sites[pos] for pos in sorted(positions))
+
+    def _candidate_component(self, function):
+        if self.candidate_components is None:
+            return None
+        module = self.module_for.get(function)
+        component = self.candidate_components.get(module)
+        if component not in self._component_site_positions:
+            return None
+        return component
+
+    def sites_for(self, function):
+        """The full ordered candidate universe within a certified component."""
+        component = self._candidate_component(function)
+        if component is None or len(self.sites) != self._site_index_size:
+            return self.sites
+        return (self.sites[pos] for pos in self._component_site_order[component])
 
     def close(self):
         """Release only this analyzer's private captured sources."""
@@ -1919,7 +1958,7 @@ class Analyzer:
             # A lexical body without an observed invocation can still be reached by
             # explicitly constructed instances; preserve those finite origins.
             if "classmethod" not in decorators:
-                for site in self.sites:
+                for site in self.sites_for(scope):
                     if site["_call"] is None:
                         continue
                     callee = self.resolve(site["execution_owner"], site["_expr"])

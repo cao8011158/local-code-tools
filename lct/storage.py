@@ -40,7 +40,7 @@ from .extract import embedding_texts, extract
 from .graph import Graph
 from .lexical import add_document
 from .python_analysis import Atom, Result
-from .simple_python import certify
+from .simple_python import CERTIFICATE, certify
 from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
@@ -373,7 +373,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
     m["value_flow_schema"] = 1
     m["value_flow_coverage"] = ("certified-dictionary-v1" if
-                                m.get("simple_python_certificate") == "simple-python-v5" and
+                                m.get("simple_python_certificate") == CERTIFICATE and
                                 value_flow is not None and value_flow.get("complete") else "partial")
     m["value_flow_node_count"] = len((value_flow or {}).get("nodes", ()))
     m["value_flow_edge_count"] = len((value_flow or {}).get("edges", ()))
@@ -656,7 +656,7 @@ def _reuse_python_graph(folder, prior, files, repos, c):
         return None, reason
     if prior.get("dependency_store") != "indexed-v3":
         return None, "previous-graph-evidence-unavailable"
-    if (prior.get("simple_python_certificate") == "simple-python-v5" and
+    if (prior.get("simple_python_certificate") in {"simple-python-v5", CERTIFICATE} and
             (prior.get("value_flow_schema") != 1 or
              prior.get("value_flow_coverage") != "certified-dictionary-v1")):
         return None, "previous-value-flow-evidence-unavailable"
@@ -1124,7 +1124,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 ),
                 seconds=round(time.monotonic() - started, 2),
             )
-            if (m["simple_python_certificate"] == "simple-python-v5" and
+            if (m["simple_python_certificate"] == CERTIFICATE and
                     (value_flow is None or not value_flow.get("complete"))):
                 m["simple_python_certificate"] = None
             check_catalog_sidecars(folder)

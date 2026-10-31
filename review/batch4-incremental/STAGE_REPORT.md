@@ -622,3 +622,28 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 新增读取在实际prepare闭包消费；schema1兼容、未知kind/截断拒绝、缓存命中保留依赖均通过。字段、返回值、参数来源记录仍是部分覆盖，没有开放任意业务模块复用。
 - 真实SM三文件复跑仍full、3AST/13site/30Jedi，full一致且旧版保持；没有把这项当局部化通过。当前还需补未找到/未来调用者等完整依赖证明和分析单元准入，整个Batch4不合并。
 - 附带修正文档将SQLite sidecar存储状态和可选Neo4j v3发布状态混为一谈的旧文字；生产模块不变。完整总结、失败原因、命令和证据见observed-semantic-reads-independent-review.md。
+
+## 阶段84：常见Python规则扩展及候选上下文反例定位（未提交）
+
+- 本轮基线已核对db4ec71a03403e7e7a3c01d0f9645e864b6b76ca，分支feat/incremental-index-updates。用户授权“好的 请继续更新”；目标是给真实三个文件中的安全常见写法建立局部更新规则，保留full对照与P0/P1/三轮上限，当前正式review0/3。
+- 开发子AgentGPT-6 SOL/medium。初始v6结构规则能够认证三文件并只解析availability，但full对照的一个site证据不一致：局部trace3步、full16步，coverage缺口重复量不同。候选未推送，未删除证据字段来制造通过。初始失败材料保存在common-certificate-initial-counterexample.md及初始日志。
+- 根因定位为参数/接收者分析遍历整份候选调用位置，导致不连通模块中的候选检查被混入关联证据。主Agent限定方案：只有实际整批AST通过闭合语法认证时，才按精确捕获导入关系建立双向模块组件，并对普通候选与构造器兜底使用同一组件范围。未认证/不明确情况保持原全范围行为，不按同名猜测、不忽略unknown。
+- 初步原型现在0/20无关文件均只解析availability一个文件，复用其余2/22文件，与full节点/边/site证据相同；尚待边界、失败和独立固定提交审阅，不构成通过声明。
+- 未修改业务源码、未调用API/Drive/Neo4j服务；本轮仍在开发，不合并Batch4。
+
+## 阶段85：v6常见写法与认证组件候选索引首版开发完成（未提交）
+
+- 仍基于db4ec71，分支feat/incremental-index-updates，当前正式review0/3。新增有边界的关键字专用参数、标量注解/默认值、self字段链、冻结slots标量dataclass、直接Exception子类/super初始化与只读property；原严格及字典路径保留，证书升级v6。
+- 只有实际整批AST通过闭合认证，Graph才建立精确导入连通组件；参数候选与构造器兜底用同一组件。未认证时保持原全候选行为，不删UNKNOWN或关联证据。完整性反例经此定位修复，真实三文件节点/边/site证据完整对照通过。
+- 同时修正新准备成本：每个组件BFS一次、共享冻结成员集合；候选索引先与组件位置集合相交再合并/排序，构造器不扫描整份site；认证的命名空间/影子上下文只准备一次。0/200无关调用位置的GuardList证明已使用索引，未通过全量过滤冒充局部。
+- 开发最后快速集合596 passed、27 skipped；真实0/20文件变化只解析1个、复用2/22；新增真正的调用者则解析2个，errors修改及不安全形式回退对照通过。尚未独立审阅。
+- 提交前主Agent另要求三项收紧：全部catalog Python模块必须参与AST证明，COMMON禁止模块魔术定义，显式拒绝未支持的Python3.12类型参数。这是待完成的提交前修正，前述596不冒充已覆盖这些后续行。
+- 独立旧基线实际两个真实局部更新反例均因旧v5证书失败，原始日志common-certificate-baseline-independent.log保留。主Agent已准备独立真实/回调/影子/候选局部性/失败恢复/full完整记录对照。当前不合并、无API/业务源码/Drive修改。
+
+## 阶段86：提交前三项安全收紧完成（未提交，正式review0/3）
+
+- 完成全部catalog Python模块参加证明、模块魔术定义拒绝、函数/类非空type_params拒绝；直接形参callback()作为调用目标允许，任意形参对象字段访问仍拒绝。
+- 开发定向与主Agent反例预检合计33 passed/7.21秒；主Agent自己另跑11项独立预检全部通过/3.34秒。早期596全套通过发生在这些最后修改之前，固定远端后将由主Agent完整复跑，不挪用旧证据。
+- 已冻结生产文件4个：simple_python.py、python_analysis.py、graph.py、storage.py；另文档、common规则测试及报告/日志。实际统计common-certificate-change-stat.json。主Agent未改生产实现。
+- 明确范围：关键字专用参数/关键字标量默认值、标量内置名/None注解、受限self字段链、精确冻结slots标量dataclass、直接Exception/super初始化、只读无调用property。不是任意继承、装饰器、反射、泛型或函数默认工厂的准入。
+- 下一步推送、核对远端并独立审阅，包括完整表证据/full/旧视图/失败恢复、跨文件回调、标准库影子、0/200候选索引和共享组件结构。不重建业务全图或调用付费API，Batch4尚不合并。

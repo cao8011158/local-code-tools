@@ -157,6 +157,10 @@ class Graph:
 
     def build(self, query_reuse=None):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
+        from .simple_python import component_policy
+        captured = [node for node in self.nodes.values()
+                    if node["kind"] == "module" and node["path"].endswith(".py")]
+        components = component_policy(captured, self.asts, self)
         self.edges = []
         for n in self.nodes.values():
             if n["parent"]:
@@ -169,7 +173,8 @@ class Graph:
                     n["start"],
                     n.get("column", 0),
                 )
-        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported, query_reuse)
+        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported, query_reuse,
+                            candidate_components=components)
         try:
             sites = []
             import_dependencies = []

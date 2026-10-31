@@ -6,7 +6,7 @@ from .extract import module_name
 from .graph import Graph
 from .value_flow import capture_shape
 
-CERTIFICATE = "simple-python-v5"
+CERTIFICATE = "simple-python-v6"
 _EXPRESSIONS = (ast.Name, ast.Constant, ast.Call, ast.keyword, ast.Attribute,
                 ast.Load, ast.Store, ast.BoolOp, ast.And, ast.Compare, ast.Is,
                 ast.IsNot, ast.Eq, ast.LtE, ast.Subscript, ast.Set, ast.BinOp,
@@ -157,7 +157,7 @@ def _receiver_origin(expr, globals_, locals_, method=False):
 
 def _function(fn, globals_, *, method=False):
     args = fn.args
-    if (fn.decorator_list or fn.returns or args.defaults or args.kw_defaults
+    if (getattr(fn, "type_params", ()) or fn.decorator_list or fn.returns or args.defaults or args.kw_defaults
             or args.vararg or args.kwarg or args.kwonlyargs or args.posonlyargs
             or any(a.annotation for a in args.args)):
         return False
@@ -230,7 +230,196 @@ def _function(fn, globals_, *, method=False):
     return not local_assignments & (params | globals_)
 
 
-def _certify_v4(files, asts, *, graph=None, selected_context=None):
+_COMMON_RESERVED = {"str", "int", "float", "bool", "bytes", "None", "Exception",
+                    "property", "super", "dataclass", "re"} | _SAFE_BUILTINS
+
+
+def _annotation(node):
+    return node is None or (isinstance(node, ast.Constant) and node.value is None) or (
+        isinstance(node, ast.Name) and node.id in {"str", "int", "float", "bool", "bytes"})
+
+
+def _field(node, roots):
+    if isinstance(node, ast.Name):
+        return node.id in roots
+    return isinstance(node, ast.Attribute) and _ordinary_name(node.attr) and _field(node.value, roots)
+
+
+def _common_function(fn, globals_, constructors, *, method=False, exception=False, prop=False):
+    args = fn.args
+    if (getattr(fn, "type_params", ()) or args.posonlyargs or args.vararg or args.kwarg or args.defaults
+            or any(d is not None and (not isinstance(d, ast.Constant) or
+                    type(d.value) not in {str, int, float, bool, bytes, type(None)})
+                   for d in args.kw_defaults)
+            or any(not _annotation(a.annotation) for a in args.args + args.kwonlyargs)
+            or not _annotation(fn.returns)):
+        return False
+    if prop:
+        if (len(fn.decorator_list) != 1 or not isinstance(fn.decorator_list[0], ast.Name)
+                or fn.decorator_list[0].id != "property" or len(args.args) != 1
+                or args.args[0].arg != "self" or args.kwonlyargs):
+            return False
+    elif fn.decorator_list:
+        return False
+    params = [a.arg for a in args.args + args.kwonlyargs]
+    if (len(params) != len(set(params)) or set(params) & (globals_ | _COMMON_RESERVED)
+            or method and (not args.args or args.args[0].arg != "self")):
+        return False
+    body = fn.body[1:] if fn.body and _docstring(fn.body[0]) else fn.body
+    if prop:
+        return len(body) == 1 and isinstance(body[0], ast.Return) and _field(
+            body[0].value, {"self"}) and isinstance(body[0].value, ast.Attribute)
+    locals_, objects = set(), set()
+
+    def expr(node):
+        if isinstance(node, ast.Constant):
+            return type(node.value) in {str, int, float, bool, bytes, type(None)}
+        if isinstance(node, ast.Name):
+            return (node.id == "self" and method or
+                    node.id in set(params) | locals_ | globals_ and node.id not in _COMMON_RESERVED)
+        if isinstance(node, ast.Attribute):
+            return _field(node, objects | ({"self"} if method else set()))
+        if isinstance(node, ast.Call):
+            func = node.func
+            super_init = (exception and fn.name == "__init__" and
+                          isinstance(func, ast.Attribute) and func.attr == "__init__" and
+                          isinstance(func.value, ast.Call) and
+                          isinstance(func.value.func, ast.Name) and
+                          func.value.func.id == "super" and not func.value.args and
+                          not func.value.keywords)
+            if not super_init and not (
+                    isinstance(func, ast.Name) and func.id in globals_ | locals_ | set(params)
+                    and func.id not in _COMMON_RESERVED or
+                    isinstance(func, ast.Attribute) and expr(func)):
+                return False
+            return all(expr(a) for a in node.args) and all(
+                k.arg is not None and expr(k.value) for k in node.keywords)
+        return False
+
+    for stmt in body:
+        if isinstance(stmt, ast.Pass):
+            continue
+        if isinstance(stmt, (ast.Return, ast.Expr)):
+            if not expr(stmt.value):
+                return False
+        elif isinstance(stmt, ast.Assign) and len(stmt.targets) == 1 and expr(stmt.value):
+            target = stmt.targets[0]
+            if isinstance(target, ast.Name):
+                if target.id in set(params) | globals_ | _COMMON_RESERVED:
+                    return False
+                locals_.add(target.id)
+                if (isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name)
+                        and stmt.value.func.id in constructors or
+                        isinstance(stmt.value, ast.Name) and stmt.value.id in objects):
+                    objects.add(target.id)
+                else:
+                    objects.discard(target.id)
+            elif not (method and fn.name == "__init__" and isinstance(target, ast.Attribute)
+                      and isinstance(target.value, ast.Name) and target.value.id == "self"
+                      and _ordinary_name(target.attr)):
+                return False
+        else:
+            return False
+    return True
+
+
+def _common_class(cls, globals_, constructors, dataclass_import):
+    body = cls.body[1:] if cls.body and _docstring(cls.body[0]) else cls.body
+    if getattr(cls, "type_params", ()) or cls.keywords:
+        return False
+    if cls.decorator_list:
+        if not dataclass_import or cls.bases or len(cls.decorator_list) != 1:
+            return False
+        decorator = cls.decorator_list[0]
+        if (not isinstance(decorator, ast.Call) or not isinstance(decorator.func, ast.Name)
+                or decorator.func.id != "dataclass" or decorator.args
+                or len(decorator.keywords) != 2 or
+                any(not isinstance(k.value, ast.Constant) or type(k.value.value) is not bool
+                    for k in decorator.keywords) or
+                {(k.arg, k.value.value) for k in decorator.keywords}
+                != {("frozen", True), ("slots", True)}):
+            return False
+        fields = [s.target.id for s in body if isinstance(s, ast.AnnAssign)
+                  and isinstance(s.target, ast.Name) and s.simple and s.value is None
+                  and _annotation(s.annotation)]
+        return len(fields) == len(set(fields)) == len(body) and all(
+            _ordinary_name(f) and f not in _COMMON_RESERVED for f in fields)
+    exception = len(cls.bases) == 1 and isinstance(cls.bases[0], ast.Name) and cls.bases[0].id == "Exception"
+    if cls.bases and not exception:
+        return False
+    methods = [s for s in body if isinstance(s, ast.FunctionDef)]
+    names = [s.name for s in methods]
+    return (len(names) == len(set(names)) and not set(names) & _COMMON_RESERVED
+            and all(isinstance(s, (ast.FunctionDef, ast.Pass)) for s in body)
+            and all(n == "__init__" or _ordinary_name(n) for n in names)
+            and all(_common_function(s, globals_, constructors, method=True,
+                                     exception=exception, prop=bool(s.decorator_list))
+                    for s in methods))
+
+
+def _certify_common(files, asts, graph, selected, *, _context=None):
+    context = _context if _context is not None else _certificate_context(graph)
+    for f in files:
+        repo, path = f["repository"], f["path"]
+        module = f"{repo}:{path}:module:{module_name(path)}#1"
+        tree = asts.get(module)
+        if not isinstance(tree, ast.Module):
+            return False
+        body = tree.body[1:] if tree.body and _docstring(tree.body[0]) else tree.body
+        definitions = [s for s in body if isinstance(s, (ast.FunctionDef, ast.ClassDef))]
+        names = [s.name for s in definitions]
+        if (len(names) != len(set(names)) or
+                any(not _ordinary_name(name) for name in names) or
+                set(names) & _COMMON_RESERVED):
+            return False
+        imported, dataclass_import = set(), False
+        for stmt in body:
+            if isinstance(stmt, ast.ImportFrom):
+                if stmt.level or not stmt.module or any(a.name == "*" for a in stmt.names):
+                    return False
+                targets = graph.imported(repo, stmt.module)
+                if (stmt.module == "dataclasses" and len(stmt.names) == 1 and
+                        stmt.names[0].name == "dataclass" and stmt.names[0].asname is None and
+                        targets == {"boundary:external-or-excluded:dataclasses"} and
+                        repo not in context["dataclasses_shadowed"]):
+                    imported.add("dataclass")
+                    dataclass_import = True
+                    continue
+                if len(targets) != 1:
+                    return False
+                target = next(iter(targets))
+                if (target not in graph.nodes or
+                        (graph.nodes[target]["repository"], graph.nodes[target]["path"]) not in selected or
+                        target not in asts):
+                    return False
+                exports = {s.name for s in asts[target].body
+                           if isinstance(s, (ast.FunctionDef, ast.ClassDef))}
+                if any(a.name not in exports for a in stmt.names):
+                    return False
+                imported.update(a.asname or a.name for a in stmt.names)
+            elif not isinstance(stmt, (ast.FunctionDef, ast.ClassDef)):
+                return False
+        if (len(imported) != sum(len(s.names) for s in body if isinstance(s, ast.ImportFrom))
+                or set(names) & imported or (imported - {"dataclass"}) & _COMMON_RESERVED):
+            return False
+        globals_ = set(names) | (imported - {"dataclass"})
+        constructors = {s.name for s in definitions if isinstance(s, ast.ClassDef)}
+        if any(not (_common_function(s, globals_, constructors) if isinstance(s, ast.FunctionDef)
+                    else _common_class(s, globals_, constructors, dataclass_import))
+               for s in definitions):
+            return False
+    return True
+
+
+def _certificate_context(graph):
+    return dict(ambiguous=any(len(ids) != 1 for ids in graph.modules.values()),
+                re_shadowed={repo for repo, name in graph.modules
+                             if name == "re" or name.startswith("re.")},
+                dataclasses_shadowed={repo for repo, name in graph.modules
+                                      if name == "dataclasses" or name.startswith("dataclasses.")})
+
+
+def _certify_v4(files, asts, *, graph=None, selected_context=None, _context=None):
     """Certify a closed explicit-import universe; never infer missing source."""
     python = [f for f in files if f["path"].endswith(".py")]
     if not python:
@@ -247,10 +436,10 @@ def _certify_v4(files, asts, *, graph=None, selected_context=None):
     # original self-contained v4 selection for every other caller.
     selected = (selected_context if selected_context is not None else
                 {(f["repository"], f["path"]) for f in python})
-    if any(len(ids) != 1 for ids in graph.modules.values()):
+    context = _context if _context is not None else _certificate_context(graph)
+    if context["ambiguous"]:
         return None
-    re_shadowed = {repository for repository, name in graph.modules
-                   if name == "re" or name.startswith("re.")}
+    re_shadowed = context["re_shadowed"]
     for f in python:
         repo, path = f["repository"], f["path"]
         tree = asts.get(f"{repo}:{path}:module:{module_name(path)}#1")
@@ -303,7 +492,7 @@ def _certify_v4(files, asts, *, graph=None, selected_context=None):
                 if not _function(item, globals_):
                     return None
                 continue
-            if item.bases or item.keywords or item.decorator_list:
+            if getattr(item, "type_params", ()) or item.bases or item.keywords or item.decorator_list:
                 return None
             class_body = item.body[1:] if item.body and _docstring(item.body[0]) else item.body
             methods = [s for s in class_body if isinstance(s, ast.FunctionDef)]
@@ -319,20 +508,62 @@ def _certify_v4(files, asts, *, graph=None, selected_context=None):
 
 
 def certify(files, asts, *, graph=None):
-    """Retain the v4 subset and add one structurally closed dictionary form."""
-    if _certify_v4(files, asts, graph=graph) == CERTIFICATE:
-        return CERTIFICATE
+    """Retain strict forms, then closed common forms and dictionary components."""
     python = [f for f in files if f["path"].endswith(".py")]
-    if not python or graph is None:
+    if not python:
         return None
-    if any(len(ids) != 1 for ids in graph.modules.values()):
+    if graph is None:
+        # Preserve direct callers' original synthetic graph and strict policy.
+        return _certify_v4(files, asts)
+    context = _certificate_context(graph)
+    if context["ambiguous"]:
         return None
+    if _certify_v4(files, asts, graph=graph, _context=context) == CERTIFICATE:
+        return CERTIFICATE
+    selected = {(f["repository"], f["path"]) for f in python}
+    def plain_ok(items):
+        return all((_certify_v4([f], asts, graph=graph, selected_context=selected,
+                                _context=context) == CERTIFICATE or
+                    _certify_common([f], asts, graph, selected, _context=context))
+                   for f in items)
+    if plain_ok(python):
+        return CERTIFICATE
     shape = capture_shape(list(graph.nodes.values()), asts, graph.imported)
     if shape is None:
         return None
     modeled = shape[2]
     plain_files = [f for f in python if
                    f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1" not in modeled]
-    return CERTIFICATE if (not plain_files or _certify_v4(plain_files, asts,
-        graph=graph, selected_context={(f["repository"], f["path"]) for f in python})
-        == CERTIFICATE) else None
+    return CERTIFICATE if plain_ok(plain_files) else None
+
+
+def component_policy(files, asts, graph):
+    """Connected explicit imports in a validated closed captured universe."""
+    if certify(files, asts, graph=graph) != CERTIFICATE:
+        return None
+    modules = {f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1"
+               for f in files if f["path"].endswith(".py")}
+    neighbors = {m: {m} for m in modules}
+    for module in modules:
+        tree = asts[module]
+        for stmt in tree.body:
+            if isinstance(stmt, ast.ImportFrom) and stmt.level == 0 and stmt.module:
+                for target in graph.imported(graph.nodes[module]["repository"], stmt.module):
+                    if target in modules:
+                        neighbors[module].add(target)
+                        neighbors[target].add(module)
+    components = {}
+    pending = set(modules)
+    while pending:
+        module = next(iter(pending))
+        seen, todo = set(), [module]
+        while todo:
+            current = todo.pop()
+            if current not in seen:
+                seen.add(current)
+                todo.extend(neighbors[current] - seen)
+        component = frozenset(seen)
+        pending.difference_update(component)
+        for member in component:
+            components[member] = component
+    return components
