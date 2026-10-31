@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31（北京时间）：阶段77，字典模块与普通调用者混合准入fc12a03044ce8c4288d22d55a830a50ab3426a7a独立第1/3轮通过，613 passed、25 skipped/35.66秒。A->B->C/D已能局部重算，0/20无关文件与producer-only字典保留，公开和中间图表与full一致。仅simple_python.py上下文修复，未改模型/数据库/解析器。Batch4未完成、不合并。[本轮审阅](mixed-dictionary-independent-review.md)。
+
 2026-10-31（北京时间）：阶段74，跨文件固定字符串key字典函数值切片cf4b0fbac0e11f18d53f7dbff1be8b1e40cd6505经第1/3轮独立审阅通过：599 passed、25 skipped/34.65秒。原A/B跨文件更新及删除/新增/失败恢复与full一致；0/20无关producer-only文件仍只解析A/B，实际反查SQL每项1行、18/15 VM步保持。新增关系已在内部SQLite图接入实际增量选择，尚未投影Neo4j/MCP，复杂语法仍有限定回退，Batch4未完成、不合并。[实际小图](dictionary-flow-example.md) · [本轮审阅](dictionary-flow-independent-review.md)。
 
 2026-10-31（北京时间）：阶段71，DICT-IMPORT-01跨文件字典接收者映射修复已推送ad5b96c12e8b4ae362985bff9db69b4c7ee4d767，经独立第1/3轮审阅565 passed、25 skipped/24.82秒。字典身份已能正确追踪到second，但本提交没有新增生产字典/条目图节点或开放v5增量准入。未完成草稿保留并归档，Batch4未完成、未合并。[本轮审阅](dict-import-receiver-independent-review.md)。
@@ -546,3 +548,11 @@ GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定�
 GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_python.py：私有_certify_v4增加selected_context=None，默认仍按自身files确定上下文；mixed分支先通过capture_shape，再传入本次捕获的完整模块集合，仍验证普通模块体和真实目标module/AST/导出/精确绑定。公开certify接口、模型/schema/解析器/索引不变。
 - 新test_mixed_dictionary_components.py，INCREMENTAL_UPDATE小型状态更新及开发报告/日志。开发最终定向48 passed，快回归578 passed、25 skipped，ruff通过；原A->B->C/D、0/20无关文件/producer-only复用、替换/新增key、失败旧版与full对照通过；未支持AST/export/provider/rebinding/dynamic/condition/escape均保持回退。
 - 下一步固定远端后主Agent独立第1轮审阅，实际耗时见原始日志与开发报告。整个Batch4仍未完成，不合并；无服务/API/真实业务图/Drive。
+
+
+## 阶段77：普通调用者混合准入固定提交独立第1/3轮审阅通过
+2026-10-31（北京时间）。固定fc12a03044ce8c4288d22d55a830a50ab3426a7a、tree83ea64223456c142fd58487957c6187e78226e42，468份文件blob核验，全部非review源码/测试齐全；262份无关历史review制品未恢复。主Agent未改生产，远端仅simple_python.py生产差异。
+- 一次固定提交快回归+新mixed6项与历史独立29项，613 passed、25 skipped/35.66秒，退出0。仓库578，额外35，不与开发48重复累加。原基线3 failed/3 passed保留，修复后全部通过，无新增确认阻塞。
+- 源码核查：完整上下文仅在capture_shape成功后传给私有helper，默认行为与公开API不变；真实module、AST、直接导出、精确导入绑定及普通函数体检查均保留，没有跳过危险provider或字典逃逸。图/SQL/模型身份/向量/Neo4j均未改。
+- 实际公开build：0/20无关文件下仅解析A/B/C，缺key新增可沿两层调用者解析A/B/C/D；修改/删除、失败重试和保留旧版与独立full的公开、query/import及value表均相同。未支持provider/export/AST/重绑定/动态/条件/逃逸仍安全full。反向索引与watcher路径沿用并通过既有独立检查，未声称新SQL性能改造。
+- 无API、服务、实际业务全图或Drive。本限定问题关闭，整个Batch4仍待更复杂函数值流、动态key等准入、Neo4j中间关系投影及真实业务整体验收，不合并。
