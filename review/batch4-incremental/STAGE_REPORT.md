@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段87，常见Python v6规则及认证组件候选索引07b6b6c48d7921f2802c00ef62192e849e2371eb经独立第1/3轮通过：665 passed、32 skipped/46.06秒。固定真实三个文件改availability只解析1个、复用2个；增加20无关文件仍只解析1个，全部语义表与full一致。真正相关调用者仍重算，危险写法保留回退，0/200调用位置证明索引读取。整个业务库及Batch4端到端尚未验收，不合并。[本轮审阅](common-certificate-independent-review.md)。
+
 2026-10-31：阶段83，实际跨模块读取记录ea0d0563d19d50d1ee08efd889e583a614f072c1独立第1/3轮通过；633 passed/32 skipped，独立6 passed。返回体/已知成员/匹配传参/精确Jedi目标已记录并接入索引消费者；schema2仍partial，真实业务3文件仍full，Batch4未完成、不合并。[本轮审阅](observed-semantic-reads-independent-review.md)。
 
 2026-10-31：阶段80，Neo4j字典值流投影4a2bcf827e33eb393de5b288260ee63321734dd9独立第1/3轮通过；快速619 passed/31 skipped，真实服务集合13 passed，另发布/反向分页与大记录分片各1 passed。基于已认证SQLite接入新图/官方只读MCP，未扩展解析语法，未更新业务图/Drive，Batch4未完成、不合并。[本轮审阅](value-projection-independent-review.md)。
@@ -647,3 +649,12 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 已冻结生产文件4个：simple_python.py、python_analysis.py、graph.py、storage.py；另文档、common规则测试及报告/日志。实际统计common-certificate-change-stat.json。主Agent未改生产实现。
 - 明确范围：关键字专用参数/关键字标量默认值、标量内置名/None注解、受限self字段链、精确冻结slots标量dataclass、直接Exception/super初始化、只读无调用property。不是任意继承、装饰器、反射、泛型或函数默认工厂的准入。
 - 下一步推送、核对远端并独立审阅，包括完整表证据/full/旧视图/失败恢复、跨文件回调、标准库影子、0/200候选索引和共享组件结构。不重建业务全图或调用付费API，Batch4尚不合并。
+
+## 阶段87：常见规则远端固定后独立第1/3轮通过
+
+- 开发已推送，未合并：分支feat/incremental-index-updates，提交07b6b6c48d7921f2802c00ef62192e849e2371eb，tree ca228fab009ddf7bc563d66c02a51913428d8051；基线db4ec71a03403e7e7a3c01d0f9645e864b6b76ca。主Agent独立审阅，未修改生产实现；534个恢复文件与远端Git blob一致，262个无关历史review制品未恢复，生产和所需测试齐全。
+- 固定远端快速回归及独立边界665 passed、32 skipped/46.06秒，退出0。独立11用例包含在合计内，不重复相加；31跳过需Neo4j，另1为可选旧缓存，本轮未启动服务。测试后源文件再次核对无变化。
+- 真实SM固定a7b0804三个文件的局部退回问题在此范围内解决：只改availability实际只调用python_nodes一次、复用另2个；增加20无关文件仍只解析1个/复用22个；有真正导入调用者则解析2个。错误类默认值及跨文件回调更新均与full全部语义表相同；发布失败保留旧版、重试和不变捕获通过。
+- 关键原因为扩展语法本身不足以证明局部候选上下文；现已认证捕获的full/local共用精确显式导入组件，参数与构造器使用索引。0/200无关调用位置禁止全表遍历，实际按组件读取3*K；未知新增位置保守回到原完整候选。未删除UNKNOWN或证据字段。
+- 原语法首版full不一致、兼容断言失败及修复记录均保留；旧test_actual_source_current_diagnostic.py是v5回退历史快照，不作为v6新断言执行，以新真实局部/full完整记录对照取代，详细说明见common-certificate-independent-review.md。
+- 本切片第1/3轮通过；当前无确认阻塞。未改业务库/值流schema/Jedi，未调用付费API、Neo4j/MCP或Drive。下一步扩大到实际关联文件并记录剩余精确回退，再做Batch4完整发布/检索/恢复验收；尚不合并。
