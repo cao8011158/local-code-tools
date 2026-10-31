@@ -944,3 +944,12 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 新静止主tests673 passed/27 skipped；定向57 passed；20文件冻结SHA逐项OK，F/E9与diff空白检查通过。root同步17历史及新多轮/辅助关系控制预检119 passed/2 failed：这2项是第三次发布后默认只保留两版而读取首版的测试配置错误，root首次build前设retained_versions=4后2 passed/0.88秒；两次fresh语义本来均通过。未因此改生产或弱化旧视图断言。
 - root BATCH2_EXPECTATION_SYNC.md逐类说明路由/计量/索引消费者预期的更新；原full graph、UNKNOWN、完整性、值流、输入scope及证书对照均继续执行。旧6项既有诊断/服务基线排除规则不变。新的old-view retention错误及所有中间失败日志保留。
 - 仍未正式验收。下一步将白名单候选固定到远端，再从独立目录核验整个b8eb6ab...到head并运行主tests+适用全部review、源码diff、来源三表、实际SQL与无关扩容。B2正式review0/3，Batch3未开始，不合并。
+
+## 阶段120：Batch 2第1/3轮固定远端独立审阅通过
+
+- 固定4f73d150cd4831f29d042b4eb692ea845a6b64ce/tree0610764c87f6452714eefb4ed422433b0127d6a6，完整B2从b8eb6ab5aab4554a2b5fc90204d6c12a1c2655fb审阅；实际目标仍fc857f395a381e5dfec9941d60ca685bcbe0b3fd。352份生产/测试/文档及已恢复证据与远端Git blob在测试前后全部一致，0不符/0orphan；653份未恢复文件均为历史review，远端base tree原样保留。完整生产diff与SHA、验证JSON已保存。
+- root独立主tests+适用全部review为866 passed/32 skipped/105.34秒；开发者同一固定目录另跑673 passed/27 skipped/51.40秒与定向61 passed/17.77秒，重合项不相加。原基线6项历史诊断/服务失败（五文件）排除规则未变。改动代码F/E9通过；扩大lint时发现未修改source_snapshot.py旧unused Path，不擅自改范围。
+- 普通调用、回调提供点/参数/default、容器/键/写入与getter最终消费来源被实际调度消费；公开owner连续更新与完整fresh的sites/edges/观察/输入scope/值流/证书/来源三表一致。真实SM三文件变动保留item_units非空分析且不查询valid_item_unit。未知/缺schema/无法证明的候选或副作用明确扩大/full，simple_python.certify不再是通用局部更新白名单；保留分析精度和UNKNOWN。
+- B4-OWN-01-INPUT-SCOPE、02-IMPORT-ORDER、03-LOOKUP-SUPPORT三项P2正式确认关闭。单/多importer支持、b→c→b、有限/全捕获候选范围转换和开放/closed_world实际两轮回调对照通过，原失败和测试配置修正历史保留。正式B2第1轮pass；提交前诊断未消耗/重置正式轮次。
+- 0/20/100无关活跃函数下均仅解析修改文件，selected owners=7、实际Jedi=10、association=12、sites=3；模块inventory恰N次/更新、跨轮次上下文一次准备。来源SQL冷VM161/162/162、热157/158/158，均4SQL、2supports/1reader/1subscription；实际owner反查使用unit_source_producer索引SEARCH。整工件校验、捕获/AST复原/值元数据/完整序列化仍是全量成本，相关反查可随闭包轮次重复，不声称全流程O(K)。
+- BATCH2_OWNER_REVIEW.md、BATCH2_EVIDENCE.json及原始日志/完整diff保存，刚核对4f73d150代码头和fc857f3目标时check_gate READY，B2正式1轮、无未解决blocking；只是本批门槛，step仍未完成。下一提交仅保存关闭证据，受验生产代码不变，随后进入用户已批准的Batch3真实输入、发布恢复与性能验收；不合并、不启付费API/业务执行/外部服务。
