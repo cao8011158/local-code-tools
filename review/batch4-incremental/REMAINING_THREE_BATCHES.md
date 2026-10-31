@@ -4,7 +4,7 @@
 
 仓库：`agentic-trpg/local-code-tools`；工作分支：`feat/incremental-index-updates`；当前起点：`f7ecf028309c64a21e7e5493a51151e777aacba0`。实际合并目标 `feat/local-code-tools-import`，本次核对为 `fc857f395a381e5dfec9941d60ca685bcbe0b3fd`；不假定有 main。继续按当前分支 push；三个子批次与依赖验收完成后按既有授权合并整个 Batch 4。
 
-当前进度：**4A已通过第1/3轮独立审阅**（f80285978400be6e146e9d8bd8ab47c10a3416bd，723 passed/32 skipped）；4B开发已开始，4C未开始。4B首切片只验证完整源码上下文与有独立结构证明的被动单元复用，不能提前宣布4B完成。
+当前进度：**4A已通过第1/3轮独立审阅**（f80285978400be6e146e9d8bd8ab47c10a3416bd，723 passed/32 skipped）；4B首切片第2/3轮已通过（f902b2a93081483ec1edb531157ebb0448d9c7fe，753 passed/32 skipped），4C未开始。4B首切片只验证完整源码上下文与有独立结构证明的被动单元复用，复杂结果复用与六文件必要真实捕获仍未验收，不能提前宣布4B完成。
 
 ## 4A：补齐统一依赖依据与实际消费者
 

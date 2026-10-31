@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段106，4B首切片第2/3轮通过，固定f902b2a93081483ec1edb531157ebb0448d9c7fe，753 passed/32 skipped/65.28秒；645文件Git blob相符。B4-GEN-01-CERT已关闭。4A完成，4B整体仍进行中（复杂结果复用/六文件必要捕获未验收），4C未开始，整体不合并。 [首切片审阅](4B_PILOT_INDEPENDENT_REVIEW.md)。
+
 2026-10-31：阶段104，4B首切片固定aaa874708ad700a967eed437f6b0fc21606bbf89第1/3轮需修改：general路径沿用旧v6证书。13个旧输入full语义表一致，但新manifest错误认证为v6，fresh均None。根因与单点修法已确定；无P0/P1确认，暂停下游4C/合并，修后进入第2轮。
 
 2026-10-31：阶段102，4B首切片开发完成待冻结/push，19项定向、647 passed/27 skipped/39.51秒快速回归；完整源码可见性与局部AST分离，简单模块证明/转换/单文件筛选/索引定位已接线。尚未正式独立review，4B整体仍未完成，4C未开始、不合并。
@@ -831,3 +833,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 定向37 passed/10.66秒，包含13组root反例、历史三参数组、证书传递链；最终快速tests 647 passed/27 skipped/42.92秒，退出0。开发日志general-passive-cert-targeted.log与general-passive-cert-fast.log，报告general-passive-cert-fix-development.md。
 - 新增v6→general→同捕获→下一次general测试：None认证、partial coverage、严格证书表为空，完整fresh语义对照。三份历史review文件仅同步那13个mode断言，增加精确selected/reuse，原full oracle保留。主Agent进一步在13组独立用例验证fresh证书、coverage和严格表空；开发者未修改root测试。
 - 已冻结，尚未推送新修复；远端仍aaa874708ad700a967eed437f6b0fc21606bbf89。下一步白名单push、固定提交第2/3轮独立review；第1轮失败与原因保留，不合并、不开始4C、无API/服务。
+
+## 阶段106：4B首切片第2/3轮独立审阅通过，整体4B尚未关闭
+
+- 固定f902b2a93081483ec1edb531157ebb0448d9c7fe，tree55dd74a6c780da3bf622458be282a50f579009c1；645文件Git blob一致且测试后0修改，262历史review未恢复，所需生产/测试齐全。旧原型在staging原地保留，审阅只用远端精确参考文件，未上传该原型。
+- 完整快速＋历史与新root19例：753 passed、32 skipped/65.28秒，退出0。31项服务、1项可选旧缓存跳过，未声称Neo4j/真实索引验收。开发647及定向37与本结果重叠，不相加。
+- B4-GEN-01-CERT明确关闭：general的None认证/partial coverage/严格证书表空与fresh一致；strict→general→same→下一次更新不传递旧证书。新13种输入所有语义表先对照再核验证书，不以更改旧mode断言隐藏语义差异。唯一生产修复+2/-1，其余是必要测试与证据。第1轮完整失败、13证书复现和历史参考环境修复全部保留。
+- 原始真实两文件、20无关简单文件、普通import扩展/每文件一次extract、未来/删除/active provider、旧视图失败、proof保持、v6转换与已有索引0/20/100 VM49步通过。本次通过对象仅为首切片，非整个4B、非完整业务规模。
+- 尚缺：一般复杂非空结果的完整复用证明，六复杂文件及必要真实关联捕获，方向传播/稳定条件的正式接线与规模核对；4C统一检索/图/向量发布恢复未开始。证据扫描/源码挂载/输出仍有固定全量成本，不能宣称纯局部。保持当前分支持续推进，不合并、不做API/全业务图/Drive。
