@@ -860,3 +860,18 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root核对并修正诊断夹具（由开发执行）：Analyzer改传Graph.repos映射；_check_fs返回None不等于regex没匹配，分开context_returned与同一FileIO.read字节上的regex_matched。无二次读，初JSON保留initial。主Agent独立复跑0组0.66秒/exit0：2负文件、热0新增事件、冷/热结果相同，原始jedi-inputs-root.json保留。无需为纯诊断重跑753项生产回归。
 - 当前后续目标仍属4B：统一实际输入记录器，将正内容读、名称/目录membership、负查找、缓存依赖继承与已有解析器AST/candidate/effect读取连成可维护事实；按变动producer更新并由prepare消费，未知/缺失证据保守扩大。下一准入必须再与完整重建比较，不能只记录不接线或靠重验全集伪装缓存复用。
 - 本阶段未改生产、未运行完整业务图/付费API/Neo4j/Drive、未合并。完整报告JEDI_INPUT_FOOTPRINT_DIAGNOSTIC.md如实列缺口；源码83份仅独立捕获保留，上传仅来源hash/诊断源码与审阅材料，不上传真实索引数据库。
+
+## 阶段109：按用户明确指示改为一般函数级更新，进入实施
+
+- 用户明确授权“放弃局部更新的白名单准入门槛，直接开始”。本阶段覆盖旧计划中以simple_python.certify或literal-functions-v1作为一般准入的限制；保留旧快照兼容、输入/工件完整性、UNKNOWN与fresh全量一致性检查。变化按文件哈希定位，影响按函数/方法/模块owner选择，依赖决定扩展；不再把复杂语法统一拒绝或整片重算作为目标方案。
+- 远端基线feat/incremental-index-updates固定4537843aac065c5d869250f0026f6f00470f1c7e、tree ad9f618be8284ece7c555edaafe6906691fa9b32；实际合并目标feat/local-code-tools-import仍fc857f395a381e5dfec9941d60ca685bcbe0b3fd。268份生产/测试/必要审阅文件逐一Git blob核验一致。本地5b8b86f仅为该已核验源码的暂存快照，不冒充远端提交或历史；后续发布保留远端完整base tree。
+- 继续GPT-6 SOL/medium开发、主Agent独立验收。此前首切片第2轮通过状态保留，本阶段为用户改变路线后的新4B实现，不将旧两轮清零，也不把旧pilot当本次已通过。4C及合并仍待原计划完整验收。
+- 已定位原prepare复杂文件全集选择和Graph.build全调用点循环；开发开始添加selected_owners分析、捕获绑定AST复用与按owner替换。主Agent固定旧源码副本运行基线，另做公开build的回调传参变更/真实无关调用复用、字典、返回函数、删除新增、失败发布和fresh语义对照。不把只过滤输出、partial改名complete或全量重验全集计为函数级增量。
+- 本轮无Embedding API、业务源码执行、Neo4j服务或业务全图；源码/证据发布沿既有授权工作分支进行。生产仍在开发，尚无交付或正式review通过结论。
+
+## 阶段110：固定基线及新独立控制准备完成，开发检查继续
+
+- 固定旧生产副本主tests为647 passed/27 skipped/41.72秒。扩大到全部历史test_*.py时806 passed/32 skipped/11 failed；其中5个为本次新root能力红测，另6个是旧历史full-mode/None证书断言及缺Neo4j URI，详细名单见OWNER_UPDATE_INDEPENDENT.md。不将这些旧失败归到本次生产修改，也不重写历史证据凑绿。
+- root现有独立公开入口控制覆盖复杂真实调用noise、多个callback生产者、多层返回/参数转发、参数默认表达式含调用、字典/返回函数、缺provider新增删除、失败发布、函数中新模块属性写入，以及固定SM三文件中_execution字面量变化而保留item_units非空结果。包含完整语义表与fresh对照，开发者不得改断言。
+- 反向owner/name索引实际0/20/100无关数据为SEARCH索引，无SCAN，VM合计27/28/28步。root初要求机械相等不合理，已只允许一次EOF/边界检查差且20/100相等；保留真实索引和内部读取断言，不改生产去迎合计数。整个源捕获/上下文/写盘仍非纯局部。
+- 开发中的当时8例已通过；随后新增的真实输入保护、per-owner证据替换、value-flow非空及完整回归仍待完成。没有正式review/交付/合并结论。
