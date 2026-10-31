@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段108，继续4B的真实源码与Jedi读取诊断完成：83真实文件无首切片可复用对象；Jedi参数推断可观察到按函数名的负查找，热命中隐藏冷输入。已确认下一机制应区分内容读/名称与目录范围/缓存输入继承，尚未做成新准入，不能宣称真实业务局部更新完成。远端生产仍f902b2a9第2轮通过，4C未开始。
+
 2026-10-31：阶段106，4B首切片第2/3轮通过，固定f902b2a93081483ec1edb531157ebb0448d9c7fe，753 passed/32 skipped/65.28秒；645文件Git blob相符。B4-GEN-01-CERT已关闭。4A完成，4B整体仍进行中（复杂结果复用/六文件必要捕获未验收），4C未开始，整体不合并。 [首切片审阅](4B_PILOT_INDEPENDENT_REVIEW.md)。
 
 2026-10-31：阶段104，4B首切片固定aaa874708ad700a967eed437f6b0fc21606bbf89第1/3轮需修改：general路径沿用旧v6证书。13个旧输入full语义表一致，但新manifest错误认证为v6，fresh均None。根因与单点修法已确定；无P0/P1确认，暂停下游4C/合并，修后进入第2轮。
@@ -841,3 +843,20 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - B4-GEN-01-CERT明确关闭：general的None认证/partial coverage/严格证书表空与fresh一致；strict→general→same→下一次更新不传递旧证书。新13种输入所有语义表先对照再核验证书，不以更改旧mode断言隐藏语义差异。唯一生产修复+2/-1，其余是必要测试与证据。第1轮完整失败、13证书复现和历史参考环境修复全部保留。
 - 原始真实两文件、20无关简单文件、普通import扩展/每文件一次extract、未来/删除/active provider、旧视图失败、proof保持、v6转换与已有索引0/20/100 VM49步通过。本次通过对象仅为首切片，非整个4B、非完整业务规模。
 - 尚缺：一般复杂非空结果的完整复用证明，六复杂文件及必要真实关联捕获，方向传播/稳定条件的正式接线与规模核对；4C统一检索/图/向量发布恢复未开始。证据扫描/源码挂载/输出仍有固定全量成本，不能宣称纯局部。保持当前分支持续推进，不合并、不做API/全业务图/Drive。
+
+## 阶段107：4B真实捕获准备完成，确认首切片不能代替业务复用
+
+- 第2轮通过后自动继续4B下一任务。按SM原固定提交a7b0804d5635e185a79ff3c1d1fa6241c2b858fe的Git tree，取回并逐个Git blob核验完整83份Python源码，1,207,159字节；复用11份已有精确副本，补齐72份。源码只保存在独立捕获目录，业务仓库不修改、不执行。来源metadata/原始hash保存4b-real-source-provenance.json。
+- 静态AST审计：六个既定复杂seed的内部import关联覆盖81文件；83真实文件没有任何literal-functions-v1可保留对象。这证明首切片的人工noise结果**不能当作真实业务局部重算已经实现**；正式业务更新现仍需继续扩展非空语义结果复用机制。完整STATIC结果见4b-real-source-static-audit.json。
+- 本阶段仅源码准备/AST审计，没有运行83文件Graph.build/Jedi、Embedding、Neo4j、服务/Drive或业务全量测试；dnd5e_engine等外部上下文尚未捕获完整，不把SM静态关联当三库完整图验收。
+- 下一明确设计目标为真实未变item_units.py的非空调用/参数/Jedi输入证明，与变动_execution.py/errors.py共存；只读具体方案4B_NEXT_REUSE_DESIGN.md列出caller投影、负订阅、必要Jedi重查与实际prepare消费者，不能把partial ledger改名complete或重算整个目标后冒称复用。主Agent先核对producer摘要能否按变动维护和完整性，再派实施。4B整体继续进行中，4C未开始，不合并。
+
+## 阶段108：非空结果复用方案核对与真实Jedi输入诊断完成
+
+- 开发/设计仍按GPT-6 SOL/medium，主Agent核对代码和实际读取。两份只读方案4B_NEXT_REUSE_DESIGN.md与4B_ITEM_UNITS_PROJECTION_SLICE.md选真实item_units，列出未覆盖candidate/参数/Jedi/负查找、schema与消费者。主Agent没有批准直接实施“新增四表＋每次重查全候选/所有查询，只跳过一个文件”的提案：这会再次把缓存验证变成全局检查，不能用跳过1个AST宣称整体局部收益。生产不因此扩大修改。
+- 改做限定诊断diagnose_jedi_inputs.py：固定原始item_units/_execution/errors三文件，直接Analyzer.query冷/热，不执行Graph.build或业务源码。两次硬60秒子进程（原始与actor字符串改动）约0.6秒/exit0，Jedi 0.20.1；未跑20无关扩容，因为0组已足以回答本次读入口问题。
+- 核心发现：data冷查询读取_execution/errors并用\bvalid_item_unit\b做名字筛选，两文件真实regex均未命中且未解析；actor字符串改动只使文件SHA变化，负判定和结果不变。故可维护“该查找没命中”的输入事实，不能仅源字节不同就不加区分让所有消费者过期。新的名字/调用出现仍需触发分析。
+- re.fullmatch冷查询有模块查找/缓存miss、typeshed读和path=None parse；两种热query均无新读取事件，证明缓存必须继承冷输入依据，不能把零新增读取解释为零依赖。未覆盖目录成员/顺序/预算、private/Parso缓存、subprocess/plugin/stat及不明parse归属，不能把诊断直接当complete证书。
+- root核对并修正诊断夹具（由开发执行）：Analyzer改传Graph.repos映射；_check_fs返回None不等于regex没匹配，分开context_returned与同一FileIO.read字节上的regex_matched。无二次读，初JSON保留initial。主Agent独立复跑0组0.66秒/exit0：2负文件、热0新增事件、冷/热结果相同，原始jedi-inputs-root.json保留。无需为纯诊断重跑753项生产回归。
+- 当前后续目标仍属4B：统一实际输入记录器，将正内容读、名称/目录membership、负查找、缓存依赖继承与已有解析器AST/candidate/effect读取连成可维护事实；按变动producer更新并由prepare消费，未知/缺失证据保守扩大。下一准入必须再与完整重建比较，不能只记录不接线或靠重验全集伪装缓存复用。
+- 本阶段未改生产、未运行完整业务图/付费API/Neo4j/Drive、未合并。完整报告JEDI_INPUT_FOOTPRINT_DIAGNOSTIC.md如实列缺口；源码83份仅独立捕获保留，上传仅来源hash/诊断源码与审阅材料，不上传真实索引数据库。

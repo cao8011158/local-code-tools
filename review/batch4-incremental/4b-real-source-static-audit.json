@@ -1,0 +1,659 @@
+{
+  "repository": "agentic-trpg/trpg-state-machine",
+  "commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+  "modules": 83,
+  "seed_internal_closure": [
+    "trpg_state_machine",
+    "trpg_state_machine._execution",
+    "trpg_state_machine._operations",
+    "trpg_state_machine.activity_handler",
+    "trpg_state_machine.activity_records",
+    "trpg_state_machine.availability",
+    "trpg_state_machine.combat",
+    "trpg_state_machine.combat_handler",
+    "trpg_state_machine.commands",
+    "trpg_state_machine.component_reads",
+    "trpg_state_machine.dnd_checks",
+    "trpg_state_machine.dnd_closure",
+    "trpg_state_machine.dnd_runtime",
+    "trpg_state_machine.domain_facts",
+    "trpg_state_machine.environment",
+    "trpg_state_machine.environment_commands",
+    "trpg_state_machine.environment_models",
+    "trpg_state_machine.environment_versions",
+    "trpg_state_machine.errors",
+    "trpg_state_machine.event_capture",
+    "trpg_state_machine.event_persistence",
+    "trpg_state_machine.events",
+    "trpg_state_machine.game_time",
+    "trpg_state_machine.grid",
+    "trpg_state_machine.grid_maps",
+    "trpg_state_machine.instance_data",
+    "trpg_state_machine.item_package",
+    "trpg_state_machine.item_units",
+    "trpg_state_machine.lock_package",
+    "trpg_state_machine.mechanical_runtime",
+    "trpg_state_machine.mechanics",
+    "trpg_state_machine.mechanism_effects",
+    "trpg_state_machine.mechanism_models",
+    "trpg_state_machine.models",
+    "trpg_state_machine.navigation_driver",
+    "trpg_state_machine.navigation_models",
+    "trpg_state_machine.navigation_package",
+    "trpg_state_machine.navigation_plan",
+    "trpg_state_machine.npc_bootstrap",
+    "trpg_state_machine.npc_evaluation",
+    "trpg_state_machine.npc_modes",
+    "trpg_state_machine.npc_outputs",
+    "trpg_state_machine.npc_results",
+    "trpg_state_machine.npc_schema",
+    "trpg_state_machine.npc_state",
+    "trpg_state_machine.object_durability",
+    "trpg_state_machine.object_protection",
+    "trpg_state_machine.observation_lifecycle",
+    "trpg_state_machine.package",
+    "trpg_state_machine.package_effects",
+    "trpg_state_machine.perception",
+    "trpg_state_machine.perception_conditions",
+    "trpg_state_machine.perception_queue",
+    "trpg_state_machine.rule_execution",
+    "trpg_state_machine.rules_adapter",
+    "trpg_state_machine.runtime_instances",
+    "trpg_state_machine.runtime_integrity",
+    "trpg_state_machine.scene_lifecycle",
+    "trpg_state_machine.scoped_reads",
+    "trpg_state_machine.service",
+    "trpg_state_machine.session_access",
+    "trpg_state_machine.session_creation",
+    "trpg_state_machine.session_memory",
+    "trpg_state_machine.session_runtime",
+    "trpg_state_machine.spatial",
+    "trpg_state_machine.storage",
+    "trpg_state_machine.storage_migrations",
+    "trpg_state_machine.time_binding",
+    "trpg_state_machine.time_coordination",
+    "trpg_state_machine.time_driver",
+    "trpg_state_machine.time_waits",
+    "trpg_state_machine.version_map",
+    "trpg_state_machine.world_commands",
+    "trpg_state_machine.world_containers",
+    "trpg_state_machine.world_lights",
+    "trpg_state_machine.world_mechanisms",
+    "trpg_state_machine.world_objects",
+    "trpg_state_machine.world_openable",
+    "trpg_state_machine.world_package",
+    "trpg_state_machine.world_spatial",
+    "trpg_state_machine.world_time"
+  ],
+  "dependencies": {
+    "trpg_state_machine.navigation_package": [
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.mechanical_runtime": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine._operations",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.mechanics",
+      "trpg_state_machine.models",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.version_map": [],
+    "trpg_state_machine.game_time": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.grid": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid_maps",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.world_spatial"
+    ],
+    "trpg_state_machine.derived_cache": [],
+    "trpg_state_machine.events": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.environment_versions": [
+      "trpg_state_machine.domain_facts",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.object_protection",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.world_package": [
+      "trpg_state_machine.mechanism_models",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.rules_adapter": [
+      "trpg_state_machine.combat",
+      "trpg_state_machine.dnd_checks",
+      "trpg_state_machine.dnd_closure",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid",
+      "trpg_state_machine.package",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.session_access"
+    ],
+    "trpg_state_machine.session_access": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.domain_facts",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.game_time",
+      "trpg_state_machine.models",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.npc_outputs",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.time_waits": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.time_binding"
+    ],
+    "trpg_state_machine.time_driver": [
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.time_binding",
+      "trpg_state_machine.time_coordination"
+    ],
+    "trpg_state_machine.scene_lifecycle": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.event_persistence",
+      "trpg_state_machine.events",
+      "trpg_state_machine.runtime_integrity",
+      "trpg_state_machine.session_runtime"
+    ],
+    "trpg_state_machine.service": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.activity_handler",
+      "trpg_state_machine.activity_records",
+      "trpg_state_machine.availability",
+      "trpg_state_machine.combat_handler",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.domain_facts",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.event_capture",
+      "trpg_state_machine.event_persistence",
+      "trpg_state_machine.events",
+      "trpg_state_machine.mechanical_runtime",
+      "trpg_state_machine.mechanics",
+      "trpg_state_machine.models",
+      "trpg_state_machine.npc_bootstrap",
+      "trpg_state_machine.npc_evaluation",
+      "trpg_state_machine.npc_modes",
+      "trpg_state_machine.npc_outputs",
+      "trpg_state_machine.npc_results",
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.object_durability",
+      "trpg_state_machine.observation_lifecycle",
+      "trpg_state_machine.package",
+      "trpg_state_machine.package_effects",
+      "trpg_state_machine.perception",
+      "trpg_state_machine.perception_queue",
+      "trpg_state_machine.rules_adapter",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.session_access",
+      "trpg_state_machine.session_creation",
+      "trpg_state_machine.session_runtime",
+      "trpg_state_machine.spatial",
+      "trpg_state_machine.storage",
+      "trpg_state_machine.time_driver"
+    ],
+    "trpg_state_machine.availability": [],
+    "trpg_state_machine.observation_lifecycle": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.perception"
+    ],
+    "trpg_state_machine.runtime_instances": [],
+    "trpg_state_machine.instance_data": [
+      "trpg_state_machine",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.mechanism_effects",
+      "trpg_state_machine.mechanism_models",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.world_package"
+    ],
+    "trpg_state_machine.session_memory": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.instance_data",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.version_map"
+    ],
+    "trpg_state_machine.npc_modes": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.npc_evaluation",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception"
+    ],
+    "trpg_state_machine.component_reads": [
+      "trpg_state_machine.grid_maps"
+    ],
+    "trpg_state_machine": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.combat",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.environment",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.environment_models",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.game_time",
+      "trpg_state_machine.models",
+      "trpg_state_machine.navigation_driver",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.scene_lifecycle",
+      "trpg_state_machine.service",
+      "trpg_state_machine.time_binding",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.time_driver",
+      "trpg_state_machine.time_waits",
+      "trpg_state_machine.world_commands",
+      "trpg_state_machine.world_time"
+    ],
+    "trpg_state_machine.models": [
+      "trpg_state_machine.package",
+      "trpg_state_machine.time_binding"
+    ],
+    "trpg_state_machine.dnd_runtime": [
+      "trpg_state_machine.rules_adapter"
+    ],
+    "trpg_state_machine.scoped_reads": [],
+    "trpg_state_machine.runtime_integrity": [
+      "trpg_state_machine.instance_data",
+      "trpg_state_machine.object_protection"
+    ],
+    "trpg_state_machine.mechanism_effects": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package",
+      "trpg_state_machine.rules_adapter",
+      "trpg_state_machine.world_spatial"
+    ],
+    "trpg_state_machine.perception_queue": [
+      "trpg_state_machine.errors"
+    ],
+    "trpg_state_machine.storage": [
+      "trpg_state_machine.environment_versions",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.runtime_integrity",
+      "trpg_state_machine.session_memory",
+      "trpg_state_machine.storage_migrations",
+      "trpg_state_machine.version_map"
+    ],
+    "trpg_state_machine.storage_migrations": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.event_persistence",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.errors": [],
+    "trpg_state_machine.dnd_closure": [
+      "trpg_state_machine.errors"
+    ],
+    "trpg_state_machine.dnd_checks": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.errors"
+    ],
+    "trpg_state_machine.activity_records": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.scoped_reads"
+    ],
+    "trpg_state_machine.npc_evaluation": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.observation_lifecycle",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception",
+      "trpg_state_machine.scoped_reads"
+    ],
+    "trpg_state_machine.mechanics": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.models",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.commands": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.combat",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.game_time",
+      "trpg_state_machine.mechanics",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.session_runtime",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.time_waits",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.world_time": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.time_binding"
+    ],
+    "trpg_state_machine.session_creation": [
+      "trpg_state_machine.combat",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.session_access",
+      "trpg_state_machine.time_binding"
+    ],
+    "trpg_state_machine.navigation_plan": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid"
+    ],
+    "trpg_state_machine.package": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.combat",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.item_package",
+      "trpg_state_machine.lock_package",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.navigation_package",
+      "trpg_state_machine.npc_schema",
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.time_binding",
+      "trpg_state_machine.world_package"
+    ],
+    "trpg_state_machine.object_protection": [
+      "trpg_state_machine.package",
+      "trpg_state_machine.world_spatial"
+    ],
+    "trpg_state_machine.object_durability": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.package_effects": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.time_coordination"
+    ],
+    "trpg_state_machine.spatial": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine._operations",
+      "trpg_state_machine.activity_records",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.environment",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.event_persistence",
+      "trpg_state_machine.game_time",
+      "trpg_state_machine.grid",
+      "trpg_state_machine.models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.scene_lifecycle",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.session_runtime",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.world_commands",
+      "trpg_state_machine.world_objects",
+      "trpg_state_machine.world_time"
+    ],
+    "trpg_state_machine.world_mechanisms": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine._operations",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.instance_data",
+      "trpg_state_machine.mechanism_effects",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.mechanism_models": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.mechanism_effects",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.npc_state": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.scoped_reads"
+    ],
+    "trpg_state_machine.activity_handler": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.navigation_plan"
+    ],
+    "trpg_state_machine.rule_execution": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine.combat",
+      "trpg_state_machine.dnd_checks",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.rules_adapter",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.perception_conditions": [
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.item_units": [],
+    "trpg_state_machine.session_runtime": [
+      "trpg_state_machine.commands",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.session_access",
+      "trpg_state_machine.time_coordination",
+      "trpg_state_machine.time_driver",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.event_persistence": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.events",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.session_access"
+    ],
+    "trpg_state_machine.environment_models": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.object_protection"
+    ],
+    "trpg_state_machine.world_openable": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine._operations",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine._operations": [
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.environment_commands": [
+      "trpg_state_machine.environment_models"
+    ],
+    "trpg_state_machine.world_spatial": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.object_protection",
+      "trpg_state_machine.package",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.scoped_reads"
+    ],
+    "trpg_state_machine.item_package": [
+      "trpg_state_machine.item_units",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.navigation_models": [],
+    "trpg_state_machine.world_commands": [],
+    "trpg_state_machine.combat": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.world_containers": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.npc_bootstrap": [
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.time_coordination": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.game_time",
+      "trpg_state_machine.time_binding",
+      "trpg_state_machine.time_waits"
+    ],
+    "trpg_state_machine.npc_schema": [
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.combat_handler": [
+      "trpg_state_machine.combat",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package",
+      "trpg_state_machine.rule_execution",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.rules_migration": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.npc_outputs": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.models",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.npc_results"
+    ],
+    "trpg_state_machine.lock_package": [
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.world_objects": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.spatial",
+      "trpg_state_machine.world_commands",
+      "trpg_state_machine.world_containers",
+      "trpg_state_machine.world_lights",
+      "trpg_state_machine.world_mechanisms",
+      "trpg_state_machine.world_openable",
+      "trpg_state_machine.world_spatial"
+    ],
+    "trpg_state_machine.event_capture": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.events",
+      "trpg_state_machine.grid",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception_conditions",
+      "trpg_state_machine.session_access"
+    ],
+    "trpg_state_machine.domain_facts": [
+      "trpg_state_machine.component_reads",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.environment_models",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid_maps",
+      "trpg_state_machine.instance_data",
+      "trpg_state_machine.item_units",
+      "trpg_state_machine.mechanism_models",
+      "trpg_state_machine.package",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.scoped_reads",
+      "trpg_state_machine.spatial",
+      "trpg_state_machine.time_binding",
+      "trpg_state_machine.world_openable"
+    ],
+    "trpg_state_machine.grid_maps": [
+      "trpg_state_machine.package",
+      "trpg_state_machine.runtime_instances"
+    ],
+    "trpg_state_machine.environment": [
+      "trpg_state_machine.commands",
+      "trpg_state_machine.environment_commands",
+      "trpg_state_machine.environment_models",
+      "trpg_state_machine.environment_versions",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid",
+      "trpg_state_machine.object_protection",
+      "trpg_state_machine.runtime_instances"
+    ],
+    "trpg_state_machine.time_binding": [
+      "trpg_state_machine.errors"
+    ],
+    "trpg_state_machine._execution": [
+      "trpg_state_machine.errors"
+    ],
+    "trpg_state_machine.npc_results": [
+      "trpg_state_machine._operations",
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.navigation_driver": [
+      "trpg_state_machine.commands",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.navigation_models",
+      "trpg_state_machine.package"
+    ],
+    "trpg_state_machine.world_lights": [
+      "trpg_state_machine._execution",
+      "trpg_state_machine.errors",
+      "trpg_state_machine.grid_maps",
+      "trpg_state_machine.runtime_instances",
+      "trpg_state_machine.world_commands"
+    ],
+    "trpg_state_machine.perception": [
+      "trpg_state_machine.errors",
+      "trpg_state_machine.models",
+      "trpg_state_machine.npc_state",
+      "trpg_state_machine.package",
+      "trpg_state_machine.perception_conditions",
+      "trpg_state_machine.session_access"
+    ]
+  },
+  "external_roots": [
+    "asyncio",
+    "collections",
+    "contextlib",
+    "copy",
+    "dataclasses",
+    "dnd5e_engine",
+    "enum",
+    "fcntl",
+    "fractions",
+    "functools",
+    "hashlib",
+    "heapq",
+    "itertools",
+    "json",
+    "math",
+    "msvcrt",
+    "os",
+    "pathlib",
+    "pydantic",
+    "re",
+    "sqlite3",
+    "threading",
+    "time",
+    "types",
+    "typing",
+    "uuid",
+    "weakref",
+    "yaml"
+  ],
+  "passive_literal_sources": [],
+  "ast_counts": {
+    "files": 83,
+    "functions": 1100,
+    "classes": 330,
+    "calls": 9226
+  },
+  "source_bytes": 1207159,
+  "verification": "All83 raw Git blob identities matched fixed commit; no indexed business code executed",
+  "acceptance_scope": "Static source preparation only; no Graph.build/Jedi/Neo4j/Embedding; dnd5e_engine third-party context not yet captured"
+}
