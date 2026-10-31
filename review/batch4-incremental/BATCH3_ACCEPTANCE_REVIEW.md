@@ -84,3 +84,12 @@ business/runtime precision. The approved three-batch scope is complete.
 head and target. Prepare the evidence-only commit without advancing the tested
 work ref; merge this tested head under the existing authorization, verify its
 tree/parents, then persist the final merge result on the report branch.
+
+## Merge verified
+
+[PR1](https://github.com/agentic-trpg/local-code-tools/pull/1) merged as
+`e3db45fcf1362f0a26e0ab7760b12b4fd408ce64` into the intended target.
+Parents are fc857f3 and tested6a16154b; merged tree is exactly
+`303b53c85330c98897d7fc46ea02731b373f81fa`. The source ref was kept at
+the tested head through the merge. Final report-only history advances after
+merge; no untested production commit was substituted. See MERGE_RESULT.json.

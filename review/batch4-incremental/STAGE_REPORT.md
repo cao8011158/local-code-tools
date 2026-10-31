@@ -996,3 +996,10 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 公开callback first→second的root独立COW工件hash/失败旧指针、显式旧新视图、recover、便携backup/restore后继续owner及fresh均通过。跨库pin/旧schema/源围栏及协调流程由当前完整回归覆盖，不把合成pin/模拟graph factory称真实外部库/Neo4j运行。B3发现的04已按B2原轮次重开、第2轮关闭，当前回归所有变体继续通过，无未解决blocking。
 - 当前头透明实际计数再次证明0/20/100无关活跃文件solver7/10/12/3不变、parse1；capture起止围栏2次、AST decode1、模块inventory/挂载N一次，8次storage.hash_artifact读取1.23/2.67/8.14MB，新工件0.45/1.04/3.28MB。节点882/关系1059字节首次/重复一致；内部源码/工件/AST/挂载/输出成本分列，小回复不冒充IO局部，不称全流程O(K)。源码逆索引实际SEARCH/冷重复/无关扩容证据随完整回归保留。
 - BATCH3_ACCEPTANCE_REVIEW.md、EVIDENCE、当前head原始日志/源码/工作量JSON已保存；刚核对C3与fc857f3时gate READY，B3正式1轮，B1第2轮/B2重开后第2轮均通过，三个批准batch完成。报告/门槛提交先构造而不推进待合并work ref，保证实际合并仍为受验C3；按既有授权合并后核对目标tree/parents，再保存最终merge记录，不以“只是文档”跳过严格head门槛。未启动付费API/业务执行/外部服务。
+
+## 阶段126：按已有授权合并并核对远端，任务完成
+
+- PR#1：https://github.com/agentic-trpg/local-code-tools/pull/1；从feat/incremental-index-updates的精确受验6a16154b7b12787696f9b334ef93342741235d73合入实际目标feat/local-code-tools-import。合并前再次确认目标fc857f3、source C3、mergeable true；使用expected_head保护且未force/绕保护。
+- GitHub返回merged=true，merge commit e3db45fcf1362f0a26e0ab7760b12b4fd408ce64。独立再查目标头即该commit，parents精确fc857f395a381e5dfec9941d60ca685bcbe0b3fd与6a16154b7b12787696f9b334ef93342741235d73，tree303b53c85330c98897d7fc46ea02731b373f81fa与受验tree完全相同。无新生产变化需要扩大/重复全套测试。
+- 正式验收报告f35006ba7b6e8089ccc00afc01e07d9304b603f0先构造成可打开Git对象但不推进待合并work ref，确保合并严格对应C3/READY门槛。现在才将仅review报告与MERGE_RESULT保存到工作分支；这不是拿更新报告头冒充受验头，目标生产代码仍为已验证merge tree。没有自动删除分支。
+- 三个批准batch均完成，所有本step阻塞finding已关闭，历史开发/修复/轮次/错误假设与原红日志保留。最终独立876 passed/32 skipped；现实边界仍为捕获/整工件/完整快照成本、opaque来源不足与20k分析预算回退，九文件不等于完整83/三库或运行顺序精确建模。未启动Neo4j/业务执行/付费Embedding或额外部署。
