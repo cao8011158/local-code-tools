@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段100，子批4A独立第1/3轮通过，固定f80285978400be6e146e9d8bd8ab47c10a3416bd；723 passed/32 skipped/51.24秒，608文件远端Git blob相符。五用途观察/schema2/旧1兼容及反查消费者闭合，仍partial不放宽v6。下一步4B真实局部分析，再4C端到端；整体尚未合并。[4A审阅](4A_INDEPENDENT_REVIEW.md) · [三批计划](REMAINING_THREE_BATCHES.md)。
+
 2026-10-31：阶段99，4A开发冻结636 passed/27 skipped/32.30秒，主Agent独立预检16 passed/3.16秒（含新8例）。当前格式断言随schema2更新，全部语义断言保留；修正独立夹具仓库参数后旧固定代码8个行为反例均失败/1.21秒。准备push、固定远端审阅0/3；4B仅只读预检，不实施。
 
 2026-10-31：阶段97，按用户新要求将剩余Batch4拆为4A依赖依据、4B真实局部分析、4C完整发布/恢复验收。起点f7ecf028309c64a21e7e5493a51151e777aacba0，当前先执行4A，不重置旧问题轮次。目标分支feat/local-code-tools-import核对fc857f395a381e5dfec9941d60ca685bcbe0b3fd，整体通过后自动合并。[三批计划](REMAINING_THREE_BATCHES.md)。
@@ -775,3 +777,18 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 开发636/27快速结果和78相关通过在冻结后有效；root旧独立当前格式断言改为SCHEMA/COVERAGE，schema1真实物理旧列兼容由新增独立用例验证，未删除旧语义/索引/缓存断言。完整diff统计analysis-observations-change-stat.json。
 - 4B仅完成只读设计预检4B_DESIGN_PREFLIGHT.md：明确整捕获gate/无向邻接扩张/selected-only源码上下文三处实际缺口，下一批需完整源码可见性与局部计算分离，不能删certify或凭用途位通过；未实施4B。
 - 下一步按白名单push，核对远端与完整内容，再完成4A第1/3轮独立review。无API/业务图/Drive/合并；整个三批计划保留。
+
+## 阶段100：子批4A第1/3轮独立审阅通过
+
+- 固定f80285978400be6e146e9d8bd8ab47c10a3416bd，tree2a30772bea95a04306285f46a4ee186e93aac526；分支不变。608恢复文件Git blob相符且测试后未变，262历史review缺失，生产及所需测试齐全。
+- 固定远端完整快速与独立集合723 passed、32 skipped/51.24秒，退出0；新8例已计入。31跳过Neo4j、1旧缓存，本轮不声称真实服务通过。第1/3轮通过，无确认未解决阻塞。
+- 五种用途在缓存/提前返回前记录，同scope成员/消费者不复制；跨scope memo归属、空/缺失/名称gate、schema1真实列可读但不新准入、schema2有效性、full全部语义表、失败旧视图/同捕获与局部性历史通过。当前格式测试版本断言调整和初夹具repos类型错误均保留说明，无生产补丁伪造通过。
+- 4A完成的是记录和实际反查通路，partial不是完备证明，未改Jedi/EffectCatalog/v6/业务源。4B仍须处理一般准入、方向传播与完整源码上下文；4C仍须完整发布/检索/恢复。按照三批计划继续，不合并整个Batch4。
+
+## 阶段101：进入4B首切片，完整上下文与计算范围分离
+
+- 4A正式通过后按三批计划自动继续4B，开发子Agent仍GPT-6 SOL/medium。4B正式review0/3；4A已闭合的1轮不重置，若发现其问题按既定规则返回处理。
+- 主Agent给出具体实现方案：保留v6路径；增加完整捕获源码可见性与计算AST分离，Jedi遇未载入的捕获provider抛显式上下文扩展信号而非降成external；每文件只extract一次。
+- 首种独立复用证明只允许极窄普通函数literal-return/pass源：无import/assign/class/decorator/annotation/default/Name/Call等，且旧语义facts为空、源哈希/策略/程序/环境/pin有效；其余复杂模块全部重算。证明需持久化并实际用于选择，不能凭没看到边或用途位推断独立。
+- 首轮真实控制使用a7b0804的_execution.py+errors.py原字节，并对0/20被动无关模块和新provider扩展/full全部记录/失败旧视图对照。源码上下文文件数与AST计算数分别计量；完整性/写盘成本单列。不以这一首切片通过宣布六复杂文件或整个4B完成。
+- 无付费API、业务代码执行、Neo4j/Drive或合并；若不变量不成立先保留具体反例定位，禁止删UNKNOWN/trace造通过。
