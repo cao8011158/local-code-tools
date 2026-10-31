@@ -905,3 +905,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 六文件旧语义对照的全部16个旧表/元数据摘要与4537843一致，含18节点、57边、11sites、查询/导入/分析依赖/值流/证书，未剥离UNKNOWN或来源字段。可复现脚本check_source_origin_semantics.py及旧/预检JSON已保存；远端固定后继续复跑。
 - F/E9静态检查仅开发tests一条未使用sqlite3 import。开发者按root指令只删除该import，生产四文件和测试断言未改；定向6 passed/0.89秒、F/E9通过，冻结SHA清单更新并逐项校验。未重置/消耗正式review轮次；最终固定提交仍将独立重跑全部要求测试。
 - 这是提交前预检，不是正式审阅。下一步将白名单候选推到既有工作分支，核对远端blob与隔离源码，再完成B4-SOURCES第1/3轮审阅。Batch2仅待命，尚不启用其调度草稿；不合并。
+
+## 阶段115：Batch 1第1/3轮正式审阅需修改，确认未知实参来源缺记录
+
+- 固定948eea8a303a4b6cb35db483e06480e115dbfaa3/tree ebbd49a614d0e3330d2c666b040867ac0df9c590，完整base60784b4...到head审阅。289份已恢复文件Git blob匹配，0不符；1份旧本地开发log不作为远端文件。未启用owner调度/AST缓存草稿不在候选树中。
+- 独立主tests+适用历史全集822 passed/32 skipped/77.62秒，包含root11与开发6，不相加；六个原基线历史诊断/服务项及未来Batch2控制按开发报告排除。完整旧语义16表及元数据与4537843全部相同（18节点/57边/11sites），F/E9通过。真实SQL冷/热及0/20/100局部性通过，完整成本边界在BATCH1_SOURCE_REVIEW.md。
+- 新增独立审阅反例*values/**values为2 failed/0.53秒，均不是夹具错误：完整分析已经定位provide→execute，但未知参数分支只返回UNKNOWN，未保存已知的提供调用点→消费函数来源。unit_sources缺actual-parameter行；反向新关系不能找到execute。原公开图保留不确定状态，未发现由此产生的旧公开语义不一致。
+- B4-SRC-01-UNKNOWN-ARG，P2，confirmed/open/blocking，本轮来源观察实现引入：Analyzer.parameter的argument-unpacking及同类missing-required分支绕过_unit_support。明确修法是保存已知owner/site/formal参数和unknown reason，保持原UNKNOWN/求值语义，不实现解包求值、不伪造具体函数值或完整性。root另加缺必需实参变体，三变体实跑3 failed/0.54秒，日志source-origins-unknown-variants-review.log；详细稳定问题记录见BATCH1_SOURCE_REVIEW.md。
+- 第1轮结论changes_required。只修本问题及回归，随后第2/3轮复审；不重置旧链计数。Batch2继续等待，未合并；P2在已授权范围内自动修复，无额外审批请求。
