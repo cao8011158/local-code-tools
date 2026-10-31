@@ -60,7 +60,7 @@ def test_same_paths_in_other_repository_are_not_selected(tmp_path, monkeypatch, 
     (left / 'src/a.py').write_text(source.replace('use(): first()', 'use(): second()'))
     calls = counted(monkeypatch)
     update = build(config, offline=True, lexical_only=True)
-    assert sorted(calls) == [('left', 'src/a.py'), ('left', 'src/b.py')]
+    assert sorted(calls) == [('left', 'src/a.py')]
     oracle_config = dict(config, data=str(tmp_path / 'oracle'))
     oracle = build(oracle_config, offline=True, lexical_only=True)
     assert records(config, update['version']) == records(oracle_config, oracle['version'])
@@ -97,7 +97,7 @@ def test_consumer_parameter_change_reanalyzes_bound_provider(tmp_path, monkeypat
     (consumer / 'src/b.py').write_text(source.replace('execute(first)', 'execute(second)'))
     calls = counted(monkeypatch)
     update = build(config, offline=True, lexical_only=True)
-    assert sorted(calls) == [('sm', 'src/b.py'), ('trpg-rules-engine', 'src/dnd5e_engine/exec.py')]
+    assert sorted(calls) == [('sm', 'src/b.py')]
     oracle_config = dict(config, data=str(tmp_path / 'oracle'))
     oracle = build(oracle_config, offline=True, lexical_only=True)
     assert records(config, update['version']) == records(oracle_config, oracle['version'])

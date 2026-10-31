@@ -106,7 +106,8 @@ class Analyzer:
     """Resolve one private source capture with recursion and work budgets."""
 
     def __init__(self, nodes, trees, repos, imported, query_reuse=None,
-                 candidate_components=None, source_context=None):
+                 candidate_components=None, source_context=None,
+                 candidate_site_evidence=None, selected_owners=None):
         ensure_parso_cache_timestamps()
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
@@ -197,6 +198,10 @@ class Analyzer:
             self.module_for[ident] = mod
         self.analysis_reads = set()
         self.analysis_watches = set()
+        self.unit_analysis_reads = set()
+        self.unit_analysis_watches = set()
+        self.unit_input_events = set()
+        self._unit_component_members = {}
         self.unit_supports = {}
         self.unit_container_subscriptions = {}
         self.unit_container_writes = {}
@@ -234,6 +239,10 @@ class Analyzer:
         self._site_unqueried = set()
         self._site_no_atoms = set()
         self._site_targets = defaultdict(set)
+        previous_sites = {(s["execution_owner"], s["line"], s["column"], s["kind"]): s
+                          for s in (candidate_site_evidence or ())}
+        selected_owners = frozenset(selected_owners or ())
+        self._selected_owner_mode = bool(selected_owners)
         component_sites = {component: [] for component in (candidate_components or {}).values()}
         if self.candidate_components is not None:
             for pos, site in enumerate(self.sites):
@@ -253,6 +262,17 @@ class Analyzer:
                 continue
             self._site_unqueried.add(pos)
             expr = site["_expr"]
+            old = previous_sites.get((site["execution_owner"], site["line"],
+                                      site["column"], site["kind"]))
+            if (site["execution_owner"] not in selected_owners and old is not None
+                    and old.get("expression") == site["expression"]):
+                if old.get("unknown_origin") or not old.get("complete"):
+                    # Unknown and partial candidates must stay in the search.
+                    pass
+                else:
+                    self._site_unqueried.discard(pos)
+                for target in old["targets"]:
+                    self._site_targets[target].add(pos)
             key = (self.module_for[site["execution_owner"]], expr.end_lineno,
                    expr.end_col_offset, False)
             self._site_keys[key].add(pos)
@@ -290,6 +310,14 @@ class Analyzer:
         if component is not None and producer not in component:
             component = None
         self.analysis_inputs.observe(consumer, component, purpose)
+        owner = self.stack[0][0] if self.stack else consumer_scope
+        if owner in self.nodes:
+            ident = self.analysis_inputs.component_ids.get(component) if component is not None else None
+            members = () if ident is None else self._unit_component_members.get(ident)
+            if ident is not None and members is None:
+                members = tuple(sorted(self.analysis_inputs.members[ident]))
+                self._unit_component_members[ident] = members
+            self.unit_input_events.add((owner, consumer, members, purpose))
 
     def _record_analysis_dependency(self, destination, record):
         if record in destination:
@@ -441,6 +469,9 @@ class Analyzer:
         consumer = self.module_for.get(consumer_scope)
         if producer is not None and consumer is not None and producer != consumer:
             self._record_analysis_dependency(self.analysis_reads, (consumer, producer, kind))
+            owner = self.stack[0][0] if self.stack else consumer_scope
+            if owner in self.nodes:
+                self.unit_analysis_reads.add((owner, consumer, producer, kind))
 
     def _record_query_targets(self, scope, raw):
         for record in raw:
@@ -519,7 +550,8 @@ class Analyzer:
         """Preserve may_call's admission and original site order, including unknowns."""
         self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
         component = self._candidate_component(function)
-        if self._query_inflight or len(self.sites) != self._site_index_size:
+        if ((self._query_inflight and not self._selected_owner_mode) or
+                len(self.sites) != self._site_index_size):
             return self.sites if component is None or len(self.sites) != self._site_index_size else self.sites_for(function)
         if component is None:
             positions = (self._site_spellings.get(self.nodes[function]["name"], set())
@@ -933,7 +965,7 @@ class Analyzer:
             context = self._query_context.get(key)
             if context is None or not self._direct_lexical_query(*context, result, raw):
                 continue
-            records.append(dict(key=list(key),
+            records.append(dict(key=list(key), execution_owner=context[0],
                 atoms=[vars(a) for a in sorted(
                 result.atoms, key=lambda a: (a.kind, a.target, a.bound, a.receiver, a.allocation))],
                 reasons=sorted(result.reasons), proofs=sorted(result.proofs), raw=raw))
@@ -2168,7 +2200,8 @@ class Analyzer:
             # A lexical body without an observed invocation can still be reached by
             # explicitly constructed instances; preserve those finite origins.
             if "classmethod" not in decorators:
-                for site in self.sites_for(scope):
+                for site in (self.candidate_sites(parent) if self._selected_owner_mode
+                             else self.sites_for(scope)):
                     if site["_call"] is None:
                         continue
                     callee = self.resolve(site["execution_owner"], site["_expr"])
@@ -2298,6 +2331,9 @@ class Analyzer:
         consumer = self.module_for[scope]
         self._record_analysis_dependency(
             self.analysis_watches, (consumer, "slot-writer-universe", "all-captured-python"))
+        owner = self.stack[0][0] if self.stack else scope
+        self.unit_analysis_watches.add((owner, consumer, "slot-writer-universe",
+                                        "all-captured-python"))
         coverage = coverage if coverage is not None else EffectCoverage("container-state")
         seen = set() if seen is None else seen
         if atom.target in seen:
@@ -2425,6 +2461,9 @@ class Analyzer:
                       self._slot_fallback_scopes | {scope, owner})
         self.slot_scope_candidates_checked += len(candidates)
         for function in sorted(candidates):
+            root_owner = self.stack[0][0] if self.stack else scope
+            self.unit_analysis_reads.add((root_owner, consumer, self.module_for[function],
+                                          "container-effects"))
             self._record_analysis_dependency(
                 self.analysis_reads, (consumer, self.module_for[function], "container-effects"))
             tree = self.trees[function]

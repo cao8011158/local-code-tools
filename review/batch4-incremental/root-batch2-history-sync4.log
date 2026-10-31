@@ -1,0 +1,27 @@
+........................................................................ [ 59%]
+...............................................FF                        [100%]
+=================================== FAILURES ===================================
+___ test_missing_name_lookup_retarget_preserves_other_import_support[False] ____
+review/batch4-incremental/test_owner_auxiliary_edges_independent.py:26: in test_missing_name_lookup_retarget_preserves_other_import_support
+    assert helpers["records"](config, first["version"]) == before
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/batch4-incremental/test_owner_update_independent.py:50: in records
+    folder, meta = manifest(c, version)
+                   ^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:81: in manifest
+    raise ToolError("Index version expired or incomplete")
+E   lct.common.ToolError: Index version expired or incomplete
+____ test_missing_name_lookup_retarget_preserves_other_import_support[True] ____
+review/batch4-incremental/test_owner_auxiliary_edges_independent.py:26: in test_missing_name_lookup_retarget_preserves_other_import_support
+    assert helpers["records"](config, first["version"]) == before
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/batch4-incremental/test_owner_update_independent.py:50: in records
+    folder, meta = manifest(c, version)
+                   ^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:81: in manifest
+    raise ToolError("Index version expired or incomplete")
+E   lct.common.ToolError: Index version expired or incomplete
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_owner_auxiliary_edges_independent.py::test_missing_name_lookup_retarget_preserves_other_import_support[False]
+FAILED review/batch4-incremental/test_owner_auxiliary_edges_independent.py::test_missing_name_lookup_retarget_preserves_other_import_support[True]
+2 failed, 119 passed in 33.62s

@@ -20,10 +20,10 @@ def test_class_change_recomputes_complex_module_and_reuses_passive_peer(tmp_path
     (repo / "src/weights.py").write_text("class Box(Base):\n    def __init__(self): pass\n")
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "general-passive-component"
-    assert scope["python_files_parsed"] == 1
-    assert scope["reused_python_files"] == 1
-    assert scope["total_python_files_parsed"] == 1
+    assert scope["mode"] == "full-graph"
+    assert scope["python_files_parsed"] == 2
+    assert scope["reused_graph_sites"] == 0
+    assert scope["total_python_files_parsed"] == 3
     fresh_config = dict(c, data=str(tmp_path / "fresh"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert semantic(c, result["version"]) == semantic(fresh_config, fresh["version"])
@@ -38,8 +38,8 @@ def test_ordinary_class_change_uses_bounded_component(tmp_path):
         'def one(): pass\n')
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["python_files_parsed"] == 1
+    assert scope["mode"] == "full-graph"
+    assert scope["python_files_parsed"] == 2
 
 
 def test_simultaneous_document_and_python_change_falls_back(tmp_path):
@@ -60,15 +60,15 @@ def test_association_bound_survives_local_and_exact_capture_generations(tmp_path
     source = repo / "src/weights.py"
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")
     local = build(c, offline=True, lexical_only=True)
-    assert local["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert local["graph"]["association_bound"] == first_bound + local["graph"]["association_evaluations"]
+    assert local["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert local["graph"]["association_bound"] == local["graph"]["association_evaluations"]
     identical = build(c, offline=True, lexical_only=True)
     assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
     assert identical["graph"]["association_evaluations"] == 0
     assert identical["graph"]["association_bound"] == local["graph"]["association_bound"]
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): two()\n")
     second = build(c, offline=True, lexical_only=True)
-    assert second["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert second["graph"]["association_bound"] == (
         identical["graph"]["association_bound"] + second["graph"]["association_evaluations"])
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")

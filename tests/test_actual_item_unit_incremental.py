@@ -59,7 +59,7 @@ def test_actual_item_unit_local_with_unrelated_growth(tmp_path):
     module.write_bytes(source.replace(b"2**63 - 1", b"2**63 - 2"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
+    assert scope["mode"] == "incremental-owners"
     assert scope["python_files_parsed"] == 1
     assert scope["python_ast_context_files"] == 1
     assert scope["reused_python_files"] == 20
@@ -74,9 +74,9 @@ def test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back(tmp_path):
     module.write_bytes(module.read_bytes().replace(b"2**63 - 1", b"2**63 - 2"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["python_files_parsed"] == 2
-    assert scope["reused_python_files"] == 20
+    assert scope["mode"] == "incremental-owners"
+    assert scope["python_files_parsed"] == 1
+    assert scope["reused_python_files"] == 21
     assert records(config, baseline["version"]) == before
     oracle(tmp_path, config, updated)
 

@@ -28,22 +28,28 @@ EFFECTS = [
 def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
     if family == 'cross':
         config, repo = flow.fixture(tmp_path)
-        path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        path, new_source = 'a.py', flow.A + extra
     elif family == 'same':
         config, repo = local.fixture(tmp_path, 2)
-        path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        path, new_source = 'registry.py', local.SOURCE + extra
     else:
         config, repo = mixed.make(tmp_path, 2)
-        path, new_source, selected, retained = 'c.py', extra, {
-            'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        path, new_source = 'c.py', extra
     previous = build(config, offline=True, lexical_only=True)
     old = semantic_tables(config, previous['version'])
     (repo / 'src' / path).write_text(new_source)
     changed = build(config, offline=True, lexical_only=True)
     scope = changed['incremental']['analysis_scope']
-    assert scope['mode'] == 'general-passive-component', scope
-    assert {p for _, p in scope['selected_keys']} == selected, scope
-    assert scope['reused_python_files'] == retained
+    owner_update = family == 'caller' or extra.startswith('if condition:')
+    assert scope['mode'] == ('incremental-owners' if owner_update else 'full-graph'), scope
+    if owner_update:
+        assert {p for _, p in scope['selected_keys']} == {'src/' + path}
+        assert scope['reused_python_files'] == (5 if family == 'caller' else (2 if family == 'cross' else 3))
+    else:
+        assert scope['reason'] in {'python-owner-membership-changed',
+                                   'changed-opaque-call-effect-unavailable',
+                                   'unbounded-changed-writer-input'}
+        assert scope.get('reused_python_files', 0) == 0
     assert semantic_tables(config, previous['version']) == old
     oracle_config = dict(config, data=str(tmp_path / 'fresh'))
     oracle = build(oracle_config, offline=True, lexical_only=True)

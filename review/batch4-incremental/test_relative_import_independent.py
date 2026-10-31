@@ -54,13 +54,11 @@ def test_relative_component_updates_and_keeps_unrelated_files(tmp_path, monkeypa
     assert records(config, initial["version"]) == old
     parsed.clear()
     updated = build(config, offline=True, lexical_only=True)
-    expected = {"src/pkg/base.py", "src/pkg/mid.py", "src/pkg/sub/entry.py"}
-    if change == "new-import":
-        expected.add("src/pkg/alternate.py")
+    expected = {"src/pkg/base.py" if change == "provider" else "src/pkg/mid.py"}
     assert set(parsed) == expected and len(parsed) == len(expected)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["reused_python_files"] == noise + (2 if change == "provider" else 1)
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reused_python_files"] == noise + 4
     fresh_config = dict(config, data=str(tmp_path / "fresh-full"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
@@ -82,7 +80,8 @@ def test_real_errors_provider_with_synthetic_relative_consumer(tmp_path):
     assert baseline["simple_python_certificate"] == "simple-python-v6"
     target.write_text(target.read_text().replace('path: str = ""', 'path: str = "root"'))
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 2
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert updated["incremental"]["analysis_scope"]["reason"] == "changed-writer-origin-unresolved"
     fresh_config = dict(config, data=str(tmp_path / "fresh-full"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert records(config, updated["version"]) == records(fresh_config, fresh["version"])

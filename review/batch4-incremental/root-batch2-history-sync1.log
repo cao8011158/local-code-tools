@@ -1,0 +1,440 @@
+FFFFFFFFFFFFFFFFFFFF...FFFFF...FFFFFFF.FFFFFF.........F.....FF.........F [ 61%]
+FFFF..FF...........................FF......FF                            [100%]
+=================================== FAILURES ===================================
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'changed-opaque-call-effect-unavailable', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-if condition:\n    registry["go"]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['mode'] == 'general-passive-component', scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+________ test_same_file_writer_change_delete_failure_then_identical[0] _________
+review/batch4-incremental/test_dictionary_local_independent.py:71: in test_same_file_writer_change_delete_failure_then_identical
+    assert parsed == ['src/registry.py'], parsed
+E   AssertionError: ['src/registry.py', 'src/registry.py', 'src/unrelated.py']
+E   assert ['src/registr...unrelated.py'] == ['src/registry.py']
+E     
+E     Left contains 2 more items, first extra item: 'src/registry.py'
+E     Use -v to get more diff
+________ test_same_file_writer_change_delete_failure_then_identical[20] ________
+review/batch4-incremental/test_dictionary_local_independent.py:71: in test_same_file_writer_change_delete_failure_then_identical
+    assert parsed == ['src/registry.py'], parsed
+E   AssertionError: ['src/registry.py', 'src/noise_0.py', 'src/noise_1.py', 'src/noise_10.py', 'src/noise_11.py', 'src/noise_12.py', ...]
+E   assert ['src/registr...e_12.py', ...] == ['src/registry.py']
+E     
+E     Left contains 22 more items, first extra item: 'src/noise_0.py'
+E     Use -v to get more diff
+_ test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:96: in test_new_unproved_effects_are_not_admitted
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:96: in test_new_unproved_effects_are_not_admitted
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:96: in test_new_unproved_effects_are_not_admitted
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+__ test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n] __
+review/batch4-incremental/test_dictionary_local_independent.py:96: in test_new_unproved_effects_are_not_admitted
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_new_unproved_effects_are_not_admitted[if condition:\n    registry["go"]=second\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:96: in test_new_unproved_effects_are_not_admitted
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:108: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:108: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:108: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:108: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_unproved_dictionary_effects_keep_full_fallback[if condition:\n    registry["go"]=second\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:108: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from a import registry\ndef invoke():\n    return registry\n] _
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: in test_context_does_not_admit_registry_escape_or_missing_exports
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from missing_provider import run\ndef invoke():\n    run()\n] _
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: in test_context_does_not_admit_registry_escape_or_missing_exports
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from b import missing_name\ndef invoke():\n    missing_name()\n] _
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: in test_context_does_not_admit_registry_escape_or_missing_exports
+    assert scope['mode'] == 'general-passive-component'
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider] _
+review/batch4-incremental/test_general_context_independent.py:81: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert scope["mode"] == "general-passive-component", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-membership-changed', 'python_files_parsed': 23, 'python_ast_context_files': 23, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider] _
+review/batch4-incremental/test_general_context_independent.py:81: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert scope["mode"] == "general-passive-component", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-membership-changed', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active] _
+review/batch4-incremental/test_general_context_independent.py:81: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert scope["mode"] == "general-passive-component", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+_ test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer _
+review/batch4-incremental/test_general_context_independent.py:98: in test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer
+    assert second["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+E   AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + incremental-owners
+___ test_plain_import_requires_real_context_expansion_and_no_error_downgrade ___
+review/batch4-incremental/test_general_context_independent.py:152: in test_plain_import_requires_real_context_expansion_and_no_error_downgrade
+    assert scope["mode"] == "general-passive-component", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'changed-opaque-call-effect-unavailable', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E   assert 'full-graph' == 'general-passive-component'
+E     
+E     - general-passive-component
+E     + full-graph
+____ test_relative_component_updates_and_keeps_unrelated_files[provider-0] _____
+review/batch4-incremental/test_relative_import_independent.py:60: in test_relative_component_updates_and_keeps_unrelated_files
+    assert set(parsed) == expected and len(parsed) == len(expected)
+E   AssertionError: assert ({'src/pkg/base.py'} == {'src/pkg/bas...sub/entry.py'}
+E     
+E     Extra items in the right set:
+E     'src/pkg/mid.py'
+E     'src/pkg/sub/entry.py'
+E     Use -v to get more diff)
+____ test_relative_component_updates_and_keeps_unrelated_files[provider-20] ____
+review/batch4-incremental/test_relative_import_independent.py:60: in test_relative_component_updates_and_keeps_unrelated_files
+    assert set(parsed) == expected and len(parsed) == len(expected)
+E   AssertionError: assert ({'src/pkg/base.py'} == {'src/pkg/bas...sub/entry.py'}
+E     
+E     Extra items in the right set:
+E     'src/pkg/mid.py'
+E     'src/pkg/sub/entry.py'
+E     Use -v to get more diff)
+___ test_relative_component_updates_and_keeps_unrelated_files[new-import-0] ____
+review/batch4-incremental/test_relative_import_independent.py:60: in test_relative_component_updates_and_keeps_unrelated_files
+    assert set(parsed) == expected and len(parsed) == len(expected)
+E   AssertionError: assert ({'src/pkg/mid.py'} == {'src/pkg/alt...sub/entry.py'}
+E     
+E     Extra items in the right set:
+E     'src/pkg/sub/entry.py'
+E     'src/pkg/alternate.py'
+E     'src/pkg/base.py'
+E     Use -v to get more diff)
+___ test_relative_component_updates_and_keeps_unrelated_files[new-import-20] ___
+review/batch4-incremental/test_relative_import_independent.py:60: in test_relative_component_updates_and_keeps_unrelated_files
+    assert set(parsed) == expected and len(parsed) == len(expected)
+E   AssertionError: assert ({'src/pkg/mid.py'} == {'src/pkg/alt...sub/entry.py'}
+E     
+E     Extra items in the right set:
+E     'src/pkg/sub/entry.py'
+E     'src/pkg/alternate.py'
+E     'src/pkg/base.py'
+E     Use -v to get more diff)
+__________ test_real_errors_provider_with_synthetic_relative_consumer __________
+review/batch4-incremental/test_relative_import_independent.py:85: in test_real_errors_provider_with_synthetic_relative_consumer
+    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 1
+E   assert 7 == 1
+_____ test_new_import_pulls_previously_disconnected_module_into_component ______
+review/batch4-incremental/test_changed_python_independent.py:94: in test_new_import_pulls_previously_disconnected_module_into_component
+    assert sorted(calls) == ["src/a.py"]
+E   AssertionError: assert ['src/a.py', ...se_2.py', ...] == ['src/a.py']
+E     
+E     Left contains 7 more items, first extra item: 'src/a.py'
+E     Use -v to get more diff
+________ test_real_three_files_one_parse_oracle_old_view_and_failure[0] ________
+review/batch4-incremental/test_common_certificate_independent.py:62: in test_real_three_files_one_parse_oracle_old_view_and_failure
+    assert parsed==['src/trpg_state_machine/availability.py']
+E   AssertionError: assert ['src/trpg_st...tem_units.py'] == ['src/trpg_st...ilability.py']
+E     
+E     Left contains 3 more items, first extra item: 'src/trpg_state_machine/availability.py'
+E     Use -v to get more diff
+_______ test_real_three_files_one_parse_oracle_old_view_and_failure[20] ________
+review/batch4-incremental/test_common_certificate_independent.py:62: in test_real_three_files_one_parse_oracle_old_view_and_failure
+    assert parsed==['src/trpg_state_machine/availability.py']
+E   AssertionError: assert ['src/trpg_st...e_12.py', ...] == ['src/trpg_st...ilability.py']
+E     
+E     Left contains 23 more items, first extra item: 'src/noise_0.py'
+E     Use -v to get more diff
+___________ test_constructor_field_changes_with_factory_unchanged[0] ___________
+review/batch4-incremental/test_class_component_independent.py:81: in test_constructor_field_changes_with_factory_unchanged
+    assert sorted(parsed) == ["src/a.py"], parsed
+E   AssertionError: ['src/a.py', 'src/a.py', 'src/b.py', 'src/u.py']
+E   assert ['src/a.py', ...', 'src/u.py'] == ['src/a.py']
+E     
+E     Left contains 3 more items, first extra item: 'src/a.py'
+E     Use -v to get more diff
+__________ test_constructor_field_changes_with_factory_unchanged[20] ___________
+review/batch4-incremental/test_class_component_independent.py:81: in test_constructor_field_changes_with_factory_unchanged
+    assert sorted(parsed) == ["src/a.py"], parsed
+E   AssertionError: ['src/a.py', 'src/a.py', 'src/b.py', 'src/u.py', 'src/unrelated_0.py', 'src/unrelated_1.py', ...]
+E   assert ['src/a.py', ...ed_1.py', ...] == ['src/a.py']
+E     
+E     Left contains 23 more items, first extra item: 'src/a.py'
+E     Use -v to get more diff
+_________ test_saved_bound_method_callback_changes_without_double_self _________
+review/batch4-incremental/test_class_component_independent.py:107: in test_saved_bound_method_callback_changes_without_double_self
+    assert sorted(parsed) == ["src/a.py"], parsed
+E   AssertionError: ['src/b.py']
+E   assert ['src/b.py'] == ['src/a.py']
+E     
+E     At index 0 diff: 'src/b.py' != 'src/a.py'
+E     Use -v to get more diff
+_______ test_actual_reverse_queries_and_unrelated_producer_retention[0] ________
+review/batch4-incremental/test_value_index_independent.py:111: in test_actual_reverse_queries_and_unrelated_producer_retention
+    assert lookups, 'Reverse index must be consumed by the public update path'
+E   AssertionError: Reverse index must be consumed by the public update path
+E   assert []
+_______ test_actual_reverse_queries_and_unrelated_producer_retention[20] _______
+review/batch4-incremental/test_value_index_independent.py:111: in test_actual_reverse_queries_and_unrelated_producer_retention
+    assert lookups, 'Reverse index must be consumed by the public update path'
+E   AssertionError: Reverse index must be consumed by the public update path
+E   assert []
+__ test_public_update_consumes_observed_readers_and_preserves_full_results[0] __
+review/batch4-incremental/test_scope_reads_independent.py:89: in test_public_update_consumes_observed_readers_and_preserves_full_results
+    assert sorted(calls)==['src/caller.py','src/provider.py']
+E   AssertionError: assert ['src/caller.py'] == ['src/caller..../provider.py']
+E     
+E     Right contains one more item: 'src/provider.py'
+E     Use -v to get more diff
+_ test_public_update_consumes_observed_readers_and_preserves_full_results[20] __
+review/batch4-incremental/test_scope_reads_independent.py:89: in test_public_update_consumes_observed_readers_and_preserves_full_results
+    assert sorted(calls)==['src/caller.py','src/provider.py']
+E   AssertionError: assert ['src/caller.py'] == ['src/caller..../provider.py']
+E     
+E     Right contains one more item: 'src/provider.py'
+E     Use -v to get more diff
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[0] ________
+review/batch4-incremental/test_analysis_inputs_independent.py:85: in test_negative_query_scope_is_used_by_update_and_matches_full
+    assert (repository, "src/pkg/provider.py") in selected
+E   AssertionError: assert ('synthetic-review', 'src/pkg/provider.py') in []
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[20] _______
+review/batch4-incremental/test_analysis_inputs_independent.py:85: in test_negative_query_scope_is_used_by_update_and_matches_full
+    assert (repository, "src/pkg/provider.py") in selected
+E   AssertionError: assert ('synthetic-review', 'src/pkg/provider.py') in []
+___________________ test_shadow_update_uses_requester_index ____________________
+review/batch4-incremental/test_requester_access_independent.py:64: in test_shadow_update_uses_requester_index
+    assert updated['incremental']['analysis_scope']['mode'] == 'incremental-owners'
+E   AssertionError: assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+___ test_public_component_queries_use_indexes_with_unrelated_relation_growth ___
+review/batch4-incremental/test_changed_python_access_independent.py:65: in test_public_component_queries_use_indexes_with_unrelated_relation_growth
+    assert sorted(active["parsed"]) == ["src/a.py", "src/b.py"]
+E   AssertionError: assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E     
+E     Right contains one more item: 'src/b.py'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[0]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[20]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from a import registry\ndef invoke():\n    return registry\n]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from missing_provider import run\ndef invoke():\n    run()\n]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from b import missing_name\ndef invoke():\n    missing_name()\n]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer
+FAILED review/batch4-incremental/test_general_context_independent.py::test_plain_import_requires_real_context_expansion_and_no_error_downgrade
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[provider-0]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[provider-20]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[new-import-0]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[new-import-20]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_real_errors_provider_with_synthetic_relative_consumer
+FAILED review/batch4-incremental/test_changed_python_independent.py::test_new_import_pulls_previously_disconnected_module_into_component
+FAILED review/batch4-incremental/test_common_certificate_independent.py::test_real_three_files_one_parse_oracle_old_view_and_failure[0]
+FAILED review/batch4-incremental/test_common_certificate_independent.py::test_real_three_files_one_parse_oracle_old_view_and_failure[20]
+FAILED review/batch4-incremental/test_class_component_independent.py::test_constructor_field_changes_with_factory_unchanged[0]
+FAILED review/batch4-incremental/test_class_component_independent.py::test_constructor_field_changes_with_factory_unchanged[20]
+FAILED review/batch4-incremental/test_class_component_independent.py::test_saved_bound_method_callback_changes_without_double_self
+FAILED review/batch4-incremental/test_value_index_independent.py::test_actual_reverse_queries_and_unrelated_producer_retention[0]
+FAILED review/batch4-incremental/test_value_index_independent.py::test_actual_reverse_queries_and_unrelated_producer_retention[20]
+FAILED review/batch4-incremental/test_scope_reads_independent.py::test_public_update_consumes_observed_readers_and_preserves_full_results[0]
+FAILED review/batch4-incremental/test_scope_reads_independent.py::test_public_update_consumes_observed_readers_and_preserves_full_results[20]
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[0]
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[20]
+FAILED review/batch4-incremental/test_requester_access_independent.py::test_shadow_update_uses_requester_index
+FAILED review/batch4-incremental/test_changed_python_access_independent.py::test_public_component_queries_use_indexes_with_unrelated_relation_growth
+52 failed, 65 passed in 25.18s

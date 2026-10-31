@@ -155,12 +155,14 @@ class Graph:
         edge["edge_id"] = digest(canonical(edge))
         self.edges.append(edge)
 
-    def build(self, query_reuse=None, source_context=None):
+    def build(self, query_reuse=None, source_context=None, selected_owners=None,
+              candidate_site_evidence=None, analyzer=None, retain_analyzer=False):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
         from .simple_python import component_policy
         captured = [node for node in self.nodes.values()
                     if node["kind"] == "module" and node["path"].endswith(".py")]
-        components = component_policy(captured, self.asts, self)
+        components = (component_policy(captured, self.asts, self)
+                      if analyzer is None else analyzer.candidate_components)
         self.edges = []
         for n in self.nodes.values():
             if n["parent"]:
@@ -173,14 +175,23 @@ class Graph:
                     n["start"],
                     n.get("column", 0),
                 )
-        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported, query_reuse,
-                            candidate_components=components, source_context=source_context)
+        analyzer = analyzer or Analyzer(
+            self.nodes, self.asts, self.repos, self.imported, query_reuse,
+            candidate_components=components, source_context=source_context,
+            candidate_site_evidence=candidate_site_evidence,
+            selected_owners=selected_owners)
+        succeeded = False
         try:
+            selected = None if selected_owners is None else frozenset(selected_owners)
+            def chosen(owner):
+                return selected is None or owner in selected
             sites = []
             import_dependencies = []
             import_requests = []
             for item in analyzer.sites:
                 expr, scope = item["_expr"], item["execution_owner"]
+                if not chosen(scope):
+                    continue
                 # Always retain the actual Jedi observation, including rejected descriptors.
                 signal = analyzer.query(scope, expr)
                 result = analyzer.resolve(scope, expr)
@@ -322,6 +333,8 @@ class Graph:
                         unknown_origin=bool(reasons),
                     )
             for ident, tree in self.asts.items():
+                if not chosen(self.nodes[ident]["parent"]):
+                    continue
                 if (
                     not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
                     or len(tree.decorator_list) != 1
@@ -348,6 +361,8 @@ class Graph:
                         wrapped_body_phase="generator-resume",
                     )
             for scope, statement, context in analyzer.context_sites:
+                if not chosen(scope):
+                    continue
                 receivers = analyzer.resolve(scope, context)
                 context_complete = analyzer.complete(receivers)
                 expected = (
@@ -379,6 +394,8 @@ class Graph:
                         ),
                     )
             for scope, expr, phase in analyzer.references:
+                if not chosen(scope):
+                    continue
                 result = analyzer.resolve(scope, expr)
                 for a in result.atoms:
                     if a.kind in CALLABLE_KINDS or a.kind == "module":
@@ -394,6 +411,8 @@ class Graph:
                             phase=phase,
                         )
             for scope, stmt in analyzer.import_sites:
+                if not chosen(scope):
+                    continue
                 for alias in stmt.names:
                     result = analyzer.binding(scope, "import", (stmt, alias))
                     namespace = self.named_import_namespace(scope, stmt, alias)
@@ -457,6 +476,8 @@ class Graph:
                                 lookup=lookup[2], lookup_status="unresolved",
                             )
             for ident, scope, base in analyzer.inheritance:
+                if not chosen(scope):
+                    continue
                 result = analyzer.resolve(scope, base)
                 for a in result.atoms:
                     if a.kind == "class":
@@ -471,9 +492,10 @@ class Graph:
                             ast.unparse(base),
                         )
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
-            flow = value_flow_evidence(list(self.nodes.values()), self.asts,
-                                       analyzer, sites, self.imported)
-            return self.edges, dict(
+            flow = (value_flow_evidence(list(self.nodes.values()), self.asts,
+                                        analyzer, sites, self.imported)
+                    if selected is None else dict(nodes=[], edges=[], reads=[], complete=False))
+            info = dict(
                 engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
                 schema=3,
                 sites=sites,
@@ -493,15 +515,25 @@ class Graph:
                 _analysis_reads=sorted(analyzer.analysis_reads),
                 _analysis_watches=sorted(analyzer.analysis_watches),
                 _analysis_inputs=analyzer.analysis_inputs.export(),
+                _unit_analysis_reads=sorted(analyzer.unit_analysis_reads),
+                _unit_analysis_watches=sorted(analyzer.unit_analysis_watches),
+                _unit_input_events=sorted(analyzer.unit_input_events),
                 _unit_supports=list(analyzer.unit_supports.values()),
                 _unit_subscriptions=list(analyzer.unit_container_subscriptions.values()),
                 _unit_writes=list(analyzer.unit_container_writes.values()),
                 _unit_dependency_truncated=analyzer.unit_dependency_truncated,
                 _value_flow=flow,
+                **({"_value_read_witnesses": dict(analyzer.value_reads)}
+                   if selected is not None else {}),
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
                 limits="20k associations; recursion 40; unsupported constructs remain unknown",
             )
+            if retain_analyzer:
+                info["_analyzer"] = analyzer
+            succeeded = True
+            return self.edges, info
         finally:
-            analyzer.close()
+            if not retain_analyzer or not succeeded:
+                analyzer.close()

@@ -53,9 +53,10 @@ def test_relative_provider_change_is_local_and_full_equal(tmp_path, monkeypatch,
     monkeypatch.setattr(extraction, "python_nodes", count)
     (package / "b.py").write_text("def f(): other()\ndef other(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert sorted(parsed) == ["src/pkg/a.py", "src/pkg/b.py"]
-    assert updated["incremental"]["analysis_scope"]["reused_python_files"] == noise
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert sorted(parsed) == sorted(
+        [str(path.relative_to(repo)) for path in repo.rglob("*.py")] + ["src/pkg/b.py"])
+    assert updated["incremental"]["analysis_scope"]["owner_preflight_analysis_iterations"] == 0
     assert records(config, first["version"]) == before
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
@@ -73,7 +74,7 @@ def test_new_relative_provider_and_failed_publication(tmp_path):
         build(config, offline=True, lexical_only=True, fail_at="before_publish")
     assert current(config) == first["version"] and records(config, first["version"]) == old
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
     assert records(config, updated["version"]) == records(oracle, fresh["version"])
@@ -99,8 +100,9 @@ def test_parent_level_and_same_named_other_package_stay_separate(tmp_path, monke
     monkeypatch.setattr(extraction, "python_nodes", count)
     (package / "b.py").write_text("def f(): other()\ndef other(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert sorted(parsed) == ["src/pkg/b.py", "src/pkg/sub/a.py"]
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert sorted(parsed) == sorted(
+        [str(path.relative_to(repo)) for path in repo.rglob("*.py")] + ["src/pkg/b.py"])
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
     assert records(config, updated["version"]) == records(oracle, fresh["version"])

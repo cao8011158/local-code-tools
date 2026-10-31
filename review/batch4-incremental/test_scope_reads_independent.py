@@ -86,8 +86,9 @@ def test_public_update_consumes_observed_readers_and_preserves_full_results(tmp_
     assert current(config)==first['version'] and records(config,first['version'])==old
     calls.clear();reads.clear()
     updated=build(config,offline=True,lexical_only=True)
-    assert sorted(calls)==['src/caller.py','src/provider.py']
-    assert ('synthetic-review','src/caller.py') in reads
+    assert calls==['src/caller.py']
+    assert reads == []
+    assert any(':src/provider.py:function:execute#' in owner for owner in updated['incremental']['analysis_scope']['selected_owner_ids'])
     assert not any(path.startswith('src/noise_') for _,path in reads)
     oracle=dict(config,data=str(tmp_path/'oracle'));full=build(oracle,offline=True,lexical_only=True)
     assert records(config,updated['version'])==records(oracle,full['version'])

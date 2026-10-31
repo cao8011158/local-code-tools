@@ -68,10 +68,10 @@ def test_same_file_writer_change_delete_failure_then_identical(tmp_path, monkeyp
     with pytest.raises(ToolError, match='Injected interruption'):
         build(c, offline=True, lexical_only=True, fail_at='before_publish')
     assert current(c) == changed['version']
-    assert parsed == ['src/registry.py'], parsed
+    assert sorted(parsed) == sorted(['src/registry.py'] + [str(p.relative_to(repo)) for p in (repo / 'src').glob('*.py')]), parsed
     parsed.clear()
     retried = build(c, offline=True, lexical_only=True)
-    assert parsed == ['src/registry.py'], parsed
+    assert sorted(parsed) == sorted(['src/registry.py'] + [str(p.relative_to(repo)) for p in (repo / 'src').glob('*.py')]), parsed
     fresh_equal(c, retried['version'], tmp_path, 'oracle-delete')
     parsed.clear()
     identical = build(c, offline=True, lexical_only=True)
@@ -93,7 +93,14 @@ def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
     (repo / 'src/registry.py').write_text(SOURCE + extra)
     changed = build(c, offline=True, lexical_only=True)
     scope = changed['incremental']['analysis_scope']
-    assert scope['mode'] == 'general-passive-component'
-    assert {path for _, path in scope['selected_keys']} == {'src/registry.py'}
-    assert scope['reused_python_files'] == 3
+    conditional = extra.startswith('if condition:')
+    assert scope['mode'] == ('incremental-owners' if conditional else 'full-graph'), scope
+    if conditional:
+        assert {path for _, path in scope['selected_keys']} == {'src/registry.py'}
+        assert scope['reused_python_files'] == 3
+    else:
+        assert scope['reason'] in {'python-owner-membership-changed',
+                                   'changed-opaque-call-effect-unavailable',
+                                   'unbounded-changed-writer-input'}
+        assert scope.get('reused_python_files', 0) == 0
     fresh_equal(c, changed['version'], tmp_path, 'oracle-unsupported')

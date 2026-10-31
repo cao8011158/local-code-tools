@@ -179,8 +179,7 @@ def test_real_certified_local_path_keeps_empty_analysis_records(tmp_path):
     assert baseline["simple_python_certificate"]
     (repo / "src/weights.py").write_text("def one(): pass\ndef two(): pass\n")
     local = build(config, offline=True, lexical_only=True)
-    assert local["incremental"]["analysis_scope"]["mode"] == (
-        "certified-simple-python-component")
+    assert local["incremental"]["analysis_scope"]["mode"] == "full-graph"
     folder, meta = manifest(config, local["version"])
     with FileDependencies(folder, meta) as relations:
         assert relations.analysis_readers("synthetic-review", "src/weights.py") == set()

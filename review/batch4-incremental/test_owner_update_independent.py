@@ -1,4 +1,5 @@
 """Root-owned acceptance: public update, semantic oracle, actual solver work."""
+import ast
 import json
 from pathlib import Path
 import sqlite3
@@ -7,7 +8,7 @@ import pytest
 
 from lct.common import ToolError
 from lct.python_analysis import Analyzer
-from lct.storage import build, current, manifest
+from lct.storage import FileDependencies, build, current, manifest
 from tests.synthetic_support import initialize
 
 
@@ -53,7 +54,8 @@ def records(c, version):
                "import_dependencies", "analysis_reads", "analysis_watches",
                "analysis_input_scopes", "analysis_input_members", "analysis_input_consumers",
                "value_nodes", "value_edges", "value_reads", "simple_python_certificates",
-               "passive_python_certificates", "unit_dependencies", "unit_name_watches")))
+               "passive_python_certificates", "unit_source_supports",
+               "unit_container_subscriptions", "unit_container_writes")))
     for filename, tables in groups:
         with sqlite3.connect(folder / filename) as db:
             available = {r[0] for r in db.execute("select name from sqlite_master where type='table'")}
@@ -68,7 +70,8 @@ def records(c, version):
                     rows = list(db.execute(f"select * from {table}"))
                 result[table] = sorted(rows)
     result["meta"] = {key: meta.get(key) for key in (
-        "simple_python_certificate", "value_flow_coverage", "analysis_input_coverage")}
+        "simple_python_certificate", "value_flow_coverage", "analysis_input_coverage",
+        "origin_dependency_schema", "origin_dependency_coverage", "origin_dependency_truncated")}
     return result
 
 
@@ -218,38 +221,51 @@ def test_absent_provider_then_delete_and_failed_publication(tmp_path):
     oracle(c, deleted["version"], tmp_path, "oracle-deleted")
 
 
-def test_reverse_owner_lookups_use_indexes_under_unrelated_growth():
-    from lct import unit_evidence
-    measured = []
-    for unrelated in (0, 20, 100):
-        with sqlite3.connect(":memory:") as db:
-            identities = ["provider", "consumer"] + [
-                name for i in range(unrelated) for name in (f"other_{i}", f"leaf_{i}")]
-            nodes = [dict(node_id=n, kind="function", module="mod") for n in identities]
-            edges = [dict(source="consumer", target="provider", kind="REFERENCES")]
-            edges += [dict(source=f"other_{i}", target=f"leaf_{i}", kind="REFERENCES")
-                      for i in range(unrelated)]
-            sites = [dict(expression="chosen", execution_owner="consumer")]
-            sites += [dict(expression=f"unknown_{i}", execution_owner=f"other_{i}")
-                      for i in range(unrelated)]
-            unit_evidence.dependencies(db, nodes, edges, sites, [])
-            for sql in ("select consumer from unit_dependencies where producer=?",
-                        "select consumer from unit_name_watches where name=?"):
-                plan = [r[3] for r in db.execute("explain query plan " + sql, ("provider",))]
-                assert any("SEARCH" in p and "INDEX" in p for p in plan), plan
-                assert not any("SCAN" in p for p in plan), plan
-            steps = [0]
-            def tick():
-                steps[0] += 1
-                return 0
-            db.set_progress_handler(tick, 1)
-            assert unit_evidence.readers(db, "provider") == {"consumer"}
-            assert unit_evidence.name_readers(db, "chosen") == {"consumer"}
-            db.set_progress_handler(None, 0)
-            measured.append(steps[0])
-    # A one-row index ends at EOF; a larger one checks the next key once.
-    # No work may grow with unrelated rows after that boundary check appears.
-    assert max(measured) - min(measured) <= 1 and measured[1] == measured[2], measured
+def test_owner_analysis_work_does_not_grow_with_unrelated_functions(tmp_path, monkeypatch):
+    measurements = []
+    original_query, original_inventory = Analyzer.query, Analyzer.inventory
+    original_readers = FileDependencies.unit_readers
+    queried, inventoried, reverse_calls = [], [], []
+
+    def query(self, scope, expr, **kwargs):
+        queried.append(self.nodes[scope]["qualname"])
+        return original_query(self, scope, expr, **kwargs)
+
+    def inventory(self, obj, *args, **kwargs):
+        if isinstance(obj, ast.Module):
+            inventoried.append(args[1] if len(args) > 1 else None)
+        return original_inventory(self, obj, *args, **kwargs)
+
+    def readers(self, producer, *args, **kwargs):
+        result = original_readers(self, producer, *args, **kwargs)
+        reverse_calls.append((producer, result))
+        return result
+
+    for noise in (0, 20, 100):
+        c, repo = fixture(tmp_path / str(noise), {"caller.py": CALLER, "worker.py": WORKER}, noise)
+        build(c, offline=True, lexical_only=True)
+        (repo / "src/caller.py").write_text(CALLER.replace("execute(first)", "execute(second)"))
+        queried.clear()
+        inventoried.clear()
+        reverse_calls.clear()
+        with monkeypatch.context() as context:
+            context.setattr(Analyzer, "query", query)
+            context.setattr(Analyzer, "inventory", inventory)
+            context.setattr(FileDependencies, "unit_readers", readers)
+            updated = build(c, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+        assert scope["mode"] == "incremental-owners", scope
+        assert scope["python_files_parsed"] == 1, scope
+        assert len(inventoried) == noise + 2, inventoried
+        assert "unrelated" not in queried and not any(n.startswith("active_") for n in queried), queried
+        assert any(":function:run#" in provider and any(":function:execute#" in consumer
+                   for consumer, _ in result) for provider, result in reverse_calls), reverse_calls
+        measurements.append({key: scope[key] for key in (
+            "selected_owner_count", "owner_jedi_queries_executed",
+            "owner_association_evaluations", "sites_analyzed")})
+        oracle(c, updated["version"], tmp_path / str(noise))
+    assert measurements[0] == measurements[1] == measurements[2], measurements
+    print({"owner_update_work": measurements})
 
 
 def test_new_module_attribute_write_inside_changed_function_matches_full(tmp_path):

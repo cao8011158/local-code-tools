@@ -86,7 +86,7 @@ def test_missing_key_subscribes_to_future_writer_and_numeric_keys_agree(tmp_path
     assert key_identity(None) != key_identity("None")
 
 
-def test_identical_capture_inherits_evidence_legacy_local_marks_unavailable(tmp_path):
+def test_identical_capture_inherits_evidence_and_owner_update_replaces_it(tmp_path):
     config, repo, folder, first = capture(tmp_path, {
         "a.py": "def target(): pass\ndef run(): target()\n",
         "b.py": "def idle(): pass\n"})
@@ -101,7 +101,12 @@ def test_identical_capture_inherits_evidence_legacy_local_marks_unavailable(tmp_
     (repo / "src/a.py").write_text("def target(): pass\ndef run(): target()\n\n")
     updated = build(config, offline=True, lexical_only=True)
     local_folder, local_meta = manifest(config, updated["version"])
-    if updated["incremental"]["analysis_scope"]["mode"] != "full-graph":
+    mode = updated["incremental"]["analysis_scope"]["mode"]
+    if mode == "incremental-owners":
+        with FileDependencies(local_folder, local_meta) as deps:
+            assert deps.origin_available
+            assert deps.unit_sources(node_id(deps.db, "run"))["supports"]
+    elif mode != "full-graph":
         with FileDependencies(local_folder, local_meta) as deps:
             assert not deps.origin_available
             with pytest.raises(ToolError):

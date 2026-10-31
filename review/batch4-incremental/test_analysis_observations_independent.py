@@ -1,5 +1,4 @@
 """Independent 4A observations before early exits, caches and failed lookups."""
-import ast
 import shutil
 import sqlite3
 
@@ -140,7 +139,7 @@ def test_purpose_records_survive_local_update_failure_and_full_comparison(tmp_pa
     assert current(config) == first["version"] and records(config, first["version"]) == old
     parsed.clear()
     updated = build(config, offline=True, lexical_only=True)
-    assert set(parsed) == {"src/a.py", "src/b.py"} and len(parsed) == 2
+    assert parsed == ["src/a.py"]
     fresh_config = dict(config, data=str(tmp_path / "full"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert records(config, updated["version"]) == records(fresh_config, fresh["version"])

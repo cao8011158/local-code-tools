@@ -1,3 +1,4 @@
+from pathlib import Path
 """Actual public-build requester lookups remain indexed under unrelated growth."""
 
 import json
@@ -61,16 +62,15 @@ def test_shadow_update_uses_requester_index(tmp_path, monkeypatch):
         own.write_text('def target(): pass\n')
         active.update(queries=[], parsed=[])
         updated = build(config, offline=True, lexical_only=True)
-        assert updated['incremental']['analysis_scope']['mode'] == 'certified-simple-python-component'
+        assert updated['incremental']['analysis_scope']['mode'] == 'full-graph'
+        assert updated['incremental']['analysis_scope']['reason'] == 'python-membership-changed'
         assert set(active['parsed']) == {
-            ('synthetic-review', 'src/caller.py'),
-            ('synthetic-review', 'src/dnd5e_engine/evaluation.py'),
-            ('trpg-rules-engine', 'src/dnd5e_engine/evaluation.py'),
-        }
+            (r['name'], str(p.relative_to(Path(r['path']))))
+            for r in config['repositories'] for p in (Path(r['path'])/'src').rglob('*.py')}
         evidence.append(dict(noise=noise, **active))
         active.clear()
         same_as_full(config, updated, case)
     shape = lambda x: sorted((q['method'], q['target'], q['rows']) for q in x['queries'])
     assert shape(evidence[0]) == shape(evidence[1])
-    assert sum(q['rows'] for q in evidence[0]['queries']) == 1
+    assert sum(q['rows'] for q in evidence[0]['queries']) == 0
     print(json.dumps(evidence, sort_keys=True))

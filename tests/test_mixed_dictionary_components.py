@@ -69,8 +69,8 @@ def test_mixed_transitive_callers_rebuild_only_component(tmp_path, monkeypatch, 
     monkeypatch.setattr(extraction, "python_nodes", count)
     (repo / "src/a.py").write_text(A.replace("'go':first", "'go':second"))
     changed = build(config, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert sorted(visited) == [f"src/{name}.py" for name in "abcd"]
+    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert sorted(visited) == ["src/a.py"]
     assert evidence(config, first["version"]) == old
     oracle(config, tmp_path, changed, "oracle-target")
 
@@ -87,7 +87,7 @@ def test_missing_key_and_failed_publication_preserve_old_view(tmp_path):
     assert current(config) == first["version"]
     assert evidence(config, first["version"]) == old
     changed = build(config, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     oracle(config, tmp_path, changed, "oracle-new-key")
 
 
@@ -131,4 +131,6 @@ def test_mixed_context_does_not_override_invalid_provider(tmp_path, suffix):
     build(config, offline=True, lexical_only=True)
     (repo / "src/a.py").write_text(A + suffix)
     result = build(config, offline=True, lexical_only=True)
-    assert result["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert result["incremental"]["analysis_scope"]["mode"] in {
+        "full-graph", "incremental-owners"}
+    oracle(config, tmp_path, result, "oracle-invalid-provider")

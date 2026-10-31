@@ -118,9 +118,9 @@ def test_unrelated_producer_only_dictionary_retained_without_reparse(tmp_path, m
     (repo / "src/a.py").write_text(
         "def first(): pass\ndef second(): pass\nregistry={'go':second}\n")
     second = build(c, offline=True, lexical_only=True)
-    assert second["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert sorted(parsed) == ["src/a.py", "src/b.py"]
-    assert watcher_queries == ["slot-writer-universe"]
+    assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert sorted(parsed) == ["src/a.py"]
+    assert watcher_queries == []  # owner path uses the indexed same-origin subscriptions
     next_folder, summary = manifest(c, second["version"])
     with FileDependencies(next_folder, summary) as deps:
         assert deps.entry_ids_for_file("synthetic-review", "src/elsewhere.py") == previous

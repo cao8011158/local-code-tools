@@ -62,7 +62,7 @@ def test_dictionary_change_delete_and_failed_publish_reuse_unrelated(tmp_path, m
     changed_text = A.replace("registry['go']=second", "registry['go']=first")
     (repo / 'src/a.py').write_text(changed_text)
     second = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+    assert sorted(parsed) == ['src/a.py'], parsed
     assert records(c, first['version']) == original
     assert_fresh_equal(c, second['version'], tmp_path, 'oracle-change')
     # Removing the overriding registration must use old evidence and recompute B.
@@ -71,10 +71,10 @@ def test_dictionary_change_delete_and_failed_publish_reuse_unrelated(tmp_path, m
     with pytest.raises(ToolError, match='Injected interruption'):
         build(c, offline=True, lexical_only=True, fail_at='before_publish')
     assert current(c) == second['version']
-    assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+    assert sorted(parsed) == ['src/a.py'], parsed
     parsed.clear()
     third = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+    assert sorted(parsed) == ['src/a.py'], parsed
     assert_fresh_equal(c, third['version'], tmp_path, 'oracle-delete')
 
 
@@ -105,7 +105,14 @@ def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
     (repo / 'src/a.py').write_text(A + extra)
     changed = build(c, offline=True, lexical_only=True)
     scope = changed['incremental']['analysis_scope']
-    assert scope['mode'] == 'general-passive-component'
-    assert {path for _, path in scope['selected_keys']} == {'src/a.py', 'src/b.py'}
-    assert scope['reused_python_files'] == 1
+    conditional = extra.startswith('if condition:')
+    assert scope['mode'] == ('incremental-owners' if conditional else 'full-graph'), scope
+    if conditional:
+        assert {path for _, path in scope['selected_keys']} == {'src/a.py'}
+        assert scope['reused_python_files'] == 2
+    else:
+        assert scope['reason'] in {'python-owner-membership-changed',
+                                   'changed-opaque-call-effect-unavailable',
+                                   'unbounded-changed-writer-input'}
+        assert scope.get('reused_python_files', 0) == 0
     assert_fresh_equal(c, changed['version'], tmp_path, 'oracle-unsafe')

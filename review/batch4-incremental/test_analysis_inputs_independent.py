@@ -81,10 +81,11 @@ def test_negative_query_scope_is_used_by_update_and_matches_full(tmp_path, monke
     parsed.clear()
     selected.clear()
     updated = build(config, offline=True, lexical_only=True)
-    assert set(parsed) == {"src/pkg/provider.py", "src/pkg/client.py"} and len(parsed) == 2
-    assert (repository, "src/pkg/provider.py") in selected
-    assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
-    assert updated["incremental"]["analysis_scope"]["reused_python_files"] == 2 * noise
+    assert parsed == ["src/pkg/provider.py"]
+    assert selected == []
+    assert not any(":src/pkg/client.py:function:use#" in owner for owner in updated["incremental"]["analysis_scope"]["selected_owner_ids"])
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reused_python_files"] == 2 * noise + 1
     assert records(config, first["version"]) == before
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)

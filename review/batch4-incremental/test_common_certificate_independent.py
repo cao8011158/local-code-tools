@@ -59,8 +59,9 @@ def test_real_three_files_one_parse_oracle_old_view_and_failure(tmp_path,monkeyp
         build(config,offline=True,lexical_only=True,fail_at='before_publish')
     assert current(config)==first['version'] and records(config,first['version'])==old
     parsed.clear();updated=build(config,offline=True,lexical_only=True)
-    assert parsed==['src/trpg_state_machine/availability.py']
-    assert updated['incremental']['analysis_scope']['reused_python_files']==noise+2
+    assert sorted(parsed)==sorted(['src/trpg_state_machine/availability.py']+[str(p.relative_to(repo)) for p in (repo/'src').rglob('*.py')])
+    assert updated['incremental']['analysis_scope']['mode']=='full-graph'
+    assert updated['incremental']['analysis_scope']['reason']=='changed-opaque-call-effect-unavailable'
     assert records(config,first['version'])==old
     fresh_config=dict(config,data=str(tmp_path/'oracle'));fresh=build(fresh_config,offline=True,lexical_only=True)
     assert records(config,updated['version'])==records(fresh_config,fresh['version'])
@@ -76,7 +77,7 @@ def test_keyword_only_callback_cross_file_and_returned_field_remain_connected(tm
     assert first['simple_python_certificate']=='simple-python-v6'
     path=repo/'src/caller.py';path.write_text(path.read_text().replace('execute(first,enabled=True)','execute(second,enabled=False)'))
     updated=build(config,offline=True,lexical_only=True)
-    assert updated['incremental']['analysis_scope']['python_files_parsed']==2
+    assert updated['incremental']['analysis_scope']['python_files_parsed']==1
     fresh_config=dict(config,data=str(tmp_path/'oracle'));fresh=build(fresh_config,offline=True,lexical_only=True)
     assert records(config,updated['version'])==records(fresh_config,fresh['version'])
 

@@ -76,7 +76,7 @@ def test_actual_reverse_queries_and_unrelated_producer_retention(tmp_path, monke
     actual = extraction.python_nodes
     parsed = []
     monkeypatch.setattr(extraction, 'python_nodes', lambda f: (parsed.append(f['path']), actual(f))[1])
-    original = FileDependencies.value_readers
+    original = FileDependencies.unit_container_readers
     watcher = FileDependencies.analysis_watchers
     lookups, watcher_calls = [], []
 
@@ -101,17 +101,17 @@ def test_actual_reverse_queries_and_unrelated_producer_retention(tmp_path, monke
         watcher_calls.append(kind)
         return watcher(self, kind)
 
-    monkeypatch.setattr(FileDependencies, 'value_readers', measured)
+    monkeypatch.setattr(FileDependencies, 'unit_container_readers', measured)
     monkeypatch.setattr(FileDependencies, 'analysis_watchers', watched)
     changed_source = A.replace('registry["go"]=second', 'registry["go"]=first')
     assert changed_source != A
     (repo / 'src/a.py').write_text(changed_source)
     changed = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+    assert sorted(parsed) == ['src/a.py'], parsed
     assert lookups, 'Reverse index must be consumed by the public update path'
-    assert watcher_calls == ['slot-writer-universe'], watcher_calls
+    assert watcher_calls == [], watcher_calls
     got = contents(c, changed['version'])
     oracle = dict(c, data=str(tmp_path / 'oracle'))
     full = build(oracle, offline=True, lexical_only=True)
     assert got == contents(oracle, full['version'])
-    print(json.dumps(dict(noise=noise, queries=lookups, parsed_update=['src/a.py', 'src/b.py']), sort_keys=True))
+    print(json.dumps(dict(noise=noise, queries=lookups, parsed_update=['src/a.py']), sort_keys=True))

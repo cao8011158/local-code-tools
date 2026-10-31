@@ -65,7 +65,7 @@ def test_two_independent_repositories_with_same_path_reuse_other_owner(tmp_path)
     (provider / "src/dnd5e_engine/evaluation.py").write_text("def target(): return 1\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
+    assert scope["mode"] == "incremental-owners"
     assert scope["python_files_parsed"] == 1
     same_as_full(config, updated, tmp_path)
 
@@ -79,8 +79,8 @@ def test_new_local_import_expands_closure_without_parsing_unrelated_repo(tmp_pat
     (consumer / "src/helper.py").write_text("def target(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["python_files_parsed"] == 2
+    assert scope["mode"] == "full-graph"
+    assert scope["reason"] == "python-membership-changed"
     same_as_full(config, updated, tmp_path)
 
 
@@ -93,8 +93,8 @@ def test_exact_pinned_cross_repository_import_and_local_precedence(tmp_path):
     caller.write_text(caller.read_text() + "def second(): target()\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["python_files_parsed"] == 2
+    assert scope["mode"] == "full-graph"
+    assert scope["reason"] == "python-owner-membership-changed"
     same_as_full(config, updated, tmp_path)
 
     # With a captured local module of the same name, the graph's local-first
@@ -103,7 +103,7 @@ def test_exact_pinned_cross_repository_import_and_local_precedence(tmp_path):
     local.parent.mkdir(exist_ok=True)
     local.write_text("def target(): pass\n")
     local_result = build(config, offline=True, lexical_only=True)
-    assert local_result["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert local_result["incremental"]["analysis_scope"]["mode"] == "full-graph"
     same_as_full(config, local_result, tmp_path / "shadow")
 
 
@@ -128,8 +128,7 @@ def test_removed_local_shadow_reanalyzes_requester_and_pinned_provider(tmp_path)
     (consumer / "src/dnd5e_engine/evaluation.py").unlink()
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["python_files_parsed"] == 2
+    assert scope["mode"] == "full-graph"
     same_as_full(config, updated, tmp_path)
 
 
@@ -168,12 +167,12 @@ def test_package_initializer_shadow_changes_fall_back(tmp_path):
     initializer.write_text("")
     added = build(config, offline=True, lexical_only=True)
     assert added["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert added["incremental"]["analysis_scope"]["reason"] == "package-initializer-changed"
+    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
     same_as_full(config, added, tmp_path)
     initializer.unlink()
     removed = build(config, offline=True, lexical_only=True)
     assert removed["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert removed["incremental"]["analysis_scope"]["reason"] == "package-initializer-changed"
+    assert removed["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
     same_as_full(config, removed, tmp_path / "removed")
 
 
@@ -186,12 +185,12 @@ def test_ancestor_module_shadow_changes_fall_back(tmp_path):
     shadow.write_text("def unrelated(): pass\n")
     added = build(config, offline=True, lexical_only=True)
     assert added["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert added["incremental"]["analysis_scope"]["reason"] == "ancestor-module-layout-changed"
+    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
     same_as_full(config, added, tmp_path)
     shadow.unlink()
     removed = build(config, offline=True, lexical_only=True)
     assert removed["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert removed["incremental"]["analysis_scope"]["reason"] == "ancestor-module-layout-changed"
+    assert removed["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
     same_as_full(config, removed, tmp_path / "removed")
 
 
@@ -205,11 +204,7 @@ def test_pinned_provider_package_context_parses_only_actual_prefix(tmp_path):
     caller.write_text(caller.read_text() + "def again(): action()\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component"
-    assert scope["selected_keys"] == [
-        ("synthetic-review", "src/caller.py"),
-        ("trpg-rules-engine", "src/dnd5e_engine/__init__.py"),
-        ("trpg-rules-engine", "src/dnd5e_engine/evaluation.py"),
-    ]
-    assert scope["python_files_parsed"] == 3
+    assert scope["mode"] == "full-graph"
+    assert scope["reason"] == "python-owner-membership-changed"
+    assert scope["python_files_parsed"] == 5
     same_as_full(config, updated, tmp_path)

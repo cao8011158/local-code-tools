@@ -928,3 +928,19 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - B4-SRC-01-UNKNOWN-ARG明确关闭：unpacking/missing都保存已知提供方和消费site、正确形参与原unknown原因，不添具体target、不改解包推理或完整性。root独立再生成三种旧/新完整sites JSON逐字节相同；原六文件16旧表及元数据摘要仍相同；F/E9通过。原第1轮失败和修复路径保留，不改写为一次通过。
 - 当前head重跑来源反查扩容与冷热控制通过；0/20/100固定目标SQL/R不增加，真实计划SEARCH索引无SCAN。整工件校验、完整源码准备/物化成本单列。证据check_gate在刚核对的d2ac250代码头及fc857f3目标下READY、正式review2轮、无未解决finding；仅代表B1记录门槛，不代表三批整体可合并。
 - 累计BATCH1_SOURCE_REVIEW.md补第2轮pass；BATCH1_EVIDENCE.json及原始root/developer日志、语义JSON和gate输出保存。下一提交只保存这些关闭证据，B1受验生产代码不变；随后按用户已批准计划启动Batch2。当前来源ledger仍observed/partial，不能当任意Python完整负依赖证明。未合并、未启付费API/业务执行/外部服务。
+
+## 阶段118：Batch 2开发冻结完成，独立预检继续核清历史回归
+
+- GPT-6 SOL/medium开发者交付公开build的incremental-owners路径：文件hash选择变动源码，使用B1来源反查/容器订阅和真实owner输入记录选函数；共享一次Analyzer上下文跨闭包轮次，按owner替换结果和来源。新增捕获绑定JSON AST缓存，保留共享对象身份；白名单不再作为一般准入门槛。
+- 20文件冻结SHA见DEVELOPER_BATCH2_SHA256.txt。静止主tests为670 passed/27 skipped/48.64秒，定向54 passed/15.56秒，F/E9及diff空白检查通过。开发未改root独立测试；完整历史review尚未通过，开发结果不能充当独立验收。当前远端仍B1关闭证据b8eb6ab5aab4554a2b5fc90204d6c12a1c2655fb，实际目标fc857f395a381e5dfec9941d60ca685bcbe0b3fd未变。
+- root独立开放/closed_world多轮回调改向均只解析变动文件、与fresh完整语义及来源三表相同；另要求AST缓存校验按模块一次分组，避免M×F重复枚举，开发已完成并纳入冻结测试。
+- 历史review原69失败的原始日志保留；root正在逐项同步旧整文件解析/模式/索引消费者预期，使其后面的fresh oracle实际执行。当前预检又暴露了3种调用方改动的analysis input私有证据差异，以及连续更新的import_requests顺序差异，尚待根因核对；不把这些失败简单归为诊断、不降低UNKNOWN或完整性断言。测试同步脚本初稿的局部变量同名及不存在的full诊断字段错误亦保留日志并纠正。
+- 生产尚未推送、正式B2审阅0/3；Batch3和合并继续等待B2通过。下一步核清上述差异、修复后重新冻结，再固定远端独立回归。
+
+## 阶段119：Batch 2提交前限定修复完成，历史fresh对照通过
+
+- root确认三个当前step内P2预检问题并限定修复：候选范围改变而未选owner沿用旧component输入记录；保留/新导入请求拼接改变ordinal顺序；缺失名称导入从b改c后，旧LOOKUP_IN的boundary源绕过owner删除，留下无支持的辅助关系。最后一项独立单/双importer原反例2 failed/0.82秒，只有多余旧LOOKUP_IN，其他语义表及CALLS目标相同。三问题不作为P0/P1或正式review轮次，原复现日志保留。
+- 开发按新捕获的candidate policy一次比较旧事件并定向扩选重观察，覆盖有限component与capture两方向；请求按完整module顺序重排，混合来源不可证明则明确full；LOOKUP_IN按当前IMPORTS与精确lookup身份的存活支持保留，多来源仍有效时不误删。没有仅重标旧metadata或改UNKNOWN。修复前670/54、671/55仍为旧开发证据。
+- 新静止主tests673 passed/27 skipped；定向57 passed；20文件冻结SHA逐项OK，F/E9与diff空白检查通过。root同步17历史及新多轮/辅助关系控制预检119 passed/2 failed：这2项是第三次发布后默认只保留两版而读取首版的测试配置错误，root首次build前设retained_versions=4后2 passed/0.88秒；两次fresh语义本来均通过。未因此改生产或弱化旧视图断言。
+- root BATCH2_EXPECTATION_SYNC.md逐类说明路由/计量/索引消费者预期的更新；原full graph、UNKNOWN、完整性、值流、输入scope及证书对照均继续执行。旧6项既有诊断/服务基线排除规则不变。新的old-view retention错误及所有中间失败日志保留。
+- 仍未正式验收。下一步将白名单候选固定到远端，再从独立目录核验整个b8eb6ab...到head并运行主tests+适用全部review、源码diff、来源三表、实际SQL与无关扩容。B2正式review0/3，Batch3未开始，不合并。

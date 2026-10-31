@@ -69,14 +69,19 @@ def test_real_execution_and_errors_reuse_only_passive_noise(tmp_path, monkeypatc
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == (
-        "general-passive-component" if noise else "full-graph")
-    assert sorted(parsed) == ["src/trpg_state_machine/_execution.py", "src/trpg_state_machine/errors.py"]
+        "incremental-owners" if changed == "_execution" else "full-graph")
+    if changed == "_execution":
+        assert sorted(parsed) == ["src/trpg_state_machine/_execution.py"]
+    else:
+        assert sorted(parsed) == sorted(
+            [str(path.relative_to(repo)) for path in repo.rglob("*.py")] +
+            ["src/trpg_state_machine/errors.py"])
     scope = updated["incremental"]["analysis_scope"]
-    if noise:
-        assert scope["context_source_files"] == 22
+    if changed == "_execution":
+        assert scope["context_source_files"] == noise + 2
         assert scope["context_source_bytes"] > 0
-        assert scope["python_ast_context_files"] == 2
-        assert scope["reused_python_files"] == 20
+        assert scope["python_ast_context_files"] == 1
+        assert scope["reused_python_files"] == noise + 1
     assert semantic(config, first["version"]) == old
     full_config = dict(config, data=str(tmp_path / "fresh"))
     fresh = build(full_config, offline=True, lexical_only=True)
@@ -141,10 +146,9 @@ def test_prior_incoming_passive_provider_does_not_discard_other_proofs(tmp_path,
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
-    assert sorted(parsed) == ["src/noise_7.py", "src/trpg_state_machine/_execution.py",
-                              "src/trpg_state_machine/errors.py"]
-    assert updated["incremental"]["analysis_scope"]["reused_python_files"] == 19
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert sorted(parsed) == ["src/trpg_state_machine/_execution.py"]
+    assert updated["incremental"]["analysis_scope"]["reused_python_files"] == 21
     full_config = dict(config, data=str(tmp_path / "fresh"))
     fresh = build(full_config, offline=True, lexical_only=True)
     assert semantic(config, updated["version"]) == semantic(full_config, fresh["version"])
@@ -170,9 +174,10 @@ def test_new_import_of_passive_provider_expands_selected_context(tmp_path, monke
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
-    assert sorted(parsed) == ["src/noise_7.py", "src/trpg_state_machine/_execution.py",
-                              "src/trpg_state_machine/errors.py"]
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert sorted(parsed) == sorted(
+        [str(path.relative_to(repo)) for path in repo.rglob("*.py")] +
+        ["src/trpg_state_machine/_execution.py"])
     fresh = build(dict(config, data=str(tmp_path / "fresh")), offline=True, lexical_only=True)
     assert semantic(config, updated["version"]) == semantic(dict(config, data=str(tmp_path / "fresh")), fresh["version"])
 
@@ -195,7 +200,7 @@ def test_general_failed_publication_preserves_old_view_then_retries(tmp_path):
         build(config, offline=True, lexical_only=True, fail_at="before_publish")
     assert semantic(config, first["version"]) == old
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     same = build(config, offline=True, lexical_only=True)
     assert same["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
     assert semantic(config, updated["version"]) == semantic(config, same["version"])
@@ -220,8 +225,8 @@ def test_deleted_passive_source_keeps_remaining_unrelated_proofs(tmp_path, monke
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
-    assert sorted(parsed) == ["src/trpg_state_machine/_execution.py", "src/trpg_state_machine/errors.py"]
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert sorted(parsed) == sorted(str(path.relative_to(repo)) for path in repo.rglob("*.py"))
     full_config = dict(config, data=str(tmp_path / "fresh"))
     fresh = build(full_config, offline=True, lexical_only=True)
     assert semantic(config, updated["version"]) == semantic(full_config, fresh["version"])
@@ -258,7 +263,7 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
     assert first["simple_python_certificate"] == "simple-python-v6"
     (repo / "src/noise_0.py").write_text("def pure_0():\n    return 200\n")
     local = build(config, offline=True, lexical_only=True)
-    assert local["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert local["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert local["passive_python_count"] == 20
     target = repo / "src/trpg_state_machine"
     target.mkdir()
@@ -271,8 +276,8 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
-    assert sorted(parsed) == ["src/trpg_state_machine/_execution.py", "src/trpg_state_machine/errors.py"]
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert sorted(parsed) == sorted(str(path.relative_to(repo)) for path in repo.rglob("*.py"))
     assert updated["simple_python_certificate"] is None
     assert updated["value_flow_coverage"] == "partial"
     folder, _ = manifest(config, updated["version"])
@@ -290,7 +295,7 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
     source = target / "_execution.py"
     source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_changed"', 1))
     later = build(config, offline=True, lexical_only=True)
-    assert later["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+    assert later["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert later["simple_python_certificate"] is None
     assert later["value_flow_coverage"] == "partial"
     fresh_later_config = dict(config, data=str(tmp_path / "fresh-later"))

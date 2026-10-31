@@ -47,8 +47,8 @@ def test_actual_three_file_availability_local_and_full_oracle(tmp_path, noise):
     module.write_bytes(module.read_bytes().replace(b"context=context", b"context=None"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component", scope
-    assert scope["python_files_parsed"] == 1 and scope["reused_python_files"] == noise + 2
+    assert scope["mode"] == "full-graph", scope
+    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
     oracle(tmp_path, config, updated)
     assert records(config, baseline["version"]) == old
 
@@ -65,8 +65,8 @@ def test_connected_caller_is_selected_and_matches_full(tmp_path):
     module.write_bytes(module.read_bytes().replace(b"context=context", b"context=None"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component", scope
-    assert scope["python_files_parsed"] == 2 and scope["reused_python_files"] == 2
+    assert scope["mode"] == "full-graph", scope
+    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
     oracle(tmp_path, config, updated)
 
 
@@ -82,8 +82,8 @@ def test_errors_passive_default_and_property_with_importer(tmp_path):
     module.write_bytes(module.read_bytes().replace(b'path: str = ""', b'path: str = "root"'))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "certified-simple-python-component", scope
-    assert scope["python_files_parsed"] == 2 and scope["reused_python_files"] == 2
+    assert scope["mode"] == "full-graph", scope
+    assert scope["reason"] == "changed-writer-origin-unresolved"
     oracle(tmp_path, config, updated)
 
 
@@ -192,7 +192,7 @@ def test_generic_type_params_reject_strict_and_common(source, node, tmp_path):
     ("availability.py", "self._combat.query_action_availability",
      "getattr(self, '_combat').query_action_availability"),
 ])
-def test_unsafe_form_rejected(tmp_path, filename, old, new):
+def test_unsafe_form_does_not_gain_certificate(tmp_path, filename, old, new):
     config, _, target = setup(tmp_path)
     first = build(config, offline=True, lexical_only=True)
     assert first["simple_python_certificate"] == CERTIFICATE
@@ -201,4 +201,6 @@ def test_unsafe_form_rejected(tmp_path, filename, old, new):
     module.write_text(module.read_text().replace(old, new))
     result = build(config, offline=True, lexical_only=True)
     assert result["simple_python_certificate"] is None
-    assert result["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert result["incremental"]["analysis_scope"]["mode"] in {
+        "full-graph", "incremental-owners"}
+    oracle(tmp_path, config, result)

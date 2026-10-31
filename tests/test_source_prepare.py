@@ -50,7 +50,7 @@ def test_python_edit_add_delete_and_corrupt_sidecar_force_full(tmp_path, monkeyp
         return original(file)
     monkeypatch.setattr(extraction, "python_nodes", counted)
     for path, content, expected in (("src/weights.py", "def changed(): pass\n", "full-graph"),
-                                    ("src/added.py", "def added(): pass\n", "certified-simple-python-component"),
+                                    ("src/added.py", "def added(): pass\n", "full-graph"),
                                     ("src/added.py", None, "full-graph")):
         target = repo / path
         if content is None:

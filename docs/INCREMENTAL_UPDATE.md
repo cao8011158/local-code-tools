@@ -1,5 +1,42 @@
 # Incremental update planner contract (Batch 4, first layer)
 
+## Owner updates for changed Python sources (Batch 2)
+
+`storage.build` first checks the immutable prior catalog and graph-site artifacts,
+program/config/runtime/pins, compatible AST cache, source hashes, source-origin
+schema, and the actual owner input ledger. A missing or incompatible new schema
+uses a full cold build. Subsequent Python changes parse each changed file in
+full and reuse unchanged AST object graphs from a source-verified JSON cache.
+Jedi sees the complete captured source context. All execution owners in a
+changed file start selected; downstream owners are selected from indexed B1
+producer-to-consumer supports, same-container origin subscriptions, recorded
+module reads and import requesters. A new direct slot writer resolves its
+captured receiver before querying old same-origin readers. Unknown receivers,
+opaque mutations and unverified inputs widen or fall back to full analysis.
+
+`Graph.build(selected_owners=...)` only runs query, resolve, and adjudication
+for selected execution owners. It retains old unknown/incomplete candidate
+sites in the caller search; complete old sites owned by unselected functions
+are indexed by their retained targets without requery. Multiple passes
+reuse one captured Analyzer and Jedi project, resetting graph edges each pass;
+metrics include cumulative executed queries, associations and pass count.
+On a verified owner update, unchanged sites, edges, source supports,
+subscriptions, write records, queries and input observations are rebound to
+the new capture; selected owners replace their old records. The value-flow
+sidecar is regenerated from current and verified retained read witnesses.
+Origin evidence remains partial and never by itself proves whole-capture
+semantic completeness. The full analyzer's `UNKNOWN`, provenance, certificate
+and value-flow coverage rules remain authoritative. `simple_python.certify`
+continues to compute compatible full-graph metadata and candidate policy; it
+does not admit this owner update path.
+
+`analysis_scope.mode=incremental-owners` reports selected and reused owner
+counts, parsed changed files, reused sites/edges, complete context file count,
+analysis passes, and actual cumulative query/association work. A failed owner
+attempt reports its reason and separate preflight work before a full build.
+The older strict/general source-certificate routes remain as compatibility
+code; they are not a required gate for this path.
+
 ## Observed source origins (Batch 1)
 
 Full graph analysis now writes private, source-located observations for ordinary

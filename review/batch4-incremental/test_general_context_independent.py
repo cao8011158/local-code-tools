@@ -78,11 +78,11 @@ def test_general_reuse_preserves_future_deleted_and_newly_active_providers(tmp_p
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "general-passive-component", scope
-    assert len(parsed) == len(set(parsed))
-    assert "src/idle_19.py" not in parsed
-    assert scope["context_source_files"] == (23 if operation == "new-provider" else 22)
-    assert scope["context_source_files"] > scope["python_ast_context_files"]
+    assert scope["mode"] == "full-graph", scope
+    assert len(set(parsed)) == scope["python_ast_context_files"]
+    assert "src/idle_19.py" in parsed
+    assert scope["python_ast_context_files"] == (23 if operation == "new-provider" else 22)
+    assert scope["context_source_files"] == 0
     assert semantic_tables(config, previous["version"]) == old_records
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
@@ -95,7 +95,7 @@ def test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_poi
     first_records = semantic_tables(config, first["version"])
     source.write_bytes(source.read_bytes().replace(b'"actor"', b'"first_edit"', 1))
     second = build(config, offline=True, lexical_only=True)
-    assert second["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+    assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     source.write_bytes(source.read_bytes().replace(b'"first_edit"', b'"second_edit"', 1))
     old = semantic_tables(config, second["version"])
     with pytest.raises(ToolError, match="Injected interruption"):
@@ -103,7 +103,7 @@ def test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_poi
     assert current(config) == second["version"]
     assert semantic_tables(config, second["version"]) == old
     third = build(config, offline=True, lexical_only=True)
-    assert third["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+    assert third["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     # The fixture retains two activations; the oldest may now be intentionally pruned.
     assert first_records != semantic_tables(config, third["version"])
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
@@ -118,7 +118,7 @@ def test_changed_initializer_remains_explicit_full_fallback(tmp_path):
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
     assert scope["mode"] == "full-graph", scope
-    assert scope["reason"] == "package-initializer-changed", scope
+    assert scope["reason"] == "python-membership-changed", scope
     assert first["version"] != updated["version"]
 
 
@@ -149,10 +149,9 @@ def test_plain_import_requires_real_context_expansion_and_no_error_downgrade(tmp
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "general-passive-component", scope
-    assert expanded == [(config["repositories"][0]["name"], "src/idle_7.py")]
-    assert sorted(parsed) == ["src/idle_7.py", "src/trpg_state_machine/_execution.py",
-                              "src/trpg_state_machine/errors.py"]
+    assert scope["mode"] == "full-graph", scope
+    assert expanded == []  # full build already carries the entire captured AST context
+    assert sorted(parsed) == sorted(["src/trpg_state_machine/_execution.py"] + [str(p.relative_to(repo)) for p in (repo / "src").rglob("*.py")])
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert semantic_tables(config, updated["version"]) == semantic_tables(fresh_config, fresh["version"])

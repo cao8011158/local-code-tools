@@ -44,6 +44,7 @@ from .simple_python import CERTIFICATE, certify
 from . import analysis_inputs
 from . import passive_python
 from . import dependency_origins
+from . import unit_evidence
 from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
@@ -239,7 +240,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 analysis_reads=None, analysis_watches=None,
                 analysis_dependency_truncated=False, value_flow=None,
                 analysis_input_payload=None, passive_certificates=(),
-                origin_observations=None):
+                origin_observations=None, ast_cache=None, owner_observations=None):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -255,6 +256,9 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create table node_order(ordinal integer primary key, node_id text not null unique)")
         db.executemany("insert into node_order values(?,?)", (
             (i, node["node_id"]) for i, node in enumerate(nodes)))
+        m["unit_ast_cache_schema"] = unit_evidence.SCHEMA if unit_evidence.save(db, ast_cache, nodes) else None
+        unit_evidence.save_owner_observations(db, *(owner_observations or ((), (), ())))
+        m["unit_observation_schema"] = 1 if owner_observations is not None else None
         db.execute("create table simple_python_certificates(repository text not null, path text not null, sha256 text not null, primary key(repository,path))")
         db.executemany("insert into simple_python_certificates values(?,?,?)", (
             (f["repository"], f["path"], f["sha256"]) for f in certified_files
@@ -590,6 +594,16 @@ class FileDependencies:
                     != manifest["value_flow_edge_count"]):
                 raise ToolError("Previous value-flow count mismatch")
             self.origin_available = dependency_origins.verify(self.db, manifest)
+            if manifest.get("unit_ast_cache_schema") == unit_evidence.SCHEMA:
+                if (self.db.execute("select count(*) from unit_ast_cache").fetchone()[0] != 1
+                        or not {"schema", "payload"} <= {r[1] for r in self.db.execute(
+                            "pragma table_info('unit_ast_cache')")}):
+                    raise ToolError("Previous AST cache unavailable")
+                if manifest.get("unit_observation_schema") != 1 or any(
+                        name not in {r[1] for r in self.db.execute(f"pragma index_list('{table}')")}
+                        for table, name in (("unit_analysis_reads", "unit_analysis_read_producer"),
+                                            ("unit_analysis_watches", "unit_analysis_watch_kind"))):
+                    raise ToolError("Previous owner input ledger unavailable")
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -925,6 +939,16 @@ def _reuse_python_graph(folder, prior, files, repos, c):
                 [json.loads(raw) for (raw,) in db.execute("select data from " + table)]
                 for table in ("unit_source_supports", "unit_container_subscriptions",
                               "unit_container_writes"))
+        old_asts = None
+        owner_observations = None
+        if prior.get("unit_ast_cache_schema") == unit_evidence.SCHEMA:
+            with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() +
+                                         "?mode=ro&immutable=1", uri=True)) as source_db:
+                old_sources = {(r, p): source for r, p, source in source_db.execute(
+                    "select repository,path,text from files where path like '%.py'")}
+            old_nodes = {n["node_id"]: n for n in nodes}
+            old_asts = unit_evidence.load(db, old_nodes, old_sources)
+            owner_observations = unit_evidence.load_owner_observations(db)
     if len(sites) != prior["graph"]["call_sites"]:
         return None, "previous-graph-evidence-count-mismatch"
     info = dict(prior["graph"], sites=sites, _query_observations=observations,
@@ -937,6 +961,11 @@ def _reuse_python_graph(folder, prior, files, repos, c):
     if origin_observations is not None:
         info["_unit_supports"], info["_unit_subscriptions"], info["_unit_writes"] = origin_observations
         info["_unit_dependency_truncated"] = False
+    if old_asts is not None:
+        info["_ast_cache"] = old_asts
+        info["_unit_analysis_reads"], info["_unit_analysis_watches"], info["_unit_input_events"] = (
+            sorted(owner_observations[0]), sorted(owner_observations[1]),
+            sorted(owner_observations[2]))
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
     info["association_evaluations"] = 0
@@ -1047,6 +1076,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         preparation_reason = "no-previous-snapshot"
         local_metrics = None
         local_attempts = {"python_files_parsed": 0}
+        owner_attempted = False
         if previous:
             try:
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
@@ -1055,6 +1085,32 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             except (OSError, ToolError, KeyError, ValueError, sqlite3.Error):
                 preparation_reason = "previous-graph-evidence-unavailable"
         if previous and prepared is None:
+            try:
+                old_folder, old_manifest = manifest(c, previous, compatible=False)
+                eligible, reason, _, _ = _same_python_inputs(
+                    old_folder, old_manifest, files, repos, c)
+                if eligible or reason == "no-unchanged-python-modules":
+                    if old_manifest.get("dependency_store") == "indexed-v3":
+                        for artifact in ("catalog.sqlite", GRAPH_SITES):
+                            checksum, size = hash_artifact(old_folder, artifact)
+                            if (checksum != old_manifest["artifacts"][artifact] or
+                                    size != old_manifest["artifact_sizes"][artifact]):
+                                raise ToolError("Previous owner artifact integrity failed")
+                        from .unit_incremental import prepare as prepare_owners
+                        with FileDependencies(old_folder, old_manifest) as dependencies:
+                            owner_attempted = True
+                            candidate, preparation_reason = prepare_owners(
+                                old_folder, old_manifest, files, repos,
+                                dependencies=dependencies, graph_sites=GRAPH_SITES,
+                                attempts=local_attempts)
+                        if candidate is not None:
+                            nodes, edges, graph_info, local_metrics = candidate
+                            prepared = nodes, edges, graph_info
+                else:
+                    preparation_reason = reason
+            except (OSError, ToolError, KeyError, ValueError, sqlite3.Error, SyntaxError):
+                preparation_reason = "previous-owner-evidence-unavailable"
+        if previous and prepared is None and not owner_attempted:
             try:
                 old_folder, old_manifest = manifest(c, previous, compatible=False)
                 compatible, reason, _, _ = _same_python_inputs(
@@ -1141,12 +1197,19 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                                graph_info.pop("_unit_subscriptions", None),
                                graph_info.pop("_unit_writes", None))
         origin_truncated = graph_info.pop("_unit_dependency_truncated", True)
+        ast_cache = graph_info.pop("_ast_cache", asts if prepared is None else None)
+        owner_observations = (graph_info.pop("_unit_analysis_reads", None),
+                              graph_info.pop("_unit_analysis_watches", None),
+                              graph_info.pop("_unit_input_events", None))
+        if any(item is None for item in owner_observations):
+            owner_observations = None
         if origin_truncated:
             origin_observations = ((), (), (), False, True)
         elif any(item is None for item in origin_observations):
             origin_observations = None
         else:
-            origin_observations = (*origin_observations, local_metrics is None, False)
+            origin_observations = (*origin_observations, local_metrics is None or
+                                   preparation_reason == "incremental-owners", False)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
@@ -1180,6 +1243,12 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             analysis_scope.update(local_metrics)
         else:
             analysis_scope["local_preflight_python_files_parsed"] = local_attempts["python_files_parsed"]
+            analysis_scope["owner_preflight_analysis_iterations"] = local_attempts.get(
+                "owner_analysis_iterations", 0)
+            analysis_scope["owner_preflight_jedi_queries_executed"] = local_attempts.get(
+                "owner_jedi_queries_executed", 0)
+            analysis_scope["owner_preflight_association_evaluations"] = local_attempts.get(
+                "owner_association_evaluations", 0)
         analysis_scope["total_python_files_parsed"] = (
             analysis_scope["python_files_parsed"] if local_metrics else
             analysis_scope["python_files_parsed"] + local_attempts["python_files_parsed"])
@@ -1312,6 +1381,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 call_resolution=dict(Counter(e["status"] for e in edges if e["kind"] == "CALLS")),
                 graph=graph_info,
                 simple_python_certificate=(
+                    graph_info.pop("_simple_python_certificate")
+                    if preparation_reason == "incremental-owners" else
                     (None if analysis_scope["mode"] == "general-passive-component" else
                      old_manifest["simple_python_certificate"]) if local_metrics else
                     certify(files, asts, graph=graph) if prepared is None else
@@ -1351,7 +1422,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                         nodes, edges, files if m.get("simple_python_certificate") else (),
                         analysis_reads, analysis_watches, analysis_dependency_truncated,
                         value_flow, input_payload, passive_certificates,
-                        origin_observations)
+                        origin_observations, ast_cache, owner_observations)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

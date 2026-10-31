@@ -211,7 +211,7 @@ def test_persisted_scope_reader_and_local_full_equality(tmp_path, noise):
         build(config, offline=True, lexical_only=True, fail_at="before_publish")
     assert current(config) == first["version"] and _records(folder) == old
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert _records(manifest(config, updated["version"])[0]) == _records(manifest(fresh_config, fresh["version"])[0])

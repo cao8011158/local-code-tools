@@ -78,7 +78,8 @@ def test_constructor_field_changes_with_factory_unchanged(tmp_path, monkeypatch,
 
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ["src/a.py", "src/b.py"], parsed
+    assert sorted(parsed) == sorted(["src/a.py"] + [str(p.relative_to(repo)) for p in (repo / "src").glob("*.py")]), parsed
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
     oracle = dict(c, data=str(tmp_path / "oracle"))
     full = build(oracle, offline=True, lexical_only=True)
     assert records(c, updated["version"]) == records(oracle, full["version"])
@@ -104,7 +105,7 @@ def use():
 
     monkeypatch.setattr(extraction, "python_nodes", counted)
     updated = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ["src/a.py", "src/b.py"], parsed
+    assert parsed == ["src/b.py"], parsed
     oracle = dict(c, data=str(tmp_path / "oracle"))
     full = build(oracle, offline=True, lexical_only=True)
     assert records(c, updated["version"]) == records(oracle, full["version"])

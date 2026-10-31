@@ -53,13 +53,9 @@ def test_real_validator_measured_parse_scope(tmp_path, monkeypatch, noise):
         result = build(config, offline=True, lexical_only=True)
     assert [path for _, path in parsed] == ["src/trpg_state_machine/item_units.py"]
     scope = result["incremental"]["analysis_scope"]
-    if noise:
-        assert scope["mode"] == "certified-simple-python-component"
-        assert scope["reused_python_files"] == noise
-    else:
-        assert scope["mode"] == "full-graph"
-        assert scope["reason"] == "no-unchanged-python-modules"
-        assert scope["total_python_files_parsed"] == 1
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reused_python_files"] == noise
+    assert scope["total_python_files_parsed"] == 1
     assert records(config, first["version"]) == before
     oracle(tmp_path, config, result)
     print({"unrelated_files": noise, "actual_parse_calls": len(parsed),

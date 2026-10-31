@@ -56,7 +56,7 @@ def test_callback_target_change_local_and_fresh_equal_then_failed_retry(tmp_path
 
     monkeypatch.setattr(extraction, "python_nodes", counted)
     changed = build(c, offline=True, lexical_only=True)
-    assert sorted(calls) == ["src/a.py", "src/b.py"], calls
+    assert sorted(calls) == ["src/a.py"], calls
     assert records(c, initial["version"]) == old
     local = records(c, changed["version"])
     oracle = dict(c, data=str(tmp_path / "oracle"))
@@ -69,10 +69,10 @@ def test_callback_target_change_local_and_fresh_equal_then_failed_retry(tmp_path
         build(c, offline=True, lexical_only=True, fail_at="before_publish")
     assert current(c) == changed["version"]
     assert records(c, changed["version"]) == local
-    assert sorted(calls) == ["src/a.py", "src/b.py"]
+    assert sorted(calls) == ["src/a.py"]
     calls.clear()
     retried = build(c, offline=True, lexical_only=True)
-    assert sorted(calls) == ["src/a.py", "src/b.py"]
+    assert sorted(calls) == ["src/a.py"]
     assert records(c, retried["version"]) == old
 
 
@@ -91,7 +91,8 @@ def test_new_import_pulls_previously_disconnected_module_into_component(tmp_path
 
     monkeypatch.setattr(extraction, "python_nodes", counted)
     changed = build(c, offline=True, lexical_only=True)
-    assert sorted(calls) == ["src/a.py", "src/b.py", "src/u.py"]
+    assert sorted(calls) == sorted(["src/a.py"] + [str(p.relative_to(repo)) for p in (repo / "src").glob("*.py")])
+    assert changed["incremental"]["analysis_scope"]["mode"] == "full-graph"
     oracle = dict(c, data=str(tmp_path / "oracle"))
     full = build(oracle, offline=True, lexical_only=True)
     assert records(c, changed["version"]) == records(oracle, full["version"])
@@ -115,7 +116,7 @@ def test_returned_function_and_keyword_callback_propagate_across_three_files(tmp
 
     monkeypatch.setattr(extraction, "python_nodes", counted)
     changed = build(c, offline=True, lexical_only=True)
-    assert sorted(parsed) == ["src/a.py", "src/b.py", "src/c.py"]
+    assert sorted(parsed) == ["src/a.py"]
     oracle = dict(c, data=str(tmp_path / "oracle"))
     full = build(oracle, offline=True, lexical_only=True)
     assert records(c, changed["version"]) == records(oracle, full["version"])
