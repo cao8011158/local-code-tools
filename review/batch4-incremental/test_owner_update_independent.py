@@ -16,6 +16,10 @@ def first() -> int: return 1
 def second() -> int: return 2
 def run():
     execute(first)
+def local_leaf(value: int) -> int:
+    return value + 1
+def local_unrelated(value: int) -> int:
+    return local_leaf(value)
 """
 WORKER = """def execute(callback):
     callback()
@@ -254,6 +258,33 @@ def test_new_module_attribute_write_inside_changed_function_matches_full(tmp_pat
     build(c, offline=True, lexical_only=True)
     (repo / "src/writer.py").write_text(writer.replace(
         "return None", "worker.isolated_leaf = worker.execute"))
+    updated = build(c, offline=True, lexical_only=True)
+    oracle(c, updated["version"], tmp_path)
+
+
+def test_new_dictionary_mutator_inside_changed_function_matches_full(tmp_path):
+    c, repo = fixture(tmp_path, {
+        "provider.py": "def first(): pass\ndef second(): pass\nregistry={'go':first}\n",
+        "consumer.py": "from provider import registry\ndef run(): registry['go']()\n",
+        "writer.py": "from provider import registry, second\ndef mutate(): pass\n"})
+    build(c, offline=True, lexical_only=True)
+    (repo / "src/writer.py").write_text(
+        "from provider import registry, second\n"
+        "def mutate(): registry.update({'go':second})\n")
+    updated = build(c, offline=True, lexical_only=True)
+    oracle(c, updated["version"], tmp_path)
+
+
+def test_dictionary_write_invalidates_getter_without_direct_call_site(tmp_path):
+    c, repo = fixture(tmp_path, {
+        "provider.py": "def first(): pass\ndef second(): pass\nregistry={'go':first}\n",
+        "getter.py": "from provider import registry\ndef get_callback(): return registry['go']\n",
+        "consumer.py": "from getter import get_callback\ndef run():\n    fn=get_callback()\n    fn()\n",
+        "writer.py": "from provider import registry, second\ndef mutate(): pass\n"})
+    build(c, offline=True, lexical_only=True)
+    (repo / "src/writer.py").write_text(
+        "from provider import registry, second\n"
+        "def mutate(): registry['go']=second\n")
     updated = build(c, offline=True, lexical_only=True)
     oracle(c, updated["version"], tmp_path)
 

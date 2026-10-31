@@ -875,3 +875,17 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root现有独立公开入口控制覆盖复杂真实调用noise、多个callback生产者、多层返回/参数转发、参数默认表达式含调用、字典/返回函数、缺provider新增删除、失败发布、函数中新模块属性写入，以及固定SM三文件中_execution字面量变化而保留item_units非空结果。包含完整语义表与fresh对照，开发者不得改断言。
 - 反向owner/name索引实际0/20/100无关数据为SEARCH索引，无SCAN，VM合计27/28/28步。root初要求机械相等不合理，已只允许一次EOF/边界检查差且20/100相等；保留真实索引和内部读取断言，不改生产去迎合计数。整个源捕获/上下文/写盘仍非纯局部。
 - 开发中的当时8例已通过；随后新增的真实输入保护、per-owner证据替换、value-flow非空及完整回归仍待完成。没有正式review/交付/合并结论。
+
+## 阶段111：按用户追问核对跨文件字典写入的真实精度
+
+- 用户指出：仅CALLS规则下B不是写入者C的下游，且字典实际值取决于A/C执行顺序。主Agent确认这两点：须额外消费C写入slot→A getter读取→B调用返回值的数据依赖；不能声称原CALLS自然已包含该关系。
+- 固定旧完整分析器4537843做四个源码分析控制（不执行夹具业务代码，offline lexical）：无C写入时fn只first且complete；C写first再run时first+UNKNOWN；C先写second再run、先run再写second两种均first/second+UNKNOWN，具体原因conditional-or-dynamic-slot-write和unresolved-partial-signal-conflict。现有完整分析尚不区分这个跨模块调用先后，详见OWNER_UPDATE_INDEPENDENT.md。
+- 已纠正前面对用户的过强表述：执行顺序明确时Python运行结果可为second，但这不是当前静态分析器已实现的唯一目标保证。当前改造应使增量输出与full的候选/UNKNOWN一致；精确入口执行顺序或运行时追踪是另一个目标，本次不擅自扩大。
+- 原授权实施继续，用户问答未取消任务；开发仍需冻结与完整回归/独立review。尚无本次生产交付或合并结论。
+
+## 阶段112：用户批准新的三个batch，恢复Batch 1来源依赖实施
+
+- 用户要求先审阅三批计划并暂停实施后，已明确批准“好的 可以开始”。批准计划保存APPROVED_DEPENDENCY_BATCHES.md：Batch1三类依赖具体来源与反查；Batch2哈希/依赖驱动的函数级更新；Batch3真实输入、发布恢复与性能验收。保留旧4A/4B首切片已通过状态与审阅轮次，不将草稿算已交付。
+- 远端工作头2daba56cd3e94969b585aaaa51727c075787e865/tree3a40e85530bd7c58086a3db3edf2ed56ff8eecf3，生产仍4537843；目标fc857f395a381e5dfec9941d60ca685bcbe0b3fd/tree a1d862fc34a56e82e367087ccd4ae8055601ee7c，均已重新核对。暂停前14文件594699字节已检查点保存，索引CHECKPOINT.json SHA256=6c9cf598e4d5e9a7f350e4b7a12a1c5ce2dc948ebd9abe3d31c418ccbdec7a1c。
+- GPT-6 SOL/medium原开发者恢复，root仍独立审阅。先隔离公开owner调度草稿，使Batch1只交付实际来源记录、持久化和有界索引反查；Batch2再取回可用调度实现。避免将56项未核清旧回归失败夹带成Batch1完成。来源必须区分实际callback提供调用点和被传入函数定义；参数函数不能一律假作callback，容器相同key不能跨身份混合。
+- 已向用户纠正下游定义：其原有函数值依赖规则可以解决C变更触发B审阅，应接通现有记录，而非另造规则；运行顺序不确定仅影响结果精度。继续保留完整分析的UNKNOWN。当前Batch1开发中，正式review0/3；未宣称生产已推送、验收或合并。

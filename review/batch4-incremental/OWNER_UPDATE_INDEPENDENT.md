@@ -14,3 +14,16 @@ Frozen old production baseline, separately archived before development:
 - The first new-test baseline run had a root query interceptor missing the `goto` keyword. The interceptor was fixed, the initial log preserved, and the corrected six-case baseline produced 5 capability failures / 1 pass in 2.08s. Those are mode failures, not five proven semantic corruption bugs.
 
 Further development and fixed-candidate independent results will be appended after completion; draft runs are not a formal review verdict.
+
+## Cross-file order clarification
+
+During implementation the user correctly separated dependency scheduling from value precision. On the fixed original full analyser (`4537843`), a source-only A.handlers/get_callback, B.run/fn(), C write/run probe produced:
+
+| C source | B.fn targets | complete | UNKNOWN reasons |
+| --- | --- | --- | --- |
+| No C write | first | true | none |
+| Write first, then run | first | false | conditional-or-dynamic-slot-write |
+| Write second, then run | first, second | false | conditional-or-dynamic-slot-write; unresolved-partial-signal-conflict |
+| Run, then write second | first, second | false | conditional-or-dynamic-slot-write; unresolved-partial-signal-conflict |
+
+The analyser resolves returned function/container origins but does not reconstruct this cross-module runtime call order. Incremental invalidation must follow the write/read/value dependency and preserve the full analyser's candidate set and UNKNOWN state. It must not claim a unique second target for these cross-module writes. Improving full-analysis precision is a separate change; a full rebuild by itself does not supply missing runtime-order semantics. The earlier explanatory statement that this example must uniquely retarget second described Python runtime behavior under that entry order, not an implemented static guarantee; the user-facing explanation has been corrected.
