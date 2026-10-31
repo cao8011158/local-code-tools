@@ -913,3 +913,10 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 新增独立审阅反例*values/**values为2 failed/0.53秒，均不是夹具错误：完整分析已经定位provide→execute，但未知参数分支只返回UNKNOWN，未保存已知的提供调用点→消费函数来源。unit_sources缺actual-parameter行；反向新关系不能找到execute。原公开图保留不确定状态，未发现由此产生的旧公开语义不一致。
 - B4-SRC-01-UNKNOWN-ARG，P2，confirmed/open/blocking，本轮来源观察实现引入：Analyzer.parameter的argument-unpacking及同类missing-required分支绕过_unit_support。明确修法是保存已知owner/site/formal参数和unknown reason，保持原UNKNOWN/求值语义，不实现解包求值、不伪造具体函数值或完整性。root另加缺必需实参变体，三变体实跑3 failed/0.54秒，日志source-origins-unknown-variants-review.log；详细稳定问题记录见BATCH1_SOURCE_REVIEW.md。
 - 第1轮结论changes_required。只修本问题及回归，随后第2/3轮复审；不重置旧链计数。Batch2继续等待，未合并；P2在已授权范围内自动修复，无额外审批请求。
+
+## 阶段116：B4-SRC-01-UNKNOWN-ARG修复开发完成，待第2轮固定审阅
+
+- 开发者按root具体指令只在Analyzer.parameter原*args/**kwargs及missing-required UNKNOWN分支保存来源支持，producer为已知调用方/真实callsite，consumer为实际formal消费位置，status=unknown，target_ids为空，argument_source.kind为unpacking/missing并保留原reason。未实现解包求值、未改UNKNOWN、Jedi或完整分析精度。
+- root独立3个反例+原11来源控制+开发6共20 passed；组合825 passed/32 skipped/77.27秒，原始日志与精确命令在DEVELOPER_BATCH1_REVIEW2_FIX.md。三种反例完整sites JSON与固定旧源码逐字节相同，双方JSON/可复现oracle保存。专项与全集重合，不相加。
+- 生产修复仅python_analysis.py；DEVELOPER_BATCH1_REVIEW2_SHA256.txt逐项校验通过，F/E9及CRLF-aware diff检查通过。root测试及累计报告未由开发者改动。修复尚未推送，开发通过不等于独立通过。
+- 下一步固定远端修复提交，独立重跑全部要求与原问题/变体/语义/局部性，正式第2/3轮；第1轮changes_required与原失败证据保留，问题未提前关闭。Batch2继续等待，未合并。

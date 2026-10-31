@@ -2212,6 +2212,19 @@ class Analyzer:
                 arg = call.args[index] if index is not None and index < len(call.args) else None
                 if isinstance(arg, ast.Starred) or any(kw.arg is None for kw in call.keywords):
                     results.append(unknown("argument-unpacking"))
+                    use_site, use_expr = self._unit_consumer_in(scope, param)
+                    self._unit_support(site["execution_owner"], call, scope, use_expr,
+                                       "actual-parameter", dict(
+                                           parameter=dict(name=param.arg, index=index,
+                                                          kind="keyword-only" if param in t.args.kwonlyargs
+                                                          else "positional"),
+                                           argument_source=dict(kind="unpacking",
+                                                                call_site=site["site_id"],
+                                                                expression=ast.unparse(call)),
+                                           target_ids=[],
+                                           unknown_reasons=["argument-unpacking"]),
+                                       "unknown", producer_site=site["site_id"],
+                                       consumer_site=use_site)
                 else:
                     arg = next((kw.value for kw in call.keywords if kw.arg == param.arg), arg)
                     if arg is not None:
@@ -2254,6 +2267,19 @@ class Analyzer:
                                                consumer_site=use_site)
                         else:
                             results.append(unknown("missing-required-argument"))
+                            use_site, use_expr = self._unit_consumer_in(scope, param)
+                            self._unit_support(site["execution_owner"], call, scope, use_expr,
+                                               "actual-parameter", dict(
+                                                   parameter=dict(name=param.arg, index=index,
+                                                                  kind="keyword-only" if param in t.args.kwonlyargs
+                                                                  else "positional"),
+                                                   argument_source=dict(kind="missing",
+                                                                        call_site=site["site_id"],
+                                                                        expression=ast.unparse(call)),
+                                                   target_ids=[],
+                                                   unknown_reasons=["missing-required-argument"]),
+                                               "unknown", producer_site=site["site_id"],
+                                               consumer_site=use_site)
         if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
             results.append(unknown("open-project-input"))
         if not results:
