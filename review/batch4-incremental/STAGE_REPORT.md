@@ -1,6 +1,11 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31（北京时间）：阶段67，函数值依赖设计契约、项目专用Skill和差距清单已完成并通过限定独立第1/3轮审阅。固定提交cc3c02d82b8f6046b5e6cb6494ef57cc23da132b，仅文档/Skill/审阅材料，无生产或测试变更；未运行pytest。Batch4仍未完成、未合并。
+
+本轮导航：[设计契约](../../docs/FUNCTION_VALUE_DEPENDENCIES.md) · [现状差距](FUNCTION_VALUE_GAP_AUDIT.md) · [独立审阅](function-value-doc-independent-review.md) · [Skill演练原文](function-value-skill-forward-output.md)。详见阶段65—67。
+
+### 历史状态快照（按原文保留，不代表当前状态）
 最新：阶段63，容器分析读取依赖/未来writer订阅的partial sidecar开发完成，557 passed、25 skipped，待固定远端独立审阅。尚未把partial记录当作增量准入，Batch4未完成。
 最新：阶段61，固定eb5ff65局部容器写入候选索引限定修复独立第1/3轮通过，563 passed、25 skipped/30.89秒。0/30无关写入下实际检查2scope/3事件不变。整体依赖驱动准入仍未完成、未合并。
 最新：阶段60，局部容器写入scope索引开发完成，550项快回归通过、25跳过，待固定远端独立审阅。Batch4未完成，未合并。
@@ -458,3 +463,11 @@ GPT-6 SOL medium子Agent完成限定文档交付，尚未提交/推送，未合�
 - 差距逐类核对变量/字典/列表/属性/参数默认值/返回闭包/lambda/绑定方法/partial/装饰器注册及动态查找；把已有粗边与缺持久证据分开。现有EffectEvent和site证据复用；partial能力仅标未验证。
 - 开发者检查相对链接、YAML frontmatter及测试名称AST引用，均通过；无可执行代码变更，未运行pytest。主Agent独立初检发现旧历史review脚本的本地材料与远端不同，已排除上传，基树保持远端原字节；所有本地已有生产/测试blob与远端一致。
 - 下一步固定远端文档提交后独立检查及新上下文Skill演练；不安装个人全局Skill、不启动服务、无API/建图/Drive。
+
+
+## 阶段67：统一契约与项目Skill第1/3轮独立审阅通过
+2026-10-31（北京时间）。固定远端cc3c02d82b8f6046b5e6cb6494ef57cc23da132b、tree3a9f3570947794151564d18e4d78b3395995bc62。远端差异恰为9份文档/Skill/证据文件，lct/、tests/及依赖文件未变。审阅副本425份blob核对，全部生产/测试材料齐全；262份无关旧review制品未恢复，不影响本轮范围。
+- 设计契约明确函数定义复用、条目身份与Python键相等语义、未知范围、赋值/调用来源与多来源支持、顺序/分支、循环不计次数、失败/新增依赖、旧新差异和依赖传播。已实现和待实现明确区分，partial记录不能作完整准入证书。
+- 独立静态检查：10相对链接、15完整测试函数引用AST及额外短引用、YAML元信息通过；实际源码确认prepare消费adjacent/importers/requesters/certify，但不调用analysis_readers/watchers选择闭包。新增节点不自动生成向量或改变检索层级。原始function-value-doc-independent-checks.json保存。
+- 新上下文GPT-6 SOL medium只读演练使用固定副本的项目Skill，对同名key的两个字典、别名、条件覆盖、未知key、删除/新增和多来源清理给出正确的限定计划；明确当前回退、未实现和向量边界，无生产编辑/测试/API。演练只是指引可用性证据，不是增量实现验收。
+- 本限定文档交付通过，无确认阻塞，未合并。无需运行无关全仓pytest；不重用旧测试数字作为本轮通过数。下一批先设计并实现已知字典+常量key+写入/读取来源的最小贯通切片，再单独验证新增/删除/未知范围、全量对照及查询索引；参数/返回等后续扩展，不全面重写解析器。
