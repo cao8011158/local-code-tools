@@ -2,6 +2,18 @@
 
 ## Function-value dependency design status
 
+The private analysis dependency sidecar now writes schema 2 (schema 1 remains
+readable for its original container-effect kind). It records **observed**
+cross-module reads of known class members, function return bodies, matched
+parameter callers and captured Jedi definition targets in addition to container
+effects. `prepare` queries all these kinds through the producer-file index, and
+checks retained records when merging a local component. Coverage stays `partial`:
+future callers, absent names and broad Jedi observations have no complete
+reverse witness. The whole-capture v5 syntax certificate and value-flow gate
+remain mandatory; this does not admit unsupported business modules or certify
+a real three-file local update. Schema 1's restricted kind vocabulary and
+unknown kinds fail sidecar validation.
+
 The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v5` slice now admits captured, straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings and unsupported imports. The existing Analyzer decides targets and `UNKNOWN`; the structural proof only governs reuse.
 
 The private `graph-sites.sqlite` sidecar has optional `value_flow_schema=1` container, entry, binding, write and read records. A missing entry has `present=false` and an exact subscription, not an asserted runtime dictionary key. `BINDS` connects source-identified aliases to one container, `ADDRESSES` the container to an entry, `WRITES`/`REACHES` supports to a read, and `USES_BINDING`/`READS`/`POSSIBLE_CALLS` link the read to its binding, entry and existing callable definition. These records are **not catalog/search/vector nodes or Neo4j projected relations**. The manifest reports compact counts, schema, coverage and `internal-sqlite-only` projection status. `FileDependencies` validates the sidecar and offers indexed exact-entry readers and bounded node/relation inspection. `python_incremental.prepare` consumes old entry subscribers, observed module readers and the one capture-wide writer-watch set alongside existing adjacency/import indexes. The broad watch can expand a real closure; it is not a key-precise performance guarantee. Old/missing/partial evidence, unsupported source shapes or incomplete analyzer witnesses fall back to full graph analysis. Identical-capture reuse copies records; local reuse replaces selected records and retains verified unrelated source records. This does not certify arbitrary dictionary or callback flow.

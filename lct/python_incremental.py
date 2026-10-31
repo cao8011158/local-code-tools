@@ -63,7 +63,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     if (prior.get("value_flow_schema") != 1 or
             prior.get("value_flow_coverage") != "certified-dictionary-v1"):
         return None, "previous-value-flow-evidence-unavailable"
-    if prior.get("analysis_dependency_schema") != 1 or prior.get("analysis_dependency_truncated"):
+    if prior.get("analysis_dependency_schema") not in (1, 2) or prior.get("analysis_dependency_truncated"):
         return None, "previous-analysis-dependency-evidence-unavailable"
     if prior["graph"].get("analysis_limited"):
         return None, "previous-association-budget-limited"

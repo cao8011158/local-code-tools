@@ -458,6 +458,8 @@ class Graph:
                             ast.unparse(base),
                         )
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
+            flow = value_flow_evidence(list(self.nodes.values()), self.asts,
+                                       analyzer, sites, self.imported)
             return self.edges, dict(
                 engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
                 schema=3,
@@ -477,8 +479,7 @@ class Graph:
                 _import_requests=import_requests,
                 _analysis_reads=sorted(analyzer.analysis_reads),
                 _analysis_watches=sorted(analyzer.analysis_watches),
-                _value_flow=value_flow_evidence(list(self.nodes.values()), self.asts,
-                                                analyzer, sites, self.imported),
+                _value_flow=flow,
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},

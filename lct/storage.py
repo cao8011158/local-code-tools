@@ -307,7 +307,8 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
             (r["entry"], r["read"], r["consumer_repository"], r["consumer_path"])
             for r in flow["reads"]))
         for consumer, producer, kind in analysis_reads or ():
-            if consumer not in modules or producer not in modules or kind != "container-effects":
+            if (consumer not in modules or producer not in modules or
+                    kind not in python_analysis.ANALYSIS_READ_KINDS):
                 raise ToolError("Analysis read module ownership unavailable")
             db.execute("insert into analysis_reads values(?,?,?,?,?,?,?)", (
                 consumer, *modules[consumer], producer, *modules[producer], kind))
@@ -365,7 +366,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     m.pop("dependency_store", None)
     if nodes and import_requests is not None and analysis_reads is not None and analysis_watches is not None:
         m["dependency_store"] = "indexed-v3"
-        m["analysis_dependency_schema"] = 1
+        m["analysis_dependency_schema"] = 2
         m["analysis_dependency_coverage"] = "partial"
         m["analysis_read_count"] = len(analysis_reads)
         m["analysis_watch_count"] = len(analysis_watches)
@@ -390,7 +391,7 @@ class FileDependencies:
 
     def __init__(self, folder, manifest):
         if (manifest.get("dependency_store") != "indexed-v3"
-                or manifest.get("analysis_dependency_schema") != 1
+                or manifest.get("analysis_dependency_schema") not in (1, 2)
                 or manifest.get("analysis_dependency_coverage") != "partial"
                 or manifest.get("graph_detail") != GRAPH_SITES):
             raise ToolError("Previous file dependency index unavailable")
@@ -433,6 +434,18 @@ class FileDependencies:
                     not isinstance(manifest.get("analysis_dependency_truncated"), bool)):
                 raise ToolError("Previous analysis dependency summary unavailable")
             self.analysis_dependency_truncated = manifest["analysis_dependency_truncated"]
+            allowed_reads = ({"container-effects"} if manifest["analysis_dependency_schema"] == 1
+                             else python_analysis.ANALYSIS_READ_KINDS)
+            if (self.db.execute("select count(*) from analysis_reads").fetchone()[0]
+                    != manifest["analysis_read_count"] or
+                    self.db.execute("select count(*) from analysis_watches").fetchone()[0]
+                    != manifest["analysis_watch_count"] or
+                    any(kind not in allowed_reads for (kind,) in self.db.execute(
+                        "select distinct kind from analysis_reads")) or
+                    any(kind != "slot-writer-universe" or universe != "all-captured-python"
+                        for kind, universe in self.db.execute(
+                            "select distinct kind,universe from analysis_watches"))):
+                raise ToolError("Previous analysis dependency records unavailable")
             if manifest.get("value_flow_schema") == 1:
                 if (manifest.get("value_flow_coverage") not in
                         ("certified-dictionary-v1", "partial") or
@@ -511,12 +524,12 @@ class FileDependencies:
         return dict(relations=rows[:limit], has_more=len(rows) > limit)
 
     def analysis_readers(self, repository, path):
-        """Observed container-effect consumers, not a complete invalidation set."""
+        """Observed semantic consumers, not a complete invalidation set."""
         if self.analysis_dependency_truncated:
             raise ToolError("Previous analysis dependency records truncated")
         rows = self.db.execute(
             "select consumer_repository,consumer_path from analysis_reads "
-            "where producer_repository=? and producer_path=? and kind='container-effects'",
+            "where producer_repository=? and producer_path=?",
             (repository, path))
         return set(rows)
 

@@ -590,3 +590,23 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 真实EXPLAIN/PROFILE：0/1000无关节点，标记读取9 DbHits/1行/134字节，关系查询54 DbHits/4行/1582字节，首次/重复保持，无全标签或全节点扫描。仅同数据库另一namespace的扩容，不冒充业务规模。
 - 已确认：完整v3指纹绑定所有值数组，别名/缺失key/读取订阅/现有函数端点未丢失，分批失败保持不可查询且可重试，旧图保持，v2查询与迁移兼容。
 - 限制：现有已认证语法范围未扩大，真实业务增量及整流程恢复仍待Batch4验收，未重建业务图/向量或更新Drive。整个Batch4不合并。完整报告及原始操作符见value-projection-independent-review.md、value-projection-profile.json。
+
+## 阶段81：当前真实源码回归诊断完成（无生产修改）
+
+- 远端基线已核对 `32ffdac36e0037ee6c62a6f2917b5dba79145854`，分支 `feat/incremental-index-updates`，Batch4尚未完成、不合并。
+- 本轮继续使用batch-dev-review、locality-review及项目Skill；开发诊断子Agent为GPT-6 SOL/medium，主Agent独立核对源码。保留既有各修复链的正式审阅轮次；当前诊断不冒充开发或正式review通过。
+- 样例：SM固定提交a7b0804d5635e185a79ff3c1d1fa6241c2b858fe的availability.py、errors.py、item_units.py，校验源hash；不是最新业务main或完整业务库。
+- 实际命令：python -m pytest -q review/batch4-incremental/test_actual_source_current_diagnostic.py -s；1 passed/1.37秒，退出0。临时修改availability中context=context为context=None；新旧记录与独立full一致、旧版本保持，但更新仍解析3/3文件、13site、30Jedi，未达到局部分析目标。
+- 定位：simple_python.certify要求全捕获通过；python_incremental.prepare在进入反向索引闭包前即因整体证书缺失而退出。item_units单独通过v5，availability关键字专用参数/多层字段委派未认证；errors的dataclass、继承、property、注解及外部导入未认证。
+- 更深缺口：实际Analyzer会读取调用者候选、字段/成员、继承、返回等信息，持久化analysis_reads目前只记录容器写入检查；不足以证明未认证文件可安全复用。不能删除全捕获门禁，也不能因已有CALLS/IMPORTS表就宣布所有隐含读取已覆盖。
+- 已保存新诊断脚本、日志和结果，未覆盖历史证据。无API、业务源码修改、Neo4j导入、Drive或生产变更。下一步主Agent收敛可执行的最小依赖证明/接线方案，不直接向开发者派发泛泛的“扩展所有语法”。详见real-source-current-diagnostic.md。
+
+## 阶段82：实际跨文件读取统一记录与消费者接线开发完成（尚未提交）
+
+- 基线32ffdac36e0037ee6c62a6f2917b5dba79145854，分支feat/incremental-index-updates，当前新增读取记录整改链正式review0/3。开发者GPT-6 SOL/medium；主Agent未改生产实现。
+- 新统一helper记录member-lookup（包括已知类缺失成员）、return-body、精确匹配后的parameter-origin和精确Jedi定义目标；consumer取当前求值作用域而非最外层调用，排除没有采用的候选，缓存命中也保留必要记录。
+- Graph先完成值流证据计算再导出最终读取清单；SQLite使用schema2/partial，兼容schema1旧容器记录，拒绝未知kind。analysis_readers不再只读container-effects，实际prepare队列按已有索引消费全部支持类型。
+- 未删除v5全捕获门禁，未把partial改成complete，未新增搜索/向量/Neo4j类型，没有修改调用目标/UNKNOWN规则。负Jedi查找、未来调用者集合和其他未覆盖读取仍是后续缺口。
+- 开发定向150 passed；局部性集合7 passed，0/40无关记录查询均走覆盖索引、37 VM步；新增4项定向通过。最后快速集合593 passed、27 skipped/26.80秒。真实3文件诊断1 passed，仍full，未将其称为局部更新通过。
+- 主Agent独立反例在固定旧源码5 failed/1.64秒；当前候选预检5 passed/2.27秒，尚不计正式review。
+- 变更4个生产模块+1个文档，新增开发/独立检查、诊断和日志；统计见observed-read-change-stat.json。下一步推送固定远端并独立审阅，不合并整个Batch4。

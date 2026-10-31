@@ -27,6 +27,8 @@ from .python_effects import (
 
 _DYNAMIC = object()
 ANALYSIS_DEPENDENCY_LIMIT = 20000
+ANALYSIS_READ_KINDS = frozenset({"container-effects", "member-lookup", "return-body",
+                                 "parameter-origin", "jedi-target"})
 CALLABLE_KINDS = frozenset(("callable", "class", "context-factory", "async-context-factory"))
 
 
@@ -171,6 +173,9 @@ class Analyzer:
             while nodes[mod]["kind"] != "module":
                 mod = nodes[mod]["parent"]
             self.module_for[ident] = mod
+        self.analysis_reads = set()
+        self.analysis_watches = set()
+        self.analysis_dependency_truncated = False
         self._source_lines = {
             ident: tree._lct_source.splitlines() for ident, tree in self.modules.items()
         }
@@ -215,9 +220,6 @@ class Analyzer:
         self.slot_scope_index_build_scopes = len(self.effects.slot_scopes)
         self.slot_scope_candidates_checked = 0
         self.slot_events_checked = 0
-        self.analysis_reads = set()
-        self.analysis_watches = set()
-        self.analysis_dependency_truncated = False
         self.value_reads = {}
         self.access = ReceiverAccess(self, Atom, Result)
 
@@ -228,6 +230,20 @@ class Analyzer:
             self.analysis_dependency_truncated = True
             return
         destination.add(record)
+
+    def _record_scope_read(self, producer_scope, kind, consumer_scope=None):
+        """Record an observed cross-module read at the current evaluation scope."""
+        if consumer_scope is None:
+            consumer_scope = self.stack[-1][0] if self.stack else None
+        producer = self.module_for.get(producer_scope)
+        consumer = self.module_for.get(consumer_scope)
+        if producer is not None and consumer is not None and producer != consumer:
+            self._record_analysis_dependency(self.analysis_reads, (consumer, producer, kind))
+
+    def _record_query_targets(self, scope, raw):
+        for record in raw:
+            if record.get("target") in self.module_for and record.get("mapping") == "exact-captured-definition":
+                self._record_scope_read(record["target"], "jedi-target", scope)
 
     def _index_local_slot_scopes(self):
         """Exclude only nonescaping, straight-line function-local containers.
@@ -618,6 +634,7 @@ class Analyzer:
         module = self.module_for[scope]
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
+            self._record_query_targets(scope, self.queries[key][1])
             return self.queries[key][0]
         self._query_context[key] = (scope, expr)
         cached = self.query_reuse.get(key)
@@ -635,6 +652,7 @@ class Analyzer:
                         record["version_id"] = self.nodes[record["target"]]["version_id"]
                 self.queries[key] = result, raw
                 self._observe_query(key, result)
+                self._record_query_targets(scope, raw)
                 self.reused_queries += 1
                 return result
         line = self._source_lines[module][expr.end_lineno - 1]
@@ -672,6 +690,7 @@ class Analyzer:
             result = union(result, unknown("jedi-inference-not-exhaustive"))
         self.queries[key] = result, raw
         self._observe_query(key, result)
+        self._record_query_targets(scope, raw)
         return result
 
     def reusable_queries(self):
@@ -930,6 +949,7 @@ class Analyzer:
 
     def return_values(self, obj):
         """Collect direct return expressions without entering nested definitions."""
+        self._record_scope_read(self.owner.get(id(obj)), "return-body")
         out = []
 
         def visit(n):
@@ -1870,6 +1890,7 @@ class Analyzer:
                     continue
                 for a in self.resolve(site["execution_owner"], site["_expr"]).atoms:
                     if a.kind == "callable" and a.target == scope and a.bound and a.receiver:
+                        self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         receivers.append(
                             certified(
                                 Result(
@@ -1903,6 +1924,7 @@ class Analyzer:
                         continue
                     callee = self.resolve(site["execution_owner"], site["_expr"])
                     if any(a.kind == "class" and a.target == parent for a in callee.atoms):
+                        self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         allocation = f"{site['execution_owner']}:{site['_call'].lineno}:{site['_call'].col_offset}"
                         self.allocations[allocation] = (site["execution_owner"], site["_call"])
                         receivers.append(
@@ -1935,6 +1957,7 @@ class Analyzer:
             for a in targets.atoms:
                 if a.target != scope or a.kind != "callable":
                     continue
+                self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                 positional = params[1:] if a.bound else params
                 index = next((i for i, p in enumerate(positional) if p.arg == param.arg), None)
                 arg = call.args[index] if index is not None and index < len(call.args) else None
@@ -2412,6 +2435,7 @@ class Analyzer:
 
     def member(self, owner, name, skip_own=False, seen=None):
         """Use exact owned bindings or a single explicit base; complex MRO stays open."""
+        self._record_scope_read(owner, "member-lookup")
         seen = set() if seen is None else seen
         if owner in seen:
             return unknown("cyclic-base")
