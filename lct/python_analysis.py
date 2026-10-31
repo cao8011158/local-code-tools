@@ -541,6 +541,7 @@ class Analyzer:
         if not matches and name.type == "statement":
             # Imported variables are not declarations. Follow only their exact captured
             # assignment token, retaining that location as mapping evidence.
+            receiver_matches = []
             for scope, tree in self.trees.items():
                 if self.module_for[scope] != module or isinstance(tree, ast.Lambda):
                     continue
@@ -560,6 +561,36 @@ class Analyzer:
                         ):
                             raw["mapping"] = "exact-captured-assignment"
                             return self.resolve(scope, statement.value), raw
+                        # Jedi may point an imported binding to a later subscript
+                        # mutation. Its named receiver is the container binding;
+                        # the assignment value is the *slot* value, not the import.
+                        for target in targets:
+                            if (isinstance(target, ast.Subscript)
+                                    and isinstance(target.value, ast.Name)
+                                    and target.value.id == name.name
+                                    and target.value.lineno == name.line
+                                    and target.value.col_offset == col):
+                                receiver_matches.append((scope, statement, target.value))
+            if len(receiver_matches) == 1:
+                scope, statement, receiver = receiver_matches[0]
+                # Resolve strictly before the write, so the current assignment
+                # cannot become its own origin. Unknown/ambiguous/custom receivers
+                # remain unknown and do not certify a dictionary target.
+                origin = self.resolve(scope, receiver,
+                                      before=(statement.lineno, statement.col_offset))
+                if (len(origin.atoms) == 1 and not origin.unknown
+                        and all(atom.kind == "container"
+                                and atom.target in self.container_exprs
+                                and isinstance(self.container_exprs[atom.target][1], ast.Dict)
+                                for atom in origin.atoms)
+                        and self.requirements_complete(origin)):
+                    raw["mapping"] = "exact-captured-subscript-receiver"
+                    return origin, raw
+                raw["mapping"] = "uncertain-captured-subscript-receiver"
+                return union(origin, unknown("uncertain-captured-subscript-receiver")), raw
+            if receiver_matches:
+                raw["mapping"] = "ambiguous-captured-subscript-receiver"
+                return unknown("ambiguous-captured-subscript-receiver"), raw
         if len(matches) != 1:
             raw["mapping"] = (
                 "ambiguous-captured-definition" if matches else "unmapped-captured-definition"

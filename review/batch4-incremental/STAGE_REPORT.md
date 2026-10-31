@@ -471,3 +471,28 @@ GPT-6 SOL medium子Agent完成限定文档交付，尚未提交/推送，未合�
 - 独立静态检查：10相对链接、15完整测试函数引用AST及额外短引用、YAML元信息通过；实际源码确认prepare消费adjacent/importers/requesters/certify，但不调用analysis_readers/watchers选择闭包。新增节点不自动生成向量或改变检索层级。原始function-value-doc-independent-checks.json保存。
 - 新上下文GPT-6 SOL medium只读演练使用固定副本的项目Skill，对同名key的两个字典、别名、条件覆盖、未知key、删除/新增和多来源清理给出正确的限定计划；明确当前回退、未实现和向量边界，无生产编辑/测试/API。演练只是指引可用性证据，不是增量实现验收。
 - 本限定文档交付通过，无确认阻塞，未合并。无需运行无关全仓pytest；不重用旧测试数字作为本轮通过数。下一批先设计并实现已知字典+常量key+写入/读取来源的最小贯通切片，再单独验证新增/删除/未知范围、全量对照及查询索引；参数/返回等后续扩展，不全面重写解析器。
+
+
+## 阶段68：字典函数值最小贯通切片开始
+2026-10-31（北京时间）。用户“请继续”。远端基线d455ec3710f3c3bc5ec385c76db94a8cc3ce38f9、treec11e0b5edc81d902791b66168432ea7e9cf5a48f，仍用feat/incremental-index-updates，整个Batch4不合并。按AGENTS、新项目Skill、batch-dev-review/locality-review执行；GPT-6 SOL medium开发，主Agent独立审阅。
+- 本轮目标：已知literal字典+常量key，保存来源明确的写入、条目、读取/调用关系，并让公开build的受影响闭包实际使用反向记录；不能只有持久化。复用当前container_slots/EffectEvent/site的解析结果，不替换解析器。
+- 首版限结构可证明的直接literal/别名/固定key读写；非逃逸检查及显式捕获导入。条件/循环/dynamic/逃逸等复杂写入保守full回退，不提升完整性。新证据版本化，旧/缺/截断full回退；原module reads/watches仍按实际证明范围选择，不虚报key级精确性。
+- 新中间记录在内部SQLite关系图表，明确尚不投影Neo4j；不改函数/类/模块检索层级，不自动向量化。完整/identical/local保存重绑定，删除使用旧依据，失败不动current。
+- 验证：公开build初建/相关修改/删除新增与独立full同捕获对照；别名/异字典/未支持逃逸/等值key、旧格式/截断/失败发布；0/20无关普通文件及实际SQL索引计数。定向与相关历史反例通过后一次快回归，固定远端再独立review。无API、服务、真实业务图或Drive操作。
+
+阶段68范围澄清（实现前）：原跨文件模块literal写入→导入读取路径的完整Analyzer已有unknown-container-origin/unadjudicated-jedi-lct-conflict，不能在保持原语义时伪造确定目标。开发者原始probe将保留；本轮不扩大到修复该既有解析限制。首个必须通过的贯通验收改为同文件registry写入/读取，明确记录这一调整；跨文件setit候选+UNKNOWN仅在可证明范围内附加。
+- 主Agent原A/B期望局部检查在0/20无关文件下2 failed/0.93秒，日志dictionary-flow-baseline-independent.log保留；没有隐藏或倒写为通过。新同文件基线0/20对照同样2 failed，新增test_dictionary_local_independent.py作为首版验收，原跨文件检查另存为未通过限制，不冒称实现。
+
+
+## 阶段69：按用户澄清返回前序解析缺口DICT-IMPORT-01
+用户询问import找不到字典是否应建字典节点，并在解释后要求“那么请继续”。容器节点+条目节点保留；但图节点不能替代正确的导入绑定映射。主Agent有限诊断已定位自有代码根因，不是Jedi能力缺失。
+- 发现批次Batch4字典增量切片，所属既有Python解析（前序Batch1），P2：确定示例被保守UNKNOWN，未证实错误complete。当前step内允许回溯修复；暂停依赖此路径的v5接入，未完成候选原位保留，不合并。此次新问题整改链尚未开始正式review，不重置历史问题轮次。
+- 实证：Jedi goto把from a import registry定位到a.py第4行registry["go"]=second的registry token。Analyzer的captured assignment映射只接受ast.Name赋值目标，不接受Subscript的接收者，产生unmapped-captured-definition；之后unknown-container-origin和冲突拒绝。Jedi对最终调用本身已给出second。
+- 明确方案：只识别准确文件/行/UTF8列的Subscript目标直接Name接收者，解析此写入之前的接收者绑定；不把写入值second当成字典，不按名字全局猜测，不放开未知/歧义来源。后续仍由container_slots检查写入及不确定性。
+- GPT-6 SOL medium在独立基线副本lct-function-contract-review仅改python_analysis.py与新定向测试；主Agent单独推送/审阅该修复，之后再恢复未完成value-flow候选。无删除草稿、服务、API、业务图或合并。
+
+
+## 阶段70：DICT-IMPORT-01限定开发完成，待推送独立审阅
+GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定位的Subscript直接Name接收者，先找写入之前的唯一、完整literal Dict来源，再返回字典身份。未把slot值当容器，不放开序列、未知/自定义/歧义来源。既有Name赋值映射不改。仅python_analysis.py生产修改和新test_dictionary_import_receiver.py。
+- 开发者定向106 passed/日志保存、ruff通过；其中包含主Agent独立用例但不算独立执行结果。主Agent独立基线3 failed、2 passed/0.41秒；修复后独立5 passed/0.41秒（未提交副本预检），涵盖直导入、别名、Unicode列/两个字典、条件不确定性和自定义下标。固定远端后的回归仍待执行。
+- 尚未推送/未合并；未完成value-flow/v5草稿暂停原位保留，不夹带上传。未新增服务/API/图构建，下一步单独固定修复SHA并独立第1轮review。
