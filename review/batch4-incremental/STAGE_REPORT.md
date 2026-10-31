@@ -987,3 +987,12 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root另补实际公开build的透明计数preflight，0/20/100无关活跃文件下solver固定7owners/10Jedi/12association/3sites、只parse1；AST decode1次、模块inventory/源码挂载均N一次。捕获实际2次为开始捕获和发布前围栏，最初测量脚本误断言一次的红日志保留并纠正，没有删除必要围栏。
 - 明确全量成本：storage.hash_artifact实际流式校验均8次、读取1,225,862/2,666,916/8,140,436字节；新snapshot工件450,946/1,040,524/3,284,188字节。公开单节点回复882字节、单关系1059字节，首次/重复相同；小回复不被当成内部IO局部的证明。源码文本观察/哈希函数/AST/挂载/写盘分列，JSON与可复现脚本保存，不声称全流程O(K)，不虚构未独立计时阶段。
 - 下一步固定B3远端候选，独立完整回归+真实/发布/恢复/规模检查；B1通过、B2第2轮通过状态保留，B3正式0/3。满足所有门槛与既有合并授权后才合并，当前尚未合并。
+
+## 阶段125：Batch 3第1/3轮独立验收通过，三个batch门槛完成
+
+- 固定6a16154b7b12787696f9b334ef93342741235d73/tree303b53c85330c98897d7fc46ea02731b373f81fa，B3 base4eb5060...；目标仍fc857f395a381e5dfec9941d60ca685bcbe0b3fd，compare ahead75/behind0且merge base为目标。408份已物化文件Git blob测试前后0差/0orphan，653未恢复均历史review；生产与B2已审7f一致，无夹带源码改动。
+- root当前头完整project+适用review集合876 passed/32 skipped/226.71秒，包含九文件长测一次及真实3/6组、独立dense发布/恢复/便携还原后继续owner。主回归与feature acceptance为同一次执行，不重复加数。开发预推678/27含九文件；postpush固定头targeted3/1deselected、fast677/27/1deselected仅避免重复昂贵nine，未称该fast是完整678，root当前头全跑包含nine。原六项历史诊断/服务排除规则与32可选skip如实保留。
+- 独立核验固定SM a7b0804...九份55,865原字节、Git blob及SHA全一致。三文件actor实际变化owner并与fresh20表一致；六文件实际值变化按opaque缺证据full；九文件20k/limited明确full、源编辑与fresh UNKNOWN/来源一致。96 synthetic chunks/3真实USearch分区/0provider，BM25/近似/精确/RRF/节点/图版本一致，未声称九文件owner或完整83/三库业务图。
+- 公开callback first→second的root独立COW工件hash/失败旧指针、显式旧新视图、recover、便携backup/restore后继续owner及fresh均通过。跨库pin/旧schema/源围栏及协调流程由当前完整回归覆盖，不把合成pin/模拟graph factory称真实外部库/Neo4j运行。B3发现的04已按B2原轮次重开、第2轮关闭，当前回归所有变体继续通过，无未解决blocking。
+- 当前头透明实际计数再次证明0/20/100无关活跃文件solver7/10/12/3不变、parse1；capture起止围栏2次、AST decode1、模块inventory/挂载N一次，8次storage.hash_artifact读取1.23/2.67/8.14MB，新工件0.45/1.04/3.28MB。节点882/关系1059字节首次/重复一致；内部源码/工件/AST/挂载/输出成本分列，小回复不冒充IO局部，不称全流程O(K)。源码逆索引实际SEARCH/冷重复/无关扩容证据随完整回归保留。
+- BATCH3_ACCEPTANCE_REVIEW.md、EVIDENCE、当前head原始日志/源码/工作量JSON已保存；刚核对C3与fc857f3时gate READY，B3正式1轮，B1第2轮/B2重开后第2轮均通过，三个批准batch完成。报告/门槛提交先构造而不推进待合并work ref，保证实际合并仍为受验C3；按既有授权合并后核对目标tree/parents，再保存最终merge记录，不以“只是文档”跳过严格head门槛。未启动付费API/业务执行/外部服务。

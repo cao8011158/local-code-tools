@@ -1,0 +1,4 @@
+{"group": "three", "owner_mode": "incremental-owners", "parsed": 1, "membership_add": "python-membership-changed", "membership_delete": "python-membership-changed"}
+.{"group": "six", "mode": "incremental-owners", "reason": "incremental-owners", "value_mode": "full-graph", "value_reason": "open-receiver-source-coverage-unavailable", "value_owner_association": 0, "association": 12807, "jedi": 174}
+..
+3 passed, 1 deselected in 13.32s
