@@ -106,5 +106,9 @@ def test_context_does_not_admit_registry_escape_or_missing_exports(tmp_path, sou
     build(c, offline=True, lexical_only=True)
     (repo / 'src/c.py').write_text(source)
     updated = build(c, offline=True, lexical_only=True)
-    assert updated['incremental']['analysis_scope']['mode'] == 'full-graph'
+    scope = updated['incremental']['analysis_scope']
+    assert scope['mode'] == 'general-passive-component'
+    assert {path for _, path in scope['selected_keys']} == {
+        'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}
+    assert scope['reused_python_files'] == 2
     fresh_equal(c, updated['version'], tmp_path, 'oracle-rejected')

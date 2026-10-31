@@ -92,5 +92,8 @@ def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
     build(c, offline=True, lexical_only=True)
     (repo / 'src/registry.py').write_text(SOURCE + extra)
     changed = build(c, offline=True, lexical_only=True)
-    assert changed['incremental']['analysis_scope']['mode'] == 'full-graph'
+    scope = changed['incremental']['analysis_scope']
+    assert scope['mode'] == 'general-passive-component'
+    assert {path for _, path in scope['selected_keys']} == {'src/registry.py'}
+    assert scope['reused_python_files'] == 3
     fresh_equal(c, changed['version'], tmp_path, 'oracle-unsupported')

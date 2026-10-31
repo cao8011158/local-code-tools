@@ -273,6 +273,26 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
     assert sorted(parsed) == ["src/trpg_state_machine/_execution.py", "src/trpg_state_machine/errors.py"]
+    assert updated["simple_python_certificate"] is None
+    assert updated["value_flow_coverage"] == "partial"
+    folder, _ = manifest(config, updated["version"])
+    with sqlite3.connect(folder / "graph-sites.sqlite") as db:
+        assert db.execute("select count(*) from simple_python_certificates").fetchone()[0] == 0
     full_config = dict(config, data=str(tmp_path / "fresh"))
     fresh = build(full_config, offline=True, lexical_only=True)
+    assert updated["simple_python_certificate"] == fresh["simple_python_certificate"]
     assert semantic(config, updated["version"]) == semantic(full_config, fresh["version"])
+    parsed.clear()
+    identical = build(config, offline=True, lexical_only=True)
+    assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
+    assert identical["simple_python_certificate"] is None
+    assert identical["value_flow_coverage"] == "partial"
+    source = target / "_execution.py"
+    source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_changed"', 1))
+    later = build(config, offline=True, lexical_only=True)
+    assert later["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+    assert later["simple_python_certificate"] is None
+    assert later["value_flow_coverage"] == "partial"
+    fresh_later_config = dict(config, data=str(tmp_path / "fresh-later"))
+    fresh_later = build(fresh_later_config, offline=True, lexical_only=True)
+    assert semantic(config, later["version"]) == semantic(fresh_later_config, fresh_later["version"])

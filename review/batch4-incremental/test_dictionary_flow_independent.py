@@ -104,5 +104,8 @@ def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
     build(c, offline=True, lexical_only=True)
     (repo / 'src/a.py').write_text(A + extra)
     changed = build(c, offline=True, lexical_only=True)
-    assert changed['incremental']['analysis_scope']['mode'] == 'full-graph'
+    scope = changed['incremental']['analysis_scope']
+    assert scope['mode'] == 'general-passive-component'
+    assert {path for _, path in scope['selected_keys']} == {'src/a.py', 'src/b.py'}
+    assert scope['reused_python_files'] == 1
     assert_fresh_equal(c, changed['version'], tmp_path, 'oracle-unsafe')

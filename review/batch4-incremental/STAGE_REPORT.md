@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段104，4B首切片固定aaa874708ad700a967eed437f6b0fc21606bbf89第1/3轮需修改：general路径沿用旧v6证书。13个旧输入full语义表一致，但新manifest错误认证为v6，fresh均None。根因与单点修法已确定；无P0/P1确认，暂停下游4C/合并，修后进入第2轮。
+
 2026-10-31：阶段102，4B首切片开发完成待冻结/push，19项定向、647 passed/27 skipped/39.51秒快速回归；完整源码可见性与局部AST分离，简单模块证明/转换/单文件筛选/索引定位已接线。尚未正式独立review，4B整体仍未完成，4C未开始、不合并。
 
 2026-10-31：阶段100，子批4A独立第1/3轮通过，固定f80285978400be6e146e9d8bd8ab47c10a3416bd；723 passed/32 skipped/51.24秒，608文件远端Git blob相符。五用途观察/schema2/旧1兼容及反查消费者闭合，仍partial不放宽v6。下一步4B真实局部分析，再4C端到端；整体尚未合并。[4A审阅](4A_INDEPENDENT_REVIEW.md) · [三批计划](REMAINING_THREE_BATCHES.md)。
@@ -813,3 +815,19 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 普通import实测收到一次捕获provider上下文扩展，三个文件各extract一次，未降为jedi-error；保持完整源码22文件可见与19简单文件复用。provider删除/新增和active转换不拖累无关文件。
 - 初预检5通过1失败来自root测试在默认仅保留两次激活时第三次发布后又读取第一版；生产按保留策略合法淘汰。已只改测试为首次保存记录后比较，原失败日志保留，未改生产/删除旧视图失败断言。旧固定4A的首5例全部断言失败，其中4例缺新local模式，1例是原回退原因尚未细分，不把5例全说成5个语义bug；第6例为后补真实异常通路。
 - 本轮仍是提交前预检，正式4B首切片review0/3。下一步按白名单push，固定Git blob后运行快速全仓库和相关独立集合；未开始4C、不合并、无API/业务全图/外部服务。
+
+## 阶段104：4B首切片第1/3轮正式审阅需要修改
+
+- 检查固定远端aaa874708ad700a967eed437f6b0fc21606bbf89（tree de8379f0e22a3a3df80f9f83332c352a1d0bb4cf），完整base982db2d...到head。637文件最初Git blob匹配，262无关历史制品缺失；已知未跟踪graph_under_test原型未覆盖/上传。审阅副本缺该旧测试参考导致1个FileNotFound，已从上一固定审阅副本取回、与本次远端Git blob完全匹配，故所需638文件齐全；生产、tests全部固定。最初启动器因冻结未完成的exit127是环境预检错误，不冒充行为反例。
+- 首轮快速与独立集合726 passed、14 failed、32 skipped/61.79秒，退出1，原始4b-pilot-independent-suite.log保留。1项为上述已补参考文件；13项先停在旧full-only准入断言，不能直接删除断言算通过。
+- 主Agent针对13种完全相同旧输入另建public-build控制，逐一证明所有复杂文件均重算、只保留已证明简单文件，完整nodes/edges/sites/UNKNOWN/来源及read/input/value/passive表与fresh均一致；随后发现新的真正元数据缺陷：13组general输出simple_python_certificate仍为simple-python-v6，而fresh均None。原始diagnostic与确认日志保留，最终确认13 failed/3.50秒均同一证书比较。
+- **B4-GEN-01-CERT，P2，当前4B新引入，confirmed/open/blocking**：storage.build约1251对所有local_metrics无条件继承old_manifest的v6证书。旧全v6捕获改为不支持语法，新增general准备虽重算复杂部分，却把旧证书一同带到新捕获；某些空字典witness.complete=true使下方保护未清除。会错误宣称新捕获可用旧严格准入，影响后续有效性判断。当前已测13组语义记录未不一致，不能据元数据错认证宣称已发现P1或全部边错误。
+- 明确最小修复：仅general-passive-component成功时manifest的simple_python_certificate写None；strict v6局部与identical复用继续原规则。split_graph应因None写空simple_python_certificates并将value_flow_coverage保持partial。不要修改certify/Jedi/UNKNOWN，不新增语法、删除安全门禁或重做架构。增加v6→general→同捕获→后续更新证书/覆盖/空表full对照。
+- 13处历史mode断言只有在上述full语义已验证后才可随新feature同步：复杂owner必须重新分析、复用只限无事实简单源，原fresh/未知/目标断言保留；新13组独立控制不由开发者修改。第1轮裁决changes_required，修复后第2/3轮；不以旧测试夹具或新问题重置计数。4B整体未完成，4C暂停，不合并，无API/业务全图/服务。
+
+## 阶段105：B4-GEN-01-CERT单点修复开发完成，待推送第2轮
+
+- GPT-6 SOL/medium按主Agent定位，仅修改storage.build的manifest证书表达式，生产+2/-1行；general不继承旧证书，strict/identical保持原规则。未改解析器、准入、Jedi、UNKNOWN或其他生产文件。storage.py SHA256 36f4a7066cad0e6a625974056fc406c378234c7f38fb8996b87afe5533734561。
+- 定向37 passed/10.66秒，包含13组root反例、历史三参数组、证书传递链；最终快速tests 647 passed/27 skipped/42.92秒，退出0。开发日志general-passive-cert-targeted.log与general-passive-cert-fast.log，报告general-passive-cert-fix-development.md。
+- 新增v6→general→同捕获→下一次general测试：None认证、partial coverage、严格证书表为空，完整fresh语义对照。三份历史review文件仅同步那13个mode断言，增加精确selected/reuse，原full oracle保留。主Agent进一步在13组独立用例验证fresh证书、coverage和严格表空；开发者未修改root测试。
+- 已冻结，尚未推送新修复；远端仍aaa874708ad700a967eed437f6b0fc21606bbf89。下一步白名单push、固定提交第2/3轮独立review；第1轮失败与原因保留，不合并、不开始4C、无API/服务。

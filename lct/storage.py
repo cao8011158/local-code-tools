@@ -1248,7 +1248,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 call_resolution=dict(Counter(e["status"] for e in edges if e["kind"] == "CALLS")),
                 graph=graph_info,
                 simple_python_certificate=(
-                    old_manifest["simple_python_certificate"] if local_metrics else
+                    (None if analysis_scope["mode"] == "general-passive-component" else
+                     old_manifest["simple_python_certificate"]) if local_metrics else
                     certify(files, asts, graph=graph) if prepared is None else
                     old_manifest.get("simple_python_certificate")),
                 vector_chunks=0 if lexical_only else len(texts),
