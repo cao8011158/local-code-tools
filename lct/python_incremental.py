@@ -8,6 +8,7 @@ from contextlib import closing
 
 from . import extract as extraction
 from . import python_analysis
+from . import analysis_inputs
 from .common import canonical, digest
 from .evidence_reuse import EvidenceReuseRejected, RebindContext
 from .extract import definition_version, extract, module_name
@@ -65,6 +66,11 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         return None, "previous-value-flow-evidence-unavailable"
     if prior.get("analysis_dependency_schema") not in (1, 2) or prior.get("analysis_dependency_truncated"):
         return None, "previous-analysis-dependency-evidence-unavailable"
+    if (prior.get("analysis_input_schema") != 1 or
+            prior.get("analysis_input_coverage") != "captured-query-scopes-partial" or
+            prior.get("analysis_input_truncated") or
+            not dependencies.input_scope_available):
+        return None, "previous-analysis-input-evidence-unavailable"
     if prior["graph"].get("analysis_limited"):
         return None, "previous-association-budget-limited"
     prior_bound = prior["graph"].get("association_bound")
@@ -123,6 +129,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             if watcher not in selected:
                 selected.add(watcher)
                 queue.append(watcher)
+        for watcher in dependencies.input_scope_watchers():
+            if watcher not in selected:
+                selected.add(watcher)
+                queue.append(watcher)
         parsed = {}
         while queue:
             key = queue.popleft()
@@ -132,6 +142,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             for entry in dependencies.entry_ids_for_file(*key):
                 candidates.update(dependencies.value_readers(entry))
             candidates.update(dependencies.analysis_readers(*key))
+            candidates.update(dependencies.input_scope_readers(*key))
             # Existing analyzer watch coverage was seeded once above; this
             # broad fanout is deliberately retained for semantic safety.
             if key[1].endswith(".py"):
@@ -203,6 +214,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 "select consumer_module,producer_module,kind from analysis_reads"))
             old_analysis_watches = list(evidence.execute(
                 "select consumer_module,kind,universe from analysis_watches"))
+            old_input_payload = analysis_inputs.read(evidence)
+            old_input_payload["truncated"] = prior["analysis_input_truncated"]
             old_value_nodes = [json.loads(raw) for (raw,) in evidence.execute(
                 "select data from value_nodes")]
             old_value_edges = [dict(source=s, target=t, kind=k) for s, t, k in evidence.execute(
@@ -346,6 +359,11 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         if merged is None:
             return None, reason
         analysis_reads, analysis_watches = merged
+        input_payload = analysis_inputs.merge(
+            old_input_payload, info.pop("_analysis_inputs"), selected=selected,
+            old_nodes=old_nodes, new_nodes=byid, verified=verified)
+        if input_payload is None:
+            return None, "old-analysis-input-crosses-selected-boundary"
         retained_nodes = []
         for record in old_value_nodes:
             owner = owner_key(record["module"])
@@ -398,6 +416,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     info["_import_requests"] = requests
     info["_analysis_reads"] = analysis_reads
     info["_analysis_watches"] = analysis_watches
+    info["_analysis_inputs"] = input_payload
     info["_analysis_dependency_truncated"] = False
     info["_value_flow"] = local_flow
     info["dependency_bindings"] = graph.cross_bindings

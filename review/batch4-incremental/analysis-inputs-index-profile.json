@@ -1,0 +1,137 @@
+[
+  {
+    "unrelated_pairs": 0,
+    "vm_steps": [
+      26,
+      19,
+      19
+    ],
+    "queries_per_probe": 1,
+    "returned_rows": 1,
+    "plan": [
+      [
+        3,
+        0,
+        55,
+        "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+      ],
+      [
+        8,
+        0,
+        56,
+        "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+      ]
+    ],
+    "opcode_program": [
+      "Init",
+      "OpenRead",
+      "OpenRead",
+      "String8",
+      "String8",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "Column",
+      "ResultRow",
+      "Next",
+      "Next",
+      "Halt",
+      "Transaction",
+      "Goto"
+    ],
+    "opcode_budget": 36
+  },
+  {
+    "unrelated_pairs": 20,
+    "vm_steps": [
+      27,
+      20,
+      20
+    ],
+    "queries_per_probe": 1,
+    "returned_rows": 1,
+    "plan": [
+      [
+        3,
+        0,
+        55,
+        "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+      ],
+      [
+        8,
+        0,
+        56,
+        "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+      ]
+    ],
+    "opcode_program": [
+      "Init",
+      "OpenRead",
+      "OpenRead",
+      "String8",
+      "String8",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "Column",
+      "ResultRow",
+      "Next",
+      "Next",
+      "Halt",
+      "Transaction",
+      "Goto"
+    ],
+    "opcode_budget": 36
+  },
+  {
+    "unrelated_pairs": 100,
+    "vm_steps": [
+      27,
+      20,
+      20
+    ],
+    "queries_per_probe": 1,
+    "returned_rows": 1,
+    "plan": [
+      [
+        3,
+        0,
+        55,
+        "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+      ],
+      [
+        8,
+        0,
+        56,
+        "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+      ]
+    ],
+    "opcode_program": [
+      "Init",
+      "OpenRead",
+      "OpenRead",
+      "String8",
+      "String8",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "SeekGE",
+      "IdxGT",
+      "Column",
+      "Column",
+      "ResultRow",
+      "Next",
+      "Next",
+      "Halt",
+      "Transaction",
+      "Goto"
+    ],
+    "opcode_budget": 36
+  }
+]

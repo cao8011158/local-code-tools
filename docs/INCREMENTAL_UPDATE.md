@@ -16,6 +16,18 @@ three-file real-source fixture described below, while arbitrary business capture
 still fall back. Schema 1 accepts only its original kind vocabulary; new kinds under schema 1
 or unknown kinds under either schema fail sidecar validation.
 
+An independent `analysis_input_schema=1` sidecar records the captured input
+scope of each actual Jedi query: a validated v6 import component, or a single
+capture-wide scope when that component proof is unavailable. The normalized
+SQLite tables store scope, member and consumer rows; the manifest carries only
+`captured-query-scopes-partial`, counts and truncation. This is **not** a complete
+Jedi read witness: it does not assert all internal, external or prospective
+namespace reads. `prepare` queries indexed component members for a changed
+file and seeds capture-scope consumers once, in addition to the existing schema
+2 reads and writer watches. Missing/old/truncated scope evidence fails closed;
+local reuse replaces selected consumers and checks retained scope boundaries.
+No public graph kind or v6 syntax form changes.
+
 The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v6` slice retains the v5 captured dictionary forms: straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It also admits annotations limited to exact unshadowed built-in scalar names or `None` (no forward strings), primitive literal **keyword-only** defaults (positional defaults still reject), straight-line ordinary self/constructor-rooted fields, exact external `dataclasses.dataclass(frozen=True, slots=True)` annotation-only classes with no methods, field defaults or factories, direct built-in `Exception` subclasses with exact `super().__init__`, and a passive self-field `@property`. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings, arbitrary annotations/decorators/default factories/descriptors, unsupported imports and shadowed helpers. The analyzer still decides targets and `UNKNOWN`.
 
 For a whole-capture validated v6 graph, candidate caller and constructor-site searches are scoped to undirected components of exact resolved captured top-level `from` imports. These closed forms have no other cross-module value bridge; an imported function may pass values, callbacks, constructors and fields in either direction within its component. External `re` and passive `dataclasses` remain explicit boundaries. The same validated policy applies when analyzing the selected local component; unsupported captures retain the original unrestricted searches. Import/layout/pin changes and old incompatible certificates still fall back through the existing whole-capture gate. The component policy affects analyzer candidate enumeration and its provenance, not persistence schema, public node kinds or value-flow coverage. This is not general per-unit witness coverage.

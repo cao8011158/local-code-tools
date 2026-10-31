@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段94，B4-WIT-01已完成提交前定向修正/预检，尚未提交。补去catalog全节点JSON解析，改按已知module ID批量身份列；最终快速626 passed/27 skipped/33.49秒，独立8 passed/2.52秒。0/20/100无关范围仍两索引SEARCH、1SQL/1使用者，VM仅相差1且不随增长继续增加。待固定远端review0/3，准入仍partial，不合并。
+
+2026-10-31：阶段92，统一读取入口审计完成，现有五类成功读/容器writer订阅已实际消费；缺失败Jedi、候选集合和未来成员等依据。下一限定切片B4-WIT-01建立Jedi捕获输入范围记录及实际反查/闭包消费者，使用共享范围避免K²重复记录；不放宽v6、不宣称六复杂模块已局部化。基线7e9e1a8e73e91e4684fa7335ff4806c8d0f4a09e，新切片正式review0/3。
+
 2026-10-31：阶段91，B4-REL-01相对导入接线4e3637905078984294b16c97bb30bac185c5a249经独立第1/3轮通过；689 passed、32 skipped/47.90秒。认证/组件/新增目标闭包共用完整包名解析；局部/full全部表、旧视图、0/20无关与SQLite实际索引检查通过。真实九文件仍只有原三个分别认证，复杂模块仍退回，Batch4未完成、不合并。[本轮审阅](relative-import-independent-review.md)。
 
 2026-10-31：阶段89，B4-REL-01相对导入接线开发完成，未提交；生产2文件+26/-10，定向12 passed、相关69 passed，快速615 passed/27 skipped/34.43秒。主Agent基线5 failed/6 passed，待固定提交独立审阅0/3。真实九文件仍受其他独立规则限制，不合并。[开发报告](relative-import-development.md)。
@@ -699,3 +703,28 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - FileDependencies.importers实际SQL走索引SEARCH无SCAN，0/20组无关导入仍1SQL/1相关文件，冷/热VM步骤分别保持；必要artifact验证成本单列。非法/缺失/伪stdlib/star/相对字典等边界仍不认证。
 - 首版独立性能断言与开发目录漏测试的材料问题及修正均保留，详见审阅报告，不冒充生产修复或重置review轮次。
 - 相同九文件真实AST审计复跑仍full_certificate=null、分别通过原三文件；六复杂模块的独立规则/缺失捕获问题未放行。本项通过不等于全业务准入完成。下一步审计统一依赖证据缺口，而非逐文件增加白名单；之后还有发布/检索/恢复端到端验收。没有API/业务图/Drive，整个Batch4不合并。
+
+## 阶段92：统一读取入口审计及具体实施边界
+
+- 远端feat/incremental-index-updates核对7e9e1a8e73e91e4684fa7335ff4806c8d0f4a09e，上一相对导入切片已通过，不重开其问题。开发子Agent GPT-6 SOL/medium只读审计Analyzer，主Agent审计storage/prepare与数据范围；未修改生产。
+- 现有member/return/parameter/Jedi/container五种成功读、slot-writer订阅、索引、prepare和merge均已接线。不能把没有记录的其他读取误称为已有记录未用。具体入口和缺口见ANALYSIS_WITNESS_READ_AUDIT.md/json。
+- 主要未覆盖：Jedi无结果/错误/外部或间接映射、考虑后未匹配的候选与未来caller、未知receiver与名称不存在时的范围。resolve的id(AST)依赖只在当前进程，尚非跨快照完整证明。真实六文件仅静态映射，不执行业务、不跑全业务图。
+- B4-WIT-01限定实施：在query统一入口（含结果缓存命中）记录它可参考的捕获源码范围。已证明v6组件内用共享component范围；未证明时显式capture范围。所有结果/失败走同一路，不按某种失败例子加白名单。范围本身不是Jedi内部精确读列表，也不把外部环境标为完整。
+- 规范化持久化范围/成员/消费者三组记录，一组件成员只存一次，不能按consumer复制K个成员形成K²。每consumer只首次登记；捕获宽范围不枚举全部成员。用SQLite成员producer索引反查消费者，宽范围消费者每构建只种一次队列；prepare实际使用，旧版/缺失/截断证据fail closed，局部合并检查跨边界。
+- 新输入范围标partial，保持原v6/value-flow准入和UNKNOWN/原始推断不变；本切片不是允许六复杂文件局部化。覆盖缺失依据的其他入口仍逐类列明。验证负结果/异常/缓存、0/20或200无关范围、索引EXPLAIN/VM、完整表full对照、旧视图/发布失败/恢复与旧格式。无API/Drive/Neo4j服务或合并，新切片review0/3。
+
+## 阶段93：Jedi统一捕获输入范围开发完成，未提交
+
+- B4-WIT-01由GPT-6 SOL/medium开发，基线7e9e1a8e73e91e4684fa7335ff4806c8d0f4a09e。新增analysis_inputs.py，修改Analyzer/Graph/storage/prepare接线，未修改v6或旧schema2语义；统计analysis-inputs-change-stat.json。当前正式review0/3。
+- query统一入口在缓存之前登记范围，覆盖成功/空/错误/缓存；已认证component共享成员清单，未认证用显式capture范围。三表/manifest小摘要、FileDependencies索引readers/watchers、实际prepare闭包、同捕获copy和局部merge均接通。记录限额独立20000，标partial，不能单独作为完整准入。
+- 提交前主Agent发现初稿在observe/merge/valid重复扫描成员/范围目录，已给出具体修正：缓存验证component、O(1)计数、按scope分组一次处理。200成员/200消费者总401记录且GuardFrozenset禁止重复枚举；没有用K²复制填补证据。
+- 开发focused7 passed、相关53 passed，冻结后快速625 passed/27 skipped，退出0，原始日志保留。最初prechange ImportError只说明新模块不存在，不冒称行为反例；主Agent在固定旧代码公开build/真实Jedi负结果/异常上另有5 failed/1.03秒作为独立基线。
+- 无新业务准入、无完整业务图/API/Neo4j/Drive。下一步主Agent独立预检和固定远端正式审阅；六复杂文件仍未放行。
+
+## 阶段94：按ID验证元数据与独立预检完成，准备推送
+
+- 主Agent在提交前另发现FileDependencies为验证模块而select全部nodes.data并逐个json.loads；开发已改为按ledger去重module ID每256条批量查询node_id/repository/path且kind=module，空payload不查catalog。必要模块身份校验保留。新增开发测试证明参数ID集合/无data列/无全扫/未知模块拒绝；定向8 passed，相关56 passed。
+- 最终冻结后主Agent跑tests：626 passed/27 skipped/33.49秒，退出0。原625结果发生在此最后修正之前，不挪用。仅获准5个生产模块（其中新增analysis_inputs.py），旧v6/schema2与业务库不变；完整统计analysis-inputs-change-stat.json。
+- 主Agent独立预检8 passed/2.52秒，包含公开build负结果来源、实际readers消费/full全部新旧语义表、发布失败/旧视图/不变捕获、真实Jedi空/异常/缓存、共享100成员/100消费者201记录、merge避免逐consumer扫描目录、SQLite真实索引/0/20/100无关范围。旧固定代码5个行为反例全部失败/1.03秒，日志保留。
+- 初独立测量7通过1失败，因为要求索引VM步数完全相同：0组26/19/19，20组27/20/20。两者均两个覆盖索引SEARCH、无SCAN/1SQL/1行。保留原测量和用例，以相同静态18条opcode、固定1成员1消费者下最多2倍指令数36步作为确定性上界，再增100组实测27/20/20，未继续随N增长；不拿单步游标分支差异当全局扫描，不改生产制造计数相同。详情analysis-inputs-index-profile.json。
+- 尚未正式远端review，轮次0/3；下一步按白名单推送、固定提交全套与独立边界验证。未调用API/业务全图/Neo4j/Drive、不合并。

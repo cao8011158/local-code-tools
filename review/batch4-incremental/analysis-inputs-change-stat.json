@@ -1,0 +1,37 @@
+[
+  {
+    "path": "lct/analysis_inputs.py",
+    "added": 161,
+    "removed": 0
+  },
+  {
+    "path": "docs/INCREMENTAL_UPDATE.md",
+    "added": 12,
+    "removed": 0
+  },
+  {
+    "path": "lct/graph.py",
+    "added": 1,
+    "removed": 0
+  },
+  {
+    "path": "lct/python_analysis.py",
+    "added": 7,
+    "removed": 0
+  },
+  {
+    "path": "lct/python_incremental.py",
+    "added": 19,
+    "removed": 0
+  },
+  {
+    "path": "lct/storage.py",
+    "added": 93,
+    "removed": 2
+  },
+  {
+    "path": "tests/test_analysis_inputs.py",
+    "added": 170,
+    "removed": 0
+  }
+]

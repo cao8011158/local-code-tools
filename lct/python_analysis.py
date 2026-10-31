@@ -14,6 +14,7 @@ from pathlib import Path
 import jedi
 
 from .common import canonical, digest
+from .analysis_inputs import AnalysisInputs
 from .parso_cache_compat import ensure_parso_cache_timestamps
 from .python_access import AccessKind, ReceiverAccess, access, combine
 from .python_effects import (
@@ -100,6 +101,8 @@ class Analyzer:
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
         self.candidate_components = candidate_components
+        self.analysis_inputs = AnalysisInputs({i: n for i, n in nodes.items()
+                                              if n["kind"] == "module"})
         self.owner = {id(t): ident for ident, t in trees.items()}
         self.modules = {i: t for i, t in trees.items() if isinstance(t, ast.Module)}
         self.statements = {
@@ -671,6 +674,10 @@ class Analyzer:
     def query(self, scope, expr, goto=False):
         """Preserve tool failures and every raw definition mapping."""
         module = self.module_for[scope]
+        component = (self.candidate_components.get(module)
+                     if self.candidate_components is not None and
+                     len(self.sites) == self._site_index_size else None)
+        self.analysis_inputs.observe(module, component)
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
             self._record_query_targets(scope, self.queries[key][1])

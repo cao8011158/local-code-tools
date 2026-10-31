@@ -484,6 +484,7 @@ class Graph:
                 _import_requests=import_requests,
                 _analysis_reads=sorted(analyzer.analysis_reads),
                 _analysis_watches=sorted(analyzer.analysis_watches),
+                _analysis_inputs=analyzer.analysis_inputs.export(),
                 _value_flow=flow,
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,

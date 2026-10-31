@@ -41,6 +41,7 @@ from .graph import Graph
 from .lexical import add_document
 from .python_analysis import Atom, Result
 from .simple_python import CERTIFICATE, certify
+from . import analysis_inputs
 from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
@@ -234,7 +235,8 @@ def source_files(folder, m):
 def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 import_requests=None, nodes=(), edges=(), certified_files=(),
                 analysis_reads=None, analysis_watches=None,
-                analysis_dependency_truncated=False, value_flow=None):
+                analysis_dependency_truncated=False, value_flow=None,
+                analysis_input_payload=None):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -284,6 +286,20 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         owners = {n["node_id"]: (n["repository"], n["path"]) for n in nodes}
         modules = {n["node_id"]: (n["repository"], n["path"])
                    for n in nodes if n["kind"] == "module"}
+        inputs = analysis_input_payload or dict(scopes=[], members=[], consumers=[], truncated=False)
+        if not analysis_inputs.valid(inputs, modules):
+            raise ToolError("Analysis input scope ownership unavailable")
+        db.execute("create table analysis_input_scopes(id text primary key,kind text not null)")
+        db.execute("create table analysis_input_members(scope_id text not null,module_id text not null,repository text not null,path text not null,primary key(scope_id,module_id))")
+        db.execute("create index analysis_input_member_producer on analysis_input_members(repository,path,scope_id)")
+        db.execute("create table analysis_input_consumers(scope_id text not null,module_id text not null,repository text not null,path text not null,primary key(scope_id,module_id))")
+        db.execute("create index analysis_input_consumer_scope on analysis_input_consumers(scope_id,repository,path)")
+        db.executemany("insert into analysis_input_scopes values(?,?)", (
+            (r["id"], r["kind"]) for r in inputs["scopes"]))
+        for table in ("members", "consumers"):
+            db.executemany(f"insert into analysis_input_{table} values(?,?,?,?)", (
+                (r["scope_id"], r["module_id"], r["repository"], r["path"])
+                for r in inputs[table]))
         db.execute("create table analysis_reads(consumer_module text not null, consumer_repository text not null, consumer_path text not null, producer_module text not null, producer_repository text not null, producer_path text not null, kind text not null, primary key(consumer_module,producer_module,kind))")
         db.execute("create index analysis_read_producer on analysis_reads(producer_repository,producer_path,kind,consumer_repository,consumer_path)")
         db.execute("create table analysis_watches(consumer_module text not null, consumer_repository text not null, consumer_path text not null, kind text not null, universe text not null, primary key(consumer_module,kind,universe))")
@@ -372,6 +388,12 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         m["analysis_watch_count"] = len(analysis_watches)
         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
     m["value_flow_schema"] = 1
+    m["analysis_input_schema"] = 1
+    m["analysis_input_coverage"] = "captured-query-scopes-partial"
+    m["analysis_input_scope_count"] = len(inputs["scopes"])
+    m["analysis_input_member_count"] = len(inputs["members"])
+    m["analysis_input_consumer_count"] = len(inputs["consumers"])
+    m["analysis_input_truncated"] = bool(inputs["truncated"])
     m["value_flow_coverage"] = ("certified-dictionary-v1" if
                                 m.get("simple_python_certificate") == CERTIFICATE and
                                 value_flow is not None and value_flow.get("complete") else "partial")
@@ -446,6 +468,49 @@ class FileDependencies:
                         for kind, universe in self.db.execute(
                             "select distinct kind,universe from analysis_watches"))):
                 raise ToolError("Previous analysis dependency records unavailable")
+            self.input_scope_available = manifest.get("analysis_input_schema") == 1
+            self.manifest_input_truncated = manifest.get("analysis_input_truncated", True)
+            if manifest.get("analysis_input_schema") not in (None, 1):
+                raise ToolError("Previous analysis input schema unavailable")
+            if self.input_scope_available:
+                if (manifest.get("analysis_input_coverage") != "captured-query-scopes-partial" or
+                        type(manifest.get("analysis_input_truncated")) is not bool or
+                        any(type(manifest.get("analysis_input_" + kind + "_count")) is not int or
+                            manifest["analysis_input_" + kind + "_count"] < 0
+                            for kind in ("scope", "member", "consumer"))):
+                    raise ToolError("Previous analysis input summary unavailable")
+                for table, columns, index in (
+                    ("analysis_input_scopes", {"id", "kind"}, None),
+                    ("analysis_input_members", {"scope_id", "module_id", "repository", "path"},
+                     "analysis_input_member_producer"),
+                    ("analysis_input_consumers", {"scope_id", "module_id", "repository", "path"},
+                     "analysis_input_consumer_scope"),
+                ):
+                    if (not columns <= {row[1] for row in self.db.execute(
+                            f"pragma table_info('{table}')")} or index and index not in {
+                            row[1] for row in self.db.execute(f"pragma index_list('{table}')")}):
+                        raise ToolError("Previous analysis input index unavailable")
+                payload = analysis_inputs.read(self.db)
+                if (any(len(payload[name]) != manifest["analysis_input_" + name[:-1] + "_count"]
+                        for name in ("scopes", "members", "consumers")) or
+                        len(payload["scopes"]) + len(payload["members"]) +
+                        len(payload["consumers"]) > analysis_inputs.LIMIT):
+                    raise ToolError("Previous analysis input count mismatch")
+                needed = sorted({r["module_id"] for kind in ("members", "consumers")
+                                 for r in payload[kind]})
+                modules = {}
+                if needed:
+                    with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() +
+                                                 "?mode=ro&immutable=1", uri=True)) as catalog:
+                        for offset in range(0, len(needed), 256):
+                            batch = needed[offset:offset + 256]
+                            modules.update((ident, (repo, path)) for ident, repo, path in
+                                           catalog.execute(
+                                               "select node_id,repository,path from nodes "
+                                               "where node_id in (" + ",".join("?" for _ in batch) +
+                                               ") and kind='module'", batch))
+                if not analysis_inputs.valid(payload, modules):
+                    raise ToolError("Previous analysis input endpoints unavailable")
             if manifest.get("value_flow_schema") == 1:
                 if (manifest.get("value_flow_coverage") not in
                         ("certified-dictionary-v1", "partial") or
@@ -541,6 +606,22 @@ class FileDependencies:
             "select consumer_repository,consumer_path from analysis_watches "
             "where kind=? and universe='all-captured-python'", (kind,))
         return set(rows)
+
+    def input_scope_readers(self, repository, path):
+        """Indexed captured component inputs; partial scope, never a standalone proof."""
+        if not self.input_scope_available or self.manifest_input_truncated:
+            raise ToolError("Previous analysis input evidence unavailable")
+        return set(self.db.execute(
+            "select c.repository,c.path from analysis_input_members m "
+            "join analysis_input_consumers c on c.scope_id=m.scope_id "
+            "where m.repository=? and m.path=?", (repository, path)))
+
+    def input_scope_watchers(self):
+        if not self.input_scope_available or self.manifest_input_truncated:
+            raise ToolError("Previous analysis input evidence unavailable")
+        return set(self.db.execute(
+            "select c.repository,c.path from analysis_input_consumers c "
+            "where c.scope_id=?", (analysis_inputs.CAPTURE,)))
 
     def importers(self, repository, module):
         rows = self.db.execute(
@@ -656,10 +737,16 @@ def _reuse_python_graph(folder, prior, files, repos, c):
         return None, reason
     if prior.get("dependency_store") != "indexed-v3":
         return None, "previous-graph-evidence-unavailable"
+    if (prior.get("analysis_input_schema") != 1 or
+            prior.get("analysis_input_coverage") != "captured-query-scopes-partial" or
+            prior.get("analysis_input_truncated")):
+        return None, "previous-analysis-input-evidence-unavailable"
     if (prior.get("simple_python_certificate") in {"simple-python-v5", CERTIFICATE} and
             (prior.get("value_flow_schema") != 1 or
              prior.get("value_flow_coverage") != "certified-dictionary-v1")):
         return None, "previous-value-flow-evidence-unavailable"
+    with FileDependencies(folder, prior):
+        pass  # Validate the private scope/endpoints before copying immutable rows.
     old_files = source_files(folder, prior)
     # SOURCE_FILES stores inventory without text. Its source hashes certify the
     # identical decoded captures only when the whole repository inventory agrees.
@@ -735,6 +822,8 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             "select consumer_module,producer_module,kind from analysis_reads order by consumer_module,producer_module,kind"))
         analysis_watches = list(db.execute(
             "select consumer_module,kind,universe from analysis_watches order by consumer_module,kind,universe"))
+        input_payload = analysis_inputs.read(db)
+        input_payload["truncated"] = prior["analysis_input_truncated"]
         if prior.get("value_flow_schema") == 1:
             value_flow = dict(
                 nodes=[json.loads(raw) for (raw,) in db.execute("select data from value_nodes order by id")],
@@ -751,6 +840,7 @@ def _reuse_python_graph(folder, prior, files, repos, c):
     info = dict(prior["graph"], sites=sites, _query_observations=observations,
                 _import_dependencies=dependencies, _import_requests=requests,
                 _analysis_reads=analysis_reads, _analysis_watches=analysis_watches,
+                _analysis_inputs=input_payload,
                 _analysis_dependency_truncated=prior["analysis_dependency_truncated"],
                 _value_flow=value_flow)
     info["jedi_queries_reused"] = info["jedi_queries"]
@@ -936,6 +1026,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         analysis_reads = graph_info.pop("_analysis_reads", None)
         analysis_watches = graph_info.pop("_analysis_watches", None)
         analysis_dependency_truncated = graph_info.pop("_analysis_dependency_truncated", False)
+        input_payload = graph_info.pop("_analysis_inputs", None)
         value_flow = graph_info.pop("_value_flow", None)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
@@ -1137,7 +1228,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             split_graph(folder, m, observations, import_dependencies, import_requests,
                         nodes, edges, files if m.get("simple_python_certificate") else (),
                         analysis_reads, analysis_watches, analysis_dependency_truncated,
-                        value_flow)
+                        value_flow, input_payload)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)
