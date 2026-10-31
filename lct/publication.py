@@ -20,11 +20,28 @@ def _connection(uri=None, user=None, password=None, database=None):
 def _verify(graph, binding):
     row = graph.snapshot_summary(binding["namespace"], binding["version"])
     if (row.get("fingerprint") != binding["fingerprint"] or
-        row.get("projection_schema") != PROJECTION_SCHEMA or
+        row.get("projection_schema") != binding.get("projection_schema", PROJECTION_SCHEMA) or
         row.get("nodes") != binding["nodes"] or
         row.get("edges") != binding["edges"] or
-        row.get("native_edges") != binding["edges"]):
+        row.get("native_edges") != binding["edges"] + binding.get('value_edges', 0) or
+        (binding.get('projection_schema') != PROJECTION_SCHEMA and (
+            row.get('value_projection') != 'complete' or
+            row.get('value_nodes') != binding.get('value_nodes') or
+            row.get('value_edges') != binding.get('value_edges') or
+            row.get('value_reads') != binding.get('value_reads')))):
         raise ToolError("Neo4j projection differs from bound index version")
+
+
+def _descriptor(uri, database, namespace, version, snapshot):
+    binding = dict(uri=uri, database=database, namespace=namespace, version=version,
+                   fingerprint=snapshot['fingerprint'],
+                   projection_schema=snapshot.get('projection_schema', PROJECTION_SCHEMA),
+                   nodes=len(snapshot['nodes']), edges=len(snapshot['edges']))
+    if binding['projection_schema'] != PROJECTION_SCHEMA:
+        value = snapshot['value_flow']
+        binding.update(value_nodes=len(value['nodes']), value_edges=len(value['edges']),
+                       value_reads=len(value['reads']))
+    return binding
 
 
 def _bind(folder, m, binding):
@@ -44,10 +61,7 @@ def _candidate(c, graph, uri, database, namespace, state):
         if current(c) != previous:
             raise ToolError("Publication predecessor changed")
         snapshot = load_snapshot(c, version)
-        binding = dict(uri=uri, database=database, namespace=namespace,
-                       version=version, fingerprint=snapshot["fingerprint"],
-                       projection_schema=PROJECTION_SCHEMA, nodes=len(snapshot["nodes"]),
-                       edges=len(snapshot["edges"]))
+        binding = _descriptor(uri, database, namespace, version, snapshot)
         if m.get("publication") not in (None, binding):
             raise ToolError("Existing publication binding differs")
         try:
@@ -105,9 +119,7 @@ def bind_current(c, namespace, database, *, uri=None, user=None, password=None,
         folder, m = manifest(c, version)
         validate_folder(folder, m)
         snapshot = load_snapshot(c, version)
-        binding = dict(uri=uri, database=database, namespace=namespace, version=version,
-                       fingerprint=snapshot["fingerprint"], projection_schema=PROJECTION_SCHEMA,
-                       nodes=len(snapshot["nodes"]), edges=len(snapshot["edges"]))
+        binding = _descriptor(uri, database, namespace, version, snapshot)
         if m.get("publication") not in (None, binding):
             raise ToolError("Existing publication binding differs")
         with graph_factory(uri, user, password, database) as graph:

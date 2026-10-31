@@ -17,6 +17,18 @@ Call the returned `read-cypher` requests in order. Require **exactly one** marke
 
 The existing `lct.neo4j_mcp` transport and `Neo4jGraph` driver reads remain compatibility surfaces. The former is deprecated for new graph querying; it is not the official Neo4j MCP server. The LCT Voyage/BM25 build, update, and retrieval interfaces remain separate and unchanged.
 
+For a marker with `projection_schema=native-value-v3` and `value_projection=complete`, use `--projection-schema native-value-v3` on the existing code modes. Value modes select their own v3 guard:
+
+```sh
+python -m lct.official_mcp --namespace '<namespace>' --version '<version>' \
+  --expected-fingerprint '<v3-fingerprint>' --entity value-relations \
+  --direction in --types READS '<entry-id>'
+python -m lct.official_mcp --namespace '<namespace>' --version '<version>' \
+  --expected-fingerprint '<v3-fingerprint>' --entity value-nodes '<entry-id>'
+```
+
+Value relation IDs may be value nodes or existing callable function node IDs; a known-ID index lookup precedes native adjacency and the `LCTValueEdge` raw evidence join. The `READS` record includes the consumer repository/path; an entry's `present=false` is an explicit missing-key subscription. `value-edge-fragment` and `value-node-fragment` fetch 8,192-character raw fragments for oversized records. As with code reads, require one matching marker row, consume the second request, display at most 16 rows and use the last displayed relation ID as cursor. Code modes accept v2 and v3 while returning only code relations; value modes reject old, partial or unprojected scopes. The marker, not a plain empty result, establishes whether value evidence is available.
+
 ## Offline in-place maintenance
 
 Stop the owned Neo4j MCP query service before maintenance. In the terminal, with existing `LCT_NEO4J_URI`, `LCT_NEO4J_USER`, and `LCT_NEO4J_PASSWORD` configured, run:
@@ -29,4 +41,4 @@ python -m lct.neo4j_graph --config '<config-path>' --database neo4j \
 
 This command reads the **already persisted** Neo4j node, edge, and evidence records. It does not reparse source, call embeddings, rebuild the SQLite/vector/BM25 index, replace archives, or change the source fingerprint. It first makes the marker incomplete so project reads fail closed. It then adds stable boundary nodes, missing native relationships, and derived boundary IDs in bounded, ownership-fenced transactions. It verifies all original nodes/edges/evidence, counts, physical endpoints, types, and scope before atomically publishing `projection_schema=native-boundary-v2` and `complete=true`. On failure the marker remains incomplete with `state=failed`; repair the cause and rerun the same command with the same fingerprint. A crashed owner must let its lease expire before retry. The command is idempotent and does not delete old source graph records. It recomputes the canonical fingerprint in persisted ID order, as produced by the normal source snapshot pipeline; an ad hoc historical import whose input arrays used a different order is rejected safely rather than re-fingerprinted. Arbitrary Cypher outside these project templates can still bypass the marker; do not run the official query service during maintenance. Restart it only after successful verification.
 
-`maintain-indexes` is also a terminal/offline driver command. Identity constraints, including the boundary identity, are idempotent. `--legacy-edges` optionally installs `(namespace,version,source)` and `(namespace,version,target)` edge indexes only for the legacy compatibility query path; v2 native traversal does not use them. Neither command is a retrieval MCP tool. New imports create v2 projections directly; an existing complete v1 scope is never silently replaced by import.
+`maintain-indexes` is also a terminal/offline driver command. Identity constraints, including the boundary and value identities, are idempotent. `--legacy-edges` optionally installs `(namespace,version,source)` and `(namespace,version,target)` edge indexes only for the legacy compatibility query path; native traversal does not use them. Neither command is a retrieval MCP tool. New code-only or unprojected imports create v2; a validated certified value sidecar creates v3. The maintenance command only migrates v1 to v2; existing complete v1/v2 scopes are never silently upgraded to v3.

@@ -245,6 +245,14 @@ exported definition in the captured target AST, using the normal import/pin
 resolver; an absent target, missing AST, registry escape or unsupported
 provider falls back. This does not certify general dynamic callers.
 
+Certified dictionary value evidence can now project into a separate
+`native-value-v3` Neo4j scope during graph publication. Its value nodes,
+edges and read subscriptions are fingerprint-bound and verified before the
+complete marker. Old and partial sidecars stay on the four-field v2
+projection, explicitly marked unprojected. SQLite remains the immutable
+dependency authority; Neo4j only adds read-only traversal of existing
+certified evidence and does not expand v5 admission.
+
 # Parso cache compatibility
 
 The Python analyzer installs a process-wide compatibility wrapper for Parso
