@@ -1,0 +1,2383 @@
+FF........FFFFFFFFF.FFFFFFFFFFF......................FF...ssFFFFFF...... [ 37%]
+.............FFF........FF.FFFFFFFFFF.......FFFFFF.............sss...... [ 74%]
+FF......FF..FFFFFFFFFFFFFF........................                       [100%]
+=================================== FAILURES ===================================
+_______ test_actual_reverse_queries_and_unrelated_producer_retention[0] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_actual_reverse_queries_an0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42b0cca330>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_actual_reverse_queries_and_unrelated_producer_retention(tmp_path, monkeypatch, noise):
+        c, repo = make(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        folder, meta = manifest(c, first['version'])
+        assert meta['value_flow_projection'] == 'internal-sqlite-only'
+        with sqlite3.connect(folder / 'graph-sites.sqlite') as db:
+            raw = [json.loads(row[0]) for row in db.execute('select data from value_nodes')]
+        containers = {n['id']: n for n in raw if n['kind'] == 'container'}
+        a_entries = [n for n in raw if n['kind'] == 'entry' and containers[n['container']]['name'] in {'registry', 'other'}]
+        assert len(a_entries) == 2
+        assert len({n['container'] for n in a_entries}) == 2
+        assert all(n['key'] == 'go' and n['present'] is True for n in a_entries)
+        reads = [n for n in raw if n['kind'] == 'read']
+        assert len(reads) == 2  # aliases do not create a second dictionary
+        with FileDependencies(folder, meta) as deps:
+            for entry in a_entries:
+                assert deps.value_readers(entry['id']) == {('synthetic-review', 'src/b.py')}
+            for read in reads:
+                page = deps.get_value_relations(read['id'])
+                assert page['has_more'] is False
+                assert {'READS', 'POSSIBLE_CALLS'} <= {r['kind'] for r in page['relations']}
+            small = deps.get_value_relations(reads[0]['id'], limit=1)
+            assert small['has_more'] is True and len(small['relations']) == 1
+            assert deps.get_value_nodes([a_entries[0]['id']])[0]['id'] == a_entries[0]['id']
+            with pytest.raises(ToolError):
+                deps.get_value_nodes(['x'] * 101)
+    
+        actual = extraction.python_nodes
+        parsed = []
+        monkeypatch.setattr(extraction, 'python_nodes', lambda f: (parsed.append(f['path']), actual(f))[1])
+        original = FileDependencies.value_readers
+        watcher = FileDependencies.analysis_watchers
+        lookups, watcher_calls = [], []
+    
+        def measured(self, entry):
+            sql = []; vm = [0]
+            self.db.set_trace_callback(sql.append)
+            def tick():
+                vm[0] += 1
+                return 0
+            self.db.set_progress_handler(tick, 1)
+            try:
+                rows = original(self, entry)
+            finally:
+                self.db.set_trace_callback(None)
+                self.db.set_progress_handler(None, 0)
+            plans = [r[3] for query in sql for r in self.db.execute('explain query plan ' + query)]
+            assert plans and all('SEARCH' in p and 'SCAN' not in p for p in plans)
+            lookups.append(dict(rows=len(rows), vm=vm[0], queries=len(sql), plans=plans))
+            return rows
+    
+        def watched(self, kind):
+            watcher_calls.append(kind)
+            return watcher(self, kind)
+    
+        monkeypatch.setattr(FileDependencies, 'value_readers', measured)
+        monkeypatch.setattr(FileDependencies, 'analysis_watchers', watched)
+        changed_source = A.replace('registry["go"]=second', 'registry["go"]=first')
+        assert changed_source != A
+        (repo / 'src/a.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_value_index_independent.py:110: AssertionError
+_______ test_actual_reverse_queries_and_unrelated_producer_retention[20] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_actual_reverse_queries_an1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4295424080>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_actual_reverse_queries_and_unrelated_producer_retention(tmp_path, monkeypatch, noise):
+        c, repo = make(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        folder, meta = manifest(c, first['version'])
+        assert meta['value_flow_projection'] == 'internal-sqlite-only'
+        with sqlite3.connect(folder / 'graph-sites.sqlite') as db:
+            raw = [json.loads(row[0]) for row in db.execute('select data from value_nodes')]
+        containers = {n['id']: n for n in raw if n['kind'] == 'container'}
+        a_entries = [n for n in raw if n['kind'] == 'entry' and containers[n['container']]['name'] in {'registry', 'other'}]
+        assert len(a_entries) == 2
+        assert len({n['container'] for n in a_entries}) == 2
+        assert all(n['key'] == 'go' and n['present'] is True for n in a_entries)
+        reads = [n for n in raw if n['kind'] == 'read']
+        assert len(reads) == 2  # aliases do not create a second dictionary
+        with FileDependencies(folder, meta) as deps:
+            for entry in a_entries:
+                assert deps.value_readers(entry['id']) == {('synthetic-review', 'src/b.py')}
+            for read in reads:
+                page = deps.get_value_relations(read['id'])
+                assert page['has_more'] is False
+                assert {'READS', 'POSSIBLE_CALLS'} <= {r['kind'] for r in page['relations']}
+            small = deps.get_value_relations(reads[0]['id'], limit=1)
+            assert small['has_more'] is True and len(small['relations']) == 1
+            assert deps.get_value_nodes([a_entries[0]['id']])[0]['id'] == a_entries[0]['id']
+            with pytest.raises(ToolError):
+                deps.get_value_nodes(['x'] * 101)
+    
+        actual = extraction.python_nodes
+        parsed = []
+        monkeypatch.setattr(extraction, 'python_nodes', lambda f: (parsed.append(f['path']), actual(f))[1])
+        original = FileDependencies.value_readers
+        watcher = FileDependencies.analysis_watchers
+        lookups, watcher_calls = [], []
+    
+        def measured(self, entry):
+            sql = []; vm = [0]
+            self.db.set_trace_callback(sql.append)
+            def tick():
+                vm[0] += 1
+                return 0
+            self.db.set_progress_handler(tick, 1)
+            try:
+                rows = original(self, entry)
+            finally:
+                self.db.set_trace_callback(None)
+                self.db.set_progress_handler(None, 0)
+            plans = [r[3] for query in sql for r in self.db.execute('explain query plan ' + query)]
+            assert plans and all('SEARCH' in p and 'SCAN' not in p for p in plans)
+            lookups.append(dict(rows=len(rows), vm=vm[0], queries=len(sql), plans=plans))
+            return rows
+    
+        def watched(self, kind):
+            watcher_calls.append(kind)
+            return watcher(self, kind)
+    
+        monkeypatch.setattr(FileDependencies, 'value_readers', measured)
+        monkeypatch.setattr(FileDependencies, 'analysis_watchers', watched)
+        changed_source = A.replace('registry["go"]=second', 'registry["go"]=first')
+        assert changed_source != A
+        (repo / 'src/a.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_value_index_independent.py:110: AssertionError
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_general_reuse_preserves_f0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f429526c350>
+operation = 'new-provider'
+
+    @pytest.mark.parametrize("operation", ["new-provider", "delete-provider", "change-to-active"])
+    def test_general_reuse_preserves_future_deleted_and_newly_active_providers(tmp_path, monkeypatch, operation):
+        config, repo, source = capture(tmp_path)
+        if operation in {"new-provider", "delete-provider"}:
+            source.write_bytes(source.read_bytes() + b"\nfrom future_module import chosen\nchosen()\n")
+        if operation == "delete-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 1\n")
+        previous = build(config, offline=True, lexical_only=True)
+        old_records = semantic_tables(config, previous["version"])
+        if operation == "new-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 2\n")
+        elif operation == "delete-provider":
+            (repo / "src/future_module.py").unlink()
+        else:
+            (repo / "src/idle_7.py").write_text("def next_target():\n    return 3\ndef idle_7():\n    return next_target()\n")
+        parsed = []
+        original = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "general-passive-component", scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-membership-changed', 'python_files_parsed': 23, 'python_ast_context_files': 23, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_context_independent.py:81: AssertionError
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_general_reuse_preserves_f1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4295424b90>
+operation = 'delete-provider'
+
+    @pytest.mark.parametrize("operation", ["new-provider", "delete-provider", "change-to-active"])
+    def test_general_reuse_preserves_future_deleted_and_newly_active_providers(tmp_path, monkeypatch, operation):
+        config, repo, source = capture(tmp_path)
+        if operation in {"new-provider", "delete-provider"}:
+            source.write_bytes(source.read_bytes() + b"\nfrom future_module import chosen\nchosen()\n")
+        if operation == "delete-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 1\n")
+        previous = build(config, offline=True, lexical_only=True)
+        old_records = semantic_tables(config, previous["version"])
+        if operation == "new-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 2\n")
+        elif operation == "delete-provider":
+            (repo / "src/future_module.py").unlink()
+        else:
+            (repo / "src/idle_7.py").write_text("def next_target():\n    return 3\ndef idle_7():\n    return next_target()\n")
+        parsed = []
+        original = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "general-passive-component", scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-membership-changed', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_context_independent.py:81: AssertionError
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_general_reuse_preserves_f2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42947f9d90>
+operation = 'change-to-active'
+
+    @pytest.mark.parametrize("operation", ["new-provider", "delete-provider", "change-to-active"])
+    def test_general_reuse_preserves_future_deleted_and_newly_active_providers(tmp_path, monkeypatch, operation):
+        config, repo, source = capture(tmp_path)
+        if operation in {"new-provider", "delete-provider"}:
+            source.write_bytes(source.read_bytes() + b"\nfrom future_module import chosen\nchosen()\n")
+        if operation == "delete-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 1\n")
+        previous = build(config, offline=True, lexical_only=True)
+        old_records = semantic_tables(config, previous["version"])
+        if operation == "new-provider":
+            (repo / "src/future_module.py").write_text("def chosen():\n    return 2\n")
+        elif operation == "delete-provider":
+            (repo / "src/future_module.py").unlink()
+        else:
+            (repo / "src/idle_7.py").write_text("def next_target():\n    return 3\ndef idle_7():\n    return next_target()\n")
+        parsed = []
+        original = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "general-passive-component", scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_context_independent.py:81: AssertionError
+_ test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_general_second_update_kee0')
+
+    def test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer(tmp_path):
+        config, repo, source = capture(tmp_path)
+        first = build(config, offline=True, lexical_only=True)
+        first_records = semantic_tables(config, first["version"])
+        source.write_bytes(source.read_bytes().replace(b'"actor"', b'"first_edit"', 1))
+        second = build(config, offline=True, lexical_only=True)
+>       assert second["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_context_independent.py:98: AssertionError
+___________ test_changed_initializer_remains_explicit_full_fallback ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_changed_initializer_remai0')
+
+    def test_changed_initializer_remains_explicit_full_fallback(tmp_path):
+        config, repo, source = capture(tmp_path)
+        first = build(config, offline=True, lexical_only=True)
+        (source.parent / "__init__.py").write_text('"""New initializer may change imports."""\n')
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+        assert scope["mode"] == "full-graph", scope
+>       assert scope["reason"] == "package-initializer-changed", scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-membership-changed', 'python_files_parsed': 23, 'python_ast_context_files': 23, ...}
+E       assert 'python-membership-changed' == 'package-initializer-changed'
+E         
+E         - package-initializer-changed
+E         + python-membership-changed
+
+review/batch4-incremental/test_general_context_independent.py:121: AssertionError
+___ test_plain_import_requires_real_context_expansion_and_no_error_downgrade ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_plain_import_requires_rea0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294590620>
+
+    def test_plain_import_requires_real_context_expansion_and_no_error_downgrade(tmp_path, monkeypatch):
+        import lct.python_analysis as analysis
+    
+        config, repo, source = capture(tmp_path)
+        build(config, offline=True, lexical_only=True)
+        source.write_bytes(source.read_bytes() + b"\nimport idle_7\nidle_7.idle_7()\n")
+        expanded = []
+        original_map = analysis.Analyzer.map_name
+    
+        def observed(self, name):
+            try:
+                return original_map(self, name)
+            except analysis.RequiredAnalysisContext as required:
+                expanded.append((required.repository, required.path))
+                raise
+    
+        monkeypatch.setattr(analysis.Analyzer, "map_name", observed)
+        parsed = []
+        original_extract = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return original_extract(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "general-passive-component", scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'changed-opaque-call-effect-unavailable', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_context_independent.py:152: AssertionError
+___________ test_same_paths_in_other_repository_are_not_selected[0] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_same_paths_in_other_repos0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42945595b0>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_paths_in_other_repository_are_not_selected(tmp_path, monkeypatch, noise):
+        config, left, right = pair(tmp_path)
+        source = 'def first(): pass\ndef second(): pass\ndef use(): first()\n'
+        for repo in (left, right):
+            (repo / 'src/a.py').write_text(source)
+            (repo / 'src/b.py').write_text('from a import use\ndef run(): use()\n')
+        for i in range(noise):
+            (right / 'src' / f'unrelated_{i}.py').write_text(source)
+        old = build(config, offline=True, lexical_only=True)
+        before = records(config, old['version'])
+        (left / 'src/a.py').write_text(source.replace('use(): first()', 'use(): second()'))
+        calls = counted(monkeypatch)
+        update = build(config, offline=True, lexical_only=True)
+>       assert sorted(calls) == [('left', 'src/a.py'), ('left', 'src/b.py')]
+E       AssertionError: assert [('left', 'src/a.py')] == [('left', 'sr..., 'src/b.py')]
+E         
+E         Right contains one more item: ('left', 'src/b.py')
+E         Use -v to get more diff
+
+review/batch4-incremental/test_crossrepo_independent.py:63: AssertionError
+___________ test_same_paths_in_other_repository_are_not_selected[20] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_same_paths_in_other_repos1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294386990>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_paths_in_other_repository_are_not_selected(tmp_path, monkeypatch, noise):
+        config, left, right = pair(tmp_path)
+        source = 'def first(): pass\ndef second(): pass\ndef use(): first()\n'
+        for repo in (left, right):
+            (repo / 'src/a.py').write_text(source)
+            (repo / 'src/b.py').write_text('from a import use\ndef run(): use()\n')
+        for i in range(noise):
+            (right / 'src' / f'unrelated_{i}.py').write_text(source)
+        old = build(config, offline=True, lexical_only=True)
+        before = records(config, old['version'])
+        (left / 'src/a.py').write_text(source.replace('use(): first()', 'use(): second()'))
+        calls = counted(monkeypatch)
+        update = build(config, offline=True, lexical_only=True)
+>       assert sorted(calls) == [('left', 'src/a.py'), ('left', 'src/b.py')]
+E       AssertionError: assert [('left', 'src/a.py')] == [('left', 'sr..., 'src/b.py')]
+E         
+E         Right contains one more item: ('left', 'src/b.py')
+E         Use -v to get more diff
+
+review/batch4-incremental/test_crossrepo_independent.py:63: AssertionError
+___________ test_consumer_parameter_change_reanalyzes_bound_provider ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_consumer_parameter_change0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294385f40>
+
+    def test_consumer_parameter_change_reanalyzes_bound_provider(tmp_path, monkeypatch):
+        config, consumer, provider, source = pinned_pair(tmp_path)
+        old = build(config, offline=True, lexical_only=True)
+        assert old['graph']['dependency_bindings']['sm']['matched']
+        (consumer / 'src/b.py').write_text(source.replace('execute(first)', 'execute(second)'))
+        calls = counted(monkeypatch)
+        update = build(config, offline=True, lexical_only=True)
+>       assert sorted(calls) == [('sm', 'src/b.py'), ('trpg-rules-engine', 'src/dnd5e_engine/exec.py')]
+E       AssertionError: assert [('sm', 'src/b.py')] == [('sm', 'src/...ine/exec.py')]
+E         
+E         Right contains one more item: ('trpg-rules-engine', 'src/dnd5e_engine/exec.py')
+E         Use -v to get more diff
+
+review/batch4-incremental/test_crossrepo_independent.py:100: AssertionError
+___________ test_constructor_field_changes_with_factory_unchanged[0] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_constructor_field_changes0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428ffe53a0>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_constructor_field_changes_with_factory_unchanged(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        previous = records(c, old["version"])
+        (repo / "src/a.py").write_text(SOURCE.replace("self.cb = first", "self.cb = second"))
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ["src/a.py", "src/b.py"], parsed
+E       AssertionError: ['src/a.py', 'src/a.py', 'src/b.py', 'src/u.py']
+E       assert ['src/a.py', ...', 'src/u.py'] == ['src/a.py', 'src/b.py']
+E         
+E         At index 1 diff: 'src/a.py' != 'src/b.py'
+E         Left contains 2 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_class_component_independent.py:81: AssertionError
+__________ test_constructor_field_changes_with_factory_unchanged[20] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_constructor_field_changes1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42940ef4d0>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_constructor_field_changes_with_factory_unchanged(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        previous = records(c, old["version"])
+        (repo / "src/a.py").write_text(SOURCE.replace("self.cb = first", "self.cb = second"))
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ["src/a.py", "src/b.py"], parsed
+E       AssertionError: ['src/a.py', 'src/a.py', 'src/b.py', 'src/u.py', 'src/unrelated_0.py', 'src/unrelated_1.py', ...]
+E       assert ['src/a.py', ...ed_1.py', ...] == ['src/a.py', 'src/b.py']
+E         
+E         At index 1 diff: 'src/a.py' != 'src/b.py'
+E         Left contains 22 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_class_component_independent.py:81: AssertionError
+_________ test_saved_bound_method_callback_changes_without_double_self _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_saved_bound_method_callba0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294f34560>
+
+    def test_saved_bound_method_callback_changes_without_double_self(tmp_path, monkeypatch):
+        consumer = '''from a import factory, first, second
+    def use():
+        value = factory()
+        saved = value.invoke
+        saved(first)
+    '''
+        c, repo = fixture(tmp_path, 3, consumer)
+        old = build(c, offline=True, lexical_only=True)
+        (repo / "src/b.py").write_text(consumer.replace("saved(first)", "saved(second)"))
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ["src/a.py", "src/b.py"], parsed
+E       AssertionError: ['src/b.py']
+E       assert ['src/b.py'] == ['src/a.py', 'src/b.py']
+E         
+E         At index 0 diff: 'src/b.py' != 'src/a.py'
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_class_component_independent.py:107: AssertionError
+___________________ test_shadow_update_uses_requester_index ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_shadow_update_uses_reques0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42945a2090>
+
+    def test_shadow_update_uses_requester_index(tmp_path, monkeypatch):
+        parse = extraction.python_nodes
+        active, evidence = {}, []
+    
+        def traced(method, label, self, *args):
+            if not active:
+                return method(self, *args)
+            statements, ticks = [], [0]
+            self.db.set_trace_callback(statements.append)
+            def tick():
+                ticks[0] += 1
+                return 0
+            self.db.set_progress_handler(tick, 1)
+            try:
+                result = method(self, *args)
+            finally:
+                self.db.set_trace_callback(None)
+                self.db.set_progress_handler(None, 0)
+            plans = [row[3] for sql in statements if sql.lower().startswith('select')
+                     for row in self.db.execute('explain query plan ' + sql)]
+            searches = [p for p in plans if p.startswith('SEARCH ')]
+            assert searches and not any('SCAN ' in p for p in plans), plans
+            assert all('import_lookup_requester' in p for p in searches), plans
+            assert all(p.startswith('SEARCH ') or p.startswith('CORRELATED SCALAR SUBQUERY')
+                       for p in plans), plans
+            rows = int(result) if isinstance(result, bool) else len(result)
+            active['queries'].append(dict(method=label, target=args, rows=rows, vm_steps=ticks[0], plans=plans))
+            return result
+    
+        def counted(file):
+            if active:
+                active['parsed'].append((file['repository'], file['path']))
+            return parse(file)
+    
+        def wrap(method, label):
+            return lambda self, *args: traced(method, label, self, *args)
+        for label in ('requesters', 'has_descendant_requesters'):
+            monkeypatch.setattr(FileDependencies, label, wrap(getattr(FileDependencies, label), label))
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        for noise in (0, 20):
+            case = tmp_path / str(noise)
+            config, consumer, provider = fixture(case, pinned=True)
+            (consumer / 'src/caller.py').write_text(
+                'from dnd5e_engine.evaluation import target\ndef run(): target()\n')
+            for i in range(noise):
+                (consumer / 'src' / f'leaf_{i}.py').write_text('def work(): pass\n')
+                (consumer / 'src' / f'caller_{i}.py').write_text(
+                    f'from leaf_{i} import work\ndef run(): work()\n')
+            build(config, offline=True, lexical_only=True)
+            own = consumer / 'src/dnd5e_engine/evaluation.py'
+            own.parent.mkdir(exist_ok=True)
+            own.write_text('def target(): pass\n')
+            active.update(queries=[], parsed=[])
+            updated = build(config, offline=True, lexical_only=True)
+>           assert updated['incremental']['analysis_scope']['mode'] == 'certified-simple-python-component'
+E           AssertionError: assert 'full-graph' == 'certified-si...hon-component'
+E             
+E             - certified-simple-python-component
+E             + full-graph
+
+review/batch4-incremental/test_requester_access_independent.py:64: AssertionError
+________ test_same_file_writer_change_delete_failure_then_identical[0] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_same_file_writer_change_d0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42940ee600>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_file_writer_change_delete_failure_then_identical(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        old_records = records(c, old['version'])
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = SOURCE.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/registry.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+        assert parsed == ['src/registry.py'], parsed
+        assert records(c, old['version']) == old_records
+        fresh_equal(c, changed['version'], tmp_path, 'oracle-change')
+        (repo / 'src/registry.py').write_text(changed_source.replace("registry['go']=first\n", ''))
+        parsed.clear()
+        with pytest.raises(ToolError, match='Injected interruption'):
+            build(c, offline=True, lexical_only=True, fail_at='before_publish')
+        assert current(c) == changed['version']
+>       assert parsed == ['src/registry.py'], parsed
+E       AssertionError: ['src/registry.py', 'src/registry.py', 'src/unrelated.py']
+E       assert ['src/registr...unrelated.py'] == ['src/registry.py']
+E         
+E         Left contains 2 more items, first extra item: 'src/registry.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_local_independent.py:71: AssertionError
+________ test_same_file_writer_change_delete_failure_then_identical[20] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_same_file_writer_change_d1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294845820>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_file_writer_change_delete_failure_then_identical(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        old_records = records(c, old['version'])
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = SOURCE.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/registry.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+        assert parsed == ['src/registry.py'], parsed
+        assert records(c, old['version']) == old_records
+        fresh_equal(c, changed['version'], tmp_path, 'oracle-change')
+        (repo / 'src/registry.py').write_text(changed_source.replace("registry['go']=first\n", ''))
+        parsed.clear()
+        with pytest.raises(ToolError, match='Injected interruption'):
+            build(c, offline=True, lexical_only=True, fail_at='before_publish')
+        assert current(c) == changed['version']
+>       assert parsed == ['src/registry.py'], parsed
+E       AssertionError: ['src/registry.py', 'src/noise_0.py', 'src/noise_1.py', 'src/noise_10.py', 'src/noise_11.py', 'src/noise_12.py', ...]
+E       assert ['src/registr...e_12.py', ...] == ['src/registry.py']
+E         
+E         Left contains 22 more items, first extra item: 'src/noise_0.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_local_independent.py:71: AssertionError
+_ test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_unproved_effects_are_0')
+extra = 'def expose():\n    return registry\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
+        c, repo = fixture(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/registry.py').write_text(SOURCE + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_local_independent.py:96: AssertionError
+_ test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_unproved_effects_are_1')
+extra = 'def mutate(value):\n    value["go"]=second\nmutate(registry)\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
+        c, repo = fixture(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/registry.py').write_text(SOURCE + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_local_independent.py:96: AssertionError
+_ test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_unproved_effects_are_2')
+extra = 'registry.update({"go":second})\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
+        c, repo = fixture(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/registry.py').write_text(SOURCE + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_local_independent.py:96: AssertionError
+__ test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_unproved_effects_are_3')
+extra = 'registry[unknown_key]=second\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
+        c, repo = fixture(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/registry.py').write_text(SOURCE + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_local_independent.py:96: AssertionError
+_ test_new_unproved_effects_are_not_admitted[if condition:\n    registry["go"]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_unproved_effects_are_4')
+extra = 'if condition:\n    registry["go"]=second\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_new_unproved_effects_are_not_admitted(tmp_path, extra):
+        c, repo = fixture(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/registry.py').write_text(SOURCE + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_dictionary_local_independent.py:96: AssertionError
+_________________ test_real_validator_measured_parse_scope[0] __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_real_validator_measured_p0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f429470d6d0>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_real_validator_measured_parse_scope(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        from lct.storage import build
+        from tests.test_actual_item_unit_incremental import oracle, records, setup
+    
+        config, repo, module = setup(tmp_path)
+        if noise == 0:
+            for path in (repo / "src").glob("unrelated_*.py"):
+                path.unlink()
+        first = build(config, offline=True, lexical_only=True)
+        before = records(config, first["version"])
+        module.write_bytes(module.read_bytes().replace(b"2**63 - 1", b"2**62 - 1"))
+        parsed = []
+        original = extraction.python_nodes
+        def counted(file):
+            parsed.append((file["repository"], file["path"]))
+            return original(file)
+        with monkeypatch.context() as patch:
+            patch.setattr(extraction, "python_nodes", counted)
+            result = build(config, offline=True, lexical_only=True)
+        assert [path for _, path in parsed] == ["src/trpg_state_machine/item_units.py"]
+        scope = result["incremental"]["analysis_scope"]
+        if noise:
+            assert scope["mode"] == "certified-simple-python-component"
+            assert scope["reused_python_files"] == noise
+        else:
+>           assert scope["mode"] == "full-graph"
+E           AssertionError: assert 'incremental-owners' == 'full-graph'
+E             
+E             - full-graph
+E             + incremental-owners
+
+review/batch4-incremental/test_pure_validator_independent.py:60: AssertionError
+_________________ test_real_validator_measured_parse_scope[20] _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_real_validator_measured_p1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42946a1400>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_real_validator_measured_parse_scope(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        from lct.storage import build
+        from tests.test_actual_item_unit_incremental import oracle, records, setup
+    
+        config, repo, module = setup(tmp_path)
+        if noise == 0:
+            for path in (repo / "src").glob("unrelated_*.py"):
+                path.unlink()
+        first = build(config, offline=True, lexical_only=True)
+        before = records(config, first["version"])
+        module.write_bytes(module.read_bytes().replace(b"2**63 - 1", b"2**62 - 1"))
+        parsed = []
+        original = extraction.python_nodes
+        def counted(file):
+            parsed.append((file["repository"], file["path"]))
+            return original(file)
+        with monkeypatch.context() as patch:
+            patch.setattr(extraction, "python_nodes", counted)
+            result = build(config, offline=True, lexical_only=True)
+        assert [path for _, path in parsed] == ["src/trpg_state_machine/item_units.py"]
+        scope = result["incremental"]["analysis_scope"]
+        if noise:
+>           assert scope["mode"] == "certified-simple-python-component"
+E           AssertionError: assert 'incremental-owners' == 'certified-si...hon-component'
+E             
+E             - certified-simple-python-component
+E             + incremental-owners
+
+review/batch4-incremental/test_pure_validator_independent.py:57: AssertionError
+________ test_plain_caller_target_change_removal_and_failed_publish[0] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_plain_caller_target_chang0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42946925a0>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_plain_caller_target_change_removal_and_failed_publish(tmp_path, monkeypatch, noise):
+        c, repo = make(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        prior = contents(c, first['version'])
+        parsed = []
+        actual = extraction.python_nodes
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = A.replace("registry['go']=first", "registry['go']=second")
+        assert changed_source != A
+        (repo / 'src/a.py').write_text(changed_source)
+        second = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py', 'src/c.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', ...', 'src/c.py']
+E         
+E         Right contains 2 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:69: AssertionError
+________ test_plain_caller_target_change_removal_and_failed_publish[20] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_plain_caller_target_chang1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294a41880>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_plain_caller_target_change_removal_and_failed_publish(tmp_path, monkeypatch, noise):
+        c, repo = make(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        prior = contents(c, first['version'])
+        parsed = []
+        actual = extraction.python_nodes
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = A.replace("registry['go']=first", "registry['go']=second")
+        assert changed_source != A
+        (repo / 'src/a.py').write_text(changed_source)
+        second = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py', 'src/c.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', ...', 'src/c.py']
+E         
+E         Right contains 2 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:69: AssertionError
+___________________ test_new_key_with_two_plain_caller_hops ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_key_with_two_plain_ca0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42947306b0>
+
+    def test_new_key_with_two_plain_caller_hops(tmp_path, monkeypatch):
+        c, repo = make(tmp_path, 4, extra_caller=True)
+        (repo / 'src/b.py').write_text(B.replace("['go']", "['new']"))
+        build(c, offline=True, lexical_only=True)
+        parsed = []
+        actual = extraction.python_nodes
+        monkeypatch.setattr(extraction, 'python_nodes', lambda f: (parsed.append(f['path']), actual(f))[1])
+        (repo / 'src/a.py').write_text(A + "registry['new']=second\n")
+        updated = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py', 'src/c.py', 'src/d.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', ...', 'src/d.py']
+E         
+E         Right contains 3 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:95: AssertionError
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from a import registry\ndef invoke():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_context_does_not_admit_re0')
+source = 'from a import registry\ndef invoke():\n    return registry\n'
+
+    @pytest.mark.parametrize('source', [
+        'from a import registry\ndef invoke():\n    return registry\n',
+        'from missing_provider import run\ndef invoke():\n    run()\n',
+        'from b import missing_name\ndef invoke():\n    missing_name()\n',
+    ])
+    def test_context_does_not_admit_registry_escape_or_missing_exports(tmp_path, source):
+        c, repo = make(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/c.py').write_text(source)
+        updated = build(c, offline=True, lexical_only=True)
+        scope = updated['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: AssertionError
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from missing_provider import run\ndef invoke():\n    run()\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_context_does_not_admit_re1')
+source = 'from missing_provider import run\ndef invoke():\n    run()\n'
+
+    @pytest.mark.parametrize('source', [
+        'from a import registry\ndef invoke():\n    return registry\n',
+        'from missing_provider import run\ndef invoke():\n    run()\n',
+        'from b import missing_name\ndef invoke():\n    missing_name()\n',
+    ])
+    def test_context_does_not_admit_registry_escape_or_missing_exports(tmp_path, source):
+        c, repo = make(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/c.py').write_text(source)
+        updated = build(c, offline=True, lexical_only=True)
+        scope = updated['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: AssertionError
+_ test_context_does_not_admit_registry_escape_or_missing_exports[from b import missing_name\ndef invoke():\n    missing_name()\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_context_does_not_admit_re2')
+source = 'from b import missing_name\ndef invoke():\n    missing_name()\n'
+
+    @pytest.mark.parametrize('source', [
+        'from a import registry\ndef invoke():\n    return registry\n',
+        'from missing_provider import run\ndef invoke():\n    run()\n',
+        'from b import missing_name\ndef invoke():\n    missing_name()\n',
+    ])
+    def test_context_does_not_admit_registry_escape_or_missing_exports(tmp_path, source):
+        c, repo = make(tmp_path, 2)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/c.py').write_text(source)
+        updated = build(c, offline=True, lexical_only=True)
+        scope = updated['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_mixed_dictionary_independent.py:110: AssertionError
+________ test_real_three_files_one_parse_oracle_old_view_and_failure[0] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_real_three_files_one_pars0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f51b9e0>
+noise = 0
+
+    @pytest.mark.parametrize('noise',[0,20])
+    def test_real_three_files_one_parse_oracle_old_view_and_failure(tmp_path,monkeypatch,noise):
+        import lct.extract as extraction
+        config,repo,target=setup(tmp_path,noise)
+        first=build(config,offline=True,lexical_only=True)
+        assert first['simple_python_certificate']=='simple-python-v6'
+        old=records(config,first['version'])
+        actual=extraction.python_nodes;parsed=[]
+        def count(file):parsed.append(file['path']);return actual(file)
+        monkeypatch.setattr(extraction,'python_nodes',count)
+        path=target/'availability.py';raw=path.read_bytes();assert raw.count(b'context=context')==1
+        path.write_bytes(raw.replace(b'context=context',b'context=None'))
+        with pytest.raises(ToolError,match='Injected'):
+            build(config,offline=True,lexical_only=True,fail_at='before_publish')
+        assert current(config)==first['version'] and records(config,first['version'])==old
+        parsed.clear();updated=build(config,offline=True,lexical_only=True)
+>       assert parsed==['src/trpg_state_machine/availability.py']
+E       AssertionError: assert ['src/trpg_st...tem_units.py'] == ['src/trpg_st...ilability.py']
+E         
+E         Left contains 3 more items, first extra item: 'src/trpg_state_machine/availability.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_common_certificate_independent.py:62: AssertionError
+_______ test_real_three_files_one_parse_oracle_old_view_and_failure[20] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_real_three_files_one_pars1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428ea33680>
+noise = 20
+
+    @pytest.mark.parametrize('noise',[0,20])
+    def test_real_three_files_one_parse_oracle_old_view_and_failure(tmp_path,monkeypatch,noise):
+        import lct.extract as extraction
+        config,repo,target=setup(tmp_path,noise)
+        first=build(config,offline=True,lexical_only=True)
+        assert first['simple_python_certificate']=='simple-python-v6'
+        old=records(config,first['version'])
+        actual=extraction.python_nodes;parsed=[]
+        def count(file):parsed.append(file['path']);return actual(file)
+        monkeypatch.setattr(extraction,'python_nodes',count)
+        path=target/'availability.py';raw=path.read_bytes();assert raw.count(b'context=context')==1
+        path.write_bytes(raw.replace(b'context=context',b'context=None'))
+        with pytest.raises(ToolError,match='Injected'):
+            build(config,offline=True,lexical_only=True,fail_at='before_publish')
+        assert current(config)==first['version'] and records(config,first['version'])==old
+        parsed.clear();updated=build(config,offline=True,lexical_only=True)
+>       assert parsed==['src/trpg_state_machine/availability.py']
+E       AssertionError: assert ['src/trpg_st...e_12.py', ...] == ['src/trpg_st...ilability.py']
+E         
+E         Left contains 23 more items, first extra item: 'src/noise_0.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_common_certificate_independent.py:62: AssertionError
+__ test_keyword_only_callback_cross_file_and_returned_field_remain_connected ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_keyword_only_callback_cro0')
+
+    def test_keyword_only_callback_cross_file_and_returned_field_remain_connected(tmp_path):
+        config,repo,target=setup(tmp_path,20)
+        (repo/'src/provider.py').write_text('def execute(callback, *, enabled: bool=True) -> None:\n    callback()\n')
+        (repo/'src/caller.py').write_text('from provider import execute\ndef first(): pass\ndef second(): pass\ndef run(): execute(first,enabled=True)\n')
+        first=build(config,offline=True,lexical_only=True)
+        assert first['simple_python_certificate']=='simple-python-v6'
+        path=repo/'src/caller.py';path.write_text(path.read_text().replace('execute(first,enabled=True)','execute(second,enabled=False)'))
+        updated=build(config,offline=True,lexical_only=True)
+>       assert updated['incremental']['analysis_scope']['python_files_parsed']==2
+E       assert 1 == 2
+
+review/batch4-incremental/test_common_certificate_independent.py:79: AssertionError
+_____ test_dictionary_change_delete_and_failed_publish_reuse_unrelated[0] ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_dictionary_change_delete_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f5c43b0>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_dictionary_change_delete_and_failed_publish_reuse_unrelated(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        original = records(c, first['version'])
+        actual = extraction.python_nodes
+        parsed = []
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_text = A.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/a.py').write_text(changed_text)
+        second = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_flow_independent.py:65: AssertionError
+_____ test_dictionary_change_delete_and_failed_publish_reuse_unrelated[20] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_dictionary_change_delete_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e69ab10>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_dictionary_change_delete_and_failed_publish_reuse_unrelated(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        first = build(c, offline=True, lexical_only=True)
+        original = records(c, first['version'])
+        actual = extraction.python_nodes
+        parsed = []
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_text = A.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/a.py').write_text(changed_text)
+        second = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ['src/a.py', 'src/b.py'], parsed
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_flow_independent.py:65: AssertionError
+_ test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_unproved_dictionary_effec0')
+extra = 'def expose():\n    return registry\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
+        c, repo = fixture(tmp_path)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/a.py').write_text(A + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_flow_independent.py:108: AssertionError
+_ test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_unproved_dictionary_effec1')
+extra = 'def mutate(value):\n    value["go"]=second\nmutate(registry)\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
+        c, repo = fixture(tmp_path)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/a.py').write_text(A + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_flow_independent.py:108: AssertionError
+_ test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_unproved_dictionary_effec2')
+extra = 'registry.update({"go":second})\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
+        c, repo = fixture(tmp_path)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/a.py').write_text(A + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_flow_independent.py:108: AssertionError
+_ test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_unproved_dictionary_effec3')
+extra = 'registry[unknown_key]=second\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
+        c, repo = fixture(tmp_path)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/a.py').write_text(A + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_dictionary_flow_independent.py:108: AssertionError
+_ test_unproved_dictionary_effects_keep_full_fallback[if condition:\n    registry["go"]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_unproved_dictionary_effec4')
+extra = 'if condition:\n    registry["go"]=second\n'
+
+    @pytest.mark.parametrize('extra', [
+        'def expose():\n    return registry\n',
+        'def mutate(value):\n    value["go"]=second\nmutate(registry)\n',
+        'registry.update({"go":second})\n',
+        'registry[unknown_key]=second\n',
+        'if condition:\n    registry["go"]=second\n',
+    ])
+    def test_unproved_dictionary_effects_keep_full_fallback(tmp_path, extra):
+        c, repo = fixture(tmp_path)
+        build(c, offline=True, lexical_only=True)
+        (repo / 'src/a.py').write_text(A + extra)
+        changed = build(c, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component'
+E       AssertionError: assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_dictionary_flow_independent.py:108: AssertionError
+____ test_relative_component_updates_and_keeps_unrelated_files[provider-0] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_relative_component_update0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e74a330>
+noise = 0, change = 'provider'
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    @pytest.mark.parametrize("change", ["provider", "new-import"])
+    def test_relative_component_updates_and_keeps_unrelated_files(tmp_path, monkeypatch, noise, change):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        initial = build(config, offline=True, lexical_only=True)
+        assert initial["simple_python_certificate"] == "simple-python-v6"
+        old = records(config, initial["version"])
+        target = repo / "src/pkg" / ("base.py" if change == "provider" else "mid.py")
+        target.write_text(target.read_text().replace("'first'", "'updated'") if change == "provider"
+                          else target.read_text().replace("from .base", "from .alternate"))
+        original, parsed = extraction.python_nodes, []
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == initial["version"]
+        assert records(config, initial["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+        expected = {"src/pkg/base.py", "src/pkg/mid.py", "src/pkg/sub/entry.py"}
+        if change == "new-import":
+            expected.add("src/pkg/alternate.py")
+>       assert set(parsed) == expected and len(parsed) == len(expected)
+E       AssertionError: assert ({'src/pkg/base.py'} == {'src/pkg/bas...sub/entry.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/sub/entry.py'
+E         'src/pkg/mid.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_relative_import_independent.py:60: AssertionError
+____ test_relative_component_updates_and_keeps_unrelated_files[provider-20] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_relative_component_update1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e7cf9e0>
+noise = 20, change = 'provider'
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    @pytest.mark.parametrize("change", ["provider", "new-import"])
+    def test_relative_component_updates_and_keeps_unrelated_files(tmp_path, monkeypatch, noise, change):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        initial = build(config, offline=True, lexical_only=True)
+        assert initial["simple_python_certificate"] == "simple-python-v6"
+        old = records(config, initial["version"])
+        target = repo / "src/pkg" / ("base.py" if change == "provider" else "mid.py")
+        target.write_text(target.read_text().replace("'first'", "'updated'") if change == "provider"
+                          else target.read_text().replace("from .base", "from .alternate"))
+        original, parsed = extraction.python_nodes, []
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == initial["version"]
+        assert records(config, initial["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+        expected = {"src/pkg/base.py", "src/pkg/mid.py", "src/pkg/sub/entry.py"}
+        if change == "new-import":
+            expected.add("src/pkg/alternate.py")
+>       assert set(parsed) == expected and len(parsed) == len(expected)
+E       AssertionError: assert ({'src/pkg/base.py'} == {'src/pkg/bas...sub/entry.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/sub/entry.py'
+E         'src/pkg/mid.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_relative_import_independent.py:60: AssertionError
+___ test_relative_component_updates_and_keeps_unrelated_files[new-import-0] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_relative_component_update2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f54f800>
+noise = 0, change = 'new-import'
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    @pytest.mark.parametrize("change", ["provider", "new-import"])
+    def test_relative_component_updates_and_keeps_unrelated_files(tmp_path, monkeypatch, noise, change):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        initial = build(config, offline=True, lexical_only=True)
+        assert initial["simple_python_certificate"] == "simple-python-v6"
+        old = records(config, initial["version"])
+        target = repo / "src/pkg" / ("base.py" if change == "provider" else "mid.py")
+        target.write_text(target.read_text().replace("'first'", "'updated'") if change == "provider"
+                          else target.read_text().replace("from .base", "from .alternate"))
+        original, parsed = extraction.python_nodes, []
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == initial["version"]
+        assert records(config, initial["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+        expected = {"src/pkg/base.py", "src/pkg/mid.py", "src/pkg/sub/entry.py"}
+        if change == "new-import":
+            expected.add("src/pkg/alternate.py")
+>       assert set(parsed) == expected and len(parsed) == len(expected)
+E       AssertionError: assert ({'src/pkg/mid.py'} == {'src/pkg/alt...sub/entry.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/sub/entry.py'
+E         'src/pkg/base.py'
+E         'src/pkg/alternate.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_relative_import_independent.py:60: AssertionError
+___ test_relative_component_updates_and_keeps_unrelated_files[new-import-20] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_relative_component_update3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e7948c0>
+noise = 20, change = 'new-import'
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    @pytest.mark.parametrize("change", ["provider", "new-import"])
+    def test_relative_component_updates_and_keeps_unrelated_files(tmp_path, monkeypatch, noise, change):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        initial = build(config, offline=True, lexical_only=True)
+        assert initial["simple_python_certificate"] == "simple-python-v6"
+        old = records(config, initial["version"])
+        target = repo / "src/pkg" / ("base.py" if change == "provider" else "mid.py")
+        target.write_text(target.read_text().replace("'first'", "'updated'") if change == "provider"
+                          else target.read_text().replace("from .base", "from .alternate"))
+        original, parsed = extraction.python_nodes, []
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == initial["version"]
+        assert records(config, initial["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+        expected = {"src/pkg/base.py", "src/pkg/mid.py", "src/pkg/sub/entry.py"}
+        if change == "new-import":
+            expected.add("src/pkg/alternate.py")
+>       assert set(parsed) == expected and len(parsed) == len(expected)
+E       AssertionError: assert ({'src/pkg/mid.py'} == {'src/pkg/alt...sub/entry.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/sub/entry.py'
+E         'src/pkg/base.py'
+E         'src/pkg/alternate.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_relative_import_independent.py:60: AssertionError
+__________ test_real_errors_provider_with_synthetic_relative_consumer __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_real_errors_provider_with0')
+
+    def test_real_errors_provider_with_synthetic_relative_consumer(tmp_path):
+        config, repo = setup(tmp_path)
+        target = repo / "src/pkg/errors.py"
+        fixture = Path(__file__).with_name("fixtures") / "actual-source-subset/src/trpg_state_machine/errors.py"
+        shutil.copyfile(fixture, target)
+        (repo / "src/pkg/client.py").write_text(
+            "from .errors import StateMachineError\n"
+            "def make(message): return StateMachineError('code', message)\n")
+        baseline = build(config, offline=True, lexical_only=True)
+        assert baseline["simple_python_certificate"] == "simple-python-v6"
+        target.write_text(target.read_text().replace('path: str = ""', 'path: str = "root"'))
+        updated = build(config, offline=True, lexical_only=True)
+>       assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 2
+E       assert 7 == 2
+
+review/batch4-incremental/test_relative_import_independent.py:85: AssertionError
+____ test_callback_target_change_local_and_fresh_equal_then_failed_retry[0] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_callback_target_change_lo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f51cb90>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_callback_target_change_local_and_fresh_equal_then_failed_retry(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        initial = build(c, offline=True, lexical_only=True)
+        old = records(c, initial["version"])
+        (repo / "src/a.py").write_text(A.replace("execute(first)", "execute(second)"))
+        calls = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            calls.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(calls) == ["src/a.py", "src/b.py"], calls
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_changed_python_independent.py:59: AssertionError
+___ test_callback_target_change_local_and_fresh_equal_then_failed_retry[20] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_callback_target_change_lo1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f34f350>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_callback_target_change_local_and_fresh_equal_then_failed_retry(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        initial = build(c, offline=True, lexical_only=True)
+        old = records(c, initial["version"])
+        (repo / "src/a.py").write_text(A.replace("execute(first)", "execute(second)"))
+        calls = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            calls.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(calls) == ["src/a.py", "src/b.py"], calls
+E       AssertionError: ['src/a.py']
+E       assert ['src/a.py'] == ['src/a.py', 'src/b.py']
+E         
+E         Right contains one more item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_changed_python_independent.py:59: AssertionError
+_____ test_new_import_pulls_previously_disconnected_module_into_component ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_new_import_pulls_previous0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42947f9880>
+
+    def test_new_import_pulls_previously_disconnected_module_into_component(tmp_path, monkeypatch):
+        c, repo = fixture(tmp_path, 4)
+        build(c, offline=True, lexical_only=True)
+        changed_source = A.replace("from b import execute", "from b import execute\nfrom u import leaf")
+        changed_source = changed_source.replace("execute(first)", "execute(leaf)")
+        (repo / "src/a.py").write_text(changed_source)
+        calls = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            calls.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(calls) == ["src/a.py", "src/b.py", "src/u.py"]
+E       AssertionError: assert ['src/a.py', ...se_2.py', ...] == ['src/a.py', ...', 'src/u.py']
+E         
+E         At index 1 diff: 'src/a.py' != 'src/b.py'
+E         Left contains 5 more items, first extra item: 'src/noise_0.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_changed_python_independent.py:94: AssertionError
+___ test_returned_function_and_keyword_callback_propagate_across_three_files ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_returned_function_and_key0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f429469ffb0>
+
+    def test_returned_function_and_keyword_callback_propagate_across_three_files(tmp_path, monkeypatch):
+        c, repo = fixture(tmp_path, 5)
+        source = "def first(): pass\ndef second(): pass\ndef factory():\n    return first\n"
+        (repo / "src/a.py").write_text(source)
+        (repo / "src/b.py").write_text(
+            "from a import factory\nfrom c import execute\ndef main():\n    execute(callback=factory())\n")
+        (repo / "src/c.py").write_text(B)
+        build(c, offline=True, lexical_only=True)
+        (repo / "src/a.py").write_text(source.replace("return first", "return second"))
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file["path"])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert sorted(parsed) == ["src/a.py", "src/b.py", "src/c.py"]
+E       AssertionError: assert ['src/a.py'] == ['src/a.py', ...', 'src/c.py']
+E         
+E         Right contains 2 more items, first extra item: 'src/b.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_changed_python_independent.py:118: AssertionError
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[0] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_negative_query_scope_is_u0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4294552690>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_negative_query_scope_is_used_by_update_and_matches_full(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        first = build(config, offline=True, lexical_only=True)
+        assert first.get("analysis_input_schema") == SCHEMA
+        assert first["analysis_input_coverage"] == COVERAGE
+        assert first["analysis_input_truncated"] is False
+        before = records(config, first["version"])
+        folder, metadata = manifest(config, first["version"])
+        repository = config["repositories"][0]["name"]
+        with FileDependencies(folder, metadata) as dependencies:
+            assert dependencies.input_scope_readers(repository, "src/pkg/provider.py") == {
+                (repository, "src/pkg/client.py")}
+            assert dependencies.input_scope_watchers() == set()
+        actual_readers = FileDependencies.input_scope_readers
+        selected, parsed = [], []
+        def readers(self, repository, path):
+            selected.append((repository, path))
+            return actual_readers(self, repository, path)
+        actual_extract = extraction.python_nodes
+        def parse(file):
+            parsed.append(file["path"])
+            return actual_extract(file)
+        monkeypatch.setattr(FileDependencies, "input_scope_readers", readers)
+        monkeypatch.setattr(extraction, "python_nodes", parse)
+        provider = repo / "src/pkg/provider.py"
+        provider.write_text(provider.read_text().replace("'old'", "'changed'"))
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == first["version"] and records(config, first["version"]) == before
+        parsed.clear()
+        selected.clear()
+        updated = build(config, offline=True, lexical_only=True)
+>       assert set(parsed) == {"src/pkg/provider.py", "src/pkg/client.py"} and len(parsed) == 2
+E       AssertionError: assert ({'src/pkg/provider.py'} == {'src/pkg/cli.../provider.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/client.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_analysis_inputs_independent.py:84: AssertionError
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[20] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_negative_query_scope_is_u1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f511c70>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_negative_query_scope_is_used_by_update_and_matches_full(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, noise)
+        first = build(config, offline=True, lexical_only=True)
+        assert first.get("analysis_input_schema") == SCHEMA
+        assert first["analysis_input_coverage"] == COVERAGE
+        assert first["analysis_input_truncated"] is False
+        before = records(config, first["version"])
+        folder, metadata = manifest(config, first["version"])
+        repository = config["repositories"][0]["name"]
+        with FileDependencies(folder, metadata) as dependencies:
+            assert dependencies.input_scope_readers(repository, "src/pkg/provider.py") == {
+                (repository, "src/pkg/client.py")}
+            assert dependencies.input_scope_watchers() == set()
+        actual_readers = FileDependencies.input_scope_readers
+        selected, parsed = [], []
+        def readers(self, repository, path):
+            selected.append((repository, path))
+            return actual_readers(self, repository, path)
+        actual_extract = extraction.python_nodes
+        def parse(file):
+            parsed.append(file["path"])
+            return actual_extract(file)
+        monkeypatch.setattr(FileDependencies, "input_scope_readers", readers)
+        monkeypatch.setattr(extraction, "python_nodes", parse)
+        provider = repo / "src/pkg/provider.py"
+        provider.write_text(provider.read_text().replace("'old'", "'changed'"))
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == first["version"] and records(config, first["version"]) == before
+        parsed.clear()
+        selected.clear()
+        updated = build(config, offline=True, lexical_only=True)
+>       assert set(parsed) == {"src/pkg/provider.py", "src/pkg/client.py"} and len(parsed) == 2
+E       AssertionError: assert ({'src/pkg/provider.py'} == {'src/pkg/cli.../provider.py'}
+E         
+E         Extra items in the right set:
+E         'src/pkg/client.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_analysis_inputs_independent.py:84: AssertionError
+___ test_purpose_records_survive_local_update_failure_and_full_comparison[0] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_purpose_records_survive_l0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f39f6e0>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_purpose_records_survive_local_update_failure_and_full_comparison(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, calls=True, noise=noise)
+        first = build(config, offline=True, lexical_only=True)
+        assert first["analysis_input_schema"] == 2
+        assert first["analysis_input_coverage"] == "captured-analysis-scopes-partial"
+        old = records(config, first["version"])
+        provider = repo / "src/a.py"
+        provider.write_text(provider.read_text().replace("return value", "return None"))
+        parsed, actual = [], extraction.python_nodes
+        def parse(file):
+            parsed.append(file["path"])
+            return actual(file)
+        monkeypatch.setattr(extraction, "python_nodes", parse)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == first["version"] and records(config, first["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+>       assert set(parsed) == {"src/a.py", "src/b.py"} and len(parsed) == 2
+E       AssertionError: assert ({'src/a.py'} == {'src/a.py', 'src/b.py'}
+E         
+E         Extra items in the right set:
+E         'src/b.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_analysis_observations_independent.py:143: AssertionError
+__ test_purpose_records_survive_local_update_failure_and_full_comparison[20] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_purpose_records_survive_l1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428f39dc70>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_purpose_records_survive_local_update_failure_and_full_comparison(tmp_path, monkeypatch, noise):
+        import lct.extract as extraction
+        config, repo = setup(tmp_path, calls=True, noise=noise)
+        first = build(config, offline=True, lexical_only=True)
+        assert first["analysis_input_schema"] == 2
+        assert first["analysis_input_coverage"] == "captured-analysis-scopes-partial"
+        old = records(config, first["version"])
+        provider = repo / "src/a.py"
+        provider.write_text(provider.read_text().replace("return value", "return None"))
+        parsed, actual = [], extraction.python_nodes
+        def parse(file):
+            parsed.append(file["path"])
+            return actual(file)
+        monkeypatch.setattr(extraction, "python_nodes", parse)
+        with pytest.raises(ToolError, match="Injected"):
+            build(config, offline=True, lexical_only=True, fail_at="before_publish")
+        assert current(config) == first["version"] and records(config, first["version"]) == old
+        parsed.clear()
+        updated = build(config, offline=True, lexical_only=True)
+>       assert set(parsed) == {"src/a.py", "src/b.py"} and len(parsed) == 2
+E       AssertionError: assert ({'src/a.py'} == {'src/a.py', 'src/b.py'}
+E         
+E         Extra items in the right set:
+E         'src/b.py'
+E         Use -v to get more diff)
+
+review/batch4-incremental/test_analysis_observations_independent.py:143: AssertionError
+__ test_public_update_consumes_observed_readers_and_preserves_full_results[0] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_public_update_consumes_ob0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e13ecf0>
+noise = 0
+
+    @pytest.mark.parametrize('noise',[0,20])
+    def test_public_update_consumes_observed_readers_and_preserves_full_results(tmp_path,monkeypatch,noise):
+        import lct.extract as extraction
+        config,repo=make(tmp_path,noise)
+        first=build(config,offline=True,lexical_only=True)
+        old=records(config,first['version'])
+        folder,meta=manifest(config,first['version'])
+        with FileDependencies(folder,meta) as dependencies:
+            rows=list(dependencies.db.execute("select consumer_path,producer_path,kind from analysis_reads where kind='parameter-origin'"))
+            assert ('src/provider.py','src/caller.py','parameter-origin') in rows
+            assert ('synthetic-review','src/provider.py') in dependencies.analysis_readers('synthetic-review','src/caller.py')
+        calls=[];reads=[];extract=extraction.python_nodes;readers=FileDependencies.analysis_readers
+        def track(file):calls.append(file['path']);return extract(file)
+        def track_read(self,repository,path):reads.append((repository,path));return readers(self,repository,path)
+        monkeypatch.setattr(extraction,'python_nodes',track)
+        monkeypatch.setattr(FileDependencies,'analysis_readers',track_read)
+        caller=repo/'src/caller.py';caller.write_text(caller.read_text().replace('execute(first)','execute(second)'))
+        with pytest.raises(ToolError,match='Injected'):
+            build(config,offline=True,lexical_only=True,fail_at='before_publish')
+        assert current(config)==first['version'] and records(config,first['version'])==old
+        calls.clear();reads.clear()
+        updated=build(config,offline=True,lexical_only=True)
+>       assert sorted(calls)==['src/caller.py','src/provider.py']
+E       AssertionError: assert ['src/caller.py'] == ['src/caller..../provider.py']
+E         
+E         Right contains one more item: 'src/provider.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_scope_reads_independent.py:89: AssertionError
+_ test_public_update_consumes_observed_readers_and_preserves_full_results[20] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_public_update_consumes_ob1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e173170>
+noise = 20
+
+    @pytest.mark.parametrize('noise',[0,20])
+    def test_public_update_consumes_observed_readers_and_preserves_full_results(tmp_path,monkeypatch,noise):
+        import lct.extract as extraction
+        config,repo=make(tmp_path,noise)
+        first=build(config,offline=True,lexical_only=True)
+        old=records(config,first['version'])
+        folder,meta=manifest(config,first['version'])
+        with FileDependencies(folder,meta) as dependencies:
+            rows=list(dependencies.db.execute("select consumer_path,producer_path,kind from analysis_reads where kind='parameter-origin'"))
+            assert ('src/provider.py','src/caller.py','parameter-origin') in rows
+            assert ('synthetic-review','src/provider.py') in dependencies.analysis_readers('synthetic-review','src/caller.py')
+        calls=[];reads=[];extract=extraction.python_nodes;readers=FileDependencies.analysis_readers
+        def track(file):calls.append(file['path']);return extract(file)
+        def track_read(self,repository,path):reads.append((repository,path));return readers(self,repository,path)
+        monkeypatch.setattr(extraction,'python_nodes',track)
+        monkeypatch.setattr(FileDependencies,'analysis_readers',track_read)
+        caller=repo/'src/caller.py';caller.write_text(caller.read_text().replace('execute(first)','execute(second)'))
+        with pytest.raises(ToolError,match='Injected'):
+            build(config,offline=True,lexical_only=True,fail_at='before_publish')
+        assert current(config)==first['version'] and records(config,first['version'])==old
+        calls.clear();reads.clear()
+        updated=build(config,offline=True,lexical_only=True)
+>       assert sorted(calls)==['src/caller.py','src/provider.py']
+E       AssertionError: assert ['src/caller.py'] == ['src/caller..../provider.py']
+E         
+E         Right contains one more item: 'src/provider.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_scope_reads_independent.py:89: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl0')
+family = 'cross', extra = 'def expose():\n    return registry\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl1')
+family = 'cross'
+extra = 'def mutate(value):\n    value["go"]=second\nmutate(registry)\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'changed-opaque-call-effect-unavailable', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl2')
+family = 'cross', extra = 'registry.update({"go":second})\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl3')
+family = 'cross', extra = 'registry[unknown_key]=second\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 3, 'python_ast_context_files': 3, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-if condition:\n    registry["go"]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl4')
+family = 'cross', extra = 'if condition:\n    registry["go"]=second\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E       assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl5')
+family = 'same', extra = 'def expose():\n    return registry\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl6')
+family = 'same'
+extra = 'def mutate(value):\n    value["go"]=second\nmutate(registry)\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'python-owner-membership-changed', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl7')
+family = 'same', extra = 'registry.update({"go":second})\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl8')
+family = 'same', extra = 'registry[unknown_key]=second\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'full-graph', 'reason': 'unbounded-changed-writer-input', 'python_files_parsed': 4, 'python_ast_context_files': 4, ...}
+E       assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl9')
+family = 'same', extra = 'if condition:\n    registry["go"]=second\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E       assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl10')
+family = 'caller'
+extra = 'from a import registry\ndef invoke():\n    return registry\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E       assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl11')
+family = 'caller'
+extra = 'from missing_provider import run\ndef invoke():\n    run()\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E       assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_previously_rejected_compl12')
+family = 'caller'
+extra = 'from b import missing_name\ndef invoke():\n    missing_name()\n'
+
+    @pytest.mark.parametrize('family,extra', [('cross', e) for e in EFFECTS] +
+                             [('same', e) for e in EFFECTS] + [('caller', e) for e in [
+                                 'from a import registry\ndef invoke():\n    return registry\n',
+                                 'from missing_provider import run\ndef invoke():\n    run()\n',
+                                 'from b import missing_name\ndef invoke():\n    missing_name()\n']])
+    def test_previously_rejected_complex_owner_is_recomputed_with_full_semantics(tmp_path, family, extra):
+        if family == 'cross':
+            config, repo = flow.fixture(tmp_path)
+            path, new_source, selected, retained = 'a.py', flow.A + extra, {'src/a.py', 'src/b.py'}, 1
+        elif family == 'same':
+            config, repo = local.fixture(tmp_path, 2)
+            path, new_source, selected, retained = 'registry.py', local.SOURCE + extra, {'src/registry.py'}, 3
+        else:
+            config, repo = mixed.make(tmp_path, 2)
+            path, new_source, selected, retained = 'c.py', extra, {
+                'src/a.py', 'src/b.py', 'src/c.py', 'src/spare.py'}, 2
+        previous = build(config, offline=True, lexical_only=True)
+        old = semantic_tables(config, previous['version'])
+        (repo / 'src' / path).write_text(new_source)
+        changed = build(config, offline=True, lexical_only=True)
+        scope = changed['incremental']['analysis_scope']
+>       assert scope['mode'] == 'general-passive-component', scope
+E       AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E       assert 'incremental-owners' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + incremental-owners
+
+review/batch4-incremental/test_general_legacy_semantics_independent.py:44: AssertionError
+___ test_public_component_queries_use_indexes_with_unrelated_relation_growth ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-244/test_public_component_queries_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f428e0dee40>
+
+    def test_public_component_queries_use_indexes_with_unrelated_relation_growth(tmp_path, monkeypatch):
+        actual_parse = extraction.python_nodes
+        actual_adjacent, actual_importers = FileDependencies.adjacent, FileDependencies.importers
+        active, comparisons = {}, []
+    
+        def counted(file):
+            if active:
+                active["parsed"].append(file["path"])
+            return actual_parse(file)
+    
+        def wrapped(method, label):
+            def run(self, *args):
+                if not active:
+                    return method(self, *args)
+                statements, ticks = [], [0]
+                self.db.set_trace_callback(statements.append)
+                def step():
+                    ticks[0] += 1
+                    return 0
+                self.db.set_progress_handler(step, 1)
+                try:
+                    result = method(self, *args)
+                finally:
+                    self.db.set_trace_callback(None)
+                    self.db.set_progress_handler(None, 0)
+                plans = []
+                for statement in statements:
+                    if statement.lstrip().lower().startswith("select"):
+                        plans.extend(row[3] for row in self.db.execute("explain query plan " + statement))
+                assert plans and any("SEARCH" in p for p in plans), plans
+                assert not any("SCAN file_adjacency" in p or "SCAN import_requests" in p for p in plans), plans
+                active["queries"].append(dict(method=label, target=list(args), rows=len(result),
+                                               vm_steps=ticks[0], plans=plans))
+                return result
+            return run
+    
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        monkeypatch.setattr(FileDependencies, "adjacent", wrapped(actual_adjacent, "adjacent"))
+        monkeypatch.setattr(FileDependencies, "importers", wrapped(actual_importers, "importers"))
+        for noise in (0, 20):
+            c, repo = initialize(tmp_path / f"fixture-{noise}")
+            (repo / "src/weights.py").unlink()
+            a = "from b import execute\ndef first(): pass\ndef second(): pass\ndef run(): execute(first)\n"
+            (repo / "src/a.py").write_text(a)
+            (repo / "src/b.py").write_text("def execute(callback): callback()\n")
+            (repo / "src/u.py").write_text("def unrelated(): pass\n")
+            for i in range(noise):
+                (repo / "src" / f"base_{i}.py").write_text(f"def leaf_{i}(): pass\n")
+                (repo / "src" / f"noise_{i}.py").write_text(
+                    f"from base_{i} import leaf_{i}\ndef caller_{i}(): leaf_{i}()\n")
+            build(c, offline=True, lexical_only=True)
+            (repo / "src/a.py").write_text(a.replace("execute(first)", "execute(second)"))
+            active.update(parsed=[], queries=[])
+            result = build(c, offline=True, lexical_only=True)
+>           assert result["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+E           AssertionError: assert 'incremental-owners' == 'certified-si...hon-component'
+E             
+E             - certified-simple-python-component
+E             + incremental-owners
+
+review/batch4-incremental/test_changed_python_access_independent.py:64: AssertionError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_value_index_independent.py::test_actual_reverse_queries_and_unrelated_producer_retention[0]
+FAILED review/batch4-incremental/test_value_index_independent.py::test_actual_reverse_queries_and_unrelated_producer_retention[20]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer
+FAILED review/batch4-incremental/test_general_context_independent.py::test_changed_initializer_remains_explicit_full_fallback
+FAILED review/batch4-incremental/test_general_context_independent.py::test_plain_import_requires_real_context_expansion_and_no_error_downgrade
+FAILED review/batch4-incremental/test_crossrepo_independent.py::test_same_paths_in_other_repository_are_not_selected[0]
+FAILED review/batch4-incremental/test_crossrepo_independent.py::test_same_paths_in_other_repository_are_not_selected[20]
+FAILED review/batch4-incremental/test_crossrepo_independent.py::test_consumer_parameter_change_reanalyzes_bound_provider
+FAILED review/batch4-incremental/test_class_component_independent.py::test_constructor_field_changes_with_factory_unchanged[0]
+FAILED review/batch4-incremental/test_class_component_independent.py::test_constructor_field_changes_with_factory_unchanged[20]
+FAILED review/batch4-incremental/test_class_component_independent.py::test_saved_bound_method_callback_changes_without_double_self
+FAILED review/batch4-incremental/test_requester_access_independent.py::test_shadow_update_uses_requester_index
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[0]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[20]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_pure_validator_independent.py::test_real_validator_measured_parse_scope[0]
+FAILED review/batch4-incremental/test_pure_validator_independent.py::test_real_validator_measured_parse_scope[20]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_plain_caller_target_change_removal_and_failed_publish[0]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_plain_caller_target_change_removal_and_failed_publish[20]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_new_key_with_two_plain_caller_hops
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from a import registry\ndef invoke():\n    return registry\n]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from missing_provider import run\ndef invoke():\n    run()\n]
+FAILED review/batch4-incremental/test_mixed_dictionary_independent.py::test_context_does_not_admit_registry_escape_or_missing_exports[from b import missing_name\ndef invoke():\n    missing_name()\n]
+FAILED review/batch4-incremental/test_common_certificate_independent.py::test_real_three_files_one_parse_oracle_old_view_and_failure[0]
+FAILED review/batch4-incremental/test_common_certificate_independent.py::test_real_three_files_one_parse_oracle_old_view_and_failure[20]
+FAILED review/batch4-incremental/test_common_certificate_independent.py::test_keyword_only_callback_cross_file_and_returned_field_remain_connected
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_dictionary_change_delete_and_failed_publish_reuse_unrelated[0]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_dictionary_change_delete_and_failed_publish_reuse_unrelated[20]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[provider-0]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[provider-20]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[new-import-0]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_component_updates_and_keeps_unrelated_files[new-import-20]
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_real_errors_provider_with_synthetic_relative_consumer
+FAILED review/batch4-incremental/test_changed_python_independent.py::test_callback_target_change_local_and_fresh_equal_then_failed_retry[0]
+FAILED review/batch4-incremental/test_changed_python_independent.py::test_callback_target_change_local_and_fresh_equal_then_failed_retry[20]
+FAILED review/batch4-incremental/test_changed_python_independent.py::test_new_import_pulls_previously_disconnected_module_into_component
+FAILED review/batch4-incremental/test_changed_python_independent.py::test_returned_function_and_keyword_callback_propagate_across_three_files
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[0]
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[20]
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_purpose_records_survive_local_update_failure_and_full_comparison[0]
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_purpose_records_survive_local_update_failure_and_full_comparison[20]
+FAILED review/batch4-incremental/test_scope_reads_independent.py::test_public_update_consumes_observed_readers_and_preserves_full_results[0]
+FAILED review/batch4-incremental/test_scope_reads_independent.py::test_public_update_consumes_observed_readers_and_preserves_full_results[20]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n]
+FAILED review/batch4-incremental/test_changed_python_access_independent.py::test_public_component_queries_use_indexes_with_unrelated_relation_growth
+69 failed, 120 passed, 5 skipped in 35.97s

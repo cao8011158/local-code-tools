@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/45363df3617b/local-code-tools/review/batch4-incremental/check_batch3_work_independent.py", line 125, in <module>
+    main()
+  File "/workspace/scratch/45363df3617b/local-code-tools/review/batch4-incremental/check_batch3_work_independent.py", line 111, in main
+    rows = [measure(Path(temp) / str(n), n) for n in (0, 20, 100)]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/45363df3617b/local-code-tools/review/batch4-incremental/check_batch3_work_independent.py", line 80, in measure
+    assert counts["inventory_calls"] == counts["ast_decode_calls"] == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

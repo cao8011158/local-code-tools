@@ -1,0 +1,41 @@
+........................................................................ [ 10%]
+.....................s.................................................. [ 20%]
+..s................................ss..........sss.......s.....s...sss.s [ 30%]
+.sssssssssss...sss...................................................... [ 41%]
+........................................................................ [ 51%]
+........................................................................ [ 61%]
+........................................................................ [ 72%]
+........................................................................ [ 82%]
+........................................................................ [ 92%]
+............................................sssss                        [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_core.py: optional existing real-cache test; use --run-local-index
+SKIPPED [1] tests/test_import_lookup_dependency.py:222: owned Neo4j URI required
+SKIPPED [2] tests/test_mcp_fingerprint_independent.py:17: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_bulk_import.py:43: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_bulk_import.py:114: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_bulk_import.py:159: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_http_mcp.py:61: LCT_TEST_NEO4J_URI not set; real Neo4j service required
+SKIPPED [1] tests/test_neo4j_projection_migration.py:11: owned Neo4j URI required
+SKIPPED [1] tests/test_neo4j_review_independent.py:38: owned Neo4j URI required
+SKIPPED [1] tests/test_neo4j_review_independent.py:60: owned Neo4j URI required
+SKIPPED [1] tests/test_neo4j_review_independent.py:72: owned Neo4j URI required
+SKIPPED [1] tests/test_neo4j_small_graph.py:28: LCT_TEST_NEO4J_URI not set; real Neo4j service required
+SKIPPED [1] tests/test_neo4j_staged_import.py:47: LCT_TEST_NEO4J_URI not set
+SKIPPED [3] tests/test_neo4j_staged_import.py:63: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_staged_import.py:92: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_staged_import.py:103: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_staged_import.py:120: LCT_TEST_NEO4J_URI not set
+SKIPPED [1] tests/test_neo4j_staged_independent.py:23: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_staged_independent.py:33: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_staged_independent.py:51: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_staged_independent.py:71: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_value_projection.py:111: owned Neo4j required
+SKIPPED [1] tests/test_neo4j_value_projection.py:143: owned Neo4j required
+SKIPPED [1] tests/test_official_mcp.py:18: owned Neo4j URI required
+SKIPPED [1] review/batch4-incremental/test_value_projection_independent.py:51: owned Neo4j required
+SKIPPED [1] review/batch4-incremental/test_value_projection_independent.py:102: owned Neo4j required
+SKIPPED [1] review/batch4-incremental/test_value_projection_independent.py:124: owned Neo4j required
+SKIPPED [1] review/batch4-incremental/test_value_projection_binding_independent.py:15: owned Neo4j required
+SKIPPED [1] review/batch4-incremental/test_value_projection_binding_independent.py:50: owned Neo4j required
+665 passed, 32 skipped in 46.06s

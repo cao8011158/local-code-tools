@@ -1,0 +1,67 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_same_file_writer_change_delete_failure_then_identical[0] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1/test_same_file_writer_change_d0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fdee4bbfc20>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_file_writer_change_delete_failure_then_identical(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        old_records = records(c, old['version'])
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = SOURCE.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/registry.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert parsed == ['src/registry.py'], parsed
+E       AssertionError: ['src/registry.py', 'src/unrelated.py']
+E       assert ['src/registr...unrelated.py'] == ['src/registry.py']
+E         
+E         Left contains one more item: 'src/unrelated.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_local_independent.py:63: AssertionError
+________ test_same_file_writer_change_delete_failure_then_identical[20] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1/test_same_file_writer_change_d1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fdedf612870>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_file_writer_change_delete_failure_then_identical(tmp_path, monkeypatch, noise):
+        c, repo = fixture(tmp_path, noise)
+        old = build(c, offline=True, lexical_only=True)
+        old_records = records(c, old['version'])
+        parsed = []
+        actual = extraction.python_nodes
+    
+        def counted(file):
+            parsed.append(file['path'])
+            return actual(file)
+    
+        monkeypatch.setattr(extraction, 'python_nodes', counted)
+        changed_source = SOURCE.replace("registry['go']=second", "registry['go']=first")
+        (repo / 'src/registry.py').write_text(changed_source)
+        changed = build(c, offline=True, lexical_only=True)
+>       assert parsed == ['src/registry.py'], parsed
+E       AssertionError: ['src/noise_0.py', 'src/noise_1.py', 'src/noise_10.py', 'src/noise_11.py', 'src/noise_12.py', 'src/noise_13.py', ...]
+E       assert ['src/noise_0...e_13.py', ...] == ['src/registry.py']
+E         
+E         At index 0 diff: 'src/noise_0.py' != 'src/registry.py'
+E         Left contains 21 more items, first extra item: 'src/noise_1.py'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_dictionary_local_independent.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[0]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_same_file_writer_change_delete_failure_then_identical[20]
+2 failed, 5 deselected in 0.67s

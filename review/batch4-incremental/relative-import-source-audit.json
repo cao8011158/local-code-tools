@@ -1,0 +1,10 @@
+{
+  "restored_existing_tracked_files": [
+    "tests/test_dictionary_import_receiver.py"
+  ],
+  "modified_existing_core_files": [
+    "docs/INCREMENTAL_UPDATE.md",
+    "lct/python_incremental.py",
+    "lct/simple_python.py"
+  ]
+}

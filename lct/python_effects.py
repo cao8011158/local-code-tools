@@ -105,6 +105,12 @@ class EffectCatalog:
     def visit(self, node, scope, conditional=False, ordered=True, reachable=True):
         if node is None:
             return
+        # CPython reuses inert AST marker instances across expressions and files.
+        # They are neither operations nor operands; assigning them an owner would
+        # make event ordinals depend on unrelated modules in the capture.
+        if isinstance(node, (ast.expr_context, ast.operator, ast.unaryop,
+                             ast.boolop, ast.cmpop)):
+            return
         meta = self.ownership.get(id(node))
         if meta and meta[0] != scope:
             return

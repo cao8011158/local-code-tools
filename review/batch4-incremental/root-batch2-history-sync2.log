@@ -1,0 +1,202 @@
+FFFF.FFFFFFFF..FFFF....FFFF.......FFFF.F....F........................... [ 60%]
+...................................FF..........                          [100%]
+=================================== FAILURES ===================================
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:53: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:53: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:53: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:53: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:33: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    config, repo = local.fixture(tmp_path, 2)
+                   ^^^^^
+E   UnboundLocalError: cannot access local variable 'local' where it is not associated with a value
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:33: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    config, repo = local.fixture(tmp_path, 2)
+                   ^^^^^
+E   UnboundLocalError: cannot access local variable 'local' where it is not associated with a value
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:33: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    config, repo = local.fixture(tmp_path, 2)
+                   ^^^^^
+E   UnboundLocalError: cannot access local variable 'local' where it is not associated with a value
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:33: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    config, repo = local.fixture(tmp_path, 2)
+                   ^^^^^
+E   UnboundLocalError: cannot access local variable 'local' where it is not associated with a value
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:33: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    config, repo = local.fixture(tmp_path, 2)
+                   ^^^^^
+E   UnboundLocalError: cannot access local variable 'local' where it is not associated with a value
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:57: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert semantic_tables(config, changed['version']) == semantic_tables(oracle_config, oracle['version'])
+E   assert {'nodes': ['[...s-v1"]'], ...} == {'nodes': ['[...s-v1"]'], ...}
+E     
+E     Omitting 12 identical items, use -vv to show
+E     Differing items:
+E     {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...ba2df793a61e91ae51dfef9364", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']} != {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...apture:all-captured-python", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']}
+E     {'analysis_input_scopes': ['["ca...
+E     
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:57: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert semantic_tables(config, changed['version']) == semantic_tables(oracle_config, oracle['version'])
+E   assert {'nodes': ['[...s-v1"]'], ...} == {'nodes': ['[...s-v1"]'], ...}
+E     
+E     Omitting 12 identical items, use -vv to show
+E     Differing items:
+E     {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...ba2df793a61e91ae51dfef9364", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']} != {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...apture:all-captured-python", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']}
+E     {'analysis_input_scopes': ['["ca...
+E     
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+_ test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n] _
+review/batch4-incremental/test_general_legacy_semantics_independent.py:57: in test_previously_rejected_complex_owner_is_recomputed_with_full_semantics
+    assert semantic_tables(config, changed['version']) == semantic_tables(oracle_config, oracle['version'])
+E   assert {'nodes': ['[...s-v1"]'], ...} == {'nodes': ['[...s-v1"]'], ...}
+E     
+E     Omitting 12 identical items, use -vv to show
+E     Differing items:
+E     {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...ba2df793a61e91ae51dfef9364", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']} != {'analysis_input_consumers': ['["capture:all-captured-python", "synthetic-review:src/a.py:module:a#1", "synthetic-revi...apture:all-captured-python", "synthetic-review:src/spare.py:module:spare#1", "synthetic-review", "src/spare.py", 20]']}
+E     {'analysis_input_scopes': ['["ca...
+E     
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+_ test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:105: in test_new_unproved_effects_are_not_admitted
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:105: in test_new_unproved_effects_are_not_admitted
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n] _
+review/batch4-incremental/test_dictionary_local_independent.py:105: in test_new_unproved_effects_are_not_admitted
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+__ test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n] __
+review/batch4-incremental/test_dictionary_local_independent.py:105: in test_new_unproved_effects_are_not_admitted
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:117: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:117: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:117: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n] _
+review/batch4-incremental/test_dictionary_flow_independent.py:117: in test_unproved_dictionary_effects_keep_full_fallback
+    assert scope['reused_python_files'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'reused_python_files'
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider] _
+review/batch4-incremental/test_general_context_independent.py:82: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert len(set(parsed)) == scope["context_source_files"]
+E   AssertionError: assert 23 == 0
+E    +  where 23 = len({'src/future_module.py', 'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', ...})
+E    +    where {'src/future_module.py', 'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', ...} = set(['src/future_module.py', 'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', ...])
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider] _
+review/batch4-incremental/test_general_context_independent.py:82: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert len(set(parsed)) == scope["context_source_files"]
+E   AssertionError: assert 22 == 0
+E    +  where 22 = len({'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', 'src/idle_13.py', ...})
+E    +    where {'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', 'src/idle_13.py', ...} = set(['src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', 'src/idle_13.py', ...])
+_ test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active] _
+review/batch4-incremental/test_general_context_independent.py:82: in test_general_reuse_preserves_future_deleted_and_newly_active_providers
+    assert len(set(parsed)) == scope["context_source_files"]
+E   AssertionError: assert 22 == 0
+E    +  where 22 = len({'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', 'src/idle_13.py', ...})
+E    +    where {'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', 'src/idle_13.py', ...} = set(['src/idle_7.py', 'src/idle_0.py', 'src/idle_1.py', 'src/idle_10.py', 'src/idle_11.py', 'src/idle_12.py', ...])
+_ test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer _
+review/batch4-incremental/test_general_context_independent.py:111: in test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer
+    assert semantic_tables(config, third["version"]) == semantic_tables(fresh_config, fresh["version"])
+E   assert {'nodes': ['[...]', ...], ...} == {'nodes': ['[...]', ...], ...}
+E     
+E     Omitting 14 identical items, use -vv to show
+E     Differing items:
+E     {'import_requests': ['[0, "synthetic-review", "src/trpg_state_machine/errors.py", "synthetic-review", "dataclasses", {...#1.1"], "target_modules": ["synthetic-review:src/trpg_state_machine/errors.py:module:trpg_state_machine.errors#1"]}]']} != {'import_requests': ['[0, "synthetic-review", "src/trpg_state_machine/_execution.py", "synthetic-review", "dataclasses...e.errors#1", "source_repository": "synthetic-review", "status": "boundary", "target_ids": [], "target_modules": []}]']}
+E     Use -v to get more diff
+___ test_plain_import_requires_real_context_expansion_and_no_error_downgrade ___
+review/batch4-incremental/test_general_context_independent.py:153: in test_plain_import_requires_real_context_expansion_and_no_error_downgrade
+    assert expanded == [(config["repositories"][0]["name"], "src/idle_7.py")]
+E   AssertionError: assert [] == [('synthetic-...c/idle_7.py')]
+E     
+E     Right contains one more item: ('synthetic-review', 'src/idle_7.py')
+E     Use -v to get more diff
+__________ test_real_errors_provider_with_synthetic_relative_consumer __________
+review/batch4-incremental/test_relative_import_independent.py:84: in test_real_errors_provider_with_synthetic_relative_consumer
+    assert updated["incremental"]["analysis_scope"]["reason"] == "changed-opaque-call-effect-unavailable"
+E   AssertionError: assert 'changed-writ...in-unresolved' == 'changed-opaq...t-unavailable'
+E     
+E     - changed-opaque-call-effect-unavailable
+E     + changed-writer-origin-unresolved
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[0] ________
+review/batch4-incremental/test_analysis_inputs_independent.py:86: in test_negative_query_scope_is_used_by_update_and_matches_full
+    assert any(":src/pkg/client.py:function:" in owner for owner in updated["incremental"]["analysis_scope"]["selected_owner_ids"])
+E   assert False
+E    +  where False = any(<generator object test_negative_query_scope_is_used_by_update_and_matches_full.<locals>.<genexpr> at 0x7f3455460450>)
+_______ test_negative_query_scope_is_used_by_update_and_matches_full[20] _______
+review/batch4-incremental/test_analysis_inputs_independent.py:86: in test_negative_query_scope_is_used_by_update_and_matches_full
+    assert any(":src/pkg/client.py:function:" in owner for owner in updated["incremental"]["analysis_scope"]["selected_owner_ids"])
+E   assert False
+E    +  where False = any(<generator object test_negative_query_scope_is_used_by_update_and_matches_full.<locals>.<genexpr> at 0x7f3454fd1080>)
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[cross-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[same-if condition:\n    registry["go"]=second\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from a import registry\ndef invoke():\n    return registry\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from missing_provider import run\ndef invoke():\n    run()\n]
+FAILED review/batch4-incremental/test_general_legacy_semantics_independent.py::test_previously_rejected_complex_owner_is_recomputed_with_full_semantics[caller-from b import missing_name\ndef invoke():\n    missing_name()\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_local_independent.py::test_new_unproved_effects_are_not_admitted[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def expose():\n    return registry\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[def mutate(value):\n    value["go"]=second\nmutate(registry)\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry.update({"go":second})\n]
+FAILED review/batch4-incremental/test_dictionary_flow_independent.py::test_unproved_dictionary_effects_keep_full_fallback[registry[unknown_key]=second\n]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[new-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[delete-provider]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_reuse_preserves_future_deleted_and_newly_active_providers[change-to-active]
+FAILED review/batch4-incremental/test_general_context_independent.py::test_general_second_update_keeps_receipts_and_failed_candidate_keeps_old_pointer
+FAILED review/batch4-incremental/test_general_context_independent.py::test_plain_import_requires_real_context_expansion_and_no_error_downgrade
+FAILED review/batch4-incremental/test_relative_import_independent.py::test_real_errors_provider_with_synthetic_relative_consumer
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[0]
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_negative_query_scope_is_used_by_update_and_matches_full[20]
+28 failed, 91 passed in 27.24s

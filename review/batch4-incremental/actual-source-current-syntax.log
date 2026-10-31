@@ -1,0 +1,26 @@
+availability.py
+ class 4 AvailabilityRuntime bases [] decorators []
+  method 7 query_action_availability certified False annotations [] kwonly ['context'] returns False decorators [] first_other []
+errors.py
+ importfrom 3 dataclasses level 0 names ['dataclass']
+ class 7 Issue bases [] decorators ['dataclass(frozen=True, slots=True)']
+  class_stmt 10 AnnAssign
+  class_stmt 11 AnnAssign
+  class_stmt 12 AnnAssign
+ class 15 StateMachineError bases ['Exception'] decorators []
+  method 18 __init__ certified False annotations ['code', 'message'] kwonly ['path'] returns True decorators [] first_other []
+  method 24 code certified False annotations [] kwonly [] returns True decorators ['property'] first_other []
+item_units.py
+ import 3 ['re']
+ function 6 valid_item_unit certified False
+availability.py unsupported nodes by function
+query_action_availability 9 Return unsupported [] safe_op unknown effectful True
+errors.py unsupported nodes by function
+__init__ 20 Assign unsupported [] safe_op unknown effectful True
+__init__ 21 Expr unsupported [] safe_op unknown effectful True
+code 26 Return unsupported [] safe_op unknown effectful False
+item_units.py unsupported nodes by function
+valid_item_unit 8 Return unsupported [] safe_op bool effectful False
+standalone item_units.py simple-python-v5
+standalone availability.py None
+standalone errors.py None

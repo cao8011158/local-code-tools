@@ -18,6 +18,18 @@ def main():
         s = commands.add_parser(name)
         s.add_argument("--offline", action="store_true")
         s.add_argument("--lexical-only", action="store_true")
+    s = commands.add_parser("update-coordinated")
+    s.add_argument("--namespace", required=True)
+    s.add_argument("--database", required=True)
+    s.add_argument("--offline", action="store_true")
+    s = commands.add_parser("bind-current-graph")
+    s.add_argument("--namespace", required=True)
+    s.add_argument("--database", required=True)
+    commands.add_parser("publication-current")
+    s = commands.add_parser("publication-official-requests")
+    s.add_argument("ids", nargs="+")
+    s.add_argument("--direction", choices=("in", "out", "both"), default="both")
+    s.add_argument("--limit", type=int, default=100)
     s = commands.add_parser("attach-dense", help="Attach vectors to an expected frozen lexical version")
     s.add_argument("--version", dest="expected_version", required=True)
     s.add_argument("--expected-program-hash")
@@ -40,6 +52,7 @@ def main():
         s.add_argument("--candidates", type=int, default=50)
         s.add_argument("--limit", type=int, default=10)
         s.add_argument("--cursor")
+        s.add_argument("--version")
         if name == "search-code":
             s.add_argument(
                 "--level", choices=["module", "class", "function", "all"], default="function"
@@ -80,6 +93,24 @@ def main():
     try:
         if command in ("build", "update"):
             out = build(c, **args)
+        elif command in ("update-coordinated", "bind-current-graph", "publication-current",
+                         "publication-official-requests"):
+            from .publication import bind_current, coordinated_update, resolve_current
+
+            if command == "update-coordinated":
+                out = coordinated_update(c, **args)
+            elif command == "bind-current-graph":
+                out = bind_current(c, **args)
+            else:
+                binding = resolve_current(c)
+                if command == "publication-current":
+                    out = binding
+                else:
+                    from .official_mcp import read_cypher_requests
+
+                    out = read_cypher_requests(binding["namespace"], binding["version"],
+                        args["ids"], binding["fingerprint"], direction=args["direction"],
+                        limit=args["limit"])
         elif command == "attach-dense":
             out = attach_dense(c, **args)
         elif command == "estimate":

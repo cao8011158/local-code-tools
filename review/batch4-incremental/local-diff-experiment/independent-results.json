@@ -1,0 +1,146 @@
+[
+  {
+    "case": "shared_hub_conservative_expansion",
+    "equal": true,
+    "differences": {},
+    "candidate": {
+      "changed": [
+        "src/client_0.py"
+      ],
+      "rounds": [
+        {
+          "files": [
+            "src/client_0.py",
+            "src/client_1.py",
+            "src/client_10.py",
+            "src/client_11.py",
+            "src/client_12.py",
+            "src/client_13.py",
+            "src/client_14.py",
+            "src/client_15.py",
+            "src/client_16.py",
+            "src/client_17.py",
+            "src/client_18.py",
+            "src/client_19.py",
+            "src/client_2.py",
+            "src/client_3.py",
+            "src/client_4.py",
+            "src/client_5.py",
+            "src/client_6.py",
+            "src/client_7.py",
+            "src/client_8.py",
+            "src/client_9.py",
+            "src/common.py"
+          ],
+          "sites": 21,
+          "jedi": 41
+        }
+      ],
+      "parsed_file_attempts": 21,
+      "unique_parsed_files": 21,
+      "examined_import_file_count": 21,
+      "analyzed_sites": 21,
+      "jedi_queries_executed": 41,
+      "preparatory_old_edges": 102,
+      "preparatory_old_nodes": 42,
+      "preparatory_full_path_inventory": 21,
+      "adjacency_rows": 60
+    },
+    "full": {
+      "files": 21,
+      "sites": 21,
+      "jedi_queries_executed": 41
+    }
+  },
+  {
+    "case": "new_import_transitive_chain",
+    "equal": true,
+    "differences": {},
+    "candidate": {
+      "changed": [
+        "src/entry.py"
+      ],
+      "rounds": [
+        {
+          "files": [
+            "src/entry.py",
+            "src/leaf.py",
+            "src/middle.py"
+          ],
+          "sites": 2,
+          "jedi": 4
+        }
+      ],
+      "parsed_file_attempts": 3,
+      "unique_parsed_files": 3,
+      "examined_import_file_count": 3,
+      "analyzed_sites": 2,
+      "jedi_queries_executed": 4,
+      "preparatory_old_edges": 11,
+      "preparatory_old_nodes": 8,
+      "preparatory_full_path_inventory": 4,
+      "adjacency_rows": 3
+    },
+    "full": {
+      "files": 4,
+      "sites": 2,
+      "jedi_queries_executed": 4
+    }
+  },
+  {
+    "case": "absent_namespace_creation",
+    "equal": false,
+    "differences": {
+      "edges": {
+        "missing": 3,
+        "extra": 2,
+        "missing_examples": [
+          "{\"basis\": \"AST value reference; never implies invocation\", \"column\": 14, \"expression\": \"callback\", \"kind\": \"REFERENCES\", \"line\": 2, \"phase\": \"body\", \"source\": \"fixture:src/caller.py:function:invoke#1.1\", \"status\": \"resolved\", \"target\": \"fixture:src/absent.py:function:callback#1.1\"}",
+          "{\"basis\": \"exact captured import definition\", \"column\": 0, \"expression\": \"callback\", \"kind\": \"IMPORTS\", \"line\": 1, \"source\": \"fixture:src/caller.py:module:caller#1\", \"status\": \"resolved\", \"target\": \"fixture:src/absent.py:function:callback#1.1\"}"
+        ],
+        "extra_examples": [
+          "{\"basis\": \"jedi-no-result\", \"column\": 0, \"expression\": \"callback\", \"kind\": \"IMPORTS\", \"line\": 1, \"source\": \"fixture:src/caller.py:module:caller#1\", \"status\": \"unresolved\", \"target\": null}",
+          "{\"basis\": \"jedi-no-result\", \"column\": 14, \"complete\": false, \"expression\": \"callback\", \"kind\": \"CALLS\", \"line\": 2, \"source\": \"fixture:src/caller.py:function:invoke#1.1\", \"status\": \"unresolved\", \"target\": null, \"unknown_origin\": true}"
+        ]
+      },
+      "sites": {
+        "missing": 1,
+        "extra": 1,
+        "missing_examples": [
+          "{\"boundaries\": [], \"column\": 14, \"complete\": true, \"completeness_basis\": [\"reaching-lexical-binding\", \"source-value:callable\"], \"execution_owner\": \"fixture:src/caller.py:function:invoke#1.1\", \"expression\": \"callback\", \"kind\": \"call\", \"line\": 2, \"resolution_decision\": {\"conflict\": false, \"excluded_jedi_targets\": [], \"excluded_lct_targets\": [], \"jedi_targets\": [\"fixture:src/absent.py:function:callback#1.1\"], \"lct_targets\": [\"fixture:src/absent.py:function:callback#1.1\"], \"reason\": \"matching-signals\", \"selected_targets\": [\"fixture:src/absent.py:function:callback#1.1\"], \"semantic_rules\": [\"reaching-lexical-binding\", \"source-value:callable\"], \"unresolved_jedi_targets\": [], \"write_source_coverage\": null}, \"resolution_kind\": \"proven-targets\", \"targets\": [\"fixture:src/absent.py:function:callback#1.1\"], \"unknown_origin\": false, \"unresolved_reasons\": []}"
+        ],
+        "extra_examples": [
+          "{\"boundaries\": [], \"column\": 14, \"complete\": false, \"completeness_basis\": null, \"execution_owner\": \"fixture:src/caller.py:function:invoke#1.1\", \"expression\": \"callback\", \"kind\": \"call\", \"line\": 2, \"resolution_decision\": {\"conflict\": false, \"excluded_jedi_targets\": [], \"excluded_lct_targets\": [], \"jedi_targets\": [], \"lct_targets\": [], \"reason\": \"matching-signals\", \"selected_targets\": [], \"semantic_rules\": [\"reaching-lexical-binding\"], \"unresolved_jedi_targets\": [], \"write_source_coverage\": null}, \"resolution_kind\": \"unsupported-or-unknown\", \"targets\": [], \"unknown_origin\": true, \"unresolved_reasons\": [\"jedi-no-result\"]}"
+        ]
+      }
+    },
+    "candidate": {
+      "changed": [
+        "src/absent.py"
+      ],
+      "rounds": [
+        {
+          "files": [
+            "src/absent.py"
+          ],
+          "sites": 0,
+          "jedi": 0
+        }
+      ],
+      "parsed_file_attempts": 1,
+      "unique_parsed_files": 1,
+      "examined_import_file_count": 1,
+      "analyzed_sites": 0,
+      "jedi_queries_executed": 0,
+      "preparatory_old_edges": 5,
+      "preparatory_old_nodes": 3,
+      "preparatory_full_path_inventory": 3,
+      "adjacency_rows": 0
+    },
+    "full": {
+      "files": 3,
+      "sites": 1,
+      "jedi_queries_executed": 2
+    }
+  }
+]

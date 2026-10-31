@@ -10,6 +10,7 @@ dependencies = [
     { name = "jedi" },
     { name = "mcp" },
     { name = "numpy" },
+    { name = "parso" },
     { name = "usearch" },
 ]
 
@@ -27,6 +28,7 @@ requires-dist = [
     { name = "jedi", specifier = "==0.20.1" },
     { name = "mcp", specifier = ">=1.26,<2" },
     { name = "numpy", specifier = "==2.3.5" },
+    { name = "parso", specifier = "==0.8.7" },
     { name = "usearch", specifier = ">=2.21,<3" },
 ]
 

@@ -1,0 +1,70 @@
+{
+  "reviewed_commit": "07b6b6c48d7921f2802c00ef62192e849e2371eb",
+  "reviewed_tree": "ca228fab009ddf7bc563d66c02a51913428d8051",
+  "review_round": 1,
+  "max_review_rounds": 3,
+  "verdict": "PASS_LIMITED_SLICE",
+  "reviewer": "root independent of production implementation",
+  "source_audit": {
+    "verified_files": 534,
+    "mismatches": [],
+    "missing_historical_review_artifacts": 262,
+    "production_and_tests_complete": true,
+    "changed_production_unchanged_after_tests": true
+  },
+  "tests": {
+    "command": "python -m pytest -q -rs tests review/batch4-incremental/test_common_certificate_independent.py review/batch4-incremental/test_observed_semantic_reads.py review/batch4-incremental/test_scope_reads_independent.py review/batch4-incremental/test_analysis_reads_independent.py review/batch4-incremental/test_dictionary_flow_independent.py review/batch4-incremental/test_dictionary_local_independent.py review/batch4-incremental/test_value_index_independent.py review/batch4-incremental/test_import_receiver_independent.py review/batch4-incremental/test_changed_python_independent.py review/batch4-incremental/test_mixed_dictionary_independent.py review/batch4-incremental/test_value_projection_independent.py review/batch4-incremental/test_value_projection_binding_independent.py --tb=short",
+    "passed": 665,
+    "skipped": 32,
+    "failed": 0,
+    "exit_code": 0,
+    "seconds": 46.06,
+    "independent_new_cases": 11,
+    "new_cases_included_in_total": true,
+    "skipped_categories": {
+      "owned_neo4j_service": 31,
+      "optional_existing_real_cache": 1
+    }
+  },
+  "actual_fixture": {
+    "repository": "agentic-trpg/trpg-state-machine",
+    "commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+    "files": [
+      "availability.py",
+      "errors.py",
+      "item_units.py"
+    ],
+    "unrelated_files": [
+      0,
+      20
+    ],
+    "parsed_files_after_availability_change": [
+      1,
+      1
+    ],
+    "reused_files": [
+      2,
+      22
+    ],
+    "fresh_full_all_semantic_tables_equal": true,
+    "failed_publish_old_version_preserved": true,
+    "unchanged_capture_parses": 0
+  },
+  "locality": {
+    "unrelated_callsite_modules": [
+      0,
+      200
+    ],
+    "whole_site_iteration_forbidden": true,
+    "candidate_constructor_inflight_reads": "3*K indexed reads; K=component sites",
+    "connected_components_share_membership_object": true,
+    "unknown_site_owner_fails_open": true
+  },
+  "limitations": [
+    "Exact committed three-file subset, not latest main or complete business repositories",
+    "Closed certified grammar only; unsupported syntax keeps full analysis",
+    "Historical test_actual_source_current_diagnostic.py asserts superseded v5 fallback; retained, excluded and superseded by actual local/full-oracle cases",
+    "No new paid API, real graph build, Neo4j/MCP service or Drive validation in this slice",
+    "Batch4 end-to-end acceptance not complete; no merge"
+  ]
+}

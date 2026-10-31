@@ -1,0 +1,46 @@
+..........................................................ss............ [ 44%]
+.................................F............sss....................... [ 88%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+___________ test_real_empty_query_and_cache_do_not_reenumerate_scope ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-193/test_real_empty_query_and_cach0')
+
+    def test_real_empty_query_and_cache_do_not_reenumerate_scope(tmp_path):
+        config, _ = setup(tmp_path)
+        analyzer, scope, expressions, policy = analyzer_for(config)
+        try:
+            first = analyzer.query(scope, expressions[0])
+            assert "jedi-no-result" in first.reasons
+            assert hasattr(analyzer, "analysis_inputs")
+            footprint = analyzer.analysis_inputs.export()
+            assert len(footprint["scopes"]) == 1 and len(footprint["members"]) == 2
+            assert len(footprint["consumers"]) == 1 and not footprint["truncated"]
+            class AlreadyRegistered(frozenset):
+                def __iter__(self):
+                    raise AssertionError("same context members enumerated again")
+            for module, component in list(policy.items()):
+                policy[module] = AlreadyRegistered(component)
+            executions = analyzer.executed_queries
+>           assert analyzer.query(scope, expressions[0]) == first
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+review/batch4-incremental/test_analysis_inputs_independent.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/python_analysis.py:862: in query
+    self._observe_analysis_input(scope, "jedi-query")
+lct/python_analysis.py:298: in _observe_analysis_input
+    self.unit_input_events.add((owner, consumer, tuple(sorted(component or ())), purpose))
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <[AssertionError('same context members enumerated again') raised in repr()] AlreadyRegistered object at 0x7f649e77a990>
+
+    def __iter__(self):
+>       raise AssertionError("same context members enumerated again")
+E       AssertionError: same context members enumerated again
+
+review/batch4-incremental/test_analysis_inputs_independent.py:120: AssertionError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_analysis_inputs_independent.py::test_real_empty_query_and_cache_do_not_reenumerate_scope
+1 failed, 157 passed, 5 skipped in 32.75s

@@ -1,0 +1,41 @@
+{
+  "sha": "d9ecf8538b0078b30edbf0e92dd2f78b2e85bbe4",
+  "fixture": "/tmp/root-existing-package-nl01uint",
+  "scope": {
+    "mode": "certified-simple-python-component",
+    "reason": "certified-simple-python-component",
+    "python_files_parsed": 2,
+    "python_ast_context_files": 2,
+    "reused_python_nodes": 3,
+    "document_files_parsed": 1,
+    "reused_graph_sites": 0,
+    "sites_analyzed": 2,
+    "jedi_queries_executed": 3,
+    "reused_graph_edges": 0,
+    "output_nodes": 13,
+    "output_edges": 16,
+    "changed_files": 1,
+    "selected_files": 2,
+    "parsed_python_files": 2,
+    "reused_python_files": 2,
+    "reused_sites": 0,
+    "reused_edges": 0,
+    "selected_keys": [
+      [
+        "synthetic-review",
+        "src/caller.py"
+      ],
+      [
+        "trpg-rules-engine",
+        "src/dnd5e_engine/evaluation.py"
+      ]
+    ],
+    "total_python_files_parsed": 2
+  },
+  "different_tables": [
+    "edges",
+    "sites",
+    "import_dependencies",
+    "import_requests"
+  ]
+}

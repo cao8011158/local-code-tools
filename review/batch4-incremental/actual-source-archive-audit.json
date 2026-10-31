@@ -1,0 +1,15 @@
+{
+  "audit": {
+    "individually_certified": 0,
+    "production_py_files": 80,
+    "unsupported_syntax_features": {
+      "class_bases_or_decorators": 48,
+      "function_annotations_or_decorators": 44,
+      "module_assignment_or_other": 48,
+      "ordinary_import": 38,
+      "relative_or_wildcard_import": 70
+    }
+  },
+  "capture_scope": "80 available archived production modules, not complete repository",
+  "source_commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe"
+}

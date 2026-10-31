@@ -1,0 +1,77 @@
+........................................................................ [ 10%]
+.......................................s................................ [ 21%]
+...............................s................................ss...... [ 31%]
+....sss.......s.....s...sss.s.sssssssssss...sss...F.....FF.............. [ 42%]
+........................................................................ [ 52%]
+........................................................................ [ 63%]
+........................................................................ [ 73%]
+........................................................................ [ 84%]
+........................................................................ [ 95%]
+..................................                                       [100%]
+=================================== FAILURES ===================================
+______________ test_two_owner_updates_retain_open_callback_reason ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-183/test_two_owner_updates_retain_0')
+
+    def test_two_owner_updates_retain_open_callback_reason(tmp_path):
+        caller = "from worker import execute\ndef first() -> int: return 1\ndef second() -> int: return 2\ndef run(): execute(first)\n"
+        worker = "def execute(callback): callback()\ndef unrelated(v: int): return v\n"
+        config, repo = fixture(tmp_path, {"caller.py": caller, "worker.py": worker})
+        first = build(config, offline=True, lexical_only=True)
+        path = repo / "src/caller.py"
+        for source, target in (("first", "second"), ("second", "first")):
+            path.write_text(path.read_text().replace(f"execute({source})", f"execute({target})"))
+            updated = build(config, offline=True, lexical_only=True)
+            scope = updated["incremental"]["analysis_scope"]
+>           assert scope["mode"] == "incremental-owners"
+E           AssertionError: assert 'certified-si...hon-component' == 'incremental-owners'
+E             
+E             - incremental-owners
+E             + certified-simple-python-component
+
+tests/test_owner_incremental.py:37: AssertionError
+____________ test_new_callee_requires_another_actual_analysis_pass _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-183/test_new_callee_requires_anoth0')
+
+    def test_new_callee_requires_another_actual_analysis_pass(tmp_path):
+        source = ("def first(cb): cb()\ndef second(cb): cb()\n"
+                  "def target() -> int: return 1\ndef run(): first(target)\n")
+        config, repo = fixture(tmp_path, {"owner.py": source,
+                                          "idle.py": "def unrelated(x: int): return x\n"})
+        build(config, offline=True, lexical_only=True)
+        (repo / "src/owner.py").write_text(source.replace("first(target)", "second(target)"))
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "incremental-owners"
+E       AssertionError: assert 'certified-si...hon-component' == 'incremental-owners'
+E         
+E         - incremental-owners
+E         + certified-simple-python-component
+
+tests/test_owner_incremental.py:90: AssertionError
+___________ test_partial_dictionary_evidence_does_not_claim_complete ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-183/test_partial_dictionary_eviden0')
+
+    def test_partial_dictionary_evidence_does_not_claim_complete(tmp_path):
+        config, repo = fixture(tmp_path, {
+            "provider.py": "def first() -> int: return 1\ndef second() -> int: return 2\nregistry={'go':first}\n",
+            "consumer.py": "from provider import registry\ndef run(): registry['go']()\n"})
+        old = build(config, offline=True, lexical_only=True)
+        assert old["value_flow_coverage"] == "partial"
+        (repo / "src/provider.py").write_text(
+            "def first() -> int: return 1\ndef second() -> int: return 2\nregistry={'go':second}\n")
+        updated = build(config, offline=True, lexical_only=True)
+>       assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+E       AssertionError: assert 'full-graph' == 'incremental-owners'
+E         
+E         - incremental-owners
+E         + full-graph
+
+tests/test_owner_incremental.py:105: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_owner_incremental.py::test_two_owner_updates_retain_open_callback_reason
+FAILED tests/test_owner_incremental.py::test_new_callee_requires_another_actual_analysis_pass
+FAILED tests/test_owner_incremental.py::test_partial_dictionary_evidence_does_not_claim_complete
+3 failed, 652 passed, 27 skipped in 36.79s

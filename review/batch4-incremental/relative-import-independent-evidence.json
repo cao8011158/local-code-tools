@@ -1,0 +1,78 @@
+{
+  "batch": "Batch4",
+  "slice": "B4-REL-01",
+  "review_round": 1,
+  "max_review_rounds": 3,
+  "verdict": "PASS_LIMITED_SLICE",
+  "base": "7b08cf6340a120d8773992847915327e61f0d3d2",
+  "reviewed_commit": "4e3637905078984294b16c97bb30bac185c5a249",
+  "tree": "8ce3c30399457b51c601b57880a313d20f0f0278",
+  "branch": "feat/incremental-index-updates",
+  "reviewer": "root; independent of production implementation",
+  "source_audit": {
+    "verified_files": 564,
+    "missing_irrelevant_historical_review_artifacts": 262,
+    "mismatches": [],
+    "production_and_tests_complete": true,
+    "after_tests_unchanged": true
+  },
+  "tests": {
+    "command": "PYTHONPATH=. python -m pytest -q -rs tests review/batch4-incremental/test_relative_import_independent.py review/batch4-incremental/test_common_certificate_independent.py review/batch4-incremental/test_observed_semantic_reads.py review/batch4-incremental/test_scope_reads_independent.py review/batch4-incremental/test_analysis_reads_independent.py review/batch4-incremental/test_dictionary_flow_independent.py review/batch4-incremental/test_dictionary_local_independent.py review/batch4-incremental/test_value_index_independent.py review/batch4-incremental/test_import_receiver_independent.py review/batch4-incremental/test_changed_python_independent.py review/batch4-incremental/test_mixed_dictionary_independent.py review/batch4-incremental/test_value_projection_independent.py review/batch4-incremental/test_value_projection_binding_independent.py --tb=short",
+    "passed": 689,
+    "skipped": 32,
+    "failed": 0,
+    "seconds": 47.9,
+    "exit_code": 0,
+    "new_independent_cases": 12,
+    "included_in_total": true,
+    "service_skips": 31,
+    "optional_existing_cache_skip": 1
+  },
+  "baseline": {
+    "independent_passed": 6,
+    "independent_failed": 5,
+    "seconds": 1.38
+  },
+  "developer": {
+    "original_fast_passed": 615,
+    "original_fast_skipped": 27,
+    "restored_tracked_test_file": "tests/test_dictionary_import_receiver.py",
+    "restored_fast_passed": 618,
+    "restored_fast_skipped": 27,
+    "restored_fast_seconds": 34.29
+  },
+  "behavior": {
+    "relative_alias_and_parent_imports": true,
+    "new_provider_selected": true,
+    "same_name_other_package_isolated": true,
+    "unrelated_modules": [
+      0,
+      20
+    ],
+    "changed_provider_actual_parsed_files": 3,
+    "changed_import_actual_parsed_files": 4,
+    "real_errors_with_synthetic_relative_consumer_parsed_files": 2,
+    "all_semantic_tables_equal_to_full": true,
+    "failed_publish_old_view_preserved": true,
+    "unchanged_capture_parses": 0
+  },
+  "locality": {
+    "query": "FileDependencies.importers(repository, fully-qualified-module)",
+    "plan": "actual EXPLAIN QUERY PLAN: indexed SEARCH, no SCAN",
+    "sql_per_probe": 1,
+    "rows_per_probe": 1,
+    "unrelated_relative_import_pairs": [
+      0,
+      20
+    ],
+    "cold_and_repeated_vm_counts_separately_unchanged": true,
+    "artifact_integrity_validation_excluded_from_single_lookup_measurement": true
+  },
+  "limitations": [
+    "Nine-file real source-only capture still uncertified; six complex modules not admitted",
+    "No arbitrary relative imports, star, from-dot-import-name, missing/excluded targets or relative dictionary value-flow admission",
+    "Closed v6 grammar remains mandatory; no general complete read witness",
+    "No new paid API, full business graph, Neo4j/MCP service or Drive test",
+    "Batch4 end-to-end incomplete; no merge"
+  ]
+}

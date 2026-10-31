@@ -1,0 +1,14 @@
+{
+  "code_sha": "ea0d0563d19d50d1ee08efd889e583a614f072c1",
+  "round": 1,
+  "verdict": "pass-bounded-observed-read-slice",
+  "whole_batch_complete": false,
+  "merge": false,
+  "production_changed_by_reviewer": false,
+  "log_sha256": {
+    "observed-read-independent-targeted.log": "d06c1b808aad0ec08cf94f1423b451fc4eb8cb133412d6e90bf56a6bd8490851",
+    "observed-read-independent-targeted-final.log": "c20f9320321de08647fa95baacd23835dbeca4ac5285a829a8114a638266ea32",
+    "observed-read-independent-suite.log": "6a523c33e383450c095d22829e4688f9574b533223692d0aa00057448396e2fb",
+    "observed-read-independent-suite-final.log": "8ed6602c1d53ccc999ad1e79afa75582ba41382a15b8e6cb074ed2b9b6705f6c"
+  }
+}

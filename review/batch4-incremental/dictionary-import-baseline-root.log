@@ -1,0 +1,66 @@
+FFF..                                                                    [100%]
+=================================== FAILURES ===================================
+___ test_imported_mutated_dictionary_has_real_receiver_and_target[registry] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2/test_imported_mutated_dictiona0')
+alias = 'registry'
+
+    @pytest.mark.parametrize('alias', ['registry', 'renamed'])
+    def test_imported_mutated_dictionary_has_real_receiver_and_target(tmp_path, alias):
+        a = 'def first(): pass\ndef second(): pass\nregistry={"go":first}\nregistry["go"]=second\n'
+        imported = 'registry' if alias == 'registry' else 'registry as renamed'
+        result = analyze(tmp_path, {'a.py': a, 'b.py': f'from a import {imported}\ndef run(): {alias}["go"]()\n'})
+        found = site(result, f"{alias}['go']", 'run')
+>       assert found['names'] == {'second'}, found
+E       AssertionError: {'site_id': '52ad473369cc660c74b3427841d9e3dd488e201ce83875a95bf0eda9d37100dd', 'lexical_owner': 'fixture:b.py:function:run#1.1', 'execution_owner': 'fixture:b.py:function:run#1.1', 'phase': 'body', ...}
+E       assert set() == {'second'}
+E         
+E         Extra items in the right set:
+E         'second'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_import_receiver_independent.py:13: AssertionError
+____ test_imported_mutated_dictionary_has_real_receiver_and_target[renamed] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2/test_imported_mutated_dictiona1')
+alias = 'renamed'
+
+    @pytest.mark.parametrize('alias', ['registry', 'renamed'])
+    def test_imported_mutated_dictionary_has_real_receiver_and_target(tmp_path, alias):
+        a = 'def first(): pass\ndef second(): pass\nregistry={"go":first}\nregistry["go"]=second\n'
+        imported = 'registry' if alias == 'registry' else 'registry as renamed'
+        result = analyze(tmp_path, {'a.py': a, 'b.py': f'from a import {imported}\ndef run(): {alias}["go"]()\n'})
+        found = site(result, f"{alias}['go']", 'run')
+>       assert found['names'] == {'second'}, found
+E       AssertionError: {'site_id': '233af8c3d34c7374d7c9b7d7b7ea28dad50b8add59bec916324cf895a0f979ab', 'lexical_owner': 'fixture:b.py:function:run#1.1', 'execution_owner': 'fixture:b.py:function:run#1.1', 'phase': 'body', ...}
+E       assert set() == {'second'}
+E         
+E         Extra items in the right set:
+E         'second'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_import_receiver_independent.py:13: AssertionError
+__________ test_unicode_receiver_and_separate_dictionary_do_not_merge __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2/test_unicode_receiver_and_sepa0')
+
+    def test_unicode_receiver_and_separate_dictionary_do_not_merge(tmp_path):
+        a = ('def first(): pass\ndef second(): pass\n'
+             '名字={"go":first}; 名字["go"]=second\n'
+             'other={"go":first}\n')
+        result = analyze(tmp_path, {'a.py': a, 'b.py':
+            'from a import 名字 as registry, other\n'
+            'def run():\n    registry["go"]()\n    other["go"]()\n'})
+>       assert site(result, "registry['go']", 'run')['names'] == {'second'}
+E       AssertionError: assert set() == {'second'}
+E         
+E         Extra items in the right set:
+E         'second'
+E         Use -v to get more diff
+
+review/batch4-incremental/test_import_receiver_independent.py:25: AssertionError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_import_receiver_independent.py::test_imported_mutated_dictionary_has_real_receiver_and_target[registry]
+FAILED review/batch4-incremental/test_import_receiver_independent.py::test_imported_mutated_dictionary_has_real_receiver_and_target[renamed]
+FAILED review/batch4-incremental/test_import_receiver_independent.py::test_unicode_receiver_and_separate_dictionary_do_not_merge
+3 failed, 2 passed in 0.41s

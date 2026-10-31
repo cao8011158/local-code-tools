@@ -1,0 +1,4 @@
+{"noise": 0, "parsed_update": ["src/a.py", "src/b.py"], "queries": [{"plans": ["SEARCH value_reads USING INDEX sqlite_autoindex_value_reads_1 (entry=?)"], "queries": 1, "rows": 1, "vm": 18}, {"plans": ["SEARCH value_reads USING INDEX sqlite_autoindex_value_reads_1 (entry=?)"], "queries": 1, "rows": 1, "vm": 15}]}
+.{"noise": 20, "parsed_update": ["src/a.py", "src/b.py"], "queries": [{"plans": ["SEARCH value_reads USING INDEX sqlite_autoindex_value_reads_1 (entry=?)"], "queries": 1, "rows": 1, "vm": 18}, {"plans": ["SEARCH value_reads USING INDEX sqlite_autoindex_value_reads_1 (entry=?)"], "queries": 1, "rows": 1, "vm": 15}]}
+.
+2 passed in 0.87s

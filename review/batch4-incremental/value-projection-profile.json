@@ -1,0 +1,1164 @@
+[
+  {
+    "queries": [
+      [
+        {
+          "bytes": 134,
+          "db_hits": 9,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "CacheProperties@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            }
+          ],
+          "rows": 1,
+          "temperature": "cold"
+        },
+        {
+          "bytes": 134,
+          "db_hits": 9,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "CacheProperties@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            }
+          ],
+          "rows": 1,
+          "temperature": "repeat"
+        }
+      ],
+      [
+        {
+          "bytes": 1582,
+          "db_hits": 54,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 8,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Top@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 3,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 9,
+              "operator": "Filter@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 8,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 4
+            }
+          ],
+          "rows": 4,
+          "temperature": "cold"
+        },
+        {
+          "bytes": 1582,
+          "db_hits": 54,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 8,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Top@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 3,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 9,
+              "operator": "Filter@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 8,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 4
+            }
+          ],
+          "rows": 4,
+          "temperature": "repeat"
+        }
+      ]
+    ],
+    "unrelated": 0
+  },
+  {
+    "queries": [
+      [
+        {
+          "bytes": 134,
+          "db_hits": 9,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "CacheProperties@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            }
+          ],
+          "rows": 1,
+          "temperature": "cold"
+        },
+        {
+          "bytes": 134,
+          "db_hits": 9,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "CacheProperties@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            }
+          ],
+          "rows": 1,
+          "temperature": "repeat"
+        }
+      ],
+      [
+        {
+          "bytes": 1582,
+          "db_hits": 54,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 8,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Top@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 3,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 9,
+              "operator": "Filter@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 8,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 4
+            }
+          ],
+          "rows": 4,
+          "temperature": "cold"
+        },
+        {
+          "bytes": 1582,
+          "db_hits": 54,
+          "operators": [
+            {
+              "db_hits": 0,
+              "operator": "ProduceResults@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 8,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Top@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 4,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Distinct@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 4
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Union@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 3,
+              "operator": "Projection@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 9,
+              "operator": "Filter@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 3
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "Projection@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 3,
+              "operator": "Filter@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 5,
+              "operator": "Expand(All)@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 2,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Projection@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Filter@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Expand(All)@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Apply@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 0,
+              "operator": "Unwind@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 0,
+              "operator": "Argument@neo4j",
+              "rows": 1
+            },
+            {
+              "db_hits": 1,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 0
+            },
+            {
+              "db_hits": 8,
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 4
+            }
+          ],
+          "rows": 4,
+          "temperature": "repeat"
+        }
+      ]
+    ],
+    "unrelated": 1000
+  }
+]

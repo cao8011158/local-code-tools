@@ -1,0 +1,103 @@
+........................................................................ [  8%]
+.......................................s................................ [ 16%]
+...............................s................................ss...... [ 25%]
+....sss.......s.....s...sss.s.sssssssssss...sss......................... [ 33%]
+........................................................................ [ 42%]
+........................................................................ [ 50%]
+........................................................................ [ 59%]
+........................................................................ [ 67%]
+........................................................................ [ 76%]
+..........................FFF........................................... [ 84%]
+......................................................F......FF....FFFFF [ 93%]
+.................................................ss...sss                [100%]
+=================================== FAILURES ===================================
+______________ test_actual_sources_no_change_and_failed_candidate ______________
+review/batch4-incremental/test_actual_source_controls_independent.py:37: in test_actual_sources_no_change_and_failed_candidate
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'certified-si...hon-component' == 'full-graph'
+E     
+E     - full-graph
+E     + certified-simple-python-component
+___________ test_real_byte_subset_falls_back_and_matches_full_oracle ___________
+review/batch4-incremental/test_actual_source_current_diagnostic.py:77: in test_real_byte_subset_falls_back_and_matches_full_oracle
+    assert baseline["simple_python_certificate"] is None
+E   AssertionError: assert 'simple-python-v6' is None
+___________ test_real_byte_subset_falls_back_and_matches_full_oracle ___________
+review/batch4-incremental/test_actual_source_subset_diagnostic.py:70: in test_real_byte_subset_falls_back_and_matches_full_oracle
+    assert baseline["simple_python_certificate"] is None
+E   AssertionError: assert 'simple-python-v6' is None
+________________________ test_profile_lookup_adjacency _________________________
+review/batch4-incremental/test_lookup_neo4j_independent.py:15: in test_profile_lookup_adjacency
+    with Neo4jGraph(os.environ['LCT_TEST_NEO4J_URI'],os.environ['LCT_TEST_NEO4J_USER'],os.environ['LCT_TEST_NEO4J_PASSWORD'],os.environ['LCT_TEST_NEO4J_DATABASE']) as graph:
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen os>:714: in __getitem__
+    ???
+E   KeyError: 'LCT_TEST_NEO4J_URI'
+_______ test_aliased_namespace_lookup_is_indexed_before_target_exists[0] _______
+review/batch4-incremental/test_module_lookup_keys_independent.py:51: in test_aliased_namespace_lookup_is_indexed_before_target_exists
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'general-passive-component' == 'full-graph'
+E     
+E     - full-graph
+E     + general-passive-component
+----------------------------- Captured stdout call -----------------------------
+{'unrelated_imports': 0, 'queries': 5, 'plans': [[(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_requester (source_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(3, 0, 46, 'SEARCH child USING COVERING INDEX import_lookup_requester (source_repository=? AND module>? AND module<?)'), (10, 0, 0, 'CORRELATED SCALAR SUBQUERY 1'), (14, 10, 54, 'SEARCH base USING COVERING INDEX import_lookup_requester (source_repository=? AND module=? AND source_path=?)')]]}
+______ test_aliased_namespace_lookup_is_indexed_before_target_exists[25] _______
+review/batch4-incremental/test_module_lookup_keys_independent.py:51: in test_aliased_namespace_lookup_is_indexed_before_target_exists
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'general-passive-component' == 'full-graph'
+E     
+E     - full-graph
+E     + general-passive-component
+----------------------------- Captured stdout call -----------------------------
+{'unrelated_imports': 25, 'queries': 5, 'plans': [[(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_requester (source_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(2, 0, 55, 'SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)')], [(3, 0, 46, 'SEARCH child USING COVERING INDEX import_lookup_requester (source_repository=? AND module>? AND module<?)'), (10, 0, 0, 'CORRELATED SCALAR SUBQUERY 1'), (14, 10, 54, 'SEARCH base USING COVERING INDEX import_lookup_requester (source_repository=? AND module=? AND source_path=?)')]]}
+________ test_callback_retargets_without_solving_unrelated_functions[0] ________
+review/batch4-incremental/test_owner_update_independent.py:103: in test_callback_retargets_without_solving_unrelated_functions
+    assert scope["mode"] == "incremental-owners", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'no-verified-passive-reuse', 'python_files_parsed': 2, 'python_ast_context_files': 2, ...}
+E   assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+_______ test_callback_retargets_without_solving_unrelated_functions[20] ________
+review/batch4-incremental/test_owner_update_independent.py:103: in test_callback_retargets_without_solving_unrelated_functions
+    assert scope["mode"] == "incremental-owners", scope
+E   AssertionError: {'mode': 'full-graph', 'reason': 'no-verified-passive-reuse', 'python_files_parsed': 22, 'python_ast_context_files': 22, ...}
+E   assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+_________________ test_multiple_callers_retain_other_producer __________________
+review/batch4-incremental/test_owner_update_independent.py:119: in test_multiple_callers_retain_other_producer
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+E   AssertionError: assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+_________ test_function_value_through_unchanged_forwarders[dictionary] _________
+review/batch4-incremental/test_owner_update_independent.py:137: in test_function_value_through_unchanged_forwarders
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+E   AssertionError: assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+__________ test_function_value_through_unchanged_forwarders[returned] __________
+review/batch4-incremental/test_owner_update_independent.py:137: in test_function_value_through_unchanged_forwarders
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+E   AssertionError: assert 'full-graph' == 'incremental-owners'
+E     
+E     - incremental-owners
+E     + full-graph
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_actual_source_controls_independent.py::test_actual_sources_no_change_and_failed_candidate
+FAILED review/batch4-incremental/test_actual_source_current_diagnostic.py::test_real_byte_subset_falls_back_and_matches_full_oracle
+FAILED review/batch4-incremental/test_actual_source_subset_diagnostic.py::test_real_byte_subset_falls_back_and_matches_full_oracle
+FAILED review/batch4-incremental/test_lookup_neo4j_independent.py::test_profile_lookup_adjacency
+FAILED review/batch4-incremental/test_module_lookup_keys_independent.py::test_aliased_namespace_lookup_is_indexed_before_target_exists[0]
+FAILED review/batch4-incremental/test_module_lookup_keys_independent.py::test_aliased_namespace_lookup_is_indexed_before_target_exists[25]
+FAILED review/batch4-incremental/test_owner_update_independent.py::test_callback_retargets_without_solving_unrelated_functions[0]
+FAILED review/batch4-incremental/test_owner_update_independent.py::test_callback_retargets_without_solving_unrelated_functions[20]
+FAILED review/batch4-incremental/test_owner_update_independent.py::test_multiple_callers_retain_other_producer
+FAILED review/batch4-incremental/test_owner_update_independent.py::test_function_value_through_unchanged_forwarders[dictionary]
+FAILED review/batch4-incremental/test_owner_update_independent.py::test_function_value_through_unchanged_forwarders[returned]
+11 failed, 806 passed, 32 skipped in 71.53s (0:01:11)

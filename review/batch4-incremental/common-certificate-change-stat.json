@@ -1,0 +1,32 @@
+[
+  {
+    "path": "lct/simple_python.py",
+    "added": 248,
+    "removed": 17
+  },
+  {
+    "path": "lct/python_analysis.py",
+    "added": 45,
+    "removed": 6
+  },
+  {
+    "path": "lct/graph.py",
+    "added": 6,
+    "removed": 1
+  },
+  {
+    "path": "lct/storage.py",
+    "added": 4,
+    "removed": 4
+  },
+  {
+    "path": "docs/INCREMENTAL_UPDATE.md",
+    "added": 19,
+    "removed": 13
+  },
+  {
+    "path": "tests/test_common_python_certificate.py",
+    "added": 204,
+    "removed": 0
+  }
+]

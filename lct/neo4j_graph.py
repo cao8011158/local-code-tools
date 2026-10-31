@@ -14,9 +14,15 @@ from uuid import uuid4
 from contextlib import closing
 
 from .common import ToolError, canonical, config, digest
-from .storage import manifest, validate_folder, graph_detail, source_files
+from .storage import FileDependencies, GRAPH_SITES, manifest, validate_folder, graph_detail, source_files
 
 PROJECTION_SCHEMA = 'native-boundary-v2'
+VALUE_PROJECTION_SCHEMA = 'native-value-v3'
+VALUE_KINDS = frozenset({'container', 'entry', 'binding', 'write', 'read'})
+VALUE_REL_TYPES = frozenset({'ADDRESSES', 'BINDS', 'WRITES', 'VALUE', 'REACHES',
+                             'READS', 'USES_BINDING', 'POSSIBLE_CALLS'})
+VALUE_LABELS = {'container': 'Container', 'entry': 'Entry', 'binding': 'Binding',
+                'write': 'Write', 'read': 'Read'}
 MAX_QUERY_IDS = 500
 MAX_IMPORT_NODES = 50_000
 MAX_IMPORT_EDGES = 500_000
@@ -35,7 +41,7 @@ NODE_LABELS = {
     "function": "Function", "documentsection": "DocumentSection",
 }
 REL_TYPES = frozenset({"CONTAINS", "IMPORTS", "CALLS", "INHERITS", "REFERENCES",
-                       "WRAPS", "CONTEXT_ENTERS"})
+                       "WRAPS", "CONTEXT_ENTERS", "LOOKUP_IN"})
 
 
 def load_snapshot(c, version):
@@ -59,10 +65,28 @@ def load_snapshot(c, version):
     source = {"repositories": m["repositories"],
               "source_fingerprint": m["source_fingerprint"],
               "files": source_files(folder, m)}
-    payload = _snapshot_payload(nodes, edges, graph, source)
+    value = None
+    if (m.get('value_flow_schema') == 1 and
+            m.get('value_flow_coverage') == 'certified-dictionary-v1'):
+        with FileDependencies(folder, m):
+            pass  # Validate sidecar schema, indexes, counts, and immutable artifact.
+        with closing(sqlite3.connect((folder / GRAPH_SITES).resolve().as_uri() + '?mode=ro&immutable=1',
+                                     uri=True)) as db:
+            value = dict(
+                nodes=[json.loads(raw) for (raw,) in db.execute('select data from value_nodes order by id')],
+                edges=[dict(source=s, target=t, kind=k) for s, t, k in db.execute(
+                    'select source,target,kind from value_edges order by source,target,kind')],
+                reads=[dict(entry=e, read=r, consumer_repository=cr, consumer_path=cp)
+                       for e, r, cr, cp in db.execute(
+                           'select entry,read,consumer_repository,consumer_path from value_reads order by entry,read')])
+        _validate_value(value, nodes, m)
+    schema = VALUE_PROJECTION_SCHEMA if value is not None else PROJECTION_SCHEMA
+    payload = _snapshot_payload(nodes, edges, graph, source, value)
     fingerprint = digest(payload)
     return dict(version=version, nodes=nodes, edges=edges, graph=graph, source=source,
-                fingerprint=fingerprint)
+                fingerprint=fingerprint, projection_schema=schema,
+                value_projection='complete' if value is not None else 'unprojected-partial',
+                **({'value_flow': value} if value is not None else {}))
 
 
 def _import_counts(nodes, edges):
@@ -70,11 +94,67 @@ def _import_counts(nodes, edges):
         raise ToolError("Graph import limit exceeded (50000 nodes, 500000 edges)")
 
 
-def _snapshot_payload(nodes, edges, graph, source):
-    payload = canonical(dict(nodes=nodes, edges=edges, graph=graph, source=source))
+def _snapshot_payload(nodes, edges, graph, source, value_flow=None):
+    record = dict(nodes=nodes, edges=edges, graph=graph, source=source)
+    if value_flow is not None:
+        record.update(projection_schema=VALUE_PROJECTION_SCHEMA, value_flow=value_flow)
+    payload = canonical(record)
     if len(payload.encode("utf-8")) > MAX_SNAPSHOT_BYTES:
         raise ToolError("Graph import canonical snapshot exceeds 128 MiB")
     return payload
+
+
+def _value_edge_id(edge):
+    return digest(canonical([edge['source'], edge['kind'], edge['target']]))
+
+
+def _validate_value(value, code_nodes, manifest_record=None):
+    """Validate exact certified sidecar membership before projecting any value record."""
+    records, edges, reads = value['nodes'], value['edges'], value['reads']
+    if len(records) + len(edges) + len(reads) > 20000:
+        raise ToolError('Value projection record budget exceeded')
+    byid = {n.get('id'): n for n in records}
+    code = {n['node_id']: n for n in code_nodes}
+    if (len(byid) != len(records) or any(n.get('kind') not in VALUE_KINDS or
+            not isinstance(n.get('id'), str) or not n['id'].startswith('value:') or
+            n.get('module') not in code or code[n['module']]['kind'] != 'module'
+            for n in records)):
+        raise ToolError('Invalid value node identity or owner')
+    if manifest_record and (len(records) != manifest_record['value_flow_node_count'] or
+                            len(edges) != manifest_record['value_flow_edge_count']):
+        raise ToolError('Value projection counts mismatch')
+    identities = set()
+    for e in edges:
+        identity = e.get('source'), e.get('kind'), e.get('target')
+        if (identity in identities or e.get('kind') not in VALUE_REL_TYPES or
+                e.get('source') not in byid or
+                (e.get('target') not in byid and
+                 (e.get('target') not in code or code[e['target']]['kind'] != 'function'))):
+            raise ToolError('Invalid value support endpoint')
+        identities.add(identity)
+    if any((r.get('entry') not in byid or byid[r['entry']]['kind'] != 'entry' or
+            r.get('read') not in byid or byid[r['read']]['kind'] != 'read' or
+            (r['read'], 'READS', r['entry']) not in identities or
+            code[byid[r['read']]['module']].get('repository') != r.get('consumer_repository') or
+            code[byid[r['read']]['module']].get('path') != r.get('consumer_path'))
+           for r in reads):
+        raise ToolError('Invalid value read subscription')
+    subscriptions = {(r['read'], 'READS', r['entry']) for r in reads}
+    if (len(subscriptions) != len(reads) or
+            subscriptions != {i for i in identities if i[1] == 'READS'}):
+        raise ToolError('Incomplete value read subscriptions')
+
+
+def _value_edge_rows(value):
+    subscriptions = {(r['read'], r['entry']): r for r in value['reads']}
+    for edge in value['edges']:
+        record = dict(edge)
+        if edge['kind'] == 'READS':
+            read = subscriptions[edge['source'], edge['target']]
+            record.update(consumer_repository=read['consumer_repository'],
+                          consumer_path=read['consumer_path'])
+        yield dict(edge_id=_value_edge_id(edge), kind=edge['kind'],
+                   source=edge['source'], target=edge['target'], raw=canonical(record))
 
 
 def _batches(rows):
@@ -176,14 +256,18 @@ def _write(session, scope, owner, query, rows=None, state="writing"):
 
 def _cleanup(session, scope, owner):
     for pattern, variable in (
+        ('(a:LCTValue {namespace:$namespace, version:$version})-[r '
+         '{namespace:$namespace, version:$version}]->()', 'r'),
         ('(a:LCTNode {namespace:$namespace, version:$version})-[r '
          '{namespace:$namespace, version:$version}]->()', 'r'),
         ('(a:LCTBoundary {namespace:$namespace, version:$version})-[r '
          '{namespace:$namespace, version:$version}]->()', 'r'),
         ('(c:LCTChunk {namespace:$namespace, version:$version})', 'c'),
         ('(e:LCTEdge {namespace:$namespace, version:$version})', 'e'),
+        ('(e:LCTValueEdge {namespace:$namespace, version:$version})', 'e'),
         ('(b:LCTBoundary {namespace:$namespace, version:$version})', 'b'),
         ('(n:LCTNode {namespace:$namespace, version:$version})', 'n'),
+        ('(n:LCTValue {namespace:$namespace, version:$version})', 'n'),
     ):
         while True:
             with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
@@ -205,7 +289,7 @@ def _compare(tx, scope, query, expected):
         raise ToolError('Neo4j import verification extra record')
 
 
-def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
+def _verify(session, scope, owner, nodes, edges, node_ids, metadata, value=None):
     # This transaction retains the marker lock for a consistent verification view.
     # It changes only the small marker and does not hold the write batches open.
     with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
@@ -215,10 +299,17 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
                  'RETURN s.node_count AS nodes, s.edge_count AS edges, '
                  's.native_count AS native, s.boundary_count AS boundary_count, '
                  's.projection_schema AS projection_schema, s.chunk_count AS chunks, '
+                 's.value_node_count AS value_nodes, s.value_edge_count AS value_edges, '
+                 's.value_read_count AS value_reads, s.value_projection AS value_projection, '
                  's.graph_sha256 AS graph_sha, s.source_sha256 AS source_sha',
-                 iter(((len(nodes), len(edges), len(edges), len(_boundaries(edges, node_ids)),
-                        PROJECTION_SCHEMA,
+                 iter(((len(nodes), len(edges), len(edges) + len(value['edges'] if value else ()),
+                        len(_boundaries(edges, node_ids)),
+                        VALUE_PROJECTION_SCHEMA if value is not None else PROJECTION_SCHEMA,
                         sum(len(list(_chunks(v))) for v in metadata.values()),
+                        len(value['nodes']) if value else 0,
+                        len(value['edges']) if value else 0,
+                        len(value['reads']) if value else 0,
+                        'complete' if value is not None else 'unprojected-partial',
                         sha256(metadata['graph'].encode('utf-8')).hexdigest(),
                         sha256(metadata['source'].encode('utf-8')).hexdigest()),)))
         _compare(tx, scope,
@@ -249,11 +340,18 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
         _compare(tx, scope,
                  'MATCH (b:LCTBoundary {namespace:$namespace, version:$version}) '
                  'RETURN b.boundary_id AS id, b.endpoint_id AS endpoint, '
-                 'b.category AS category ORDER BY id',
-                 ((b['boundary_id'], b['endpoint_id'], b['category']) for b in
+                 'b.category AS category, b.lookup_repository AS lookup_repository, '
+                 'b.lookup_module AS lookup_module, b.lookup_name AS lookup_name, '
+                 'b.lookup_status AS lookup_status, b.lookup_reason AS lookup_reason ORDER BY id',
+                 ((b['boundary_id'], b['endpoint_id'], b['category'],
+                   b.get('lookup_repository'), b.get('lookup_module'),
+                   b.get('lookup_name'), b.get('lookup_status'),
+                   b.get('lookup_reason')) for b in
                   sorted(boundary.values(), key=lambda b: b['boundary_id'])))
         _compare(tx, scope,
                  'MATCH (a)-[r {namespace:$namespace, version:$version}]->(b) '
+                 'WHERE (a:LCTNode OR a:LCTBoundary) AND '
+                 'a.namespace=$namespace AND a.version=$version '
                  'RETURN r.edge_id AS id, type(r) AS kind, '
                  'coalesce(a.node_id,a.endpoint_id) AS source, '
                  'coalesce(b.node_id,b.endpoint_id) AS target, '
@@ -269,12 +367,56 @@ def _verify(session, scope, owner, nodes, edges, node_ids, metadata):
                    _boundary_id(e, 'source', node_ids), _boundary_id(e, 'target', node_ids),
                    scope['namespace'], scope['version'], scope['namespace'], scope['version'])
                   for e in sorted(edges, key=lambda e: e['edge_id'])))
+        if value is not None:
+            _compare(tx, scope,
+                     'MATCH (n:LCTValue {namespace:$namespace, version:$version}) '
+                     'RETURN n.value_id AS id, n.kind AS kind, n.module AS module, '
+                     'n.raw_json AS raw, '
+                     'CASE n.kind WHEN "container" THEN n:Container '
+                     'WHEN "entry" THEN n:Entry WHEN "binding" THEN n:Binding '
+                     'WHEN "write" THEN n:Write WHEN "read" THEN n:Read '
+                     'ELSE false END AS typed ORDER BY id',
+                     ((n['id'], n['kind'], n['module'], canonical(n), True)
+                      for n in sorted(value['nodes'], key=lambda n: n['id'])))
+            _compare(tx, scope,
+                     'MATCH (e:LCTValueEdge {namespace:$namespace, version:$version}) '
+                     'RETURN e.value_edge_id AS id, e.kind AS kind, e.source AS source, '
+                     'e.target AS target, e.raw_json AS raw ORDER BY id',
+                     ((r['edge_id'], r['kind'], r['source'], r['target'], r['raw'])
+                      for r in sorted(_value_edge_rows(value), key=lambda r: r['edge_id'])))
+            _compare(tx, scope,
+                     'MATCH (a:LCTValue {namespace:$namespace, version:$version})'
+                     '-[r {namespace:$namespace, version:$version}]->(b) '
+                     'RETURN r.value_edge_id AS id, type(r) AS kind, '
+                     'a.value_id AS source, coalesce(b.value_id,b.node_id) AS target, '
+                     'b.namespace AS target_namespace, b.version AS target_version, '
+                     '(b:LCTValue OR (b:LCTNode AND b.kind="function")) AS typed_target '
+                     'ORDER BY id',
+                     ((r['edge_id'], r['kind'], r['source'], r['target'],
+                       scope['namespace'], scope['version'], True)
+                      for r in sorted(_value_edge_rows(value), key=lambda r: r['edge_id'])))
+        else:
+            _compare(tx, scope,
+                     'MATCH (n:LCTValue {namespace:$namespace, version:$version}) '
+                     'RETURN n.value_id AS id', iter(()))
+            _compare(tx, scope,
+                     'MATCH (e:LCTValueEdge {namespace:$namespace, version:$version}) '
+                     'RETURN e.value_edge_id AS id', iter(()))
         _compare(tx, scope,
                  'MATCH (a)-[r]->(b) WHERE '
-                 '(a:LCTNode OR a:LCTBoundary) AND a.namespace=$namespace AND a.version=$version AND '
+                 '(a:LCTNode OR a:LCTBoundary OR a:LCTValue) AND '
+                 'a.namespace=$namespace AND a.version=$version AND '
                  '(r.namespace IS NULL OR r.version IS NULL OR '
                  'r.namespace <> $namespace OR r.version <> $version) '
                  'RETURN r.edge_id AS id', iter(()))
+        _compare(tx, scope,
+                 'MATCH (a:LCTValue {namespace:$namespace, version:$version})-[r]->(b) '
+                 'WHERE b.namespace <> $namespace OR b.version <> $version OR '
+                 'b.namespace IS NULL OR b.version IS NULL OR '
+                 'r.value_edge_id IS NULL OR NOT type(r) IN '
+                 "['ADDRESSES','BINDS','WRITES','VALUE','REACHES','READS',"
+                 "'USES_BINDING','POSSIBLE_CALLS'] "
+                 'RETURN r.value_edge_id AS id', iter(()))
         _compare(tx, scope,
                  'MATCH (a)-[r]->(b {namespace:$namespace, version:$version}) '
                  'WHERE r.namespace=$namespace AND r.version=$version AND '
@@ -307,13 +449,24 @@ def _boundaries(edges, node_ids):
             key = _boundary_id(edge, side, node_ids)
             if key is not None:
                 endpoint = edge.get(side)
-                by_id[key] = dict(boundary_id=key, endpoint_id=endpoint,
-                                  category='external' if isinstance(endpoint, str) and endpoint
-                                  else 'unresolved')
+                lookup = edge.get('lookup') if isinstance(endpoint, str) and endpoint.startswith(
+                    'boundary:unresolved-import:') else None
+                record = dict(boundary_id=key, endpoint_id=endpoint,
+                              category='unresolved' if lookup or not endpoint else 'external',
+                              lookup_repository=lookup.get('repository') if lookup else None,
+                              lookup_module=lookup.get('module') if lookup else None,
+                              lookup_name=lookup.get('name') if lookup else None,
+                              lookup_status=edge.get('lookup_status') if lookup else None,
+                              lookup_reason='named-import-unresolved' if lookup else None)
+                if key in by_id and by_id[key] != record:
+                    raise ToolError('Inconsistent boundary lookup identity')
+                by_id[key] = record
     return by_id
 
 
-def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids):
+def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, node_ids,
+                   value=None):
+    projection_schema = VALUE_PROJECTION_SCHEMA if value is not None else PROJECTION_SCHEMA
     owner = uuid4().hex
     with graph_db.driver.session(database=graph_db.database, fetch_size=64) as session:
         graph_db._schema(session)
@@ -329,9 +482,9 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                     'SET s.lock_nonce=$nonce '
                     'RETURN s.fingerprint AS fingerprint, s.complete AS complete, '
                     's.owner AS owner, s.lease_until AS lease, s.projection_schema AS projection_schema',
-                    **scope, fingerprint=fingerprint, projection_schema=PROJECTION_SCHEMA, owner=owner, nonce=uuid4().hex,
+                    **scope, fingerprint=fingerprint, projection_schema=projection_schema, owner=owner, nonce=uuid4().hex,
                     lease=now + LEASE_SECONDS).single(strict=True)
-                if row['projection_schema'] != PROJECTION_SCHEMA:
+                if row['projection_schema'] != projection_schema:
                     raise ToolError('Snapshot scope uses a different projection; select a fresh namespace')
                 if row['fingerprint'] != fingerprint:
                     raise ToolError('Snapshot scope already contains different content')
@@ -371,7 +524,10 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                 _write(session, scope, owner,
                        'UNWIND $rows AS row CREATE (b:LCTBoundary '
                        '{namespace:$namespace, version:$version, boundary_id:row.boundary_id, '
-                       'endpoint_id:row.endpoint_id, category:row.category})', batch)
+                       'endpoint_id:row.endpoint_id, category:row.category, '
+                       'lookup_repository:row.lookup_repository, lookup_module:row.lookup_module, '
+                       'lookup_name:row.lookup_name, lookup_status:row.lookup_status, '
+                       'lookup_reason:row.lookup_reason})', batch)
             edge_rows = (dict(edge_id=e['edge_id'], kind=e['kind'], source=e.get('source'),
                               target=e.get('target'), status=e.get('status'),
                               site_id=e.get('site_id'), unknown_origin=e.get('unknown_origin'),
@@ -409,10 +565,38 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                            f'CREATE (a)-[:{kind} {{edge_id:row.edge_id, namespace:$namespace, '
                            'version:$version, source_boundary_id:row.source_boundary, '
                            'target_boundary_id:row.target_boundary}]->(b)', batch)
-            for kind, value in metadata.items():
+            if value is not None:
+                for kind, label in VALUE_LABELS.items():
+                    for batch in _batches(dict(value_id=n['id'], kind=n['kind'],
+                                               module=n['module'], raw=canonical(n))
+                                          for n in value['nodes'] if n['kind'] == kind):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               f'CREATE (n:LCTValue:{label} {{namespace:$namespace, version:$version, '
+                               'value_id:row.value_id, kind:row.kind, module:row.module, '
+                               'raw_json:row.raw})', batch)
+                for batch in _batches(_value_edge_rows(value)):
+                    _write(session, scope, owner,
+                           'UNWIND $rows AS row CREATE (e:LCTValueEdge '
+                           '{namespace:$namespace, version:$version, value_edge_id:row.edge_id, '
+                           'kind:row.kind, source:row.source, target:row.target, raw_json:row.raw})',
+                           batch)
+                for kind in sorted(VALUE_REL_TYPES):
+                    for batch in _batches(dict(edge_id=r['edge_id'], source=r['source'],
+                                               target=r['target']) for r in _value_edge_rows(value)
+                                          if r['kind'] == kind):
+                        _write(session, scope, owner,
+                               'UNWIND $rows AS row '
+                               'MATCH (a:LCTValue {namespace:$namespace, version:$version, value_id:row.source}) '
+                               'OPTIONAL MATCH (bv:LCTValue {namespace:$namespace, version:$version, value_id:row.target}) '
+                               'OPTIONAL MATCH (bn:LCTNode {namespace:$namespace, version:$version, node_id:row.target}) '
+                               'WITH row,a,coalesce(bv,bn) AS b '
+                               f'CREATE (a)-[:{kind} {{value_edge_id:row.edge_id, '
+                               'namespace:$namespace, version:$version}]->(b)', batch)
+            for kind, document in metadata.items():
                 for batch in _batches(dict(kind=kind, ordinal=i, data=part,
                                            sha256=sha256(part.encode('utf-8')).hexdigest())
-                                      for i, part in enumerate(_chunks(value))):
+                                      for i, part in enumerate(_chunks(document))):
                     _write(session, scope, owner,
                            'UNWIND $rows AS row '
                            'CREATE (c:LCTChunk {namespace:$namespace, version:$version, '
@@ -426,9 +610,15 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                        's.graph_sha256=$graph_sha, '
                        's.source_sha256=$source_sha, s.source_fingerprint=$source_fingerprint, '
                        's.source_repository_count=$source_repository_count, '
-                       's.storage_format=$format',
+                       's.storage_format=$format, s.value_node_count=$value_nodes, '
+                       's.value_edge_count=$value_edges, s.value_read_count=$value_reads, '
+                       's.value_projection=$value_projection',
                        **scope, nodes=len(nodes), edges=len(edges),
-                       native=len(edges),
+                       native=len(edges) + (len(value['edges']) if value else 0),
+                       value_nodes=len(value['nodes']) if value else 0,
+                       value_edges=len(value['edges']) if value else 0,
+                       value_reads=len(value['reads']) if value else 0,
+                       value_projection='complete' if value is not None else 'unprojected-partial',
                        boundary_count=len(boundary),
                        chunks=sum(len(list(_chunks(v))) for v in metadata.values()),
                        graph_sha=sha256(metadata['graph'].encode('utf-8')).hexdigest(),
@@ -437,7 +627,7 @@ def _staged_import(graph_db, scope, nodes, edges, graph, source, fingerprint, no
                        source_repository_count=(len(source['repositories']) if
                                                 isinstance(source.get('repositories'), dict) else None),
                        format='chunks-v1').consume()
-            _verify(session, scope, owner, nodes, edges, node_ids, metadata)
+            _verify(session, scope, owner, nodes, edges, node_ids, metadata, value)
             with session.begin_transaction(timeout=IMPORT_TIMEOUT_SECONDS) as tx:
                 _fence(tx, scope, owner, 'validating')
                 tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
@@ -517,6 +707,29 @@ def native_relation_query(direction):
             'size(e.raw_json)>65536 AS raw_too_large ORDER BY id LIMIT $fetch')
 
 
+def value_relation_query(direction):
+    """Known value/function identity to native support adjacency; never scan all edges."""
+    if direction not in ('in', 'out', 'both'):
+        raise ToolError('direction must be in, out or both')
+    branches = []
+    for side in (('out', 'in') if direction == 'both' else (direction,)):
+        for label, identity in (('LCTValue', 'value_id'), ('LCTNode', 'node_id')):
+            anchor = f'({"a" if side == "out" else "b"}:{label} ' \
+                     f'{{namespace:$namespace, version:$version, {identity}:wanted}})'
+            pattern = anchor + '-[r]->(b)' if side == 'out' else '(a)-[r]->' + anchor
+            branches.append('UNWIND $ids AS wanted MATCH ' + pattern +
+                            ' WHERE r.namespace=$namespace AND r.version=$version '
+                            'AND type(r) IN $allowed RETURN r.value_edge_id AS value_edge_id')
+    return ('CALL () { ' + ' UNION '.join(branches) + ' } WITH DISTINCT value_edge_id '
+            'MATCH (e:LCTValueEdge {namespace:$namespace, version:$version, '
+            'value_edge_id:value_edge_id}) '
+            'WHERE ($types IS NULL OR e.kind IN $types) AND '
+            '($cursor IS NULL OR e.value_edge_id > $cursor) '
+            'RETURN e.value_edge_id AS id, '
+            'CASE WHEN size(e.raw_json)>65536 THEN null ELSE e.raw_json END AS raw, '
+            'size(e.raw_json)>65536 AS raw_too_large ORDER BY id LIMIT $fetch')
+
+
 class Neo4jGraph:
     """Owned Neo4j driver; every read and write has an explicit namespace/version."""
 
@@ -546,6 +759,8 @@ class Neo4jGraph:
             ("lct_edge_scope", "LCTEdge", "s.namespace, s.version, s.edge_id"),
             ("lct_chunk_scope", "LCTChunk", "s.namespace, s.version, s.kind, s.ordinal"),
             ("lct_boundary_scope", "LCTBoundary", "s.namespace, s.version, s.boundary_id"),
+            ("lct_value_scope", "LCTValue", "s.namespace, s.version, s.value_id"),
+            ("lct_value_edge_scope", "LCTValueEdge", "s.namespace, s.version, s.value_edge_id"),
         ):
             session.run(f"CREATE CONSTRAINT {name} IF NOT EXISTS FOR (s:{label}) "
                         f"REQUIRE ({keys}) IS UNIQUE").consume()
@@ -627,7 +842,10 @@ class Neo4jGraph:
                     _write(session, scope, owner,
                            'UNWIND $rows AS row MERGE (b:LCTBoundary '
                            '{namespace:$namespace, version:$version, boundary_id:row.boundary_id}) '
-                           'SET b.endpoint_id=row.endpoint_id, b.category=row.category',
+                           'SET b.endpoint_id=row.endpoint_id, b.category=row.category, '
+                           'b.lookup_repository=row.lookup_repository, b.lookup_module=row.lookup_module, '
+                           'b.lookup_name=row.lookup_name, b.lookup_status=row.lookup_status, '
+                           'b.lookup_reason=row.lookup_reason',
                            batch, state='migrating')
                 for batch in _batches(dict(edge_id=e['edge_id'],
                                             source_boundary=_boundary_id(e,'source',node_ids),
@@ -659,7 +877,9 @@ class Neo4jGraph:
                     _fence(tx, scope, owner, 'migrating')
                     tx.run('MATCH (s:LCTSnapshot {namespace:$namespace, version:$version}) '
                            "SET s.state='validating', s.native_count=$native, "
-                           's.boundary_count=$boundary, s.projection_schema=$schema',
+                           's.boundary_count=$boundary, s.projection_schema=$schema, '
+                           's.value_node_count=0, s.value_edge_count=0, '
+                           "s.value_read_count=0, s.value_projection='unprojected-partial'",
                            **scope, native=len(edges), boundary=len(boundary),
                            schema=PROJECTION_SCHEMA).consume()
                 _verify(session, scope, owner, nodes, edges, node_ids, metadata)
@@ -691,7 +911,17 @@ class Neo4jGraph:
             e.get("kind") not in REL_TYPES for e in edges
         ):
             raise ToolError("Unsupported graph kind")
-        payload = _snapshot_payload(nodes, edges, graph, source)
+        schema = snapshot.get('projection_schema', PROJECTION_SCHEMA)
+        if schema not in (PROJECTION_SCHEMA, VALUE_PROJECTION_SCHEMA):
+            raise ToolError('Unsupported projection schema')
+        value = snapshot.get('value_flow') if schema == VALUE_PROJECTION_SCHEMA else None
+        if schema == VALUE_PROJECTION_SCHEMA:
+            if not isinstance(value, dict) or set(value) != {'nodes', 'edges', 'reads'}:
+                raise ToolError('Complete value projection evidence required')
+            _validate_value(value, nodes)
+        elif 'value_flow' in snapshot:
+            raise ToolError('Value evidence requires v3 projection')
+        payload = _snapshot_payload(nodes, edges, graph, source, value)
         fingerprint = digest(payload)
         if fingerprint != snapshot.get("fingerprint"):
             raise ToolError("Snapshot fingerprint mismatch")
@@ -699,7 +929,8 @@ class Neo4jGraph:
         node_ids = {n["node_id"] for n in nodes}
         if len(node_ids) != len(nodes) or len({e["edge_id"] for e in edges}) != len(edges):
             raise ToolError("Duplicate graph identity")
-        return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids)
+        return _staged_import(self, scope, nodes, edges, graph, source, fingerprint, node_ids,
+                              value)
     def _read(self, namespace, version, query, **params):
         scope = _scope(namespace, version)
         with self.driver.session(database=self.database, default_access_mode="READ",
@@ -732,10 +963,13 @@ class Neo4jGraph:
             "MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) "
             "RETURN s.node_count AS nodes, s.edge_count AS edges, "
             "s.native_count AS native_edges, s.chunk_count AS chunks, "
+            "s.projection_schema AS projection_schema, "
             "s.graph_sha256 AS graph_sha256, s.source_sha256 AS source_sha256, "
             "s.source_fingerprint AS source_fingerprint, "
             "s.source_repository_count AS source_repository_count, "
-            "s.storage_format AS storage_format")
+            "s.storage_format AS storage_format, s.value_node_count AS value_nodes, "
+            "s.value_edge_count AS value_edges, s.value_read_count AS value_reads, "
+            "s.value_projection AS value_projection")
         return dict(namespace=namespace, version=version, fingerprint=fingerprint,
                     **dict(rows[0]), storage_complete=True,
                     evidence_detail="Use snapshot_evidence for full graph/source JSON, including UNKNOWN reasons, analysis complete flags and repository revisions")
@@ -895,7 +1129,7 @@ class Neo4jGraph:
         _, marker = self._read(namespace, version,
             'MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) '
             'RETURN s.projection_schema AS projection_schema')
-        if marker[0]['projection_schema'] == PROJECTION_SCHEMA:
+        if marker[0]['projection_schema'] in (PROJECTION_SCHEMA, VALUE_PROJECTION_SCHEMA):
             _, rows = self._read(namespace, version, native_relation_query(direction),
                                  **params, allowed=sorted(REL_TYPES))
             return _bounded_page(rows, 'edges', limit, cursor)
@@ -906,6 +1140,46 @@ class Neo4jGraph:
         combined = {row['id']: row for row in [*internal, *external]}
         ordered = [combined[k] for k in sorted(combined)]
         return _bounded_page(ordered, 'edges', limit, cursor)
+
+    def _value_marker(self, namespace, version, expected_fingerprint):
+        fingerprint, rows = self._read(namespace, version,
+            'MATCH (s:LCTSnapshot {namespace:$namespace, version:$version, complete:true}) '
+            'RETURN s.projection_schema AS schema, s.value_projection AS status')
+        if (fingerprint != expected_fingerprint or len(rows) != 1 or
+                rows[0]['schema'] != VALUE_PROJECTION_SCHEMA or rows[0]['status'] != 'complete'):
+            raise ToolError('Complete matching value projection required')
+
+    def get_value_relations(self, namespace, version, ids, expected_fingerprint, types=None,
+                            direction='both', limit=100, cursor=None):
+        self._value_marker(namespace, version, expected_fingerprint)
+        ids = _ids(ids)
+        if types is not None and (not isinstance(types, (list, tuple)) or
+                                  any(t not in VALUE_REL_TYPES for t in types)):
+            raise ToolError('Unsupported value relationship type')
+        limit, cursor = _limit(limit), _after(cursor)
+        _, rows = self._read(namespace, version, value_relation_query(direction), ids=ids,
+                             types=list(types) if types is not None else None,
+                             allowed=sorted(VALUE_REL_TYPES), cursor=cursor,
+                             fetch=min(limit, PAGE_FETCH - 1) + 1)
+        return _bounded_page(rows, 'edges', limit, cursor)
+
+    def get_value_nodes(self, namespace, version, ids, expected_fingerprint):
+        self._value_marker(namespace, version, expected_fingerprint)
+        ids = _ids(ids)
+        if len(ids) > PAGE_FETCH - 1:
+            raise ToolError('Value node request supports at most 16 IDs')
+        _, rows = self._read(namespace, version,
+            'UNWIND range(0,size($ids)-1) AS position '
+            'WITH position,$ids[position] AS wanted '
+            'MATCH (n:LCTValue {namespace:$namespace, version:$version, value_id:wanted}) '
+            'RETURN CASE WHEN size(n.raw_json)>65536 THEN null ELSE n.raw_json END AS raw '
+            'ORDER BY position', ids=ids)
+        if any(row['raw'] is None for row in rows):
+            raise ToolError('Single value node exceeds reply byte limit; use fragment lookup')
+        result = [json.loads(row['raw']) for row in rows]
+        if len(canonical(result).encode('utf-8')) > MAX_REPLY_DATA_BYTES:
+            raise ToolError('Value node reply exceeds byte limit; split IDs')
+        return result
 
 
 def main(argv=None):

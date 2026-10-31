@@ -1,0 +1,33 @@
+..F.F...........                                                         [100%]
+=================================== FAILURES ===================================
+___________ test_known_lexical_parameter_records_lookup_without_jedi ___________
+review/batch4-incremental/test_analysis_observations_independent.py:86: in test_known_lexical_parameter_records_lookup_without_jedi
+    analyzer.name(scope, "arg", (anchor.lineno, anchor.col_offset), anchor)
+lct/python_analysis.py:1056: in name
+    return self.parameter(current, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2048: in parameter
+    if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: list indices must be integers or slices, not str
+__________ test_resolve_memo_hit_keeps_new_readers_consumer_identity ___________
+review/batch4-incremental/test_analysis_observations_independent.py:111: in test_resolve_memo_hit_keeps_new_readers_consumer_identity
+    old = analyzer.resolve(target, expression)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:895: in resolve
+    result = self._resolve(scope, expr, before)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:945: in _resolve
+    return self.name(scope, expr.id, before, expr)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:1056: in name
+    return self.parameter(current, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2048: in parameter
+    if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: list indices must be integers or slices, not str
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_known_lexical_parameter_records_lookup_without_jedi
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_resolve_memo_hit_keeps_new_readers_consumer_identity
+2 failed, 14 passed in 3.08s

@@ -1,0 +1,122 @@
+{
+  "fixed_sha": "1ca7ca32cf5e0b816eee95a01956417308f38407",
+  "fixture": "/tmp/root-crossrepo-proof-8egfng7r",
+  "observations": [],
+  "sites": [
+    {
+      "boundaries": [
+        {
+          "full_name": "dependency-version-unmatched:a",
+          "reason": "dependency-version-unmatched"
+        }
+      ],
+      "column": 11,
+      "complete": false,
+      "completeness_basis": null,
+      "end_column": 14,
+      "end_line": 2,
+      "evidence": [
+        {
+          "role": "site and execution phase",
+          "tool": "ast"
+        },
+        {
+          "raw": [
+            {
+              "column": 4,
+              "full_name": "a.use",
+              "line": 3,
+              "mapping": "dependency-version-unmatched",
+              "module_path": "left/src/a.py",
+              "name": "use",
+              "repository": "left",
+              "source_sha256": "3cb28902b1f03fd487d5464b79ee7ea6179844c8d7b5eaaac1574efe2b3d33a2",
+              "target": "left:src/a.py:function:use#1.1",
+              "type": "function",
+              "version_id": "a45880e5881f58dba17e61c040b665c8c18b25dfaf3ddd57053905ef0eaed3a6"
+            }
+          ],
+          "role": "definition signal",
+          "tool": "jedi",
+          "version": "0.20.1"
+        },
+        {
+          "association_trace": {
+            "steps": [
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "boundary",
+                    "receiver": "",
+                    "target": "dependency-version-unmatched:a"
+                  }
+                ],
+                "column": 11,
+                "expression": "use",
+                "line": 2,
+                "path": "src/b.py",
+                "proofs": [
+                  "reaching-lexical-binding",
+                  "source-value:boundary"
+                ],
+                "rule": "Name",
+                "scope": "right:src/b.py:function:run#1.1",
+                "unknown_reasons": []
+              }
+            ],
+            "truncated": false
+          },
+          "decision": {
+            "conflict": false,
+            "excluded_jedi_targets": [],
+            "excluded_lct_targets": [],
+            "jedi_targets": [],
+            "lct_targets": [],
+            "reason": "matching-signals",
+            "selected_targets": [],
+            "semantic_rules": [
+              "reaching-lexical-binding",
+              "source-value:boundary"
+            ],
+            "unresolved_jedi_targets": [],
+            "write_source_coverage": null
+          },
+          "role": "validated binding/argument/container association",
+          "signal_agrees": true,
+          "tool": "lct"
+        }
+      ],
+      "execution_owner": "right:src/b.py:function:run#1.1",
+      "expression": "use",
+      "kind": "call",
+      "lexical_owner": "right:src/b.py:function:run#1.1",
+      "line": 2,
+      "phase": "body",
+      "resolution_decision": {
+        "conflict": false,
+        "excluded_jedi_targets": [],
+        "excluded_lct_targets": [],
+        "jedi_targets": [],
+        "lct_targets": [],
+        "reason": "matching-signals",
+        "selected_targets": [],
+        "semantic_rules": [
+          "reaching-lexical-binding",
+          "source-value:boundary"
+        ],
+        "unresolved_jedi_targets": [],
+        "write_source_coverage": null
+      },
+      "resolution_kind": "partial-targets",
+      "site_id": "52d04404c8912184b455e291f1c92a00603af564d28dd8ed8eed25c40a941e4c",
+      "targets": [],
+      "unknown_origin": true,
+      "unresolved_reasons": [
+        "dependency-version-unmatched"
+      ]
+    }
+  ],
+  "edges": []
+}

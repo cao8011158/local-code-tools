@@ -1,0 +1,108 @@
+................................F....................................... [ 58%]
+..............F.....................................                     [100%]
+=================================== FAILURES ===================================
+___________________ test_returns_chains_with_and_async_with ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-16/test_returns_chains_with_and_a0')
+
+    def test_returns_chains_with_and_async_with(tmp_path):
+>       r = analyze(
+            tmp_path,
+            {
+                "demo.py": """def target(): pass
+    class C:
+     def work(self): pass
+     def chain(self): return self
+     def __enter__(self): return self
+     def __exit__(self,*args): pass
+     async def __aenter__(self): return self
+     async def __aexit__(self,*args): pass
+    def factory(): return target
+    def object_factory(): return C()
+    def driver():
+     factory()()
+     object_factory().chain().work()
+     with C() as obj: obj.work()
+    async def async_driver():
+     async with C() as obj: obj.work()
+    """
+            },
+        )
+
+tests/test_python_pipeline.py:206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_pipeline.py:25: in analyze
+    edges, info = g.build()
+                  ^^^^^^^^^
+lct/graph.py:232: in build
+    association_trace=analyzer.explain(scope, expr),
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2490: in explain
+    pending.extend(reversed(sorted(self.dependencies.get(key, []), key=source_order)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+key = ('fixture:demo.py:module:demo#1', 140697822742416, 1000000000)
+
+    def source_order(key):
+        record = self.traces.get(key, {})
+        return (record.get("scope", key[0]), record.get("path", ""),
+>               record.get("line", key[2][0]), record.get("column", key[2][1]),
+                                   ^^^^^^^^^
+                record.get("expression", ""), record.get("rule", ""),
+                canonical(record) if record else "")
+E       TypeError: 'int' object is not subscriptable
+
+lct/python_analysis.py:2477: TypeError
+__________________ test_instance_field_precedence_boundaries ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-16/test_instance_field_precedence0')
+
+    def test_instance_field_precedence_boundaries(tmp_path):
+        source = """def a(): pass
+    def b(): pass
+    class C:
+     def __init__(self,cb): self.run=cb
+     def run(self): pass
+    class Plain:
+     def run(self): pass
+    def caller(unknown):
+     first=C(a)
+     second=C(b)
+     first.run()
+     second.run()
+     C(unknown).run()
+     Plain().run()
+    """
+>       r = analyze(tmp_path, {"demo.py": source}, closed=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_python_review_regressions.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_python_pipeline.py:25: in analyze
+    edges, info = g.build()
+                  ^^^^^^^^^
+lct/graph.py:232: in build
+    association_trace=analyzer.explain(scope, expr),
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2490: in explain
+    pending.extend(reversed(sorted(self.dependencies.get(key, []), key=source_order)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+key = ('fixture:demo.py:module:demo#1', 140697818226448, 1000000000)
+
+    def source_order(key):
+        record = self.traces.get(key, {})
+        return (record.get("scope", key[0]), record.get("path", ""),
+>               record.get("line", key[2][0]), record.get("column", key[2][1]),
+                                   ^^^^^^^^^
+                record.get("expression", ""), record.get("rule", ""),
+                canonical(record) if record else "")
+E       TypeError: 'int' object is not subscriptable
+
+lct/python_analysis.py:2477: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_python_pipeline.py::test_returns_chains_with_and_async_with
+FAILED tests/test_python_review_regressions.py::test_instance_field_precedence_boundaries
+2 failed, 122 passed in 7.69s

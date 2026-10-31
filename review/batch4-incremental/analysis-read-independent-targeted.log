@@ -1,0 +1,3 @@
+.[{"noise": 0, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)", "SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)"], "queries": 2, "result_rows": 1, "vm_steps": 38}, {"noise": 40, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)", "SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=? AND kind=?)"], "queries": 2, "result_rows": 1, "vm_steps": 38}]
+..
+3 passed in 1.08s

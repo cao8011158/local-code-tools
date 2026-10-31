@@ -1,0 +1,14 @@
+{
+  "code_sha": "4a2bcf827e33eb393de5b288260ee63321734dd9",
+  "round": 1,
+  "verdict": "pass-bounded-slice",
+  "whole_batch_complete": false,
+  "merge": false,
+  "logs": {
+    "value-projection-independent-regression.log": "d30d8f7ebab14d8a5865069af63e0a92ac25055e9223428c5313b94a7e3c4aca",
+    "value-projection-independent-regression-final.log": "ae7d13e26c50ad698173dac9d00967f97cf7576acfbea51e062f28ef65fa195b",
+    "value-projection-independent-service.log": "d2d3addaada4514dfa7738a9cbc5b9b39dbedb4d3cfb6422b0a54875a1cc21f7",
+    "value-projection-binding-service.log": "bb36253a5fd8decdf79e1e2fbac7ddbef242a8438ece6c072cabb8a1a9915d01",
+    "value-projection-large-row-service.log": "81511865e3e008481b0cf398476de0d5c117c0fa6ecdba3d24af598be51ef01f"
+  }
+}

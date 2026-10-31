@@ -1,0 +1,80 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_real_execution_and_errors_reuse_only_passive_noise[0] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-121/test_real_execution_and_errors0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f0ae17ce0>
+noise = 0
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_real_execution_and_errors_reuse_only_passive_noise(tmp_path, monkeypatch, noise):
+        config, repo = initialize(tmp_path / "isolated")
+        (repo / "src/weights.py").unlink()
+        (repo / "docs/guide.md").unlink()
+        target = repo / "src/trpg_state_machine"
+        target.mkdir()
+        shutil.copyfile(EXECUTION, target / "_execution.py")
+        shutil.copyfile(ERRORS, target / "errors.py")
+        for i in range(noise):
+            (repo / f"src/noise_{i}.py").write_text(f"def pure_{i}():\n    return {i}\n")
+        first = build(config, offline=True, lexical_only=True)
+        assert first["simple_python_certificate"] is None
+        old = semantic(config, first["version"])
+        source = target / "_execution.py"
+        assert source.read_bytes() == EXECUTION.read_bytes()
+        source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_changed"', 1))
+        parsed = []
+        original = extraction.python_nodes
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+>       assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+tests/test_general_passive_incremental.py:63: AssertionError
+_________ test_real_execution_and_errors_reuse_only_passive_noise[20] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-121/test_real_execution_and_errors1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f08dc7ec0>
+noise = 20
+
+    @pytest.mark.parametrize("noise", [0, 20])
+    def test_real_execution_and_errors_reuse_only_passive_noise(tmp_path, monkeypatch, noise):
+        config, repo = initialize(tmp_path / "isolated")
+        (repo / "src/weights.py").unlink()
+        (repo / "docs/guide.md").unlink()
+        target = repo / "src/trpg_state_machine"
+        target.mkdir()
+        shutil.copyfile(EXECUTION, target / "_execution.py")
+        shutil.copyfile(ERRORS, target / "errors.py")
+        for i in range(noise):
+            (repo / f"src/noise_{i}.py").write_text(f"def pure_{i}():\n    return {i}\n")
+        first = build(config, offline=True, lexical_only=True)
+        assert first["simple_python_certificate"] is None
+        old = semantic(config, first["version"])
+        source = target / "_execution.py"
+        assert source.read_bytes() == EXECUTION.read_bytes()
+        source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_changed"', 1))
+        parsed = []
+        original = extraction.python_nodes
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+        updated = build(config, offline=True, lexical_only=True)
+>       assert updated["incremental"]["analysis_scope"]["mode"] == "general-passive-component"
+E       AssertionError: assert 'full-graph' == 'general-passive-component'
+E         
+E         - general-passive-component
+E         + full-graph
+
+tests/test_general_passive_incremental.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise[0]
+FAILED tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise[20]
+2 failed in 1.21s

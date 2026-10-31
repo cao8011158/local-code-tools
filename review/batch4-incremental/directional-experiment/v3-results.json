@@ -1,0 +1,875 @@
+[
+  {
+    "case": "shared_helper_unused_local",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/hub.py"
+      ],
+      "events": [],
+      "analyzed_outer_sites": 0,
+      "actual_jedi_queries": 20,
+      "association_evaluations": 20,
+      "full_ast_context_files": 21,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 21,
+        "new_ast_context_files": 21,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 1,
+        "new_associations": 1,
+        "summary_evaluations": 2
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 21,
+      "sites": 20,
+      "actual_jedi_queries": 40
+    },
+    "full": {
+      "files": 21,
+      "sites": 20,
+      "actual_jedi_queries": 40,
+      "association_evaluations": 20
+    }
+  },
+  {
+    "case": "callback_argument",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/callee.py",
+        "src/caller.py"
+      ],
+      "events": [
+        [
+          "src/caller.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 3,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 1,
+        "old_associations": 0,
+        "new_associations": 1,
+        "summary_evaluations": 6
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 3
+    }
+  },
+  {
+    "case": "return_object_receiver",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/maker.py",
+        "src/use.py"
+      ],
+      "events": [
+        [
+          "src/maker.py",
+          "make:return-impact"
+        ],
+        [
+          "src/maker.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 6,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 2,
+        "new_associations": 2,
+        "summary_evaluations": 4
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 6
+    }
+  },
+  {
+    "case": "body_unused_literal",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py"
+      ],
+      "events": [],
+      "analyzed_outer_sites": 0,
+      "actual_jedi_queries": 1,
+      "association_evaluations": 1,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 1,
+        "new_associations": 1,
+        "summary_evaluations": 2
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 1,
+      "actual_jedi_queries": 2
+    },
+    "full": {
+      "files": 2,
+      "sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1
+    }
+  },
+  {
+    "case": "deletion",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "module-boundary/importers"
+        ]
+      ],
+      "analyzed_outer_sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1,
+      "full_ast_context_files": 1,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 1,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 0,
+        "new_associations": 0,
+        "summary_evaluations": 0
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 1,
+      "sites": 1,
+      "actual_jedi_queries": 2
+    },
+    "full": {
+      "files": 1,
+      "sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1
+    }
+  },
+  {
+    "case": "new_absent_module",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/b.py",
+        "src/newmod.py"
+      ],
+      "events": [
+        [
+          "src/newmod.py",
+          "module-boundary/importers"
+        ]
+      ],
+      "analyzed_outer_sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 1,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 0,
+        "new_associations": 0,
+        "summary_evaluations": 0
+      }
+    },
+    "component": {
+      "equal": false,
+      "parsed_file_attempts": 1,
+      "sites": 0,
+      "actual_jedi_queries": 0
+    },
+    "full": {
+      "files": 2,
+      "sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1
+    }
+  },
+  {
+    "case": "connected_transitive_return",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py",
+        "src/c.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "make:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 9,
+      "full_ast_context_files": 3,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 3,
+        "new_ast_context_files": 3,
+        "old_jedi_queries": 1,
+        "new_jedi_queries": 1,
+        "old_associations": 4,
+        "new_associations": 4,
+        "summary_evaluations": 6
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6
+    },
+    "full": {
+      "files": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 9
+    }
+  },
+  {
+    "case": "cycle_termination",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "a:return-impact"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 2,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 2,
+        "new_associations": 2,
+        "summary_evaluations": 4
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 2
+    }
+  },
+  {
+    "case": "unsupported_return_through_local",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "make:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 6,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 3,
+        "new_associations": 3,
+        "summary_evaluations": 4
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 6
+    }
+  },
+  {
+    "case": "unsupported_keyword_callback",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/b.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 3,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 1,
+        "old_associations": 0,
+        "new_associations": 1,
+        "summary_evaluations": 6
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 3
+    }
+  },
+  {
+    "case": "selector_literal_changes_target",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "selector:return-impact"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 6,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 1,
+        "new_associations": 1,
+        "summary_evaluations": 4
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 6
+    }
+  },
+  {
+    "case": "keyword_callback_changed",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/callee.py",
+        "src/caller.py"
+      ],
+      "events": [
+        [
+          "src/caller.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 3,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 1,
+        "old_associations": 0,
+        "new_associations": 1,
+        "summary_evaluations": 2
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 5
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 3
+    }
+  },
+  {
+    "case": "return_binding_changed_not_return_expression",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:return-impact"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 4,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 2,
+        "new_associations": 2,
+        "summary_evaluations": 8
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 3,
+      "association_evaluations": 4
+    }
+  },
+  {
+    "case": "module_level_callback_changed",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/callee.py",
+        "src/caller.py"
+      ],
+      "events": [
+        [
+          "src/caller.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 2,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 3,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 1,
+        "old_associations": 0,
+        "new_associations": 1,
+        "summary_evaluations": 0
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 2,
+      "actual_jedi_queries": 5
+    },
+    "full": {
+      "files": 2,
+      "sites": 2,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 3
+    }
+  },
+  {
+    "case": "transitive_return_through_local",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py",
+        "src/c.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "make:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 10,
+      "full_ast_context_files": 3,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 3,
+        "new_ast_context_files": 3,
+        "old_jedi_queries": 1,
+        "new_jedi_queries": 1,
+        "old_associations": 5,
+        "new_associations": 5,
+        "summary_evaluations": 6
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6
+    },
+    "full": {
+      "files": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 10
+    }
+  },
+  {
+    "case": "forward_return_through_local",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py",
+        "src/c.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:return-impact"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 7,
+      "full_ast_context_files": 3,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 3,
+        "new_ast_context_files": 3,
+        "old_jedi_queries": 1,
+        "new_jedi_queries": 1,
+        "old_associations": 5,
+        "new_associations": 5,
+        "summary_evaluations": 10
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 3,
+      "sites": 3,
+      "actual_jedi_queries": 5
+    },
+    "full": {
+      "files": 3,
+      "sites": 3,
+      "actual_jedi_queries": 5,
+      "association_evaluations": 7
+    }
+  },
+  {
+    "case": "returned_same_class_different_field",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 9,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 3,
+        "new_associations": 3,
+        "summary_evaluations": 8
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 9
+    }
+  },
+  {
+    "case": "direct_same_class_different_field",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 10,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 2,
+        "new_associations": 2,
+        "summary_evaluations": 8
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4
+    },
+    "full": {
+      "files": 2,
+      "sites": 3,
+      "actual_jedi_queries": 4,
+      "association_evaluations": 10
+    }
+  },
+  {
+    "case": "forwarded_same_class_different_field",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py",
+        "src/b.py",
+        "src/c.py"
+      ],
+      "events": [
+        [
+          "src/a.py",
+          "factory:return-impact"
+        ],
+        [
+          "src/a.py",
+          "call-shape/callee-parameter"
+        ]
+      ],
+      "analyzed_outer_sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 14,
+      "full_ast_context_files": 3,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 3,
+        "new_ast_context_files": 3,
+        "old_jedi_queries": 1,
+        "new_jedi_queries": 1,
+        "old_associations": 5,
+        "new_associations": 5,
+        "summary_evaluations": 10
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6
+    },
+    "full": {
+      "files": 3,
+      "sites": 4,
+      "actual_jedi_queries": 6,
+      "association_evaluations": 14
+    }
+  },
+  {
+    "case": "unrelated_local_scalar_control",
+    "equal": true,
+    "differences": {},
+    "directional": {
+      "selected": [
+        "src/a.py"
+      ],
+      "events": [],
+      "analyzed_outer_sites": 0,
+      "actual_jedi_queries": 1,
+      "association_evaluations": 1,
+      "full_ast_context_files": 2,
+      "non_call_relation_pass": "all files",
+      "summary_cost": {
+        "old_ast_context_files": 2,
+        "new_ast_context_files": 2,
+        "old_jedi_queries": 0,
+        "new_jedi_queries": 0,
+        "old_associations": 1,
+        "new_associations": 1,
+        "summary_evaluations": 2
+      }
+    },
+    "component": {
+      "equal": true,
+      "parsed_file_attempts": 2,
+      "sites": 1,
+      "actual_jedi_queries": 2
+    },
+    "full": {
+      "files": 2,
+      "sites": 1,
+      "actual_jedi_queries": 2,
+      "association_evaluations": 1
+    }
+  }
+]

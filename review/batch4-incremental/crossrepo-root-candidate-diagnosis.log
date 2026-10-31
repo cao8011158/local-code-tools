@@ -1,0 +1,110 @@
+FFF..                                                                    [100%]
+=================================== FAILURES ===================================
+________ test_exact_pinned_cross_repository_import_and_local_precedence ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-82/test_exact_pinned_cross_reposi0')
+
+    def test_exact_pinned_cross_repository_import_and_local_precedence(tmp_path):
+        config, consumer, provider = fixture(tmp_path, pinned=True)
+        caller = consumer / "src/caller.py"
+        caller.write_text("from dnd5e_engine.evaluation import target\ndef run(): target()\n")
+        baseline = build(config, offline=True, lexical_only=True)
+        assert baseline["graph"]["dependency_bindings"]["synthetic-review"]["matched"]
+        caller.write_text(caller.read_text() + "def second(): target()\n")
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+        assert scope["mode"] == "certified-simple-python-component"
+        assert scope["python_files_parsed"] == 2
+        same_as_full(config, updated, tmp_path)
+    
+        # With a captured local module of the same name, the graph's local-first
+        # import decision must remain local, even under a matched dependency pin.
+        local = consumer / "src/dnd5e_engine/evaluation.py"
+        local.parent.mkdir(exist_ok=True)
+        local.write_text("def target(): pass\n")
+        local_result = build(config, offline=True, lexical_only=True)
+        assert local_result["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
+>       same_as_full(config, local_result, tmp_path / "shadow")
+
+tests/test_cross_repository_python_incremental.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = {'data': '/tmp/pytest-of-root/pytest-82/test_exact_pinned_cross_reposi0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}
+updated = {'toolkit_version': '1.0.0', 'program_hash': 'd6b7e94c6833c86a44fabc8130111b9ff43a5e8fe597d3dccf33622cd392227c', 'schema': 1, 'format': 1, ...}
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-82/test_exact_pinned_cross_reposi0/shadow')
+
+    def same_as_full(config, updated, tmp_path):
+        oracle_config = dict(config, data=str(tmp_path / "oracle"))
+        oracle = build(oracle_config, offline=True, lexical_only=True)
+>       assert records(config, updated["version"]) == records(oracle_config, oracle["version"])
+E       assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'sites': ['{"boundaries": [], "column": 11, "complete": true, "completeness_basis": ["reaching-lexical-binding", "sou...ules-engine:src/dnd5e_engine/evaluation.py:function:target#1.1"], "unknown_origin": false, "unresolved_reasons": []}']} != {'sites': ['{"boundaries": [], "column": 11, "complete": true, "completeness_basis": ["reaching-lexical-binding", "sou...etic-review:src/dnd5e_engine/evaluation.py:function:target#1.1"], "unknown_origin": false, "unresolved_reasons": []}']}
+E         {'import_requests': ['{"lookup_re...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+tests/test_cross_repository_python_incremental.py:54: AssertionError
+___________ test_same_paths_in_other_repository_are_not_selected[0] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-82/test_same_paths_in_other_repos0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4d508ceae0>
+noise = 0
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_paths_in_other_repository_are_not_selected(tmp_path, monkeypatch, noise):
+        config, left, right = pair(tmp_path)
+        source = 'def first(): pass\ndef second(): pass\ndef use(): first()\n'
+        for repo in (left, right):
+            (repo / 'src/a.py').write_text(source)
+            (repo / 'src/b.py').write_text('from a import use\ndef run(): use()\n')
+        for i in range(noise):
+            (right / 'src' / f'unrelated_{i}.py').write_text(source)
+        old = build(config, offline=True, lexical_only=True)
+        before = records(config, old['version'])
+        (left / 'src/a.py').write_text(source.replace('use(): first()', 'use(): second()'))
+        calls = counted(monkeypatch)
+        update = build(config, offline=True, lexical_only=True)
+>       assert sorted(calls) == [('left', 'src/a.py'), ('left', 'src/b.py')]
+E       AssertionError: assert [('left', 'sr..., 'src/b.py')] == [('left', 'sr..., 'src/b.py')]
+E         
+E         At index 1 diff: ('left', 'src/a.py') != ('left', 'src/b.py')
+E         Left contains 4 more items, first extra item: ('left', 'src/b.py')
+E         Use -v to get more diff
+
+review/batch4-incremental/test_crossrepo_independent.py:63: AssertionError
+___________ test_same_paths_in_other_repository_are_not_selected[20] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-82/test_same_paths_in_other_repos1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4d5075e810>
+noise = 20
+
+    @pytest.mark.parametrize('noise', [0, 20])
+    def test_same_paths_in_other_repository_are_not_selected(tmp_path, monkeypatch, noise):
+        config, left, right = pair(tmp_path)
+        source = 'def first(): pass\ndef second(): pass\ndef use(): first()\n'
+        for repo in (left, right):
+            (repo / 'src/a.py').write_text(source)
+            (repo / 'src/b.py').write_text('from a import use\ndef run(): use()\n')
+        for i in range(noise):
+            (right / 'src' / f'unrelated_{i}.py').write_text(source)
+        old = build(config, offline=True, lexical_only=True)
+        before = records(config, old['version'])
+        (left / 'src/a.py').write_text(source.replace('use(): first()', 'use(): second()'))
+        calls = counted(monkeypatch)
+        update = build(config, offline=True, lexical_only=True)
+>       assert sorted(calls) == [('left', 'src/a.py'), ('left', 'src/b.py')]
+E       AssertionError: assert [('left', 'sr...c/b.py'), ...] == [('left', 'sr..., 'src/b.py')]
+E         
+E         At index 1 diff: ('left', 'src/a.py') != ('left', 'src/b.py')
+E         Left contains 24 more items, first extra item: ('left', 'src/b.py')
+E         Use -v to get more diff
+
+review/batch4-incremental/test_crossrepo_independent.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cross_repository_python_incremental.py::test_exact_pinned_cross_repository_import_and_local_precedence
+FAILED review/batch4-incremental/test_crossrepo_independent.py::test_same_paths_in_other_repository_are_not_selected[0]
+FAILED review/batch4-incremental/test_crossrepo_independent.py::test_same_paths_in_other_repository_are_not_selected[20]
+3 failed, 2 passed in 2.11s

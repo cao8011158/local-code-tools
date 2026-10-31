@@ -1,0 +1,64 @@
+{
+  "baseline_parse_calls": [
+    "src/trpg_state_machine/availability.py",
+    "src/trpg_state_machine/errors.py",
+    "src/trpg_state_machine/item_units.py"
+  ],
+  "differential_equal": true,
+  "mutation": {
+    "new": "context=None",
+    "old": "context=context",
+    "path": "availability.py"
+  },
+  "old_version_immutable": true,
+  "record_counts": {
+    "edges": 25,
+    "import_dependencies": 0,
+    "import_requests": 2,
+    "nodes": 11,
+    "query_observations": 0,
+    "sites": 13
+  },
+  "source_commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+  "sources": {
+    "availability.py": {
+      "bytes": 490,
+      "git_blob_sha1": "c142c6079bd5565c67aff30f9cc3a40ba49e02a7",
+      "sha256": "d10b37c8fa8b140dabf48ab4726c2f9522e8c015c18b23785df15685ed6a3b05",
+      "source": "/workspace/scratch/413372d9a5a5/lct-staged-import/review/batch4-incremental/fixtures/actual-source-subset/src/trpg_state_machine/availability.py"
+    },
+    "errors.py": {
+      "bytes": 736,
+      "git_blob_sha1": "861460f2eb37cb6d114b4326318003b9abd22ad2",
+      "sha256": "ba1bfb8988d9e29770093e2fdbad22245a1377beb78b82d6697ca1c9c5ddc8a6",
+      "source": "/workspace/scratch/413372d9a5a5/lct-staged-import/review/batch4-incremental/fixtures/actual-source-subset/src/trpg_state_machine/errors.py"
+    },
+    "item_units.py": {
+      "bytes": 724,
+      "git_blob_sha1": "12e29805f2a96925fd55eb98455d6ef9bccea87a",
+      "sha256": "915c87ed12e82f686b5585be94af56353f02df75964e063cf4d0783ac5a477e4",
+      "source": "/workspace/scratch/413372d9a5a5/lct-staged-import/review/batch4-incremental/fixtures/actual-source-subset/src/trpg_state_machine/item_units.py"
+    }
+  },
+  "update_parse_calls": [
+    "src/trpg_state_machine/availability.py",
+    "src/trpg_state_machine/errors.py",
+    "src/trpg_state_machine/item_units.py"
+  ],
+  "updated_scope": {
+    "document_files_parsed": 0,
+    "jedi_queries_executed": 30,
+    "local_preflight_python_files_parsed": 0,
+    "mode": "full-graph",
+    "output_edges": 25,
+    "output_nodes": 11,
+    "python_ast_context_files": 3,
+    "python_files_parsed": 3,
+    "reason": "previous-simple-python-certificate-unavailable",
+    "reused_graph_edges": 0,
+    "reused_graph_sites": 0,
+    "reused_python_nodes": 0,
+    "sites_analyzed": 13,
+    "total_python_files_parsed": 3
+  }
+}

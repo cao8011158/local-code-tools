@@ -1,0 +1,16 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_actual_item_unit_local_with_unrelated_growth _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-130/test_actual_item_unit_local_wi0')
+
+    def test_actual_item_unit_local_with_unrelated_growth(tmp_path):
+        config, repo, module = setup(tmp_path)
+        baseline = build(config, offline=True, lexical_only=True)
+>       assert baseline["simple_python_certificate"] == "simple-python-v4"
+E       AssertionError: assert None == 'simple-python-v4'
+
+tests/test_actual_item_unit_incremental.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_actual_item_unit_incremental.py::test_actual_item_unit_local_with_unrelated_growth
+1 failed in 0.72s

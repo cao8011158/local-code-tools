@@ -1,0 +1,78 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_____________ test_real_parse_retention_and_changed_source[False] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-115/test_real_parse_retention_and_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe40eaf3500>
+disk_reload = False
+
+    @pytest.mark.parametrize("disk_reload", [False, True])
+    def test_real_parse_retention_and_changed_source(tmp_path, monkeypatch, disk_reload):
+        ensure_parso_cache_timestamps()
+        # Isolate this check from the parser state used by the rest of the suite.
+        monkeypatch.setattr(cache, "parser_cache", {})
+        grammar = parso.load_grammar()
+        source = tmp_path / "target.py"
+        source.write_text("def first(): pass\n")
+        old = time.time() - 86400
+        os.utime(source, (old, old))
+        cache_dir = tmp_path / "disk"
+        tree = grammar.parse(path=source, cache=True, cache_path=cache_dir)
+        assert tree.get_code() == "def first(): pass\n"
+        if disk_reload:
+            item = cache.parser_cache[grammar._hashed][source]
+            item.last_used = old
+            cache._save_to_file_system(grammar._hashed, source, item, cache_path=cache_dir)
+            cache.parser_cache.clear()
+            tree = grammar.parse(path=source, cache=True, cache_path=cache_dir)
+        # Actually parse enough files to invoke the original >=600 cleanup path.
+        for i in range(620):
+            path = tmp_path / f"other_{i}.py"
+            path.write_text(f"value = {i}\n")
+            os.utime(path, (old, old))
+            grammar.parse(path=path, cache=True, cache_path=cache_dir)
+>       item = cache.parser_cache[grammar._hashed][source]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: PosixPath('/tmp/pytest-of-root/pytest-115/test_real_parse_retention_and_0/target.py')
+
+review/batch4-incremental/test_parso_cache_independent.py:38: KeyError
+______________ test_real_parse_retention_and_changed_source[True] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-115/test_real_parse_retention_and_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe40e7311c0>
+disk_reload = True
+
+    @pytest.mark.parametrize("disk_reload", [False, True])
+    def test_real_parse_retention_and_changed_source(tmp_path, monkeypatch, disk_reload):
+        ensure_parso_cache_timestamps()
+        # Isolate this check from the parser state used by the rest of the suite.
+        monkeypatch.setattr(cache, "parser_cache", {})
+        grammar = parso.load_grammar()
+        source = tmp_path / "target.py"
+        source.write_text("def first(): pass\n")
+        old = time.time() - 86400
+        os.utime(source, (old, old))
+        cache_dir = tmp_path / "disk"
+        tree = grammar.parse(path=source, cache=True, cache_path=cache_dir)
+        assert tree.get_code() == "def first(): pass\n"
+        if disk_reload:
+            item = cache.parser_cache[grammar._hashed][source]
+            item.last_used = old
+            cache._save_to_file_system(grammar._hashed, source, item, cache_path=cache_dir)
+            cache.parser_cache.clear()
+            tree = grammar.parse(path=source, cache=True, cache_path=cache_dir)
+        # Actually parse enough files to invoke the original >=600 cleanup path.
+        for i in range(620):
+            path = tmp_path / f"other_{i}.py"
+            path.write_text(f"value = {i}\n")
+            os.utime(path, (old, old))
+            grammar.parse(path=path, cache=True, cache_path=cache_dir)
+>       item = cache.parser_cache[grammar._hashed][source]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: PosixPath('/tmp/pytest-of-root/pytest-115/test_real_parse_retention_and_1/target.py')
+
+review/batch4-incremental/test_parso_cache_independent.py:38: KeyError
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_parso_cache_independent.py::test_real_parse_retention_and_changed_source[False]
+FAILED review/batch4-incremental/test_parso_cache_independent.py::test_real_parse_retention_and_changed_source[True]
+2 failed in 0.73s
