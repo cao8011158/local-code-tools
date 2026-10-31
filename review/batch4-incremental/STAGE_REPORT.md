@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段89，B4-REL-01相对导入接线开发完成，未提交；生产2文件+26/-10，定向12 passed、相关69 passed，快速615 passed/27 skipped/34.43秒。主Agent基线5 failed/6 passed，待固定提交独立审阅0/3。真实九文件仍受其他独立规则限制，不合并。[开发报告](relative-import-development.md)。
+
+2026-10-31：阶段88，真实关联九文件AST审计完成；新增6文件全部还有独立语法/依赖阻挡，不能把原3文件通过当全库通过。现有Graph可正确定位相对导入，但认证与新增依赖选择未复用其结果，下一步限定补齐该接线，仍不放宽复杂语法。正式新切片review0/3，未合并。[诊断](actual-related-admission-audit.md)。
+
 2026-10-31：阶段87，常见Python v6规则及认证组件候选索引07b6b6c48d7921f2802c00ef62192e849e2371eb经独立第1/3轮通过：665 passed、32 skipped/46.06秒。固定真实三个文件改availability只解析1个、复用2个；增加20无关文件仍只解析1个，全部语义表与full一致。真正相关调用者仍重算，危险写法保留回退，0/200调用位置证明索引读取。整个业务库及Batch4端到端尚未验收，不合并。[本轮审阅](common-certificate-independent-review.md)。
 
 2026-10-31：阶段83，实际跨模块读取记录ea0d0563d19d50d1ee08efd889e583a614f072c1独立第1/3轮通过；633 passed/32 skipped，独立6 passed。返回体/已知成员/匹配传参/精确Jedi目标已记录并接入索引消费者；schema2仍partial，真实业务3文件仍full，Batch4未完成、不合并。[本轮审阅](observed-semantic-reads-independent-review.md)。
@@ -658,3 +662,29 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 关键原因为扩展语法本身不足以证明局部候选上下文；现已认证捕获的full/local共用精确显式导入组件，参数与构造器使用索引。0/200无关调用位置禁止全表遍历，实际按组件读取3*K；未知新增位置保守回到原完整候选。未删除UNKNOWN或证据字段。
 - 原语法首版full不一致、兼容断言失败及修复记录均保留；旧test_actual_source_current_diagnostic.py是v5回退历史快照，不作为v6新断言执行，以新真实局部/full完整记录对照取代，详细说明见common-certificate-independent-review.md。
 - 本切片第1/3轮通过；当前无确认阻塞。未改业务库/值流schema/Jedi，未调用付费API、Neo4j/MCP或Drive。下一步扩大到实际关联文件并记录剩余精确回退，再做Batch4完整发布/检索/恢复验收；尚不合并。
+
+## 阶段88：扩大真实关联代码，先完成九文件准入诊断
+
+- 远端分支feat/incremental-index-updates与上轮报告提交7b08cf6340a120d8773992847915327e61f0d3d2一致，生产基线仍07b6b6c。开发子Agent GPT-6 SOL/medium限定诊断、主Agent核对；未修改生产实现。
+- 从同一SM固定a7b0804提交取得_execution、combat、dnd_runtime、item_package、service、world_containers六文件；逐个Git blob/SHA256与长度核对一致，保留provenance。加原三文件组成九文件部分捕获，不声称完整应用。
+- 只读AST+Graph解析器+certify审计：九文件整体不认证，仅原三个分别认证。service第13行正确定位availability，item_package第6行正确定位item_units；rules_adapter等未捕获依赖保持boundary。共记录66个相对导入名称请求，不称66条都已解析关系。命令及结构化结果在actual-related-admission-audit.md/json与baseline.log；未启动Graph.build/Jedi或执行业务代码。
+- 相对导入不是解析器不会：Graph.import_request_module已有规范化；simple_python两个谓词和component_policy仍直接拒绝/忽略level，prepare新增导入闭包只处理level0。其余外部依赖、枚举、联合注解、模块赋值、分支循环、装饰器及多重继承独立存在，不能只改相对导入就宣布这九文件能局部化。
+- 下一步限定B4-REL-01：复用既有规范化结果接通严格/常见语法认证、组件与更新闭包。仍要求精确捕获provider/导出和合法层级，缺失/外部/星号保持拒绝，不改Jedi或广泛语法准入。验证双向实际相关选择、新导入切换、0/20无关文件、full全部语义记录、失败旧视图及非法边界。正式review0/3；无API/业务图/Drive/合并。
+
+## 阶段89：相对导入认证/组件/新增依赖闭包开发完成，未提交
+
+- 开发子AgentGPT-6 SOL/medium，基线7b08cf6340a120d8773992847915327e61f0d3d2，当前正式review0/3。仅改生产simple_python.py和python_incremental.py（+26/-10），新增相对导入测试143行、文档2行及证据，详细统计relative-import-change-stat.json。
+- 严格/常见语法认证、组件和prepare均调用Graph.import_request_module取得完整请求，再沿现有精确捕获/pin解析。新引用provider及package上下文实际入队；不把相对dataclasses当stdlib，未改Graph/Jedi/value_flow/schema或v6常量，program_hash门禁保留。
+- 开发先失败3/通过5，修复后定向12 passed、相关69 passed，冻结后快速615 passed/27 skipped/34.43秒，退出0。主Agent独立旧基线5 failed/6 passed/1.38秒，独立新增测试尚未作为通过证据。原始日志均保留；不同命令存在重叠，不累加。
+- 覆盖.与..、别名、provider修改/新增provider、新旧版本和发布失败、0/20无关文件实际两文件解析、fresh full语义对照；from . import、star、越界、缺失provider、伪stdlib、相对字典仍拒绝。开发9文件诊断结论不因本小修改变：仍不认证。
+- 下一步主Agent预检、提交推送、固定远端后的独立快速回归与反向查询索引/全部语义表验收。无付费API/完整业务图/Drive，未合并。
+
+## 阶段90：提交前独立预检与测试材料补齐
+
+- 生产实现保持冻结。主Agent12个独立用例预检通过/2.67秒，含旧基线5个失败能力断言、6个拒绝边界和新增索引读测试。尚未正式远端review，0/3。
+- 性能用例首版1失败/11通过：误要求同库首次与重复读VM步骤相等，实测21/16。保留原用例/日志，改为分别比较冷/热路径在0/20组无关相对导入增长时计数不变，并保留重复读稳定和每次1条定向SQL/1行断言；不是改松无关规模门槛或修改生产。
+- EXPLAIN证明已知完整模块pkg.base的逆查走索引SEARCH、无SCAN；逆查只返回mid。构造FileDependencies的全artifact完整性检查单列为必要准备，没有称整个build常数成本。
+- 提交前发现staging遗漏原远端tests/test_dictionary_import_receiver.py；从上轮Git blob校验副本恢复，字节仍与原远端一致。开发615通过发生在少此文件的目录，不称完整远端集合；现在补跑补齐后的tests，结果另记。材料问题不算生产缺陷或完成正式review。
+- 除获准两生产模块和文档外现有lct/tests/docs均与旧远端一致。原未跟踪file_incremental.py、历史graph_under_test.py不提交。下一步补齐门槛后推送和固定远端独立审阅；无API/全业务图/Drive/合并。
+
+- 补齐原测试后的提交前快速集合完成：**618 passed、27 skipped/34.29秒，退出0**，日志relative-import-restored-fast-suite.log；较开发原目录增加3项原有测试，全部通过。生产未再改，准备推送。

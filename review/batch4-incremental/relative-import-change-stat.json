@@ -1,0 +1,22 @@
+[
+  {
+    "path": "lct/simple_python.py",
+    "added": 19,
+    "removed": 7
+  },
+  {
+    "path": "lct/python_incremental.py",
+    "added": 7,
+    "removed": 3
+  },
+  {
+    "path": "docs/INCREMENTAL_UPDATE.md",
+    "added": 2,
+    "removed": 0
+  },
+  {
+    "path": "tests/test_relative_python_incremental.py",
+    "added": 143,
+    "removed": 0
+  }
+]

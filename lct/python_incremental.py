@@ -147,11 +147,15 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 tree = parsed[key][1][f"{key[0]}:{key[1]}:module:{module_name(key[1])}#1"]
                 candidates.update(package_context(key[0], module_name(key[1])))
                 for stmt in tree.body:
-                    if isinstance(stmt, ast.ImportFrom) and stmt.level == 0:
+                    if isinstance(stmt, ast.ImportFrom) and stmt.module and stmt.names:
+                        module_id = f"{key[0]}:{key[1]}:module:{module_name(key[1])}#1"
+                        request = resolver.import_request_module(module_id, stmt, stmt.names[0])
+                        if request is None:
+                            continue  # Selected syntax certification rejects invalid levels.
                         # Jedi also observes local package/module ancestors,
                         # even when the exact target is a pinned provider.
-                        candidates.update(package_context(key[0], stmt.module))
-                        for ident in resolver.imported(key[0], stmt.module):
+                        candidates.update(package_context(key[0], request))
+                        for ident in resolver.imported(key[0], request):
                             target = resolver.nodes.get(ident)
                             if target is not None:
                                 candidates.add((target["repository"], target["path"]))

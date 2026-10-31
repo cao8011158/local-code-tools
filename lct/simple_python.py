@@ -375,10 +375,13 @@ def _certify_common(files, asts, graph, selected, *, _context=None):
         imported, dataclass_import = set(), False
         for stmt in body:
             if isinstance(stmt, ast.ImportFrom):
-                if stmt.level or not stmt.module or any(a.name == "*" for a in stmt.names):
+                if not stmt.module or any(a.name == "*" for a in stmt.names):
                     return False
-                targets = graph.imported(repo, stmt.module)
-                if (stmt.module == "dataclasses" and len(stmt.names) == 1 and
+                request = graph.import_request_module(module, stmt, stmt.names[0])
+                if request is None:
+                    return False
+                targets = graph.imported(repo, request)
+                if (stmt.level == 0 and request == "dataclasses" and len(stmt.names) == 1 and
                         stmt.names[0].name == "dataclass" and stmt.names[0].asname is None and
                         targets == {"boundary:external-or-excluded:dataclasses"} and
                         repo not in context["dataclasses_shadowed"]):
@@ -454,11 +457,15 @@ def _certify_v4(files, asts, *, graph=None, selected_context=None, _context=None
         body = tree.body[1:] if tree.body and _docstring(tree.body[0]) else tree.body
         for stmt in body:
             if isinstance(stmt, ast.ImportFrom):
-                if stmt.level or not stmt.module or any(a.name == "*" for a in stmt.names):
+                if not stmt.module or any(a.name == "*" for a in stmt.names):
                     return None
                 if any((a.asname or a.name) == "re" for a in stmt.names):
                     return None
-                allowed = graph.imported(repo, stmt.module)
+                request = graph.import_request_module(
+                    f"{repo}:{path}:module:{module_name(path)}#1", stmt, stmt.names[0])
+                if request is None:
+                    return None
+                allowed = graph.imported(repo, request)
                 if len(allowed) != 1:
                     return None
                 target_id = next(iter(allowed))
@@ -547,8 +554,13 @@ def component_policy(files, asts, graph):
     for module in modules:
         tree = asts[module]
         for stmt in tree.body:
-            if isinstance(stmt, ast.ImportFrom) and stmt.level == 0 and stmt.module:
-                for target in graph.imported(graph.nodes[module]["repository"], stmt.module):
+            if isinstance(stmt, ast.ImportFrom):
+                if not stmt.module or not stmt.names or any(a.name == "*" for a in stmt.names):
+                    return None
+                request = graph.import_request_module(module, stmt, stmt.names[0])
+                if request is None:
+                    return None
+                for target in graph.imported(graph.nodes[module]["repository"], request):
                     if target in modules:
                         neighbors[module].add(target)
                         neighbors[target].add(module)

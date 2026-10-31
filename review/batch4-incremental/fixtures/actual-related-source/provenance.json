@@ -1,0 +1,37 @@
+{
+  "repository": "agentic-trpg/trpg-state-machine",
+  "commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+  "purpose": "Bounded source-only admission audit; not a complete application capture",
+  "files": {
+    "src/trpg_state_machine/service.py": {
+      "bytes": 23698,
+      "git_blob_sha1": "adbab6f5bec6c5abd1767cec96bb2fb59515439e",
+      "sha256": "90fa0247fdd0a7619dff01295659eb8a8dd70abdd6745f9c4b87b6fc9a96dbbb"
+    },
+    "src/trpg_state_machine/dnd_runtime.py": {
+      "bytes": 197,
+      "git_blob_sha1": "eb88a00d8730704492b6f19775498a04f66cb027",
+      "sha256": "f0681d1caae8dc875a343c1a61ff7167f8e47cd602737a0488d74a2833ed214b"
+    },
+    "src/trpg_state_machine/item_package.py": {
+      "bytes": 3503,
+      "git_blob_sha1": "913286604bb14395ddcb9e21858b59a870290385",
+      "sha256": "56adf2d36604d90f70c6d21a7373e246b7d5b7100510c9af9cab554f70a26f77"
+    },
+    "src/trpg_state_machine/combat.py": {
+      "bytes": 4256,
+      "git_blob_sha1": "6d2b9a9606a0092d0042788ee6e62af47f0145ba",
+      "sha256": "10241eee2dfcb12a057240e3cf216e356dd9b1ec35c3adcf63730ea919ea026b"
+    },
+    "src/trpg_state_machine/world_containers.py": {
+      "bytes": 20642,
+      "git_blob_sha1": "3c16ea9f9988f67981585b1880406c5e85164ac9",
+      "sha256": "43f3dd292c755e7b9c7e5ec0634a13c4e1baa87ca266d71918a5a1af7c8e8917"
+    },
+    "src/trpg_state_machine/_execution.py": {
+      "bytes": 1619,
+      "git_blob_sha1": "4ca859828a8a49c7a87ac89349c76956280dbe43",
+      "sha256": "c48a9e63f3af9f4c2f06bc818047bd8583485e6659d182352148ec04fcb504bf"
+    }
+  }
+}
