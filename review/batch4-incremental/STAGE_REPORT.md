@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31（北京时间）：阶段74，跨文件固定字符串key字典函数值切片cf4b0fbac0e11f18d53f7dbff1be8b1e40cd6505经第1/3轮独立审阅通过：599 passed、25 skipped/34.65秒。原A/B跨文件更新及删除/新增/失败恢复与full一致；0/20无关producer-only文件仍只解析A/B，实际反查SQL每项1行、18/15 VM步保持。新增关系已在内部SQLite图接入实际增量选择，尚未投影Neo4j/MCP，复杂语法仍有限定回退，Batch4未完成、不合并。[实际小图](dictionary-flow-example.md) · [本轮审阅](dictionary-flow-independent-review.md)。
+
 2026-10-31（北京时间）：阶段71，DICT-IMPORT-01跨文件字典接收者映射修复已推送ad5b96c12e8b4ae362985bff9db69b4c7ee4d767，经独立第1/3轮审阅565 passed、25 skipped/24.82秒。字典身份已能正确追踪到second，但本提交没有新增生产字典/条目图节点或开放v5增量准入。未完成草稿保留并归档，Batch4未完成、未合并。[本轮审阅](dict-import-receiver-independent-review.md)。
 
 2026-10-31（北京时间）：阶段67，函数值依赖设计契约、项目专用Skill和差距清单已完成并通过限定独立第1/3轮审阅。固定提交cc3c02d82b8f6046b5e6cb6494ef57cc23da132b，仅文档/Skill/审阅材料，无生产或测试变更；未运行pytest。Batch4仍未完成、未合并。
@@ -521,3 +523,11 @@ GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定�
 - 最终开发定向27 passed/7.13秒，快回归570 passed、25 skipped/26.14秒，ruff通过；原2个before整数sentinel TypeError与旧v4硬编码断言失败日志保留。explain证据兄弟顺序不稳定已按源码稳定排序，目标和UNKNOWN内容不变，直接排列对照与实际full对照通过。
 - 主Agent独立预检2 passed/1.02秒，0/20无关producer-only字典不扩解析范围，语义表及公开结果与full相同；实际反向SQL SEARCH、每次1行、VM17/16不变，watcher只查询一次。预检不是固定远端独立review，下一步固定提交后完成第1轮。
 - 仅内部SQLite中间图，尚未投影Neo4j或MCP，不自动向量化。未改实际RE/SM或业务库；无API、服务、真实业务全图和Drive。完整开发报告dictionary-flow-development.md，Batch4仍未完成。
+
+
+## 阶段74：跨文件字典切片固定提交独立第1/3轮审阅通过
+2026-10-31（北京时间）。固定cf4b0fbac0e11f18d53f7dbff1be8b1e40cd6505、tree2b761e04afb951fa84baab969df8a1bfb226bafa，454份文件blob校验，全部非review源码/测试齐全；262份无关旧review制品未恢复。主Agent未改生产。
+- 一次快回归+原跨文件8项、同文件7项、索引2项、导入5项及既有callback独立检查，599 passed、25 skipped/34.65秒。独立真实索引计数输出另2 passed/0.87秒，已包含于599不可累加。固定提交上每项反查1条、1次SQL、SEARCH主键索引，VM18/15在0/20无关producer-only字典下不变；watcher一次，公开build只解析A/B。构造器完整性哈希/计数与必要O(N)序列化另列，不冒称全部处理O(1)。
+- 实际生成合成内部图7节点/11关系，引用2个已有函数节点；声明和导入指同字典，go条目保存两次写入，仅后一次REACHES调用，实际目标second。dictionary-flow-example.md/JSON保存实际数据与图示；非Neo4j截图、非付费调用。
+- 原失败日志与限制如实保留：开发证据顺序和before sentinel已修，旧v4字面断言改为当前CERTIFICATE常量，未放宽行为断言；root原局部更新失败对照在本提交已通过。无新确认阻塞。
+- 仅支持的字典结构切片通过；数值/动态key、复杂写入、同库普通模块导入modeled字典模块函数的mixed路径等仍可能full回退，旧broad watch影响扇出仍在。其他函数值流/真实业务范围准入、Neo4j中间关系投影和完整功能验收尚未完成。未合并、无服务/API/真实业务图/Drive。

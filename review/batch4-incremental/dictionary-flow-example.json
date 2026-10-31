@@ -1,0 +1,562 @@
+{
+  "commit": "cf4b0fbac0e11f18d53f7dbff1be8b1e40cd6505",
+  "synthetic_only": true,
+  "projection": "internal-sqlite-only",
+  "coverage": "certified-dictionary-v1",
+  "sources": {
+    "a.py": "def first(): pass\ndef second(): pass\nregistry={\"go\":first}\nregistry[\"go\"]=second\n",
+    "b.py": "from a import registry as handlers\ndef run(): handlers[\"go\"]()\n"
+  },
+  "nodes": [
+    {
+      "binding_kind": "declaration",
+      "column": 9,
+      "id": "value:33c739eea1492ede3962ebd566c63c2adfe373c2b061d1de61784d4be6edb2e3",
+      "kind": "binding",
+      "line": 3,
+      "module": "synthetic-review:src/a.py:module:a#1",
+      "name": "registry",
+      "owner_function": null
+    },
+    {
+      "column": 11,
+      "id": "value:466504b47b039fa6ed3808e3d74d8292d274b77159e1798209f39d06d3b2688d",
+      "kind": "read",
+      "line": 2,
+      "module": "synthetic-review:src/b.py:module:b#1",
+      "site_id": "b07561a0e4ad3a954c2a6c346b073dab9bf9d59ac6b0e3e378ac203d91264045",
+      "targets": [
+        "synthetic-review:src/a.py:function:second#1.1"
+      ],
+      "unknown": false
+    },
+    {
+      "column": 0,
+      "id": "value:48b716e288433ff5d352ebd98b03624d0e1909b46ea4a6b2372f3a2af20b0584",
+      "kind": "write",
+      "line": 4,
+      "module": "synthetic-review:src/a.py:module:a#1",
+      "target": "synthetic-review:src/a.py:function:second#1.1"
+    },
+    {
+      "container": "value:dc446d4e8703e44ff8c304d4552cb6f4ce25cd1042232cfff3db7304ed0d65cc",
+      "id": "value:4dc04528e5fac44c0ffe0953a7323ef8dcc85a885978f56da83e5f12f7e44c6b",
+      "key": "go",
+      "kind": "entry",
+      "module": "synthetic-review:src/a.py:module:a#1",
+      "present": true
+    },
+    {
+      "column": 0,
+      "id": "value:d7e89a26f1f0d03005d82e281c1235128d9f2d8e2e375968f7956465ecbf42ab",
+      "kind": "write",
+      "line": 3,
+      "module": "synthetic-review:src/a.py:module:a#1",
+      "target": "synthetic-review:src/a.py:function:first#1.1"
+    },
+    {
+      "column": 9,
+      "id": "value:dc446d4e8703e44ff8c304d4552cb6f4ce25cd1042232cfff3db7304ed0d65cc",
+      "kind": "container",
+      "line": 3,
+      "module": "synthetic-review:src/a.py:module:a#1",
+      "name": "registry"
+    },
+    {
+      "binding_kind": "import",
+      "column": 14,
+      "id": "value:e5ceb1e6e34363377e9b4a7a7fdb5ba9a04a0e87dbe93dcfb7a78ce0712fc30c",
+      "kind": "binding",
+      "line": 1,
+      "module": "synthetic-review:src/b.py:module:b#1",
+      "name": "handlers",
+      "owner_function": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "value:33c739eea1492ede3962ebd566c63c2adfe373c2b061d1de61784d4be6edb2e3",
+      "target": "value:dc446d4e8703e44ff8c304d4552cb6f4ce25cd1042232cfff3db7304ed0d65cc",
+      "kind": "BINDS"
+    },
+    {
+      "source": "value:466504b47b039fa6ed3808e3d74d8292d274b77159e1798209f39d06d3b2688d",
+      "target": "synthetic-review:src/a.py:function:second#1.1",
+      "kind": "POSSIBLE_CALLS"
+    },
+    {
+      "source": "value:466504b47b039fa6ed3808e3d74d8292d274b77159e1798209f39d06d3b2688d",
+      "target": "value:4dc04528e5fac44c0ffe0953a7323ef8dcc85a885978f56da83e5f12f7e44c6b",
+      "kind": "READS"
+    },
+    {
+      "source": "value:466504b47b039fa6ed3808e3d74d8292d274b77159e1798209f39d06d3b2688d",
+      "target": "value:e5ceb1e6e34363377e9b4a7a7fdb5ba9a04a0e87dbe93dcfb7a78ce0712fc30c",
+      "kind": "USES_BINDING"
+    },
+    {
+      "source": "value:48b716e288433ff5d352ebd98b03624d0e1909b46ea4a6b2372f3a2af20b0584",
+      "target": "synthetic-review:src/a.py:function:second#1.1",
+      "kind": "VALUE"
+    },
+    {
+      "source": "value:48b716e288433ff5d352ebd98b03624d0e1909b46ea4a6b2372f3a2af20b0584",
+      "target": "value:466504b47b039fa6ed3808e3d74d8292d274b77159e1798209f39d06d3b2688d",
+      "kind": "REACHES"
+    },
+    {
+      "source": "value:48b716e288433ff5d352ebd98b03624d0e1909b46ea4a6b2372f3a2af20b0584",
+      "target": "value:4dc04528e5fac44c0ffe0953a7323ef8dcc85a885978f56da83e5f12f7e44c6b",
+      "kind": "WRITES"
+    },
+    {
+      "source": "value:d7e89a26f1f0d03005d82e281c1235128d9f2d8e2e375968f7956465ecbf42ab",
+      "target": "synthetic-review:src/a.py:function:first#1.1",
+      "kind": "VALUE"
+    },
+    {
+      "source": "value:d7e89a26f1f0d03005d82e281c1235128d9f2d8e2e375968f7956465ecbf42ab",
+      "target": "value:4dc04528e5fac44c0ffe0953a7323ef8dcc85a885978f56da83e5f12f7e44c6b",
+      "kind": "WRITES"
+    },
+    {
+      "source": "value:dc446d4e8703e44ff8c304d4552cb6f4ce25cd1042232cfff3db7304ed0d65cc",
+      "target": "value:4dc04528e5fac44c0ffe0953a7323ef8dcc85a885978f56da83e5f12f7e44c6b",
+      "kind": "ADDRESSES"
+    },
+    {
+      "source": "value:e5ceb1e6e34363377e9b4a7a7fdb5ba9a04a0e87dbe93dcfb7a78ce0712fc30c",
+      "target": "value:dc446d4e8703e44ff8c304d4552cb6f4ce25cd1042232cfff3db7304ed0d65cc",
+      "kind": "BINDS"
+    }
+  ],
+  "referenced_callables": [
+    {
+      "id": "synthetic-review:src/a.py:function:first#1.1",
+      "label": "first",
+      "kind": "function"
+    },
+    {
+      "id": "synthetic-review:src/a.py:function:second#1.1",
+      "label": "second",
+      "kind": "function"
+    }
+  ],
+  "sites": [
+    {
+      "boundaries": [],
+      "column": 11,
+      "complete": true,
+      "completeness_basis": [
+        "literal-slot-state",
+        "reaching-lexical-binding",
+        "source-value:callable"
+      ],
+      "end_column": 25,
+      "end_line": 2,
+      "evidence": [
+        {
+          "role": "site and execution phase",
+          "tool": "ast"
+        },
+        {
+          "raw": [
+            {
+              "column": 4,
+              "full_name": "a.second",
+              "line": 2,
+              "mapping": "exact-captured-definition",
+              "module_path": "synthetic-review/src/a.py",
+              "name": "second",
+              "repository": "synthetic-review",
+              "source_sha256": "737eb87be78e80cc35a6d3ed5d433efb6e940ea1467b281209a11f005d3ad01a",
+              "target": "synthetic-review:src/a.py:function:second#1.1",
+              "type": "function",
+              "version_id": "7ebabc76d9724ce6a58d9a87ee9f67aa73a97de204bbc42839a8790e773b681e"
+            }
+          ],
+          "role": "definition signal",
+          "tool": "jedi",
+          "version": "0.20.1"
+        },
+        {
+          "association_trace": {
+            "steps": [
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "callable",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:function:second#1.1"
+                  }
+                ],
+                "column": 11,
+                "expression": "handlers['go']",
+                "line": 2,
+                "path": "src/b.py",
+                "proofs": [
+                  "literal-slot-state",
+                  "reaching-lexical-binding",
+                  "source-value:callable"
+                ],
+                "rule": "Subscript",
+                "scope": "synthetic-review:src/b.py:function:run#1.1",
+                "unknown_reasons": []
+              },
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "callable",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:function:first#1.1"
+                  }
+                ],
+                "column": 15,
+                "expression": "first",
+                "line": 3,
+                "path": "src/a.py",
+                "proofs": [
+                  "reaching-lexical-binding",
+                  "source-value:callable"
+                ],
+                "rule": "Name",
+                "scope": "synthetic-review:src/a.py:module:a#1",
+                "unknown_reasons": []
+              },
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "container",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:module:a#1:3:9"
+                  }
+                ],
+                "column": 0,
+                "expression": "registry",
+                "line": 4,
+                "path": "src/a.py",
+                "proofs": [
+                  "reaching-lexical-binding",
+                  "source-value:container"
+                ],
+                "rule": "Name",
+                "scope": "synthetic-review:src/a.py:module:a#1",
+                "unknown_reasons": []
+              },
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "container",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:module:a#1:3:9"
+                  }
+                ],
+                "column": 9,
+                "expression": "{'go': first}",
+                "line": 3,
+                "path": "src/a.py",
+                "proofs": [
+                  "source-value:container"
+                ],
+                "rule": "Dict",
+                "scope": "synthetic-review:src/a.py:module:a#1",
+                "unknown_reasons": []
+              },
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "callable",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:function:second#1.1"
+                  }
+                ],
+                "column": 15,
+                "expression": "second",
+                "line": 4,
+                "path": "src/a.py",
+                "proofs": [
+                  "reaching-lexical-binding",
+                  "source-value:callable"
+                ],
+                "rule": "Name",
+                "scope": "synthetic-review:src/a.py:module:a#1",
+                "unknown_reasons": []
+              },
+              {
+                "alternatives": [
+                  {
+                    "allocation": "",
+                    "bound": false,
+                    "kind": "container",
+                    "receiver": "",
+                    "target": "synthetic-review:src/a.py:module:a#1:3:9"
+                  }
+                ],
+                "column": 11,
+                "expression": "handlers",
+                "line": 2,
+                "path": "src/b.py",
+                "proofs": [
+                  "reaching-lexical-binding",
+                  "source-value:container"
+                ],
+                "rule": "Name",
+                "scope": "synthetic-review:src/b.py:function:run#1.1",
+                "unknown_reasons": []
+              }
+            ],
+            "truncated": false
+          },
+          "decision": {
+            "conflict": false,
+            "excluded_jedi_targets": [],
+            "excluded_lct_targets": [],
+            "jedi_targets": [
+              "synthetic-review:src/a.py:function:second#1.1"
+            ],
+            "lct_targets": [
+              "synthetic-review:src/a.py:function:second#1.1"
+            ],
+            "reason": "matching-signals",
+            "selected_targets": [
+              "synthetic-review:src/a.py:function:second#1.1"
+            ],
+            "semantic_rules": [
+              "literal-slot-state",
+              "reaching-lexical-binding",
+              "source-value:callable"
+            ],
+            "unresolved_jedi_targets": [],
+            "write_source_coverage": {
+              "checks": [
+                {
+                  "column": 0,
+                  "conditional": false,
+                  "event_id": "synthetic-review:src/a.py:module:a#1:1:binding",
+                  "event_kind": "binding",
+                  "kind": "binding",
+                  "line": 1,
+                  "ordered": true,
+                  "outcome": "NO_EFFECT",
+                  "phase": "module",
+                  "reachable": true,
+                  "reason": "no-container-dependency",
+                  "scope": "synthetic-review:src/a.py:module:a#1",
+                  "syntax": "FunctionDef"
+                },
+                {
+                  "column": 0,
+                  "conditional": false,
+                  "event_id": "synthetic-review:src/a.py:module:a#1:3:binding",
+                  "event_kind": "binding",
+                  "kind": "binding",
+                  "line": 2,
+                  "ordered": true,
+                  "outcome": "NO_EFFECT",
+                  "phase": "module",
+                  "reachable": true,
+                  "reason": "no-container-dependency",
+                  "scope": "synthetic-review:src/a.py:module:a#1",
+                  "syntax": "FunctionDef"
+                },
+                {
+                  "column": 0,
+                  "conditional": false,
+                  "event_id": "synthetic-review:src/a.py:module:a#1:10:write",
+                  "event_kind": "write",
+                  "kind": "write",
+                  "line": 3,
+                  "ordered": true,
+                  "outcome": "NO_EFFECT",
+                  "phase": "module",
+                  "reachable": true,
+                  "reason": "no-container-dependency",
+                  "scope": "synthetic-review:src/a.py:module:a#1",
+                  "syntax": "Assign"
+                },
+                {
+                  "column": 0,
+                  "conditional": false,
+                  "event_id": "synthetic-review:src/a.py:module:a#1:16:write",
+                  "event_kind": "write",
+                  "kind": "write",
+                  "line": 4,
+                  "ordered": true,
+                  "outcome": "KNOWN_EFFECT",
+                  "phase": "module",
+                  "reachable": true,
+                  "reason": "ordered-slot-update",
+                  "scope": "synthetic-review:src/a.py:module:a#1",
+                  "syntax": "Assign"
+                }
+              ],
+              "complete": true,
+              "events": [
+                {
+                  "kind": "Assign",
+                  "line": 4,
+                  "scope": "synthetic-review:src/a.py:module:a#1"
+                }
+              ],
+              "gaps": [],
+              "required_events": [
+                "synthetic-review:src/a.py:module:a#1:1:binding",
+                "synthetic-review:src/a.py:module:a#1:3:binding",
+                "synthetic-review:src/a.py:module:a#1:10:write",
+                "synthetic-review:src/a.py:module:a#1:16:write"
+              ],
+              "rule": "container-write-source-coverage",
+              "sources": [
+                {
+                  "source": "finite-container-origin",
+                  "supported": true
+                },
+                {
+                  "source": "selected-literal-slot-value",
+                  "supported": true
+                }
+              ]
+            }
+          },
+          "role": "validated binding/argument/container association",
+          "signal_agrees": true,
+          "tool": "lct"
+        }
+      ],
+      "execution_owner": "synthetic-review:src/b.py:function:run#1.1",
+      "expression": "handlers['go']",
+      "kind": "call",
+      "lexical_owner": "synthetic-review:src/b.py:function:run#1.1",
+      "line": 2,
+      "phase": "body",
+      "resolution_decision": {
+        "conflict": false,
+        "excluded_jedi_targets": [],
+        "excluded_lct_targets": [],
+        "jedi_targets": [
+          "synthetic-review:src/a.py:function:second#1.1"
+        ],
+        "lct_targets": [
+          "synthetic-review:src/a.py:function:second#1.1"
+        ],
+        "reason": "matching-signals",
+        "selected_targets": [
+          "synthetic-review:src/a.py:function:second#1.1"
+        ],
+        "semantic_rules": [
+          "literal-slot-state",
+          "reaching-lexical-binding",
+          "source-value:callable"
+        ],
+        "unresolved_jedi_targets": [],
+        "write_source_coverage": {
+          "checks": [
+            {
+              "column": 0,
+              "conditional": false,
+              "event_id": "synthetic-review:src/a.py:module:a#1:1:binding",
+              "event_kind": "binding",
+              "kind": "binding",
+              "line": 1,
+              "ordered": true,
+              "outcome": "NO_EFFECT",
+              "phase": "module",
+              "reachable": true,
+              "reason": "no-container-dependency",
+              "scope": "synthetic-review:src/a.py:module:a#1",
+              "syntax": "FunctionDef"
+            },
+            {
+              "column": 0,
+              "conditional": false,
+              "event_id": "synthetic-review:src/a.py:module:a#1:3:binding",
+              "event_kind": "binding",
+              "kind": "binding",
+              "line": 2,
+              "ordered": true,
+              "outcome": "NO_EFFECT",
+              "phase": "module",
+              "reachable": true,
+              "reason": "no-container-dependency",
+              "scope": "synthetic-review:src/a.py:module:a#1",
+              "syntax": "FunctionDef"
+            },
+            {
+              "column": 0,
+              "conditional": false,
+              "event_id": "synthetic-review:src/a.py:module:a#1:10:write",
+              "event_kind": "write",
+              "kind": "write",
+              "line": 3,
+              "ordered": true,
+              "outcome": "NO_EFFECT",
+              "phase": "module",
+              "reachable": true,
+              "reason": "no-container-dependency",
+              "scope": "synthetic-review:src/a.py:module:a#1",
+              "syntax": "Assign"
+            },
+            {
+              "column": 0,
+              "conditional": false,
+              "event_id": "synthetic-review:src/a.py:module:a#1:16:write",
+              "event_kind": "write",
+              "kind": "write",
+              "line": 4,
+              "ordered": true,
+              "outcome": "KNOWN_EFFECT",
+              "phase": "module",
+              "reachable": true,
+              "reason": "ordered-slot-update",
+              "scope": "synthetic-review:src/a.py:module:a#1",
+              "syntax": "Assign"
+            }
+          ],
+          "complete": true,
+          "events": [
+            {
+              "kind": "Assign",
+              "line": 4,
+              "scope": "synthetic-review:src/a.py:module:a#1"
+            }
+          ],
+          "gaps": [],
+          "required_events": [
+            "synthetic-review:src/a.py:module:a#1:1:binding",
+            "synthetic-review:src/a.py:module:a#1:3:binding",
+            "synthetic-review:src/a.py:module:a#1:10:write",
+            "synthetic-review:src/a.py:module:a#1:16:write"
+          ],
+          "rule": "container-write-source-coverage",
+          "sources": [
+            {
+              "source": "finite-container-origin",
+              "supported": true
+            },
+            {
+              "source": "selected-literal-slot-value",
+              "supported": true
+            }
+          ]
+        }
+      },
+      "resolution_kind": "proven-targets",
+      "site_id": "b07561a0e4ad3a954c2a6c346b073dab9bf9d59ac6b0e3e378ac203d91264045",
+      "targets": [
+        "synthetic-review:src/a.py:function:second#1.1"
+      ],
+      "unknown_origin": false,
+      "unresolved_reasons": []
+    }
+  ]
+}
