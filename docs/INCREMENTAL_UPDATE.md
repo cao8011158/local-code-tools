@@ -1,5 +1,9 @@
 # Incremental update planner contract (Batch 4, first layer)
 
+## Function-value dependency design status
+
+The proposed [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe a future, finer-grained invalidation model. The current `indexed-v3` partial analysis-read sidecar below is saved and maintained but does not select the affected closure in `python_incremental.prepare`; its `simple-python-v4` certificate and existing file/import closure remain the update admission gate. This documentation adds no schema, graph nodes, or update behavior.
+
 `lct.incremental.plan_update(previous, current)` compares two **already captured**
 inventories. It does not read source files, consult Git, run Jedi, analyze a graph,
 request embeddings, or publish a snapshot. The caller supplies `files` with

@@ -442,3 +442,19 @@ GPT-6 SOL medium完成Analyzer实际container读取记录与全capture writer订
 - 实际公开build验证未来writer订阅、无普通图边的实际读取、失败发布、identical复用、删除过时读取及旧视图隔离。预算降到1仍保持nodes/edges/sites完全相同，截断仅影响依赖证据可用性。
 - 0/40无关模块，目标/异库负对照共2次真实API查询、目标1行、SQLite VM均38步；均SEARCH覆盖索引，无SCAN。构造器全量完整性哈希单独说明。
 - 完整结论analysis-read-independent-review.md；本限定补充通过，Batch4仍未完成，未合并。尚未将partial记录用于增量准入，其他分析依赖与真实业务局部/全量对照仍需完成。无服务、付费、全库或Drive操作。
+
+
+## 阶段65：函数值依赖统一契约与项目Skill开始
+用户确认“好的 请开始工作”。当前限定交付为设计契约、仓库内code-graph-dependency-change Skill、现有实现差距清单与入口链接；不改解析器生产代码，不建图、不调用付费API、不合并。
+- 仓库agentic-trpg/local-code-tools，分支feat/incremental-index-updates，基线4b76e06793e1a3700575e33a67eb7b4de5c5a681、tree27a30a8962a2642437d6a98fcb0dc080554c3840；目标分支仍feat/local-code-tools-import，整个Batch4尚未满足合并门槛。12份关键生产/文档blob已与远端核对。
+- GPT-6 SOL medium开发子Agent编写，主Agent独立审阅。使用batch-dev-review/locality-review及Skill Creator的内容规范，用户明确要求仓库专用，不改/安装个人全局Skill。
+- 对函数定义、字典身份+key条目、写入/调用位置、参数/返回/属性/闭包等记录身份与关系；未知范围订阅、来源支持、别名、顺序/分支、旧新差异及工作队列传播明确契约。循环次数和任意Python运行时精确预测不在目标内。
+- 审计必须区分已保存已消费、已保存未用于闭包、确认缺失、尚未核验；不因为缺细粒度节点就声称旧粗粒度关系完全无用。仅文档/链接/frontmatter/真实源码核验，不重跑几百项业务测试。
+
+
+## 阶段66：统一契约、仓库Skill与差距清单开发完成
+GPT-6 SOL medium子Agent完成限定文档交付，尚未提交/推送，未合并。基线4b76e06793e1a3700575e33a67eb7b4de5c5a681，分支feat/incremental-index-updates。
+- 新增docs/FUNCTION_VALUE_DEPENDENCIES.md、FUNCTION_VALUE_GAP_AUDIT.md、.agents/skills/code-graph-dependency-change/SKILL.md和AGENTS.md；README及INCREMENTAL_UPDATE增加入口，开发记录function-value-doc-development.md。契约覆盖条目身份、写入/调用来源、未知范围、循环非计数、删除支持与依赖传播；明确仅待实现，不改生产/测试/schema/投影。
+- 差距逐类核对变量/字典/列表/属性/参数默认值/返回闭包/lambda/绑定方法/partial/装饰器注册及动态查找；把已有粗边与缺持久证据分开。现有EffectEvent和site证据复用；partial能力仅标未验证。
+- 开发者检查相对链接、YAML frontmatter及测试名称AST引用，均通过；无可执行代码变更，未运行pytest。主Agent独立初检发现旧历史review脚本的本地材料与远端不同，已排除上传，基树保持远端原字节；所有本地已有生产/测试blob与远端一致。
+- 下一步固定远端文档提交后独立检查及新上下文Skill演练；不安装个人全局Skill、不启动服务、无API/建图/Drive。

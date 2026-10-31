@@ -1,5 +1,9 @@
 # Agentic TRPG Local Code Tools 1.0.0
 
+## Function-value dependency design (documentation only)
+
+[Design contract](docs/FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe a proposed function-value dependency model and its separation from the current partial incremental evidence. Repository agents should start at [AGENTS.md](AGENTS.md) and the [local skill](.agents/skills/code-graph-dependency-change/SKILL.md) for parser, graph, dependency or update work. No production analyzer, graph schema, update admission, or Neo4j behavior changes in this documentation batch.
+
 这是独立私有源码审阅仓库，包含真实的解析、Code Graph、检索、增量版本管理、CLI 和 stdio MCP 实现。
 **本仓库不提供真实数据库、节点目录数据、图数据、向量、索引或 Release 附件。**
 Git checkout 用于审阅、开发和合成测试。本机已有完整工具包保留在原位置，上传不会重建或删除它。
