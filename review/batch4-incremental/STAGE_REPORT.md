@@ -920,3 +920,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root独立3个反例+原11来源控制+开发6共20 passed；组合825 passed/32 skipped/77.27秒，原始日志与精确命令在DEVELOPER_BATCH1_REVIEW2_FIX.md。三种反例完整sites JSON与固定旧源码逐字节相同，双方JSON/可复现oracle保存。专项与全集重合，不相加。
 - 生产修复仅python_analysis.py；DEVELOPER_BATCH1_REVIEW2_SHA256.txt逐项校验通过，F/E9及CRLF-aware diff检查通过。root测试及累计报告未由开发者改动。修复尚未推送，开发通过不等于独立通过。
 - 下一步固定远端修复提交，独立重跑全部要求与原问题/变体/语义/局部性，正式第2/3轮；第1轮changes_required与原失败证据保留，问题未提前关闭。Batch2继续等待，未合并。
+
+## 阶段117：Batch 1第2/3轮独立审阅通过，进入Batch 2前保存验收证据
+
+- 固定d2ac250bd4f6563415a7a77a6645d47e7154a7e9/tree c7b0bdcf3b8a3f1082d89119db3acd0fe8168880；完整B1仍从60784b4...审阅。302份恢复文件Git blob一致，0不符，旧本地开发log不作为远端文件；未启用调度/AST草稿不在候选中。实际目标仍fc857f395a381e5dfec9941d60ca685bcbe0b3fd。
+- root独立完整要求集合825 passed/32 skipped/74.96秒，退出0。三个原反例+原root11来源控制+开发6均包含，不相加。开发者在同一无orphan固定副本另跑20 passed/3.46秒与主tests653 passed/27 skipped/41.53秒，实际命令/哈希日志写BATCH1_EVIDENCE.json，消除旧工作树program_hash来源歧义。
+- B4-SRC-01-UNKNOWN-ARG明确关闭：unpacking/missing都保存已知提供方和消费site、正确形参与原unknown原因，不添具体target、不改解包推理或完整性。root独立再生成三种旧/新完整sites JSON逐字节相同；原六文件16旧表及元数据摘要仍相同；F/E9通过。原第1轮失败和修复路径保留，不改写为一次通过。
+- 当前head重跑来源反查扩容与冷热控制通过；0/20/100固定目标SQL/R不增加，真实计划SEARCH索引无SCAN。整工件校验、完整源码准备/物化成本单列。证据check_gate在刚核对的d2ac250代码头及fc857f3目标下READY、正式review2轮、无未解决finding；仅代表B1记录门槛，不代表三批整体可合并。
+- 累计BATCH1_SOURCE_REVIEW.md补第2轮pass；BATCH1_EVIDENCE.json及原始root/developer日志、语义JSON和gate输出保存。下一提交只保存这些关闭证据，B1受验生产代码不变；随后按用户已批准计划启动Batch2。当前来源ledger仍observed/partial，不能当任意Python完整负依赖证明。未合并、未启付费API/业务执行/外部服务。

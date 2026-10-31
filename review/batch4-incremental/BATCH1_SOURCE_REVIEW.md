@@ -25,3 +25,17 @@ Actual: `Analyzer.parameter` appends `unknown('argument-unpacking')` and bypasse
 Required repair: record the known providing/consuming locations on these unresolved binding branches, with empty/unknown candidate values as appropriate and accurate reasons. Preserve the original UNKNOWN result and all existing analyzer behavior. Do not implement argument-unpacking evaluation, remove guards, invent a concrete function target, or relabel coverage complete. Add the missing-required-input variant; rerun the source controls, original public semantic oracle and required full regression.
 
 The next formal review is round 2/3 for this same chain. Batch 2 remains blocked pending Batch 1 acceptance; no merge.
+
+## Round 2/3 — pass
+
+Fixed `d2ac250bd4f6563415a7a77a6645d47e7154a7e9`, tree `c7b0bdcf3b8a3f1082d89119db3acd0fe8168880`. The only production repair after round 1 is source observation in the existing unpacking/missing-required UNKNOWN branches. The full batch remains based on `60784b413d6f9133e5ac1344ccd0bd232e78abe4`.
+
+- **B4-SRC-01-UNKNOWN-ARG resolved.** All three independent variants now save the known provider/call site and consuming formal site as unknown actual-parameter support, with accurate original reasons and no invented target IDs. The reverse reader index finds the consumer.
+- Independent fixed-candidate full required suite: **825 passed, 32 skipped, 74.96s**, exit 0. The 3 regression variants, original 11 root controls and 6 developer controls are included, not added as separate coverage.
+- 302 materialized remote blobs matched, no mismatch. One old developer log is outside the remote candidate; inactive scheduler/AST-cache draft files are excluded. No production files changed during review.
+- The developer also reran the exact fixed directory without the inactive orphan draft: targeted **20 passed/3.46s**, main **653 passed/27 skipped/41.53s**. Commands and hashed raw logs are bound in BATCH1_EVIDENCE.json.
+- Root independently regenerated original and repaired full site JSON for unpacking and missing input: byte-for-byte equal in all three cases. The six-file, 16-table legacy semantic comparison and metadata are also equal to original `4537843`. F/E9 passes.
+- Root repeated the actual source lookup growth control on this head. Cold/hot 0/20/100 SQL and output counts remain constant; VM steps preserve the same fixed boundary/prepared-statement differences. Actual SELECT plans remain indexed SEARCH without SCAN. Snapshot hashing, full source preparation and materialization are explicitly outside that query-only measurement.
+- The evidence checker is READY with two preserved review rounds and no unresolved findings, at observed code head d2ac250 and unchanged target fc857f3. READY applies to Batch 1 only; the entire feature cannot merge before B4-OWNER-UPDATE and B4-ACCEPTANCE.
+
+The new origin ledger is deliberately observed/partial. It complements existing semantic-input and import evidence; it must not be treated as an exhaustive negative dependency proof in Batch 2. The public incremental route is still the old route until that batch. No paid API, business-source execution, external service startup or merge was performed.

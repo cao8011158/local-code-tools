@@ -1,0 +1,3 @@
+{'origin_lookup_measurements': [[{'vm_steps': 161, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 157, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}], [{'vm_steps': 162, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 158, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}], [{'vm_steps': 162, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 158, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}]]}
+.
+1 passed, 10 deselected in 1.23s

@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "batch_id": "B4-SOURCES",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/incremental-index-updates",
+  "base_sha": "60784b413d6f9133e5ac1344ccd0bd232e78abe4",
+  "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "fc857f395a381e5dfec9941d60ca685bcbe0b3fd",
+  "implementation_actor": "/root/incremental_developer:gpt-6-sol/medium",
+  "merge_authorized": true,
+  "authorization_reference": "User approved APPROVED_DEPENDENCY_BATCHES.md; merge remains conditional on all three batches and the prior full-step gates.",
+  "scope": [
+    "Source-located call, callback-argument and container dependencies with indexed inspection; no owner scheduling enabled"
+  ],
+  "acceptance_criteria": [
+    "Original public full-analysis semantics unchanged",
+    "Known providers retained on unresolved argument branches",
+    "Distinct container and allocation identities; memo consumers inherit source evidence",
+    "Bounded inspection, complete related readers and indexed locality under unrelated growth",
+    "Current schema/unavailable/old view behavior and immutable artifacts"
+  ],
+  "feature_complete": true,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "reviewer",
+      "kind": "targeted",
+      "head_sha": "948eea8a303a4b6cb35db483e06480e115dbfaa3",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/workspace/scratch/45363df3617b/task-evidence/test_source_unpacking_review.py",
+        "--tb=short"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "source-origins-unknown-argument-review.log",
+      "log_sha256": "56660e4df2c5ea4e6db066e1807e87e5a93b88702048a606a9ba446a2504ae71",
+      "cwd": "/workspace/scratch/45363df3617b/b1-review-fixed"
+    },
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "command": [
+        "/workspace/scratch/45363df3617b/local-code-tools/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_dependency_origins.py",
+        "review/batch4-incremental/test_dependency_origins_independent.py",
+        "review/batch4-incremental/test_source_origin_unknown_inputs_independent.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "source-origins-review2-developer-fixed-targeted.log",
+      "log_sha256": "6145586ea5a7fc963bb12d5281168db0938bb3c483b8b6c840e1da809684bac3",
+      "cwd": "/workspace/scratch/45363df3617b/b1-review2-fixed"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "command": [
+        "/workspace/scratch/45363df3617b/local-code-tools/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "source-origins-review2-developer-fixed-fast.log",
+      "log_sha256": "86469ff5140756e6668ec74af1d968ea43e82c3b9d6001b4b8e3be5a22a72245",
+      "cwd": "/workspace/scratch/45363df3617b/b1-review2-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "command": [
+        "bash",
+        "-lc",
+        "mapfile -t batch1_review_tests < <(rg --files review/batch4-incremental | rg '/test_.*\\.py$' | rg -v 'test_owner_update_independent|test_actual_source_controls_independent|test_actual_source_current_diagnostic|test_actual_source_subset_diagnostic|test_module_lookup_keys_independent|test_lookup_neo4j_independent')\n.venv/bin/python -m pytest -q tests \"${batch1_review_tests[@]}\" --tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "source-origins-review2-root-suite.log",
+      "log_sha256": "49a825367709d896149491df3092cc550fe23215051ddf26c16222bffd6caaf2",
+      "cwd": "/workspace/scratch/45363df3617b/b1-review2-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "feature_acceptance",
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "command": [
+        "python3",
+        "review/batch4-incremental/check_source_origin_acceptance.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "source-origins-review2-feature-acceptance.log",
+      "log_sha256": "c35d8f557f7b9b0badfe6601c81d08c77be0247f190f518432a20cf5b60541a7",
+      "cwd": "/workspace/scratch/45363df3617b/local-code-tools"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "review/batch4-incremental/test_dependency_origins_independent.py",
+        "-k",
+        "known_owner",
+        "-s",
+        "--tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "source-origins-review2-root-scale.log",
+      "log_sha256": "907df2b60215e6b15857cbd5db8fdf9d27cdc123f9b6e27b068ee2f04dfd0fef"
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "948eea8a303a4b6cb35db483e06480e115dbfaa3",
+      "remote_head_sha": "948eea8a303a4b6cb35db483e06480e115dbfaa3",
+      "actor": "/root",
+      "verdict": "changes_required",
+      "counterexample_note": "Known *args/**kwargs providers lost from actual-parameter ledger; two failed direct controls, plus confirmed missing-required variant. Public full analysis unchanged."
+    },
+    {
+      "round": 2,
+      "head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "remote_head_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9",
+      "actor": "/root",
+      "verdict": "pass",
+      "counterexample_note": "825 passed/32 skipped on fixed remote source; unknown-input variants and original source controls pass; old table/meta hashes and full unknown-input site bytes equal; indexed cold/hot 0/20/100 controls pass."
+    }
+  ],
+  "findings": [
+    {
+      "id": "B4-SRC-01-UNKNOWN-ARG",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "resolved",
+      "discovered_in_batch": "B4-SOURCES",
+      "owner_step": "Batch4 incremental update",
+      "owner_batch": "B4-SOURCES",
+      "origin": "current-batch-source-recording",
+      "dependency_core": false,
+      "route": "authorized-in-scope-fix",
+      "decision_reference": "User approved all three batches; routine P2 repair per batch-dev-review",
+      "fix_commit": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9"
+    }
+  ],
+  "step_complete": false,
+  "remaining_batches": [
+    "B4-OWNER-UPDATE",
+    "B4-ACCEPTANCE"
+  ],
+  "note": "A READY Batch 1 record does not authorize merging the incomplete three-batch feature. This binds the observed code head before the closing evidence-only commit."
+}
