@@ -4,7 +4,7 @@
   "repository": "agentic-trpg/local-code-tools",
   "branch": "feat/incremental-index-updates",
   "base_sha": "b8eb6ab5aab4554a2b5fc90204d6c12a1c2655fb",
-  "head_sha": "4f73d150cd4831f29d042b4eb692ea845a6b64ce",
+  "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
   "target_branch": "feat/local-code-tools-import",
   "target_sha": "fc857f395a381e5dfec9941d60ca685bcbe0b3fd",
   "implementation_actor": "/root/incremental_developer:gpt-6-sol/medium",
@@ -93,6 +93,79 @@
       "log": "b2-review1-root-scale.log",
       "log_sha256": "d1f082ce9f4eca4eefd9daf8b24607e90384329977fe7998a5a57097b8c954f9",
       "cwd": "/workspace/scratch/45363df3617b/b2-review1-fixed"
+    },
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_owner_incremental.py",
+        "tests/test_dependency_origins.py",
+        "review/batch4-incremental/test_owner_update_independent.py",
+        "review/batch4-incremental/test_owner_effect_origins_independent.py",
+        "review/batch4-incremental/test_owner_candidates_independent.py",
+        "review/batch4-incremental/test_owner_auxiliary_edges_independent.py",
+        "review/batch4-incremental/test_owner_receiver_coverage_independent.py",
+        "review/batch4-incremental/test_dependency_origins_independent.py",
+        "review/batch4-incremental/test_source_origin_unknown_inputs_independent.py"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b2-review2-developer-fixed-targeted.log",
+      "log_sha256": "67eea83bc895884560c9b51b9cae6145a2ad4670a10860dbaa41b04ff3bc1346",
+      "cwd": "/workspace/scratch/45363df3617b/b2-review2-fixed"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b2-review2-developer-fixed-main.log",
+      "log_sha256": "3915dddc99017c474b4aa5d216a68e12113aa75cd3dc2775244a8894b68bb7ff",
+      "cwd": "/workspace/scratch/45363df3617b/b2-review2-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "command": [
+        "bash",
+        "-lc",
+        "mapfile -t batch2_review_tests < <(rg --files review/batch4-incremental | rg '/test_.*\\.py$' | rg -v 'test_actual_source_controls_independent|test_actual_source_current_diagnostic|test_actual_source_subset_diagnostic|test_module_lookup_keys_independent|test_lookup_neo4j_independent')\n.venv/bin/python -m pytest -q tests \"${batch2_review_tests[@]}\" --tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b2-review2-root-suite.log",
+      "log_sha256": "e8905357af095d4ca0f880cf1b6c29231df1104ca30f9622be316e6d80b1e649",
+      "cwd": "/workspace/scratch/45363df3617b/b2-review2-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "review/batch4-incremental/test_owner_update_independent.py::test_owner_analysis_work_does_not_grow_with_unrelated_functions",
+        "review/batch4-incremental/test_dependency_origins_independent.py::test_known_owner_and_container_queries_remain_indexed_under_unrelated_growth",
+        "review/batch4-incremental/test_changed_python_access_independent.py::test_public_component_queries_use_indexes_with_unrelated_relation_growth"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b2-review2-root-scale.log",
+      "log_sha256": "a7a91847ec6a7201cd9df4d0574f22c1495fa03bf303ce21121f4719c180e4e4",
+      "cwd": "/workspace/scratch/45363df3617b/b2-review2-fixed"
     }
   ],
   "reviews": [
@@ -103,6 +176,14 @@
       "actor": "/root",
       "verdict": "pass",
       "counterexample_note": "866 passed/32 skipped on 352 exact remote blobs; all 3 preflight P2 fixes and multi-source lookup/multi-pass callbacks match fresh; SQL plans and 0/20/100 solver work verified; source unchanged after tests."
+    },
+    {
+      "round": 2,
+      "head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "remote_head_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "actor": "/root",
+      "verdict": "pass",
+      "counterexample_note": "872 passed/32 skipped at fixed377 matching Git blobs before/after; real six-file provenance equals fresh via explicit narrow selected-receiver fallback; unrelated idle/real parameter-origin/None receipt controls pass; 0/20/100 solver and indexed source plans preserved."
     }
   ],
   "findings": [
@@ -159,19 +240,20 @@
       "severity": "P2",
       "confirmed": true,
       "blocking": true,
-      "state": "open",
+      "state": "resolved",
       "discovered_in_batch": "B4-ACCEPTANCE",
       "owner_step": "Batch4 incremental update",
       "owner_batch": "B4-OWNER-UPDATE",
       "origin": "current-batch-selected-owner-explanation",
       "dependency_core": false,
       "route": "reopen-prior-batch-authorized-P2",
-      "decision_reference": "Approved routine current-step P2 repair; preserve B2 round1 and pause dependent acceptance"
+      "decision_reference": "Approved routine current-step P2 repair; preserve B2 round1 and pause dependent acceptance",
+      "fix_commit": "7f1d86e0b136a6df11cc981da053aa3c584b5f61"
     }
   ],
   "step_complete": false,
   "remaining_batches": [
     "B4-ACCEPTANCE"
   ],
-  "note": "B2 reopened during B3 real six-file semantic mutation. Round1 pass is historical; the former point-in-time READY does not permit further acceptance/merge until finding04 is fixed and B2 round2 passes."
+  "note": "B2 reopened during B3, repaired and round2 accepted; original round1/history preserved. Point-in-time gate at current code head before closing report only; B3 and overall merge remain pending."
 }

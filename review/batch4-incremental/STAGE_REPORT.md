@@ -970,3 +970,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root首个“无关Opaque”控制前提错误：旧真实unit_analysis_reads已有caller→Opaque.ignored parameter-origin读，因此caller改动按现有Full语义确实相关，不能为测试绿灯跳过。root改为有明确无读的idle函数常量变化，证明含opaque类的捕获仍可owner；另保留已记录依赖时应full的对照，不改参数负候选精度或降低fresh断言。新独立4例含六真实值改动、无关idle、旧真实依赖、None receipt均通过。
 - 静止主tests675 passed/27 skipped，定向67 passed；三文件SHA校验全部OK，F/E9及diff空白检查通过。DEVELOPER_BATCH2_REVIEW2_FIX.md及SHA、原始主/定向与失败日志保存。B3未完项目测试已移任务检查点，不夹带B2修复提交；先前B3九文件证据不冒充新guard提交验收。
 - 04仍待正式关闭：下一步固定修复头，从独立目录核验完整B2 base..head并重跑要求集合，B2正式第2/3轮；原第1轮历史及重开原因保留。B3依赖工作仍暂停，未合并。
+
+## 阶段123：重开后的Batch 2第2/3轮固定审阅通过，恢复Batch 3
+
+- 固定7f1d86e0b136a6df11cc981da053aa3c584b5f61/tree6cd5780e4c3269e3ab87231503c3d7dc92250842，完整B2仍从b8eb6ab...审阅；目标fc857f395a381e5dfec9941d60ca685bcbe0b3fd未变。377份已物化文件远端Git blob前后全部一致，0不符/0orphan；653未恢复均历史review。未完B3项目/独立发布测试不在B2候选中。
+- root固定目录完整要求集合872 passed/32 skipped/121.05秒；开发同目录675 passed/27 skipped/56.94秒、定向67 passed/38.05秒，重合不相加。原五文件六项基线诊断/服务排除未变；改动F/E9通过。root最初误在工作目录启动，已exit130中止并保存为initial-cwd-interrupted，不作证据；正式结果来自b2-review2-fixed，不因此虚增/重置审阅轮次。
+- B4-OWN-04明确关闭：真实六文件数值变化按被选opaque receiver实际来源覆盖不足full，100步骤/1134gaps等来源轨迹与fresh一致，未改Full精度/UNKNOWN。含opaque方法但无真实依赖的idle函数变化仍owner；旧parameter-origin实际读不抹除；self()的None receipt边界不崩溃；普通开放callback仍owner。新04链的原红例、错误“无关”假设和初修None退化均保留。
+- 当前头再次0/20/100扩容：selected7、Jedi10、association12、sites3不变，仅变动文件解析；来源SQL冷161/162/162、热157/158/158、索引SEARCH与输出数不变。实际准备/整工件验证/序列化仍全量成本，未声称全流程O(K)。
+- BATCH2_OWNER_REVIEW追加第2轮pass，EVIDENCE保留第1轮及所有findings；04resolved，刚核对7f1d86与fc857f3时gate READY、正式两轮、无blocking。下一提交仅关闭证据，生产不变，再恢复B3有界真实输入/发布恢复/离线dense验收。旧九文件诊断不冒充新program hash验收，不抬20k预算、不扩83/三库、不执行源码/付费API/服务；整体仍未合并。

@@ -1,4 +1,6 @@
-# B4-OWNER-UPDATE — independent review, round 1/3: pass
+# B4-OWNER-UPDATE — independent review history
+
+Current accepted code: `7f1d86e0b136a6df11cc981da053aa3c584b5f61`, round **2/3**. The initial round1 and subsequent reopening are preserved below.
 
 Reviewed the complete `b8eb6ab5aab4554a2b5fc90204d6c12a1c2655fb` →
 `4f73d150cd4831f29d042b4eb692ea845a6b64ce` batch. Candidate tree:
@@ -89,3 +91,40 @@ opaque receiver source cannot be certified. Do not reject every UNKNOWN or
 complex file, remove evidence, or change full-analysis precision. Original
 logs and independent positive/negative controls are retained. B2 requires a
 new fixed-head round2 review before B3 resumes.
+
+## Round 2/3: pass, B4-OWN-04 resolved
+
+Fixed `7f1d86e0b136a6df11cc981da053aa3c584b5f61`, tree
+`6cd5780e4c3269e3ab87231503c3d7dc92250842`; full B2 base remains
+`b8eb6ab5aab4554a2b5fc90204d6c12a1c2655fb`. Target still fc857f3.
+377 required/materialized files matched remote Git blobs before/after tests;
+zero mismatch or local-only files. Unmaterialized653 are historical review.
+B3 unfinished tests were held outside this fixed candidate.
+
+Independent complete required set: **872 passed, 32 skipped, 121.05s**.
+Developer same fixed directory: 675/27 in56.94s and targeted67 in38.05s;
+not added to the independent count. Source/owner locality3 controls passed
+in3.98s: selected7/Jedi10/associations12/sites3 remain identical with0/20/100
+unrelated active functions; source cold161/162/162 and warm157/158/158,
+actual indexed SEARCH plans preserved. Changed-code F/E9 passes.
+
+The narrow selected-owner evidence guard fixes04 without changing full
+analysis or dropping provenance. The actual six-file value edit now explicitly
+uses full analysis and matches all semantic/input/source records. A capture
+containing an opaque method still updates an unreferenced idle function by
+owner. The apparent unrelated caller control had a real parameter-origin read;
+that dependency remains and selects the opaque consumer. A direct self() call
+has no field receipt; its None value no longer raises and its unrelated update
+remains incremental. Ordinary open callbacks stay eligible.
+
+The initial root launch used the active cwd accidentally; it was interrupted
+with exit130, retained separately, and is not review evidence. The completed
+round above ran from b2-review2-fixed. This execution correction did not consume
+an extra formal round. Original P2 reproduction, failed test assumptions and
+None-guard regression logs remain preserved.
+
+B4-OWN-04 is resolved, no blocking findings remain. The checked gate binds
+7f1d86e and the unchanged target before the closing evidence-only commit.
+Resume B3 acceptance with the guarded implementation; do not treat the old
+nine-file diagnostics as acceptance on this new program hash. The existing
+20k full-analysis budget/limited boundary remains explicit.
