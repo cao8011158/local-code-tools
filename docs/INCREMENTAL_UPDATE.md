@@ -16,11 +16,14 @@ three-file real-source fixture described below, while arbitrary business capture
 still fall back. Schema 1 accepts only its original kind vocabulary; new kinds under schema 1
 or unknown kinds under either schema fail sidecar validation.
 
-An independent `analysis_input_schema=1` sidecar records the captured input
-scope of each actual Jedi query: a validated v6 import component, or a single
+An independent `analysis_input_schema=2` sidecar records the captured input
+scope of actual Jedi queries, call-candidate enumeration, lexical lookup,
+member lookup and ordinary resolve input: a validated v6 import component, or a single
 capture-wide scope when that component proof is unavailable. The normalized
-SQLite tables store scope, member and consumer rows; the manifest carries only
-`captured-query-scopes-partial`, counts and truncation. This is **not** a complete
+SQLite tables store scope, member and consumer rows; each consumer carries an
+OR-ed purpose mask (1/2/4/8/16) without duplicating its scope members. The manifest carries only
+`captured-analysis-scopes-partial`, counts and truncation. Schema 1 Jedi-only
+rows remain readable with mask 1, but cannot authorize new local reuse. This is **not** a complete
 Jedi read witness: it does not assert all internal, external or prospective
 namespace reads. `prepare` queries indexed component members for a changed
 file and seeds capture-scope consumers once, in addition to the existing schema

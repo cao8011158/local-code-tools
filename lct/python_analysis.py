@@ -27,6 +27,7 @@ from .python_effects import (
 )
 
 _DYNAMIC = object()
+_SAME_INPUT_SCOPE = object()
 ANALYSIS_DEPENDENCY_LIMIT = 20000
 ANALYSIS_READ_KINDS = frozenset({"container-effects", "member-lookup", "return-body",
                                  "parameter-origin", "jedi-target"})
@@ -103,6 +104,7 @@ class Analyzer:
         self.candidate_components = candidate_components
         self.analysis_inputs = AnalysisInputs({i: n for i, n in nodes.items()
                                               if n["kind"] == "module"})
+        self._analysis_input_ready = False
         self.owner = {id(t): ident for ident, t in trees.items()}
         self.modules = {i: t for i, t in trees.items() if isinstance(t, ast.Module)}
         self.statements = {
@@ -241,6 +243,27 @@ class Analyzer:
         self.slot_events_checked = 0
         self.value_reads = {}
         self.access = ReceiverAccess(self, Atom, Result)
+        self._analysis_input_ready = True
+
+    def _observe_analysis_input(self, scope, purpose, producer_scope=_SAME_INPUT_SCOPE,
+                                *, consumer_scope=None):
+        """Record one captured input range without changing semantic resolution."""
+        if not self._analysis_input_ready:
+            raise RuntimeError("Analysis input observed during Analyzer initialization")
+        consumer_scope = (consumer_scope if consumer_scope is not None else
+                          self.stack[-1][0] if self.stack else scope)
+        consumer = self.module_for.get(consumer_scope)
+        producer = self.module_for.get(scope if producer_scope is _SAME_INPUT_SCOPE
+                                       else producer_scope)
+        if consumer is None:
+            self.analysis_inputs.truncated = True
+            return
+        component = (self.candidate_components.get(consumer)
+                     if self.candidate_components is not None and
+                     len(self.sites) == self._site_index_size else None)
+        if component is not None and producer not in component:
+            component = None
+        self.analysis_inputs.observe(consumer, component, purpose)
 
     def _record_analysis_dependency(self, destination, record):
         if record in destination:
@@ -334,6 +357,7 @@ class Analyzer:
 
     def candidate_sites(self, function):
         """Preserve may_call's admission and original site order, including unknowns."""
+        self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
         component = self._candidate_component(function)
         if self._query_inflight or len(self.sites) != self._site_index_size:
             return self.sites if component is None or len(self.sites) != self._site_index_size else self.sites_for(function)
@@ -359,6 +383,7 @@ class Analyzer:
 
     def sites_for(self, function):
         """The full ordered candidate universe within a certified component."""
+        self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
         component = self._candidate_component(function)
         if component is None or len(self.sites) != self._site_index_size:
             return self.sites
@@ -674,10 +699,7 @@ class Analyzer:
     def query(self, scope, expr, goto=False):
         """Preserve tool failures and every raw definition mapping."""
         module = self.module_for[scope]
-        component = (self.candidate_components.get(module)
-                     if self.candidate_components is not None and
-                     len(self.sites) == self._site_index_size else None)
-        self.analysis_inputs.observe(module, component)
+        self._observe_analysis_input(scope, "jedi-query")
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
             self._record_query_targets(scope, self.queries[key][1])
@@ -757,6 +779,7 @@ class Analyzer:
         If alternatives are unioned. Loops/try/match writes remain unknown. There is
         no execution environment, path simulation, heap or convergence algorithm.
         """
+        self._observe_analysis_input(scope, "lexical-lookup")
         before = (before, 10**9) if isinstance(before, int) else before
 
         def scan(body, previous):
@@ -847,6 +870,7 @@ class Analyzer:
 
     def resolve(self, scope, expr, before=None):
         """Use finite associations where defined and Jedi otherwise."""
+        self._observe_analysis_input(scope, "resolve-input")
         if expr is None:
             return unknown("missing-value")
         before = before if before is not None else (expr.lineno, expr.col_offset)
@@ -1012,6 +1036,7 @@ class Analyzer:
 
     def name(self, scope, name, before, anchor):
         """Resolve lexical names; method bodies skip class namespaces."""
+        self._observe_analysis_input(scope, "lexical-lookup")
         current = scope
         while current in self.trees:
             t = self.trees[current]
@@ -1122,6 +1147,7 @@ class Analyzer:
 
     def attribute(self, scope, expr):
         """Apply descriptor boundaries, instance fields, then nondata class members."""
+        self._observe_analysis_input(scope, "member-lookup")
         receivers = self.resolve(scope, expr.value)
         cov = self.coverage_models.setdefault(
             (scope, id(expr)), EffectCoverage("instance-field-coverage")
@@ -2481,6 +2507,7 @@ class Analyzer:
 
     def member(self, owner, name, skip_own=False, seen=None):
         """Use exact owned bindings or a single explicit base; complex MRO stays open."""
+        self._observe_analysis_input(owner, "member-lookup")
         self._record_scope_read(owner, "member-lookup")
         seen = set() if seen is None else seen
         if owner in seen:
@@ -2513,6 +2540,9 @@ class Analyzer:
         compared by exact node identity. Missing or failed Jedi observations are admitted
         conservatively, preserving AST-only associations and explicit budget limits.
         """
+        self._observe_analysis_input(function, "call-candidates",
+                                     producer_scope=site["execution_owner"],
+                                     consumer_scope=function)
         expr = site["_expr"]
         name = (
             expr.id

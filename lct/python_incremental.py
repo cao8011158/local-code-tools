@@ -66,8 +66,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         return None, "previous-value-flow-evidence-unavailable"
     if prior.get("analysis_dependency_schema") not in (1, 2) or prior.get("analysis_dependency_truncated"):
         return None, "previous-analysis-dependency-evidence-unavailable"
-    if (prior.get("analysis_input_schema") != 1 or
-            prior.get("analysis_input_coverage") != "captured-query-scopes-partial" or
+    if (prior.get("analysis_input_schema") != analysis_inputs.SCHEMA or
+            prior.get("analysis_input_coverage") != analysis_inputs.COVERAGE or
             prior.get("analysis_input_truncated") or
             not dependencies.input_scope_available):
         return None, "previous-analysis-input-evidence-unavailable"
@@ -214,7 +214,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 "select consumer_module,producer_module,kind from analysis_reads"))
             old_analysis_watches = list(evidence.execute(
                 "select consumer_module,kind,universe from analysis_watches"))
-            old_input_payload = analysis_inputs.read(evidence)
+            old_input_payload = analysis_inputs.read(evidence, schema=analysis_inputs.SCHEMA)
             old_input_payload["truncated"] = prior["analysis_input_truncated"]
             old_value_nodes = [json.loads(raw) for (raw,) in evidence.execute(
                 "select data from value_nodes")]

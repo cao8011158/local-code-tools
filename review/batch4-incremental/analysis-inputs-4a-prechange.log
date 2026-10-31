@@ -1,0 +1,31 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_non_jedi_entrypoints_share_one_scope_and_purpose_mask __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-106/test_non_jedi_entrypoints_shar0')
+
+    def test_non_jedi_entrypoints_share_one_scope_and_purpose_mask(tmp_path):
+        source = "def target(): pass\nclass C: pass\n"
+        nodes, trees = python_nodes(dict(repository="r", path="a.py", text=source,
+                                         sha256=digest(source), is_test=False))
+        graph = Graph(nodes, trees, [dict(name="r", path=str(tmp_path), head="captured")])
+        module = next(n["node_id"] for n in nodes if n["kind"] == "module")
+        target = next(n["node_id"] for n in nodes if n.get("qualname") == "target")
+        cls = next(n["node_id"] for n in nodes if n.get("qualname") == "C")
+        analyzer = Analyzer(graph.nodes, trees, graph.repos, graph.imported,
+                            candidate_components={module: frozenset({module})})
+        try:
+            assert list(analyzer.candidate_sites(target)) == []
+            assert analyzer.reaching(module, "target", 10**9)
+            assert analyzer.member(cls, "absent") is None
+            import ast
+            assert analyzer.resolve(module, ast.parse("1", mode="eval").body).atoms
+            rows = analyzer.analysis_inputs.export()["consumers"]
+>           assert len(rows) == 1 and (rows[0]["purposes"] & 30) == 30
+E           assert (0 == 1)
+E            +  where 0 = len([])
+
+tests/test_analysis_inputs.py:99: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_analysis_inputs.py::test_non_jedi_entrypoints_share_one_scope_and_purpose_mask
+1 failed in 0.76s

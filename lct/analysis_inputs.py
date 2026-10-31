@@ -4,6 +4,11 @@ from .common import canonical, digest
 
 LIMIT = 20000
 CAPTURE = "capture:all-captured-python"
+SCHEMA = 2
+COVERAGE = "captured-analysis-scopes-partial"
+PURPOSES = {"jedi-query": 1, "call-candidates": 2, "lexical-lookup": 4,
+            "member-lookup": 8, "resolve-input": 16}
+ALL_PURPOSES = 31
 
 
 class AnalysisInputs:
@@ -13,11 +18,12 @@ class AnalysisInputs:
         self.scopes = {}
         self.members = {}
         self.member_count = 0
-        self.consumers = set()
+        self.consumers = {}
         self.component_ids = {}
         self.truncated = False
 
-    def observe(self, consumer_module, component):
+    def observe(self, consumer_module, component, purpose="jedi-query"):
+        bit = PURPOSES[purpose]
         if consumer_module not in self.modules:
             self.truncated = True
             return
@@ -25,7 +31,7 @@ class AnalysisInputs:
             ident, kind, members = CAPTURE, "capture", ()
         else:
             ident = self.component_ids.get(component)
-            if ident is not None and (ident, consumer_module) in self.consumers:
+            if ident is not None and self.consumers.get((ident, consumer_module), 0) & bit:
                 return
             if consumer_module not in component:
                 self.truncated = True
@@ -37,17 +43,18 @@ class AnalysisInputs:
                 ident = "component:" + digest(canonical(sorted(component)))
                 self.component_ids[component] = ident
             kind, members = "component", component
-        if (ident, consumer_module) in self.consumers:
+        previous = self.consumers.get((ident, consumer_module), 0)
+        if previous & bit:
             return
-        extra = 1 + len(members) if ident not in self.scopes else 0
-        if len(self.scopes) + self.member_count + len(self.consumers) + extra + 1 > self.limit:
+        extra = (1 + len(members) if ident not in self.scopes else 0) + (not previous)
+        if len(self.scopes) + self.member_count + len(self.consumers) + extra > self.limit:
             self.truncated = True
             return
         if ident not in self.scopes:
             self.scopes[ident] = kind
             self.members[ident] = frozenset(members)
             self.member_count += len(members)
-        self.consumers.add((ident, consumer_module))
+        self.consumers[ident, consumer_module] = previous | bit
 
     def export(self):
         def row(scope, module):
@@ -57,7 +64,8 @@ class AnalysisInputs:
         return dict(scopes=[dict(id=ident, kind=kind) for ident, kind in sorted(self.scopes.items())],
                     members=[row(ident, module) for ident, members in sorted(self.members.items())
                              for module in sorted(members)],
-                    consumers=[row(ident, module) for ident, module in sorted(self.consumers)],
+                    consumers=[dict(row(ident, module), purposes=self.consumers[ident, module])
+                               for ident, module in sorted(self.consumers)],
                     truncated=self.truncated)
 
 
@@ -107,15 +115,17 @@ def merge(old, new, *, selected, old_nodes, new_nodes, verified):
                 consumers=[consumers[k] for k in sorted(consumers)], truncated=False)
 
 
-def read(db):
+def read(db, schema=SCHEMA):
     return dict(scopes=[dict(id=i, kind=k) for i, k in db.execute(
                     "select id,kind from analysis_input_scopes order by id")],
                 members=[dict(scope_id=s, module_id=m, repository=r, path=p)
                          for s, m, r, p in db.execute(
                              "select scope_id,module_id,repository,path from analysis_input_members order by scope_id,module_id")],
-                consumers=[dict(scope_id=s, module_id=m, repository=r, path=p)
-                           for s, m, r, p in db.execute(
-                               "select scope_id,module_id,repository,path from analysis_input_consumers order by scope_id,module_id")])
+                consumers=[dict(scope_id=s, module_id=m, repository=r, path=p, purposes=purpose)
+                           for s, m, r, p, purpose in db.execute(
+                               "select scope_id,module_id,repository,path" +
+                               (",purposes" if schema == 2 else ",1") +
+                               " from analysis_input_consumers order by scope_id,module_id")])
 
 
 def valid(payload, modules):
@@ -141,6 +151,8 @@ def valid(payload, modules):
     for r in payload["consumers"]:
         s, m = r["scope_id"], r["module_id"]
         if (s not in scopes or modules.get(m) != (r["repository"], r["path"]) or
+                type(r.get("purposes")) is not int or
+                r["purposes"] <= 0 or r["purposes"] & ~ALL_PURPOSES or
                 (s, m) in consumers or
                 scopes[s] == "component" and (s, m) not in members):
             return False

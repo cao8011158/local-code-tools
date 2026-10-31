@@ -1,0 +1,66 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+__________ test_empty_candidate_universe_is_observed_before_any_jedi ___________
+review/batch4-incremental/test_analysis_observations_independent.py:62: in test_empty_candidate_universe_is_observed_before_any_jedi
+    assert purposes(analyzer, analyzer.module_for[target]) & 2 == 2
+E   AssertionError: assert (0 & 2) == 2
+E    +  where 0 = purposes(<lct.python_analysis.Analyzer object at 0x7f097c900080>, 'synthetic-review:src/a.py:module:a#1')
+__________________ test_direct_may_call_name_gate_is_observed __________________
+review/batch4-incremental/test_analysis_observations_independent.py:75: in test_direct_may_call_name_gate_is_observed
+    assert purposes(analyzer, analyzer.module_for[target]) & 2 == 2
+E   AssertionError: assert (0 & 2) == 2
+E    +  where 0 = purposes(<lct.python_analysis.Analyzer object at 0x7f096228d160>, 'synthetic-review:src/a.py:module:a#1')
+___________ test_known_lexical_parameter_records_lookup_without_jedi ___________
+review/batch4-incremental/test_analysis_observations_independent.py:86: in test_known_lexical_parameter_records_lookup_without_jedi
+    analyzer.name(scope, "arg", (anchor.lineno, anchor.col_offset), anchor)
+lct/python_analysis.py:1031: in name
+    return self.parameter(current, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2022: in parameter
+    if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: list indices must be integers or slices, not str
+_____________ test_absent_member_records_observation_without_jedi ______________
+review/batch4-incremental/test_analysis_observations_independent.py:100: in test_absent_member_records_observation_without_jedi
+    assert purposes(analyzer, analyzer.module_for[owner]) & 8 == 8
+E   AssertionError: assert (0 & 8) == 8
+E    +  where 0 = purposes(<lct.python_analysis.Analyzer object at 0x7f096228d130>, 'synthetic-review:src/a.py:module:a#1')
+__________ test_resolve_memo_hit_keeps_new_readers_consumer_identity ___________
+review/batch4-incremental/test_analysis_observations_independent.py:111: in test_resolve_memo_hit_keeps_new_readers_consumer_identity
+    old = analyzer.resolve(target, expression)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:871: in resolve
+    result = self._resolve(scope, expr, before)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:921: in _resolve
+    return self.name(scope, expr.id, before, expr)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:1031: in name
+    return self.parameter(current, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/python_analysis.py:2022: in parameter
+    if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: list indices must be integers or slices, not str
+___ test_purpose_records_survive_local_update_failure_and_full_comparison[0] ___
+review/batch4-incremental/test_analysis_observations_independent.py:128: in test_purpose_records_survive_local_update_failure_and_full_comparison
+    assert first["analysis_input_schema"] == 2
+E   assert 1 == 2
+__ test_purpose_records_survive_local_update_failure_and_full_comparison[20] ___
+review/batch4-incremental/test_analysis_observations_independent.py:128: in test_purpose_records_survive_local_update_failure_and_full_comparison
+    assert first["analysis_input_schema"] == 2
+E   assert 1 == 2
+______ test_actual_schema1_scope_rows_are_readable_but_not_new_admission _______
+review/batch4-incremental/test_analysis_observations_independent.py:156: in test_actual_schema1_scope_rows_are_readable_but_not_new_admission
+    assert built["analysis_input_schema"] == 2
+E   assert 1 == 2
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_empty_candidate_universe_is_observed_before_any_jedi
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_direct_may_call_name_gate_is_observed
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_known_lexical_parameter_records_lookup_without_jedi
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_absent_member_records_observation_without_jedi
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_resolve_memo_hit_keeps_new_readers_consumer_identity
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_purpose_records_survive_local_update_failure_and_full_comparison[0]
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_purpose_records_survive_local_update_failure_and_full_comparison[20]
+FAILED review/batch4-incremental/test_analysis_observations_independent.py::test_actual_schema1_scope_rows_are_readable_but_not_new_admission
+8 failed in 1.13s

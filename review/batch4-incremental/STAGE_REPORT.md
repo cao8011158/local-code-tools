@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段99，4A开发冻结636 passed/27 skipped/32.30秒，主Agent独立预检16 passed/3.16秒（含新8例）。当前格式断言随schema2更新，全部语义断言保留；修正独立夹具仓库参数后旧固定代码8个行为反例均失败/1.21秒。准备push、固定远端审阅0/3；4B仅只读预检，不实施。
+
+2026-10-31：阶段97，按用户新要求将剩余Batch4拆为4A依赖依据、4B真实局部分析、4C完整发布/恢复验收。起点f7ecf028309c64a21e7e5493a51151e777aacba0，当前先执行4A，不重置旧问题轮次。目标分支feat/local-code-tools-import核对fc857f395a381e5dfec9941d60ca685bcbe0b3fd，整体通过后自动合并。[三批计划](REMAINING_THREE_BATCHES.md)。
+
 2026-10-31：阶段96，B4-WIT-01统一Jedi捕获输入范围eb53788a2a8ba783e269744ddedb79d3388409b5经独立第1/3轮通过：705 passed、32 skipped/50.93秒，590恢复文件Git blob相符。新范围三表、实际反查/闭包、相同捕获/局部合并与旧视图已验收；覆盖仍partial，六复杂文件仍未准入，Batch4不合并。[本轮审阅](analysis-inputs-independent-review.md)。
 
 2026-10-31：阶段95，B4-WIT-01生产d1857dfebcb138c977ef0e6433dd8692f7afe190已推送，第1轮审阅进行中；首次704 passed/32 skipped/1 failed，失败是旧格式夹具混留新scope声明但缺catalog，非确认生产缺陷。已按真实旧格式补齐夹具、原断言保留并新增拒绝新scope断言，单项通过；待固定证据提交后完整复跑。不合并。
@@ -747,3 +751,27 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - query统一输入范围已接入所有推断/缓存分支，规范化共享scope/member/consumer、独立2万条预算、manifest小摘要；input_scope_readers与watchers由prepare实际消费，同捕获copy、局部合并、新旧全部语义表full对照和失败旧视图通过。
 - 局部性：共享100/100为201条、200/200为401条，禁止重复枚举；merge避免逐consumer扫目录；模块身份按已知ID批量读必要列。实际反查0/20/100组无关范围均两个覆盖索引SEARCH、1SQL/1使用者，VM26/19/19、27/20/20、27/20/20，不将1步差异当全局扫描。完整证据analysis-inputs-index-profile.json。
 - 裁决：当前切片无确认未解决阻塞，第1/3轮通过；Jedi捕获输入范围是partial，不代表内部/外部全部依赖。候选排除/未来caller、名称缺失和普通resolve稳定依赖仍待补；六复杂真实文件仍拒绝，整体Batch4尚需更广准入和端到端发布/检索/恢复。不合并，无API/业务全图/Drive。
+
+## 阶段97：将剩余工作固定为三个子批次，开始4A
+
+- 用户本轮明确要求拆成三个batch并按之前规则继续；已写REMAINING_THREE_BATCHES.md，包含工作、完成门槛、前后依赖、测试与合并规则。
+- 4A统一调用候选/名称/成员/resolve观察和实际索引消费者；4B依据完整性证明接入真实受影响范围与复用；4C统一图/BM25/向量/HNSW版本发布、故障与新环境恢复验收。不是将三个小修复命名后宣布全部完成。
+- 分支feat/incremental-index-updates远端核对f7ecf028309c64a21e7e5493a51151e777aacba0；实际合并目标feat/local-code-tools-import为fc857f395a381e5dfec9941d60ca685bcbe0b3fd。沿当前分支持续push，整体验收后自动合并。
+- 继续GPT-6 SOL/medium开发子Agent、主Agent根因与独立审阅；每阶段累计MD报告，P0/P1立即人工介入，最多三轮正式review且不因拆批/嵌套修复重置。
+- 先执行4A：复用既有共享范围ledger，加入实际观察用途，统一入口在缓存/提前返回前登记，严格保留producer/consumer归属。旧格式和partial不作为完整准入；本批不放宽v6，也不声称六复杂文件已能局部更新。
+
+## 阶段98：4A统一五用途观察开发完成，未推送
+
+- GPT-6 SOL/medium完成4A实现并冻结。复用同一scope ledger，消费者关系OR记录Jedi/candidate/lexical/member/resolve五种用途，不复制共享成员。schema2/新partial标记；schema1真实旧列兼容读，新增量及同捕获准入只认当前证据。
+- 统一入口位于缓存/提前返回前，覆盖空候选、名称gate、缺失成员、memo、跨scope消费者/生产者；初始化ready guard验证没有把元数据准备登记成捕获依赖。既有正向读/索引/prepare与merge继续使用，不放宽v6，不标complete。
+- 开发快速636 passed/27 skipped，相关78 passed，原始行为红测保留。主Agent固定旧代码独立8 failed/1.13秒：五种实际入口缺用途，旧格式不能冒充新证据。开发通过不等于独立通过，正式4A review0/3。
+- 主Agent只把上一轮独立测试的当前格式硬编码1/旧coverage改为SCHEMA/COVERAGE常量；原功能、局部性、预算、旧视图断言保留，4A新增独立测试另有schema2和真实schema1兼容断言，不隐藏格式改变。
+- 下一步独立预检、push、固定远端完整回归和审阅；4B准备仅只读，不实施，待4A验收后进入。P0/P1、三轮上限及阶段报告规则延续。
+
+## 阶段99：4A提交前独立预检通过
+
+- 独立预检新8例与上一轮8例合计16 passed/3.16秒，退出0。覆盖实际非Jedi早返回、零候选、缺成员、name参数、跨scope memo消费者、全部新旧记录full对照、失败旧视图、零重新解析以及真正schema1旧列可读而不准入。
+- 初独立预检14通过/2错误来自主Agent测试构造器误传repos列表，生产Analyzer需要Graph.repos映射。已只修夹具，保留初日志；同样修正旧基线后8个行为断言均失败/1.21秒，两个初TypeError不再冒充缺记录证据。开发代码未因此修改，审阅尚未开始、不消耗/重置正式轮次。
+- 开发636/27快速结果和78相关通过在冻结后有效；root旧独立当前格式断言改为SCHEMA/COVERAGE，schema1真实物理旧列兼容由新增独立用例验证，未删除旧语义/索引/缓存断言。完整diff统计analysis-observations-change-stat.json。
+- 4B仅完成只读设计预检4B_DESIGN_PREFLIGHT.md：明确整捕获gate/无向邻接扩张/selected-only源码上下文三处实际缺口，下一批需完整源码可见性与局部计算分离，不能删certify或凭用途位通过；未实施4B。
+- 下一步按白名单push，核对远端与完整内容，再完成4A第1/3轮独立review。无API/业务图/Drive/合并；整个三批计划保留。

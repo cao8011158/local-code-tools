@@ -5,6 +5,7 @@ import sqlite3
 import pytest
 
 from lct.common import ToolError, inventory
+from lct.analysis_inputs import SCHEMA, COVERAGE
 from lct.extract import extract
 from lct.graph import Graph
 from lct.python_analysis import Analyzer
@@ -51,8 +52,8 @@ def test_negative_query_scope_is_used_by_update_and_matches_full(tmp_path, monke
     import lct.extract as extraction
     config, repo = setup(tmp_path, noise)
     first = build(config, offline=True, lexical_only=True)
-    assert first.get("analysis_input_schema") == 1
-    assert first["analysis_input_coverage"] == "captured-query-scopes-partial"
+    assert first.get("analysis_input_schema") == SCHEMA
+    assert first["analysis_input_coverage"] == COVERAGE
     assert first["analysis_input_truncated"] is False
     before = records(config, first["version"])
     folder, metadata = manifest(config, first["version"])
@@ -147,7 +148,7 @@ def test_jedi_exception_still_records_its_input_scope(tmp_path, monkeypatch):
 def test_uncertified_capture_uses_explicit_wide_scope(tmp_path):
     config, _ = setup(tmp_path, opaque=True)
     built = build(config, offline=True, lexical_only=True)
-    assert built.get("analysis_input_schema") == 1
+    assert built.get("analysis_input_schema") == SCHEMA
     assert built["simple_python_certificate"] is None
     folder, metadata = manifest(config, built["version"])
     repository = config["repositories"][0]["name"]
@@ -208,7 +209,7 @@ def test_input_scope_lookup_is_indexed_under_unrelated_scope_growth(tmp_path):
     for noise in (0, 20, 100):
         config, _ = setup(tmp_path / str(noise), noise)
         built = build(config, offline=True, lexical_only=True)
-        assert built.get("analysis_input_schema") == 1
+        assert built.get("analysis_input_schema") == SCHEMA
         folder, metadata = manifest(config, built["version"])
         repository = config["repositories"][0]["name"]
         with FileDependencies(folder, metadata) as dependencies:

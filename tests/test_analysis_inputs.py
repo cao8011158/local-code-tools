@@ -4,8 +4,8 @@ import sqlite3
 import pytest
 from lct.common import ToolError
 
-from lct.analysis_inputs import AnalysisInputs
-from lct.analysis_inputs import valid as valid_inputs
+from lct.analysis_inputs import AnalysisInputs, SCHEMA, COVERAGE
+from lct.analysis_inputs import valid as valid_inputs, read as read_inputs
 from lct.common import digest
 from lct.extract import python_nodes
 from lct.graph import Graph
@@ -50,6 +50,68 @@ def test_component_members_inspected_once_for_many_consumers():
     assert len(ledger.scopes) + ledger.member_count + len(ledger.consumers) == 401
 
 
+def test_multiple_purposes_or_without_more_scope_rows():
+    modules = {"m": dict(repository="r", path="m.py")}
+    ledger = AnalysisInputs(modules, limit=3)
+    component = frozenset({"m"})
+    for purpose in ("jedi-query", "call-candidates", "lexical-lookup",
+                    "member-lookup", "resolve-input"):
+        ledger.observe("m", component, purpose)
+    rows = ledger.export()
+    assert not rows["truncated"]
+    assert len(rows["scopes"]) == len(rows["members"]) == len(rows["consumers"]) == 1
+    assert rows["consumers"][0]["purposes"] == 31
+
+
+def test_legacy_schema_one_columns_normalize_and_new_gate_rejects():
+    db = sqlite3.connect(":memory:")
+    try:
+        db.execute("create table analysis_input_scopes(id text,kind text)")
+        db.execute("create table analysis_input_members(scope_id text,module_id text,repository text,path text)")
+        db.execute("create table analysis_input_consumers(scope_id text,module_id text,repository text,path text)")
+        db.execute("insert into analysis_input_scopes values('capture:all-captured-python','capture')")
+        db.execute("insert into analysis_input_consumers values('capture:all-captured-python','m','r','m.py')")
+        payload = read_inputs(db, schema=1)
+        assert payload["consumers"][0]["purposes"] == 1
+        assert valid_inputs(payload, {"m": ("r", "m.py")})
+    finally:
+        db.close()
+    from lct.python_incremental import prepare
+    assert prepare(None, dict(simple_python_certificate="simple-python-v6",
+                              value_flow_schema=1, value_flow_coverage="certified-dictionary-v1",
+                              analysis_dependency_schema=2, analysis_dependency_truncated=False,
+                              analysis_input_schema=1, analysis_input_coverage="captured-query-scopes-partial"),
+                   [], [], dependencies=None, graph_sites=None) == (
+                       None, "previous-analysis-input-evidence-unavailable")
+
+
+def test_file_dependencies_reads_real_legacy_consumer_columns(tmp_path):
+    from lct.storage import hash_artifact
+    config, _, _ = common_setup(tmp_path)
+    first = build(config, offline=True, lexical_only=True)
+    folder, metadata = manifest(config, first["version"])
+    with sqlite3.connect(folder / "graph-sites.sqlite") as db:
+        db.execute("alter table analysis_input_consumers drop column purposes")
+    legacy = dict(metadata, analysis_input_schema=1,
+                  analysis_input_coverage="captured-query-scopes-partial",
+                  artifacts=dict(metadata["artifacts"]), artifact_sizes=dict(metadata["artifact_sizes"]))
+    checksum, size = hash_artifact(folder, "graph-sites.sqlite")
+    legacy["artifacts"]["graph-sites.sqlite"] = checksum
+    legacy["artifact_sizes"]["graph-sites.sqlite"] = size
+    with FileDependencies(folder, legacy) as deps:
+        assert deps.input_scope_available
+        assert deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py")
+
+
+@pytest.mark.parametrize("mask", [0, 32, -1, True, "1"])
+def test_invalid_purpose_masks_rejected(mask):
+    payload = dict(scopes=[dict(id="capture:all-captured-python", kind="capture")],
+                   members=[], consumers=[dict(scope_id="capture:all-captured-python",
+                                              module_id="m", repository="r", path="m.py",
+                                              purposes=mask)])
+    assert not valid_inputs(payload, {"m": ("r", "m.py")})
+
+
 def test_query_empty_error_and_cache_observe_same_capture_scope(tmp_path):
     source = "def f():\n    missing()\n"
     nodes, trees = python_nodes(dict(repository="r", path="a.py", text=source,
@@ -79,13 +141,61 @@ def test_query_empty_error_and_cache_observe_same_capture_scope(tmp_path):
         analyzer.close()
 
 
+def test_non_jedi_entrypoints_share_one_scope_and_purpose_mask(tmp_path):
+    source = "def target(): pass\nclass C: pass\n"
+    nodes, trees = python_nodes(dict(repository="r", path="a.py", text=source,
+                                     sha256=digest(source), is_test=False))
+    graph = Graph(nodes, trees, [dict(name="r", path=str(tmp_path), head="captured")])
+    module = next(n["node_id"] for n in nodes if n["kind"] == "module")
+    target = next(n["node_id"] for n in nodes if n.get("qualname") == "target")
+    cls = next(n["node_id"] for n in nodes if n.get("qualname") == "C")
+    analyzer = Analyzer(graph.nodes, trees, graph.repos, graph.imported,
+                        candidate_components={module: frozenset({module})})
+    try:
+        assert list(analyzer.candidate_sites(target)) == []
+        assert analyzer.reaching(module, "target", 10**9)
+        assert analyzer.member(cls, "absent") is None
+        import ast
+        assert analyzer.resolve(module, ast.parse("1", mode="eval").body).atoms
+        rows = analyzer.analysis_inputs.export()["consumers"]
+        assert len(rows) == 1 and (rows[0]["purposes"] & 30) == 30
+    finally:
+        analyzer.close()
+
+
+def test_cross_scope_consumer_and_missing_member_observed(tmp_path):
+    sources = {"a.py": "def consumer(): pass\n", "b.py": "class C: pass\n"}
+    nodes, trees = [], {}
+    for path, source in sources.items():
+        ns, ts = python_nodes(dict(repository="r", path=path, text=source,
+                                   sha256=digest(source), is_test=False))
+        nodes.extend(ns)
+        trees.update(ts)
+    graph = Graph(nodes, trees, [dict(name="r", path=str(tmp_path), head="captured")])
+    a = next(n["node_id"] for n in nodes if n.get("qualname") == "consumer")
+    b = next(n["node_id"] for n in nodes if n.get("qualname") == "C")
+    module_ids = {n["node_id"] for n in nodes if n["kind"] == "module"}
+    components = {m: frozenset(module_ids) for m in module_ids}
+    analyzer = Analyzer(graph.nodes, trees, graph.repos, graph.imported,
+                        candidate_components=components)
+    try:
+        analyzer.stack.append((a, 0, (0, 0)))
+        assert analyzer.member(b, "new_member") is None
+        analyzer.stack.pop()
+        rows = analyzer.analysis_inputs.export()["consumers"]
+        assert len(rows) == 1 and rows[0]["module_id"].endswith("a.py:module:a#1")
+        assert rows[0]["purposes"] & 8
+    finally:
+        analyzer.close()
+
+
 @pytest.mark.parametrize("noise", [0, 20])
 def test_persisted_scope_reader_and_local_full_equality(tmp_path, noise):
     config, repo, target = common_setup(tmp_path, noise)
     first = build(config, offline=True, lexical_only=True)
     folder, metadata = manifest(config, first["version"])
-    assert metadata["analysis_input_schema"] == 1
-    assert metadata["analysis_input_coverage"] == "captured-query-scopes-partial"
+    assert metadata["analysis_input_schema"] == SCHEMA
+    assert metadata["analysis_input_coverage"] == COVERAGE
     with FileDependencies(folder, metadata) as deps:
         assert deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py") == {
             ("synthetic-review", "src/trpg_state_machine/availability.py")}
@@ -97,6 +207,9 @@ def test_persisted_scope_reader_and_local_full_equality(tmp_path, noise):
     old = _records(folder)
     module = target / "availability.py"
     module.write_bytes(module.read_bytes().replace(b"context=context", b"context=None"))
+    with pytest.raises(ToolError, match="Injected interruption"):
+        build(config, offline=True, lexical_only=True, fail_at="before_publish")
+    assert current(config) == first["version"] and _records(folder) == old
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "certified-simple-python-component"
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
@@ -160,7 +273,8 @@ def test_validator_fetches_only_ledger_module_columns_and_ids(tmp_path, monkeypa
     assert {ident for _, args in observed for ident in args} == {row[0] for row in needed}
     assert not valid_inputs(dict(scopes=[dict(id="capture:all-captured-python", kind="capture")],
                                  members=[], consumers=[dict(scope_id="capture:all-captured-python",
-                                                            module_id="unknown", repository="r", path="x.py")]), {})
+                                                            module_id="unknown", repository="r", path="x.py",
+                                                            purposes=1)]), {})
 
 
 def _records(folder):
