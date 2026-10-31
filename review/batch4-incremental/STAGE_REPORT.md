@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段83，实际跨模块读取记录ea0d0563d19d50d1ee08efd889e583a614f072c1独立第1/3轮通过；633 passed/32 skipped，独立6 passed。返回体/已知成员/匹配传参/精确Jedi目标已记录并接入索引消费者；schema2仍partial，真实业务3文件仍full，Batch4未完成、不合并。[本轮审阅](observed-semantic-reads-independent-review.md)。
+
 2026-10-31：阶段80，Neo4j字典值流投影4a2bcf827e33eb393de5b288260ee63321734dd9独立第1/3轮通过；快速619 passed/31 skipped，真实服务集合13 passed，另发布/反向分页与大记录分片各1 passed。基于已认证SQLite接入新图/官方只读MCP，未扩展解析语法，未更新业务图/Drive，Batch4未完成、不合并。[本轮审阅](value-projection-independent-review.md)。
 
 2026-10-31（北京时间）：阶段77，字典模块与普通调用者混合准入fc12a03044ce8c4288d22d55a830a50ab3426a7a独立第1/3轮通过，613 passed、25 skipped/35.66秒。A->B->C/D已能局部重算，0/20无关文件与producer-only字典保留，公开和中间图表与full一致。仅simple_python.py上下文修复，未改模型/数据库/解析器。Batch4未完成、不合并。[本轮审阅](mixed-dictionary-independent-review.md)。
@@ -610,3 +612,13 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 开发定向150 passed；局部性集合7 passed，0/40无关记录查询均走覆盖索引、37 VM步；新增4项定向通过。最后快速集合593 passed、27 skipped/26.80秒。真实3文件诊断1 passed，仍full，未将其称为局部更新通过。
 - 主Agent独立反例在固定旧源码5 failed/1.64秒；当前候选预检5 passed/2.27秒，尚不计正式review。
 - 变更4个生产模块+1个文档，新增开发/独立检查、诊断和日志；统计见observed-read-change-stat.json。下一步推送固定远端并独立审阅，不合并整个Batch4。
+
+## 阶段83：已观测语义读取记录独立第1/3轮通过
+
+- 已推送并核对ea0d0563d19d50d1ee08efd889e583a614f072c1；506文件按Git blob验证，所需源码齐全；主Agent未改生产实现。
+- 独立定向6 passed/2.54秒；最后快速集合633 passed、32 skipped/36.01秒，退出0。0/20无关文件公开更新仍只解析caller/provider，完整表记录与full一致，失败和旧视图保持。
+- 初次对照1failed被保留：15回调对触发原有20k预算（旧代码同样触顶），不是固定K。只修正主Agent新增测试的无关数据构造，并保留步数断言，加入未触顶和相同匹配条数检查；没有改松生产断言。
+- 实际SQLite反查：依赖表3->18条，匹配记录2条、返回文件1个、SQL1次、VM26步保持；覆盖索引SEARCH，无全表扫描。
+- 新增读取在实际prepare闭包消费；schema1兼容、未知kind/截断拒绝、缓存命中保留依赖均通过。字段、返回值、参数来源记录仍是部分覆盖，没有开放任意业务模块复用。
+- 真实SM三文件复跑仍full、3AST/13site/30Jedi，full一致且旧版保持；没有把这项当局部化通过。当前还需补未找到/未来调用者等完整依赖证明和分析单元准入，整个Batch4不合并。
+- 附带修正文档将SQLite sidecar存储状态和可选Neo4j v3发布状态混为一谈的旧文字；生产模块不变。完整总结、失败原因、命令和证据见observed-semantic-reads-independent-review.md。

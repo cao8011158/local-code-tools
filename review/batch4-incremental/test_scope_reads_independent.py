@@ -112,12 +112,14 @@ def test_actual_parameter_reader_index_does_not_scan_unrelated_origins(tmp_path)
     for noise in (0,15):
         config,repo=make(tmp_path/str(noise))
         for i in range(noise):
-            (repo/f'src/other_provider_{i}.py').write_text('def apply(callback): callback()\n')
-            (repo/f'src/other_caller_{i}.py').write_text(f'from other_provider_{i} import apply\ndef idle(): pass\ndef use(): apply(idle)\n')
+            (repo/f'src/other_provider_{i}.py').write_text('def target(): pass\n')
+            (repo/f'src/other_caller_{i}.py').write_text(f'from other_provider_{i} import target\ndef expose(): return target\n')
         result=build(config,offline=True,lexical_only=True)
         folder,meta=manifest(config,result['version'])
+        assert not result['graph']['analysis_limited']
         with FileDependencies(folder,meta) as deps:
             size=deps.db.execute('select count(*) from analysis_reads').fetchone()[0]
+            matching=deps.db.execute("select count(*) from analysis_reads where producer_repository=? and producer_path=?",('synthetic-review','src/caller.py')).fetchone()[0]
             total=[0];sql=[]
             def tick():total[0]+=1;return 0
             deps.db.set_progress_handler(tick,1);deps.db.set_trace_callback(sql.append)
@@ -126,9 +128,10 @@ def test_actual_parameter_reader_index_does_not_scan_unrelated_origins(tmp_path)
             assert found=={('synthetic-review','src/provider.py')}
             plans=[r[3] for query in sql for r in deps.db.execute('explain query plan '+query)]
             assert plans and all('SEARCH' in p and 'analysis_read_producer' in p and 'SCAN' not in p for p in plans)
-            measured.append(dict(noise_pairs=noise,total_records=size,vm_steps=total[0],
+            measured.append(dict(noise_pairs=noise,total_records=size,matching_records=matching,vm_steps=total[0],
                                  result_rows=len(found),statements=len(sql),plans=plans))
     assert measured[1]['total_records']>measured[0]['total_records']
+    assert measured[0]['matching_records']==measured[1]['matching_records']
     assert measured[0]['vm_steps']==measured[1]['vm_steps']
     assert measured[0]['statements']==measured[1]['statements']==1
     print('PARAMETER_ORIGIN_INDEX='+json.dumps(measured,sort_keys=True))
