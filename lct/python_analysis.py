@@ -218,6 +218,7 @@ class Analyzer:
         self.analysis_reads = set()
         self.analysis_watches = set()
         self.analysis_dependency_truncated = False
+        self.value_reads = {}
         self.access = ReceiverAccess(self, Atom, Result)
 
     def _record_analysis_dependency(self, destination, record):
@@ -2325,6 +2326,10 @@ class Analyzer:
         result = union(*results) if results else unknown("unresolved-container-slot")
         cov.events.extend(events)
         self.coverage[(scope, id(expr))] = cov.export()
+        # Private evidence is recorded at the actual resolver read. Source spans,
+        # rather than transient AST object addresses, are exported by Graph.
+        if isinstance(expr.slice, ast.Constant) and type(expr.slice.value) is str:
+            self.value_reads[(scope, expr.lineno, expr.col_offset)] = result
         return result
 
     def literal_key(self, expr):
@@ -2466,6 +2471,13 @@ class Analyzer:
         """Export bounded, source-located association evidence without internal AST ids."""
         root = (scope, id(expr), (expr.lineno, expr.col_offset))
         pending, seen, steps = [root], set(), []
+        def source_order(key):
+            record = self.traces.get(key, {})
+            before = key[2] if isinstance(key[2], tuple) else (key[2], 0)
+            return (record.get("scope", key[0]), record.get("path", ""),
+                    record.get("line", before[0]), record.get("column", before[1]),
+                    record.get("expression", ""), record.get("rule", ""),
+                    canonical(record) if record else "")
         while pending and len(steps) < 100:
             key = pending.pop()
             if key in seen:
@@ -2473,7 +2485,10 @@ class Analyzer:
             seen.add(key)
             if key in self.traces:
                 steps.append(self.traces[key])
-            pending.extend(reversed(self.dependencies.get(key, [])))
+            # Independent association branches can be visited in different
+            # memo/Jedi orders. Sort siblings by captured source coordinates so
+            # full and updated builds export the same bounded provenance order.
+            pending.extend(reversed(sorted(self.dependencies.get(key, []), key=source_order)))
         return dict(steps=steps, truncated=bool(pending))
 
     def named_bindings(self, statement, name, before):

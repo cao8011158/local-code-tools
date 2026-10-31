@@ -1,6 +1,6 @@
 # Function-value dependencies: source-grounded gap audit
 
-Status: documentation-only baseline for the proposed [contract](../../docs/FUNCTION_VALUE_DEPENDENCIES.md). Observations refer to the staged remote source at commit `4b76e06793e1a3700575e33a67eb7b4de5c5a681` (tree `27a30a8962a2642437d6a98fcb0dc080554c3840`). This directory is a materialized source tree, not a Git checkout; no local HEAD or clean-worktree claim follows. Classifications below concern **incremental invalidation evidence**, not whether full analysis can resolve a particular example.
+Status: historical documentation-only baseline for the proposed [contract](../../docs/FUNCTION_VALUE_DEPENDENCIES.md). Observations below refer to staged remote source at commit `4b76e06793e1a3700575e33a67eb7b4de5c5a681` (tree `27a30a8962a2642437d6a98fcb0dc080554c3840`) and should not be read as the current v5 state. The bounded implementation delta is in [incremental update status](../../docs/INCREMENTAL_UPDATE.md#function-value-dependency-design-status). This directory is a materialized source tree, not a Git checkout; no local HEAD or clean-worktree claim follows. Classifications below concern **incremental invalidation evidence**, not whether full analysis can resolve a particular example.
 
 ## Available and consumed today
 

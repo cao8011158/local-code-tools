@@ -1,6 +1,6 @@
 # Function-value dependency contract (proposed)
 
-Status: design contract for a future implementation. The current behavior and source-grounded gaps are inventoried in [the Batch 4 audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md). This document does not change the published graph, snapshot schema, update admission, or Neo4j projection.
+Status: broader design contract; a narrow dictionary value-flow slice is now implemented as described in [incremental update status](INCREMENTAL_UPDATE.md#function-value-dependency-design-status). The earlier source baseline is preserved in [the Batch 4 audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md). The full contract below is not an implementation claim.
 
 ## Scope and invariants
 

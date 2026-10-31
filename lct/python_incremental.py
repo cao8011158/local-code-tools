@@ -60,6 +60,9 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     """Return (nodes, edges, graph, metrics) or (None, reason)."""
     if prior.get("simple_python_certificate") != CERTIFICATE:
         return None, "previous-simple-python-certificate-unavailable"
+    if (prior.get("value_flow_schema") != 1 or
+            prior.get("value_flow_coverage") != "certified-dictionary-v1"):
+        return None, "previous-value-flow-evidence-unavailable"
     if prior.get("analysis_dependency_schema") != 1 or prior.get("analysis_dependency_truncated"):
         return None, "previous-analysis-dependency-evidence-unavailable"
     if prior["graph"].get("analysis_limited"):
@@ -114,10 +117,23 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         # the subset; parse the selected closure later, never all unchanged ASTs.
         selected = set(changed)
         queue = deque(sorted(changed))
+        # The global watch is one immutable old-capture subscription. Fetch it
+        # once, not for each selected module in the worklist.
+        for watcher in dependencies.analysis_watchers("slot-writer-universe"):
+            if watcher not in selected:
+                selected.add(watcher)
+                queue.append(watcher)
         parsed = {}
         while queue:
             key = queue.popleft()
             candidates = dependencies.adjacent(*key)
+            # Use the old exact entry subscriptions, including reads of absent
+            # keys; old evidence is indispensable after a write is deleted.
+            for entry in dependencies.entry_ids_for_file(*key):
+                candidates.update(dependencies.value_readers(entry))
+            candidates.update(dependencies.analysis_readers(*key))
+            # Existing analyzer watch coverage was seeded once above; this
+            # broad fanout is deliberately retained for semantic safety.
             if key[1].endswith(".py"):
                 candidates.update(dependencies.importers(key[0], module_name(key[1])))
                 if key in changed:
@@ -183,6 +199,13 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 "select consumer_module,producer_module,kind from analysis_reads"))
             old_analysis_watches = list(evidence.execute(
                 "select consumer_module,kind,universe from analysis_watches"))
+            old_value_nodes = [json.loads(raw) for (raw,) in evidence.execute(
+                "select data from value_nodes")]
+            old_value_edges = [dict(source=s, target=t, kind=k) for s, t, k in evidence.execute(
+                "select source,target,kind from value_edges")]
+            old_value_reads = [dict(entry=e, read=r, consumer_repository=cr,
+                                    consumer_path=cp) for e, r, cr, cp in evidence.execute(
+                "select entry,read,consumer_repository,consumer_path from value_reads")]
         old_nodes = {nid: json.loads(raw) for nid, raw in db.execute("select node_id,data from nodes")}
         old_edges = [json.loads(raw) for (raw,) in db.execute("select data from edges")]
     if len(old_order) != len(old_nodes) or any(nid not in old_nodes for nid in old_order):
@@ -244,6 +267,9 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     if graph.cross_bindings != prior["graph"].get("dependency_bindings"):
         return None, "dependency-bindings-changed"
     local_edges, info = graph.build()
+    local_flow = info.get("_value_flow")
+    if local_flow is None or not local_flow["complete"]:
+        return None, "local-value-flow-witness-incomplete"
     if info["analysis_limited"]:
         return None, "local-association-budget-limited"
     if prior_bound + info["association_evaluations"] > 20000:
@@ -316,6 +342,44 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         if merged is None:
             return None, reason
         analysis_reads, analysis_watches = merged
+        retained_nodes = []
+        for record in old_value_nodes:
+            owner = owner_key(record["module"])
+            if owner in selected:
+                continue
+            if owner not in verified:
+                return None, "old-value-flow-owner-unverified"
+            updated = dict(record)
+            if "site_id" in updated:
+                if updated["site_id"] not in site_ids:
+                    return None, "old-value-flow-site-unavailable"
+                updated["site_id"] = site_ids[updated["site_id"]]
+            retained_nodes.append(updated)
+        retained_ids = {record["id"] for record in retained_nodes}
+        old_ids = {record["id"] for record in old_value_nodes}
+        retained_edges = []
+        for record in old_value_edges:
+            source, target = record["source"], record["target"]
+            if source in retained_ids:
+                if target in old_ids and target not in retained_ids:
+                    return None, "old-value-flow-crosses-selected-boundary"
+                if target in old_nodes and owner_key(target) in selected:
+                    return None, "old-value-flow-target-selected"
+                retained_edges.append(record)
+            elif source not in old_ids:
+                return None, "old-value-flow-source-unavailable"
+        retained_reads = []
+        for record in old_value_reads:
+            if record["read"] in retained_ids:
+                if record["entry"] not in retained_ids:
+                    return None, "old-value-flow-read-crosses-selected-boundary"
+                retained_reads.append(record)
+        local_flow = dict(nodes=retained_nodes + local_flow["nodes"],
+                          edges=retained_edges + local_flow["edges"],
+                          reads=retained_reads + local_flow["reads"], complete=True)
+        if (len(local_flow["nodes"]) + len(local_flow["edges"]) +
+                len(local_flow["reads"]) > python_analysis.ANALYSIS_DEPENDENCY_LIMIT):
+            return None, "combined-value-flow-budget-uncertified"
     except (EvidenceReuseRejected, KeyError, TypeError, ValueError):
         return None, "old-evidence-rebind-uncertified"
     sites_by_file = {}
@@ -331,6 +395,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     info["_analysis_reads"] = analysis_reads
     info["_analysis_watches"] = analysis_watches
     info["_analysis_dependency_truncated"] = False
+    info["_value_flow"] = local_flow
     info["dependency_bindings"] = graph.cross_bindings
     edges = list({e["edge_id"]: e for e in edges}.values())
     return (nodes, edges, info, dict(changed_files=len(changed), selected_files=len(selected_present),

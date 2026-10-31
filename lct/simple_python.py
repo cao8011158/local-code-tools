@@ -4,8 +4,9 @@ import ast
 
 from .extract import module_name
 from .graph import Graph
+from .value_flow import capture_shape
 
-CERTIFICATE = "simple-python-v4"
+CERTIFICATE = "simple-python-v5"
 _EXPRESSIONS = (ast.Name, ast.Constant, ast.Call, ast.keyword, ast.Attribute,
                 ast.Load, ast.Store, ast.BoolOp, ast.And, ast.Compare, ast.Is,
                 ast.IsNot, ast.Eq, ast.LtE, ast.Subscript, ast.Set, ast.BinOp,
@@ -229,7 +230,7 @@ def _function(fn, globals_, *, method=False):
     return not local_assignments & (params | globals_)
 
 
-def certify(files, asts, *, graph=None):
+def _certify_v4(files, asts, *, graph=None):
     """Certify a closed explicit-import universe; never infer missing source."""
     python = [f for f in files if f["path"].endswith(".py")]
     if not python:
@@ -311,3 +312,22 @@ def certify(files, asts, *, graph=None):
             if any(not _function(s, globals_, method=True) for s in methods):
                 return None
     return CERTIFICATE
+
+
+def certify(files, asts, *, graph=None):
+    """Retain the v4 subset and add one structurally closed dictionary form."""
+    if _certify_v4(files, asts, graph=graph) == CERTIFICATE:
+        return CERTIFICATE
+    python = [f for f in files if f["path"].endswith(".py")]
+    if not python or graph is None:
+        return None
+    if any(len(ids) != 1 for ids in graph.modules.values()):
+        return None
+    shape = capture_shape(list(graph.nodes.values()), asts, graph.imported)
+    if shape is None:
+        return None
+    modeled = shape[2]
+    plain_files = [f for f in python if
+                   f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1" not in modeled]
+    return CERTIFICATE if (not plain_files or _certify_v4(plain_files, asts,
+                                                          graph=graph) == CERTIFICATE) else None

@@ -2,7 +2,9 @@
 
 ## Function-value dependency design status
 
-The proposed [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe a future, finer-grained invalidation model. The current `indexed-v3` partial analysis-read sidecar below is saved and maintained but does not select the affected closure in `python_incremental.prepare`; its `simple-python-v4` certificate and existing file/import closure remain the update admission gate. This documentation adds no schema, graph nodes, or update behavior.
+The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v5` slice now admits captured, straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings and unsupported imports. The existing Analyzer decides targets and `UNKNOWN`; the structural proof only governs reuse.
+
+The private `graph-sites.sqlite` sidecar has optional `value_flow_schema=1` container, entry, binding, write and read records. A missing entry has `present=false` and an exact subscription, not an asserted runtime dictionary key. `BINDS` connects source-identified aliases to one container, `ADDRESSES` the container to an entry, `WRITES`/`REACHES` supports to a read, and `USES_BINDING`/`READS`/`POSSIBLE_CALLS` link the read to its binding, entry and existing callable definition. These records are **not catalog/search/vector nodes or Neo4j projected relations**. The manifest reports compact counts, schema, coverage and `internal-sqlite-only` projection status. `FileDependencies` validates the sidecar and offers indexed exact-entry readers and bounded node/relation inspection. `python_incremental.prepare` consumes old entry subscribers, observed module readers and the one capture-wide writer-watch set alongside existing adjacency/import indexes. The broad watch can expand a real closure; it is not a key-precise performance guarantee. Old/missing/partial evidence, unsupported source shapes or incomplete analyzer witnesses fall back to full graph analysis. Identical-capture reuse copies records; local reuse replaces selected records and retains verified unrelated source records. This does not certify arbitrary dictionary or callback flow.
 
 `lct.incremental.plan_update(previous, current)` compares two **already captured**
 inventories. It does not read source files, consult Git, run Jedi, analyze a graph,
@@ -208,7 +210,9 @@ uses the actual analysis scope at each recursive read: an outer B read of A's
 copied container and A's read of C's source form B→A→C. Other association,
 Jedi, callback and global analysis reads are still unrecorded; the manifest
 therefore declares `analysis_dependency_coverage=partial` and these records
-must not certify Python update admission.
+do not by themselves certify arbitrary Python update admission. The v5
+dictionary gate uses them conservatively alongside its independent source
+shape and exact entry evidence.
 
 `graph-sites.sqlite` stores deduplicated stable module IDs, repository/path
 ownership and kind in separate indexed `analysis_reads` and
@@ -228,11 +232,14 @@ replaces selected consumers' old relations with current analysis and retains
 unselected consumers only when old reads do not cross the selected boundary
 and no unselected capture-wide watcher could be affected by the change;
 otherwise it falls back to full analysis. It also falls back on old truncated
-records, missing endpoints or a combined record budget overflow. The current
-simple-Python certificate does not admit literal container readers, so a
-real certified local build presently exercises the empty-relation case; the
-nonempty merge is verified separately as sidecar maintenance, not as a broader
-admission claim. Old `indexed-v2` snapshots safely rebuild graph analysis.
+records, missing endpoints or a combined record budget overflow. The v5
+dictionary slice admits a narrow literal-container reader and uses nonempty
+read/watch evidence to select the component. The earlier v4-only certificate
+exercised the empty-relation case. This partial sidecar still cannot certify
+general Python dependencies. Old `indexed-v2` snapshots safely rebuild graph
+analysis. A plain v4 file importing definitions from a modeled dictionary
+component is outside the present mixed v5 certificate and falls back; the
+slice does not claim general transitive caller support.
 
 # Parso cache compatibility
 

@@ -5,6 +5,7 @@ import shutil
 import sqlite3
 from pathlib import Path
 
+from lct.simple_python import CERTIFICATE
 from lct.storage import build, manifest
 from tests.synthetic_support import initialize
 
@@ -51,7 +52,7 @@ def oracle(tmp_path, config, updated):
 def test_actual_item_unit_local_with_unrelated_growth(tmp_path):
     config, repo, module = setup(tmp_path)
     baseline = build(config, offline=True, lexical_only=True)
-    assert baseline["simple_python_certificate"] == "simple-python-v4"
+    assert baseline["simple_python_certificate"] == CERTIFICATE
     old = records(config, baseline["version"])
     source = module.read_bytes()
     assert source == SOURCE.read_bytes()

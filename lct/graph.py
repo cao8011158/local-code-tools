@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
 from .python_analysis import CALLABLE_KINDS, Analyzer
+from .value_flow import evidence as value_flow_evidence
 
 
 class Graph:
@@ -476,6 +477,8 @@ class Graph:
                 _import_requests=import_requests,
                 _analysis_reads=sorted(analyzer.analysis_reads),
                 _analysis_watches=sorted(analyzer.analysis_watches),
+                _value_flow=value_flow_evidence(list(self.nodes.values()), self.asts,
+                                                analyzer, sites, self.imported),
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},

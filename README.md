@@ -1,8 +1,8 @@
 # Agentic TRPG Local Code Tools 1.0.0
 
-## Function-value dependency design (documentation only)
+## Function-value dependency design and bounded implementation
 
-[Design contract](docs/FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe a proposed function-value dependency model and its separation from the current partial incremental evidence. Repository agents should start at [AGENTS.md](AGENTS.md) and the [local skill](.agents/skills/code-graph-dependency-change/SKILL.md) for parser, graph, dependency or update work. No production analyzer, graph schema, update admission, or Neo4j behavior changes in this documentation batch.
+[Design contract](docs/FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe the broader model and its baseline. The current bounded dictionary value-flow slice and its fail-closed `simple-python-v5` admission are documented in [incremental update status](docs/INCREMENTAL_UPDATE.md#function-value-dependency-design-status). Semantic dictionary/entry/binding/write/read evidence lives only in the immutable SQLite sidecar; searchable code levels and the optional Neo4j public graph projection do not gain new kinds. Repository agents should start at [AGENTS.md](AGENTS.md) and the [local skill](.agents/skills/code-graph-dependency-change/SKILL.md).
 
 这是独立私有源码审阅仓库，包含真实的解析、Code Graph、检索、增量版本管理、CLI 和 stdio MCP 实现。
 **本仓库不提供真实数据库、节点目录数据、图数据、向量、索引或 Release 附件。**

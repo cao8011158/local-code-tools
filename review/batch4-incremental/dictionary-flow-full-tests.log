@@ -1,0 +1,29 @@
+F......................................................................s [ 12%]
+................................................s....................... [ 24%]
+.........ss..sss.......s.....s...sss.s.ssssssssssss..................... [ 36%]
+........................................................................ [ 48%]
+........................................................................ [ 60%]
+........................................................................ [ 72%]
+........................................................................ [ 84%]
+........................................................................ [ 96%]
+..................                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_actual_item_unit_local_with_unrelated_growth _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-21/test_actual_item_unit_local_wi0')
+
+    def test_actual_item_unit_local_with_unrelated_growth(tmp_path):
+        config, repo, module = setup(tmp_path)
+        baseline = build(config, offline=True, lexical_only=True)
+>       assert baseline["simple_python_certificate"] == "simple-python-v4"
+E       AssertionError: assert 'simple-python-v5' == 'simple-python-v4'
+E         
+E         - simple-python-v4
+E         ?                ^
+E         + simple-python-v5
+E         ?                ^
+
+tests/test_actual_item_unit_incremental.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_actual_item_unit_incremental.py::test_actual_item_unit_local_with_unrelated_growth
+1 failed, 568 passed, 25 skipped in 25.74s

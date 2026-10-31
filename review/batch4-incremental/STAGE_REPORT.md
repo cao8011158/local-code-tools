@@ -505,3 +505,19 @@ GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定�
 - DICT-IMPORT-01关闭：Jedi精确token定位到字典写入接收者时，LCT先解析写入前的唯一literal Dict，再使用原slot/调用裁决。直导入/别名/Unicode/异字典正确，条件与自定义下标保留不确定性。既有模块候选映射遍历未改，不虚报整体性能优化。
 - 无新确认阻塞、无放宽历史断言。旧原始基线3失败2通过、开发定向106、主Agent预检5与远端快回归日志分别保存。25跳过均条件缺失，不是通过；无服务/API/真实图/Drive。
 - 下一步恢复节点+关系+增量接线草稿，先合入本修复，再将原跨文件A/B实例重新纳入验收。草稿未上传到生产路径；review内dictionary-v5-incomplete-draft.patch/JSON仅恢复材料，标明缺接线、测试和兼容验证，不可自动应用。本限定修复通过，整个Batch4未完成、不合并。
+
+
+## 阶段72：恢复字典关系与跨文件增量贯通实现
+2026-10-31（北京时间）。用户“请继续”。远端基线87acde8e3f726560eb6e1d17da136e16dd8c9fdc、tree0d50bc09752b1b85ffce0a2ef7505eeed75c90d0；分支feat/incremental-index-updates。DICT-IMPORT-01已通过，不再次修改其认证规则。GPT-6 SOL medium开发子Agent恢复未完成草稿，先精确合入已审阅map_name修复，主Agent独立review。
+- 必须重新纳入原跨文件A/B：A只有字典声明/写入也可成为生产者，B的导入及别名读取指向同一字典身份与key条目；不再以同文件替代跨文件目标。已知常量字符串key、结构可证明无逃逸写入先贯通，复杂写入显式full回退。
+- 保存容器/条目/写入/读取调用及来源边，缺失key条目表示可订阅地址、非实际存在证明；不允许缺witness却标完整。prepare实际消费entry/reader反向索引及必要旧module读/范围订阅。完整/identical/local重绑定、版本/缺/截断证据和失败发布均在门槛内。
+- 新中间图仍明确internal-sqlite-only，不自动向量化、不进入函数/类/模块检索层级；Neo4j投影未接入不可冒称。原scope/root独立A/B、同文件、逃逸/条件/动态key和发布失败测试保留，另验证实际索引/预算/回复边界。无API、服务、业务全图、Drive；未合并。
+
+
+## 阶段73：跨文件字典函数值最小贯通开发完成
+2026-10-31（北京时间）。GPT-6 SOL medium完成并冻结，基线87acde8e3f726560eb6e1d17da136e16dd8c9fdc、分支feat/incremental-index-updates；尚未推送/未合并。已合入DICT-IMPORT-01，原A/B跨文件验收重新接通。
+- value_flow.py及graph/storage/analyzer/simple_python/prepare接线：内部容器、条目、声明/导入/别名binding、写入、读取调用节点；BINDS/USES_BINDING/ADDRESSES/WRITES/VALUE/REACHES/READS/POSSIBLE_CALLS，复用原函数节点。缺失key表示订阅地址present=false。逻辑ID不含仓库snapshot，固定版本存储隔离；保留未改producer-only证据，旧read.site_id安全重绑定。
+- simple-python-v5仅开放已知literal字典/字符串key/直接导入别名/直线写入等可证明结构，严格无逃逸。prepare实际消费entry/read反向索引和原module读/全capture订阅（每轮一次）；缺/旧/partial/超预算完整分析，不放宽UNKNOWN。复杂条件、动态/数值key、跨库及mixed通用传递调用等仍有full回退限制。
+- 最终开发定向27 passed/7.13秒，快回归570 passed、25 skipped/26.14秒，ruff通过；原2个before整数sentinel TypeError与旧v4硬编码断言失败日志保留。explain证据兄弟顺序不稳定已按源码稳定排序，目标和UNKNOWN内容不变，直接排列对照与实际full对照通过。
+- 主Agent独立预检2 passed/1.02秒，0/20无关producer-only字典不扩解析范围，语义表及公开结果与full相同；实际反向SQL SEARCH、每次1行、VM17/16不变，watcher只查询一次。预检不是固定远端独立review，下一步固定提交后完成第1轮。
+- 仅内部SQLite中间图，尚未投影Neo4j或MCP，不自动向量化。未改实际RE/SM或业务库；无API、服务、真实业务全图和Drive。完整开发报告dictionary-flow-development.md，Batch4仍未完成。

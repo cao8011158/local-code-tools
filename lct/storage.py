@@ -41,6 +41,7 @@ from .graph import Graph
 from .lexical import add_document
 from .python_analysis import Atom, Result
 from .simple_python import certify
+from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
 create table if not exists nodes(node_id text primary key, repository text, path text, kind text, data text, search_hash text);
@@ -233,7 +234,7 @@ def source_files(folder, m):
 def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 import_requests=None, nodes=(), edges=(), certified_files=(),
                 analysis_reads=None, analysis_watches=None,
-                analysis_dependency_truncated=False):
+                analysis_dependency_truncated=False, value_flow=None):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -287,6 +288,24 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create index analysis_read_producer on analysis_reads(producer_repository,producer_path,kind,consumer_repository,consumer_path)")
         db.execute("create table analysis_watches(consumer_module text not null, consumer_repository text not null, consumer_path text not null, kind text not null, universe text not null, primary key(consumer_module,kind,universe))")
         db.execute("create index analysis_watch_kind on analysis_watches(kind,universe,consumer_repository,consumer_path)")
+        db.execute("create table value_nodes(id text primary key, kind text not null, repository text not null, path text not null, data text not null)")
+        db.execute("create index value_node_file on value_nodes(repository,path,kind,id)")
+        db.execute("create table value_edges(source text not null,target text not null,kind text not null,primary key(source,target,kind))")
+        db.execute("create index value_edge_target on value_edges(target,kind,source)")
+        db.execute("create table value_reads(entry text not null,read text not null,consumer_repository text not null,consumer_path text not null,primary key(entry,read))")
+        db.execute("create index value_read_consumer on value_reads(consumer_repository,consumer_path,entry)")
+        flow = value_flow or {"nodes": [], "edges": [], "reads": []}
+        for record in flow["nodes"]:
+            owner = modules.get(record["module"])
+            if owner is None:
+                raise ToolError("Value node owner unavailable")
+            db.execute("insert into value_nodes values(?,?,?,?,?)", (record["id"], record["kind"],
+                *owner, canonical(record)))
+        db.executemany("insert into value_edges values(?,?,?)", (
+            (e["source"], e["target"], e["kind"]) for e in flow["edges"]))
+        db.executemany("insert into value_reads values(?,?,?,?)", (
+            (r["entry"], r["read"], r["consumer_repository"], r["consumer_path"])
+            for r in flow["reads"]))
         for consumer, producer, kind in analysis_reads or ():
             if consumer not in modules or producer not in modules or kind != "container-effects":
                 raise ToolError("Analysis read module ownership unavailable")
@@ -351,6 +370,13 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         m["analysis_read_count"] = len(analysis_reads)
         m["analysis_watch_count"] = len(analysis_watches)
         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
+    m["value_flow_schema"] = 1
+    m["value_flow_coverage"] = ("certified-dictionary-v1" if
+                                m.get("simple_python_certificate") == "simple-python-v5" and
+                                value_flow is not None and value_flow.get("complete") else "partial")
+    m["value_flow_node_count"] = len((value_flow or {}).get("nodes", ()))
+    m["value_flow_edge_count"] = len((value_flow or {}).get("edges", ()))
+    m["value_flow_projection"] = "internal-sqlite-only"
     m["graph_detail"] = GRAPH_SITES
     m["metadata_layout"] = 2
     for rel in (GRAPH_SITES, SOURCE_FILES):
@@ -407,6 +433,41 @@ class FileDependencies:
                     not isinstance(manifest.get("analysis_dependency_truncated"), bool)):
                 raise ToolError("Previous analysis dependency summary unavailable")
             self.analysis_dependency_truncated = manifest["analysis_dependency_truncated"]
+            if manifest.get("value_flow_schema") == 1:
+                if (manifest.get("value_flow_coverage") not in
+                        ("certified-dictionary-v1", "partial") or
+                        manifest.get("value_flow_projection") != "internal-sqlite-only" or
+                        type(manifest.get("value_flow_node_count")) is not int or
+                        type(manifest.get("value_flow_edge_count")) is not int or
+                        not 0 <= manifest["value_flow_node_count"] <= VALUE_FLOW_LIMIT or
+                        not 0 <= manifest["value_flow_edge_count"] <= VALUE_FLOW_LIMIT):
+                    raise ToolError("Previous value-flow summary unavailable")
+                required = {"value_nodes", "value_edges", "value_reads"}
+                present = {r[0] for r in self.db.execute(
+                    "select name from sqlite_master where type='table' and name in ('value_nodes','value_edges','value_reads')")}
+                if present != required or not {"value_node_file"} <= {
+                    r[1] for r in self.db.execute("pragma index_list('value_nodes')")
+                } or not {"value_edge_target"} <= {
+                    r[1] for r in self.db.execute("pragma index_list('value_edges')")
+                } or not {"value_read_consumer"} <= {
+                    r[1] for r in self.db.execute("pragma index_list('value_reads')")
+                } or not {"id", "kind", "repository", "path", "data"} <= {
+                    r[1] for r in self.db.execute("pragma table_info('value_nodes')")
+                } or not {"source", "target", "kind"} <= {
+                    r[1] for r in self.db.execute("pragma table_info('value_edges')")
+                } or not {"entry", "read", "consumer_repository", "consumer_path"} <= {
+                    r[1] for r in self.db.execute("pragma table_info('value_reads')")
+                }:
+                    raise ToolError("Previous value-flow index unavailable")
+            self.value_flow_available = manifest.get("value_flow_schema") == 1
+            self.value_flow_complete = (self.value_flow_available and
+                manifest.get("value_flow_coverage") == "certified-dictionary-v1")
+            if self.value_flow_available and (
+                    self.db.execute("select count(*) from value_nodes").fetchone()[0]
+                    != manifest["value_flow_node_count"] or
+                    self.db.execute("select count(*) from value_edges").fetchone()[0]
+                    != manifest["value_flow_edge_count"]):
+                raise ToolError("Previous value-flow count mismatch")
         except (sqlite3.Error, ToolError):
             self.close()
             raise
@@ -417,6 +478,37 @@ class FileDependencies:
             "union select source_repository,source_path from file_adjacency where target_repository=? and target_path=?",
             (repository, path, repository, path))
         return set(rows)
+
+    def entry_ids_for_file(self, repository, path):
+        """Seed only entries belonging to one changed producer file."""
+        if not self.value_flow_complete:
+            raise ToolError("Previous value-flow index unavailable")
+        return {r[0] for r in self.db.execute(
+            "select id from value_nodes where repository=? and path=? and kind='entry'",
+            (repository, path))}
+
+    def value_readers(self, entry):
+        """Exact container-origin/key subscription, including prior missing keys."""
+        if not self.value_flow_complete:
+            raise ToolError("Previous value-flow index unavailable")
+        return set(self.db.execute(
+            "select consumer_repository,consumer_path from value_reads where entry=?", (entry,)))
+
+    def get_value_nodes(self, ids):
+        """Bounded internal evidence lookup, never a search catalog inventory."""
+        if not self.value_flow_complete or not isinstance(ids, (tuple, list)) or len(ids) > 100:
+            raise ToolError("Value node request unavailable or too large")
+        return [json.loads(row[0]) for ident in ids for row in self.db.execute(
+            "select data from value_nodes where id=?", (ident,))]
+
+    def get_value_relations(self, node_id, direction="out", limit=100):
+        if not self.value_flow_complete or direction not in ("in", "out") or not 1 <= limit <= 100:
+            raise ToolError("Invalid value relation request")
+        column = "source" if direction == "out" else "target"
+        rows = [dict(source=s, target=t, kind=k) for s, t, k in self.db.execute(
+            f"select source,target,kind from value_edges where {column}=? order by kind,source,target limit ?",
+            (node_id, limit + 1))]
+        return dict(relations=rows[:limit], has_more=len(rows) > limit)
 
     def analysis_readers(self, repository, path):
         """Observed container-effect consumers, not a complete invalidation set."""
@@ -551,6 +643,10 @@ def _reuse_python_graph(folder, prior, files, repos, c):
         return None, reason
     if prior.get("dependency_store") != "indexed-v3":
         return None, "previous-graph-evidence-unavailable"
+    if (prior.get("simple_python_certificate") == "simple-python-v5" and
+            (prior.get("value_flow_schema") != 1 or
+             prior.get("value_flow_coverage") != "certified-dictionary-v1")):
+        return None, "previous-value-flow-evidence-unavailable"
     old_files = source_files(folder, prior)
     # SOURCE_FILES stores inventory without text. Its source hashes certify the
     # identical decoded captures only when the whole repository inventory agrees.
@@ -626,12 +722,24 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             "select consumer_module,producer_module,kind from analysis_reads order by consumer_module,producer_module,kind"))
         analysis_watches = list(db.execute(
             "select consumer_module,kind,universe from analysis_watches order by consumer_module,kind,universe"))
+        if prior.get("value_flow_schema") == 1:
+            value_flow = dict(
+                nodes=[json.loads(raw) for (raw,) in db.execute("select data from value_nodes order by id")],
+                edges=[dict(source=s, target=t, kind=k) for s, t, k in db.execute(
+                    "select source,target,kind from value_edges order by source,target,kind")],
+                reads=[dict(entry=e, read=r, consumer_repository=cr,
+                            consumer_path=cp) for e, r, cr, cp in db.execute(
+                    "select entry,read,consumer_repository,consumer_path from value_reads order by entry,read")],
+                complete=prior.get("value_flow_coverage") == "certified-dictionary-v1")
+        else:
+            value_flow = dict(nodes=[], edges=[], reads=[], complete=False)
     if len(sites) != prior["graph"]["call_sites"]:
         return None, "previous-graph-evidence-count-mismatch"
     info = dict(prior["graph"], sites=sites, _query_observations=observations,
                 _import_dependencies=dependencies, _import_requests=requests,
                 _analysis_reads=analysis_reads, _analysis_watches=analysis_watches,
-                _analysis_dependency_truncated=prior["analysis_dependency_truncated"])
+                _analysis_dependency_truncated=prior["analysis_dependency_truncated"],
+                _value_flow=value_flow)
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
     info["association_evaluations"] = 0
@@ -815,6 +923,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         analysis_reads = graph_info.pop("_analysis_reads", None)
         analysis_watches = graph_info.pop("_analysis_watches", None)
         analysis_dependency_truncated = graph_info.pop("_analysis_dependency_truncated", False)
+        value_flow = graph_info.pop("_value_flow", None)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
@@ -1002,6 +1111,9 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 ),
                 seconds=round(time.monotonic() - started, 2),
             )
+            if (m["simple_python_certificate"] == "simple-python-v5" and
+                    (value_flow is None or not value_flow.get("complete"))):
+                m["simple_python_certificate"] = None
             check_catalog_sidecars(folder)
             m["artifacts"] = {}
             m["artifact_sizes"] = {}
@@ -1011,7 +1123,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 m["artifact_sizes"][rel] = size
             split_graph(folder, m, observations, import_dependencies, import_requests,
                         nodes, edges, files if m.get("simple_python_certificate") else (),
-                        analysis_reads, analysis_watches, analysis_dependency_truncated)
+                        analysis_reads, analysis_watches, analysis_dependency_truncated,
+                        value_flow)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)
