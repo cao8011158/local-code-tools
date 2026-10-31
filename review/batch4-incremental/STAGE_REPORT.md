@@ -953,3 +953,12 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - B4-OWN-01-INPUT-SCOPE、02-IMPORT-ORDER、03-LOOKUP-SUPPORT三项P2正式确认关闭。单/多importer支持、b→c→b、有限/全捕获候选范围转换和开放/closed_world实际两轮回调对照通过，原失败和测试配置修正历史保留。正式B2第1轮pass；提交前诊断未消耗/重置正式轮次。
 - 0/20/100无关活跃函数下均仅解析修改文件，selected owners=7、实际Jedi=10、association=12、sites=3；模块inventory恰N次/更新、跨轮次上下文一次准备。来源SQL冷VM161/162/162、热157/158/158，均4SQL、2supports/1reader/1subscription；实际owner反查使用unit_source_producer索引SEARCH。整工件校验、捕获/AST复原/值元数据/完整序列化仍是全量成本，相关反查可随闭包轮次重复，不声称全流程O(K)。
 - BATCH2_OWNER_REVIEW.md、BATCH2_EVIDENCE.json及原始日志/完整diff保存，刚核对4f73d150代码头和fc857f3目标时check_gate READY，B2正式1轮、无未解决blocking；只是本批门槛，step仍未完成。下一提交仅保存关闭证据，受验生产代码不变，随后进入用户已批准的Batch3真实输入、发布恢复与性能验收；不合并、不启付费API/业务执行/外部服务。
+
+## 阶段121：Batch 3真实分层验收发现P2，重开Batch 2原审阅链
+
+- B3先核验固定SM a7b0804...的九份原字节：97 nodes/696 edges/408 sites/517 Jedi，24.19秒用满既有20k association，analysis_limited=true、value partial0节点/边，origin observed/partial未截断。不抬预算、不扩83/三库、不造外部dnd5e_engine stub。用户已获告知九文件只能明确full；分组通过不代表完整SM应用已可局部。
+- 原真实3文件组12 nodes/38 edges/19 sites、51 Jedi/81 association，0.47秒、未limited；combat/dnd_runtime/item_package/availability/errors/item_units六文件21/140/83、174 Jedi/12807 association，2.65秒、未limited。service/world加两小文件组19.9秒仍20k/limited。九文件真实USearch attach/版本/修改fresh只读验收1 passed/117.66秒，96 synthetic chunks、3 partitions、请求0，未当owner正向证据。
+- root独立实际dense/BM25/graph发布中断、旧指针、recover、便携backup/restore后继续owner与fresh对照1 passed/1.42秒。开发RRF漏预填query向量曾离线拒绝，是测试输入遗漏，已修且保留红日志；未调用API。
+- 六文件dnd_runtime追加注释控制先与fresh完全一致，root要求再做实际函数数值约束2**63-1→2**62-1。此后发现availability.query_action_availability的targets/UNKNOWN/完整性相同，但association trace44对100、write coverage gaps122对1134；owner事件不同。调用边及其他17表相同，不能删除来源字段凑通过。consumer已被选择，问题是局部分析缺少opaque receiver的全局输入/解释上下文，不是漏选。
+- 固定旧4537843 full对同一六文件数值输入也给100/1134、12807 association、未limited，确认由B2 owner路径引入，非旧Jedi核心新问题。B4-OWN-04-OPEN-RECEIVER-COVERAGE，P2 confirmed/open/blocking；发现B3、归属当前step前批B2。按原授权重开B2，保留第1轮pass历史、不清零，暂停B3冻结/验收与merge。
+- 限定修法按已受影响consumer实际open-receiver-input及不完整instance-field-coverage证明不足明确full；须保留普通开放callback和无关opaque函数的局部复用，不能按全项目UNKNOWN/语法或轨迹长度统一拒绝，不改Full Analyzer精度。root新独立正/反控制及原红日志保留，修复后固定新提交进行B2第2/3轮复审，再恢复B3。

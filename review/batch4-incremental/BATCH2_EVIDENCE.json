@@ -153,11 +153,25 @@
       "decision_reference": "Approved three batches and routine P2 repair",
       "fix_commit": "4f73d150cd4831f29d042b4eb692ea845a6b64ce",
       "pre_review": true
+    },
+    {
+      "id": "B4-OWN-04-OPEN-RECEIVER-COVERAGE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "discovered_in_batch": "B4-ACCEPTANCE",
+      "owner_step": "Batch4 incremental update",
+      "owner_batch": "B4-OWNER-UPDATE",
+      "origin": "current-batch-selected-owner-explanation",
+      "dependency_core": false,
+      "route": "reopen-prior-batch-authorized-P2",
+      "decision_reference": "Approved routine current-step P2 repair; preserve B2 round1 and pause dependent acceptance"
     }
   ],
   "step_complete": false,
   "remaining_batches": [
     "B4-ACCEPTANCE"
   ],
-  "note": "Point-in-time B2 code-head gate before evidence-only close; not whole-step merge readiness."
+  "note": "B2 reopened during B3 real six-file semantic mutation. Round1 pass is historical; the former point-in-time READY does not permit further acceptance/merge until finding04 is fixed and B2 round2 passes."
 }

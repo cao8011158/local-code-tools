@@ -67,3 +67,25 @@ bind this observed code head before the evidence-only closing commit.
 Proceed to approved **B4-ACCEPTANCE**. Do not merge the incomplete overall step.
 No paid embedding, business code execution, external service startup or
 full application graph was performed in this batch.
+
+## Reopened during B3: B4-OWN-04-OPEN-RECEIVER-COVERAGE
+
+The round1 verdict above remains historical. A real six-file capture, after
+a comment control then item_units numeric constraint change, found a public
+site explanation discrepancy: availability.query_action_availability had the
+same empty targets/boundaries, UNKNOWN and completeness, but 44 association
+steps/122 coverage gaps instead of fresh100/1134. Per-owner private input
+events also differed. All edges and the other semantic tables matched.
+The original4537843 full analyser gives the same full100/1134 result, so
+this is a B2 selected-analysis integration issue, not a new upstream precision
+change. The consumer was already selected; merely selecting it again is not
+a fix. Actual evidence is open-receiver-input with incomplete
+instance-field-coverage, an opaque input universe.
+
+P2 confirmed/open/blocking, discovered in B3 and owned by B2. Preserve the
+completed round1; pause dependent B3 acceptance and merge. The bounded repair
+is a selected-consumer evidence guard with explicit full fallback where the
+opaque receiver source cannot be certified. Do not reject every UNKNOWN or
+complex file, remove evidence, or change full-analysis precision. Original
+logs and independent positive/negative controls are retained. B2 requires a
+new fixed-head round2 review before B3 resumes.
