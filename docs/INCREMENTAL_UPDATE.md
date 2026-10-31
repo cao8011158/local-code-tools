@@ -31,6 +31,22 @@ file and seeds capture-scope consumers once, in addition to the existing schema
 local reuse replaces selected consumers and checks retained scope boundaries.
 No public graph kind or v6 syntax form changes.
 
+For a separate 4B pilot, an unsupported whole-capture v6 change can reuse an unchanged
+module whose frozen source has a `literal-functions-v1` proof and whose prior
+semantic records are empty. The proof allows only a module docstring and unique
+ordinary functions with passive literal returns or `pass`; the old strict v6
+validator must also accept it. The build recomputes every other current Python
+module, with the complete captured source and node catalog visible to Jedi.
+When Jedi maps a captured definition whose AST was omitted, preparation expands
+the selected set and retries. The private SQLite sidecar holds the source proof;
+the manifest contains only its policy and count. Program/config/runtime/pin and
+artifact integrity checks still apply. If no passive file can be retained, the
+build uses the full graph. A strict-v6 local update preserves and rechecks these
+proofs; a newly complex selected file can then enter the general route. When a
+general candidate becomes a whole closed-v6 capture, it is rebuilt fully so
+the fresh graph uses the certified import-component policy. This pilot does not certify arbitrary complex modules
+for reuse, and `captured-analysis-scopes-partial` remains partial.
+
 The [function-value dependency contract](FUNCTION_VALUE_DEPENDENCIES.md) remains a broader proposed design; the [gap audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) preserves its earlier source baseline. A bounded `simple-python-v6` slice retains the v5 captured dictionary forms: straight-line module dictionary literals and writes with string keys, direct same-repository `from ... import registry`, module/function aliases, and direct known-key calls. It also admits annotations limited to exact unshadowed built-in scalar names or `None` (no forward strings), primitive literal **keyword-only** defaults (positional defaults still reject), straight-line ordinary self/constructor-rooted fields, exact external `dataclasses.dataclass(frozen=True, slots=True)` annotation-only classes with no methods, field defaults or factories, direct built-in `Exception` subclasses with exact `super().__init__`, and a passive self-field `@property`. It rejects dynamic/numeric keys, conditional or loop effects, escapes, unknown helper mutation, rebindings, arbitrary annotations/decorators/default factories/descriptors, unsupported imports and shadowed helpers. The analyzer still decides targets and `UNKNOWN`.
 
 For a whole-capture validated v6 graph, candidate caller and constructor-site searches are scoped to undirected components of exact resolved captured top-level `from` imports. These closed forms have no other cross-module value bridge; an imported function may pass values, callbacks, constructors and fields in either direction within its component. External `re` and passive `dataclasses` remain explicit boundaries. The same validated policy applies when analyzing the selected local component; unsupported captures retain the original unrestricted searches. Import/layout/pin changes and old incompatible certificates still fall back through the existing whole-capture gate. The component policy affects analyzer candidate enumeration and its provenance, not persistence schema, public node kinds or value-flow coverage. This is not general per-unit witness coverage.

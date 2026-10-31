@@ -155,7 +155,7 @@ class Graph:
         edge["edge_id"] = digest(canonical(edge))
         self.edges.append(edge)
 
-    def build(self, query_reuse=None):
+    def build(self, query_reuse=None, source_context=None):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
         from .simple_python import component_policy
         captured = [node for node in self.nodes.values()
@@ -174,7 +174,7 @@ class Graph:
                     n.get("column", 0),
                 )
         analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported, query_reuse,
-                            candidate_components=components)
+                            candidate_components=components, source_context=source_context)
         try:
             sites = []
             import_dependencies = []

@@ -1,0 +1,83 @@
+...F                                                                     [100%]
+=================================== FAILURES ===================================
+_________ test_new_import_of_passive_provider_expands_selected_context _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-126/test_new_import_of_passive_pro0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa067972a80>
+
+    def test_new_import_of_passive_provider_expands_selected_context(tmp_path, monkeypatch):
+        config, repo = initialize(tmp_path / "isolated")
+        (repo / "src/weights.py").unlink()
+        (repo / "docs/guide.md").unlink()
+        target = repo / "src/trpg_state_machine"
+        target.mkdir()
+        shutil.copyfile(EXECUTION, target / "_execution.py")
+        shutil.copyfile(ERRORS, target / "errors.py")
+        for i in range(20):
+            (repo / f"src/noise_{i}.py").write_text(f"def pure_{i}():\n    return {i}\n")
+        build(config, offline=True, lexical_only=True)
+        source = target / "_execution.py"
+        source.write_bytes(source.read_bytes() + b"\nfrom noise_7 import pure_7\nresult_7 = pure_7()\n")
+        parsed = []
+        original = extraction.python_nodes
+        def counted(file):
+            parsed.append(file["path"])
+            return original(file)
+        monkeypatch.setattr(extraction, "python_nodes", counted)
+>       updated = build(config, offline=True, lexical_only=True)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_general_passive_incremental.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lct/storage.py:1285: in build
+    split_graph(folder, m, observations, import_dependencies, import_requests,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+folder = PosixPath('/tmp/pytest-of-root/pytest-126/test_new_import_of_passive_pro0/isolated/data/versions/20261031T114736-5e4bc57a69')
+m = {'toolkit_version': '1.0.0', 'program_hash': 'f5a48d094bb85c01e60320b97a074476f9856d3cbb93020f3bb02fc0ee28e057', 'schema': 1, 'format': 1, ...}
+query_observations = []
+import_dependencies = [{'source_module': 'synthetic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', 'na...e:noise_7#1', 'requested_name': 'pure_7', 'target_modules': ['synthetic-review:src/noise_7.py:module:noise_7#1'], ...}]
+import_requests = [{'source_module': 'synthetic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', 'so...rs#1', 'source_repository': 'synthetic-review', 'requested_module': 'dataclasses', 'requested_name': 'dataclass', ...}]
+nodes = [{'node_id': 'synthetic-review::repository', 'repository': 'synthetic-review', 'path': '', 'kind': 'repository', ...},...efinition_line': 1, 'docstring': '', ...}, {'brief': '', 'column': 0, 'definition_line': 1, 'docstring': '', ...}, ...]
+edges = [{'source': 'synthetic-review::repository', 'target': 'synthetic-review:src/noise_0.py:module:noise_0#1', 'kind': 'CON...'target': 'synthetic-review:src/noise_10.py:function:pure_10#1.1', 'kind': 'CONTAINS', 'status': 'resolved', ...}, ...]
+certified_files = ()
+analysis_reads = [('synthetic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', 'synthetic-review:sr...', 'synthetic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', 'parameter-origin')]
+analysis_watches = [], analysis_dependency_truncated = False
+value_flow = {'nodes': [], 'edges': [], 'reads': [], 'complete': True}
+analysis_input_payload = {'scopes': [{'id': 'capture:all-captured-python', 'kind': 'capture'}], 'members': [], 'consumers': [{'scope_id': 'capt...ine.errors#1', 'repository': 'synthetic-review', 'path': 'src/trpg_state_machine/errors.py', ...}], 'truncated': False}
+passive_certificates = [{'repository': 'synthetic-review', 'path': 'src/noise_0.py', 'sha256': 'd1fc5a20855b240f807b7b9bf77c805949fa149fcbb84..., 'sha256': '43c22a39be10f9ac5b0201c6a3996fdaad5251629481555518d104b93ded2c3c', 'policy': 'literal-functions-v1'}, ...]
+
+    def split_graph(folder, m, query_observations=(), import_dependencies=(),
+                    import_requests=None, nodes=(), edges=(), certified_files=(),
+                    analysis_reads=None, analysis_watches=None,
+                    analysis_dependency_truncated=False, value_flow=None,
+                    analysis_input_payload=None, passive_certificates=()):
+        """Prepare immutable site evidence and a compact manifest before publication."""
+        graph = m["graph"]
+        sites = graph["sites"]
+        if len(sites) != graph["call_sites"]:
+            raise ToolError("Graph evidence site count mismatch")
+        if (analysis_reads is not None and analysis_watches is not None and
+                len(analysis_reads) + len(analysis_watches) > python_analysis.ANALYSIS_DEPENDENCY_LIMIT):
+            raise ToolError("Analysis dependency record budget exceeded")
+        db = sqlite3.connect(folder / GRAPH_SITES)
+        try:
+            db.execute("create table sites(ordinal integer primary key, data text not null)")
+            db.executemany("insert into sites values(?,?)", ((i, canonical(site)) for i, site in enumerate(sites)))
+            db.execute("create table node_order(ordinal integer primary key, node_id text not null unique)")
+            db.executemany("insert into node_order values(?,?)", (
+                (i, node["node_id"]) for i, node in enumerate(nodes)))
+            db.execute("create table simple_python_certificates(repository text not null, path text not null, sha256 text not null, primary key(repository,path))")
+            db.executemany("insert into simple_python_certificates values(?,?,?)", (
+                (f["repository"], f["path"], f["sha256"]) for f in certified_files
+                if f["path"].endswith(".py")))
+            db.execute("create table passive_python_certificates(repository text not null,path text not null,sha256 text not null,policy text not null,primary key(repository,path))")
+>           db.executemany("insert into passive_python_certificates values(?,?,?,?)", (
+                (r["repository"], r["path"], r["sha256"], r["policy"])
+                for r in passive_certificates))
+E               sqlite3.IntegrityError: UNIQUE constraint failed: passive_python_certificates.repository, passive_python_certificates.path
+
+lct/storage.py:261: IntegrityError
+=========================== short test summary info ============================
+FAILED tests/test_general_passive_incremental.py::test_new_import_of_passive_provider_expands_selected_context
+1 failed, 3 passed in 1.74s

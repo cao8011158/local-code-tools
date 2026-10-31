@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段102，4B首切片开发完成待冻结/push，19项定向、647 passed/27 skipped/39.51秒快速回归；完整源码可见性与局部AST分离，简单模块证明/转换/单文件筛选/索引定位已接线。尚未正式独立review，4B整体仍未完成，4C未开始、不合并。
+
 2026-10-31：阶段100，子批4A独立第1/3轮通过，固定f80285978400be6e146e9d8bd8ab47c10a3416bd；723 passed/32 skipped/51.24秒，608文件远端Git blob相符。五用途观察/schema2/旧1兼容及反查消费者闭合，仍partial不放宽v6。下一步4B真实局部分析，再4C端到端；整体尚未合并。[4A审阅](4A_INDEPENDENT_REVIEW.md) · [三批计划](REMAINING_THREE_BATCHES.md)。
 
 2026-10-31：阶段99，4A开发冻结636 passed/27 skipped/32.30秒，主Agent独立预检16 passed/3.16秒（含新8例）。当前格式断言随schema2更新，全部语义断言保留；修正独立夹具仓库参数后旧固定代码8个行为反例均失败/1.21秒。准备push、固定远端审阅0/3；4B仅只读预检，不实施。
@@ -792,3 +794,22 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 首种独立复用证明只允许极窄普通函数literal-return/pass源：无import/assign/class/decorator/annotation/default/Name/Call等，且旧语义facts为空、源哈希/策略/程序/环境/pin有效；其余复杂模块全部重算。证明需持久化并实际用于选择，不能凭没看到边或用途位推断独立。
 - 首轮真实控制使用a7b0804的_execution.py+errors.py原字节，并对0/20被动无关模块和新provider扩展/full全部记录/失败旧视图对照。源码上下文文件数与AST计算数分别计量；完整性/写盘成本单列。不以这一首切片通过宣布六复杂文件或整个4B完成。
 - 无付费API、业务代码执行、Neo4j/Drive或合并；若不变量不成立先保留具体反例定位，禁止删UNKNOWN/trace造通过。
+
+## 阶段102：4B首切片开发和提交前具体修正完成，待独立预检
+
+- 开发者GPT-6 SOL/medium；工作分支feat/incremental-index-updates；远端基线982db2d285fe371d3daf6a54b11934ea6ba6a314。当前仅暂存源码副本，无本地Git HEAD；本次生产尚未提交，不沿用旧SHA冒充新代码。
+- 五个生产文件实现完整捕获源码/目录可见性与selected AST计算分离、RequiredAnalysisContext显式扩展、literal-functions-v1冻结源证明及sidecar保存。所有复杂单元重算；仅旧语义事实为空且源/版本兼容的简单模块可保留。原v6优先路径和全量安全回退保留。
+- 提交前主Agent确认并给出具体修正：v6成功路径也保留/重绑简单源证明，避免下一次无故失去复用资格；删除与FileDependencies相同的重复侧车哈希；_passive_empty改按已有索引repo+kind+path定位；任何单个有事实文件仅排除它自己，不能淘汰全部无关文件。general转换为全v6时明确full rebuild，避免候选policy与full不一致。
+- 实际SQLite EXPLAIN为SEARCH nodes USING INDEX node_scope(repository=? AND kind=? AND path=?)，0/20/100无关同仓库模块均49条VM步；旧证据各表仍固定次数单遍扫描、完整源码挂载和输出物化仍O(N)，不把整个流程称为O(K)。开发独立性尚未验收。
+- 最终定向命令日志general-passive-targeted-final.log：19 passed/7.29秒；最终快速python -m pytest -q tests --tb=short：647 passed、27 skipped/39.51秒，退出0。相关53通过与早期快速643通过均不累计为额外覆盖。
+- 中间快速2 failed/643 passed/27 skipped原始日志保留：新增re.py阴影原full门禁被general绕过，已恢复显式full保护；未知Base类用例的旧full断言随新general行为仅改这一处，并加入精确解析/复用与fresh所有语义表oracle。没有证明语义错误的mode差异不冒称P1，不删除UNKNOWN/继承结果。
+- 固定真实_execution.py+errors.py原字节及后续测试副本修改：0无关文件仍full，20无关简单文件只parse2/复用20；新导入和已有incoming provider只扩展相关provider，其余19保留；失败旧指针、删除、same capture、v6→general→v6通过开发自测。原始失败/中间诊断保留。
+- 完整diff与hash见general-passive-change-stat.json；生产5文件，测试2文件，架构文档1文件，开发报告general-passive-development.md。根Agent新独立用例另行验证；正式4B首切片review0/3。无API、Neo4j、Drive、业务代码执行或完整业务图、不合并；六复杂文件和非空复杂结果复用仍未验收。
+
+## 阶段103：4B首切片主Agent独立预检通过，准备固定远端
+
+- 冻结的8个生产/测试/文档变更与开发给出的SHA256全部一致；5生产文件、2测试文件、1架构文档共+548/-41行，详细清单general-passive-change-stat.json。
+- 主Agent另写6个公开build独立反例：未来provider新增、旧provider删除、简单源改为含调用、连续两次更新/发布失败、initializer全量回退、普通import真正触发RequiredAnalysisContext（非from-import静态闭包）。六例6 passed/3.97秒，日志general-context-independent-preflight-fixed.log。其中新增/删除/active转换、连续更新及普通import五例做fresh全量对照，包含nodes/edges/sites/UNKNOWN/来源、所有read/input/value语义表与passive证书；initializer例核对显式full模式与具体保护原因。
+- 普通import实测收到一次捕获provider上下文扩展，三个文件各extract一次，未降为jedi-error；保持完整源码22文件可见与19简单文件复用。provider删除/新增和active转换不拖累无关文件。
+- 初预检5通过1失败来自root测试在默认仅保留两次激活时第三次发布后又读取第一版；生产按保留策略合法淘汰。已只改测试为首次保存记录后比较，原失败日志保留，未改生产/删除旧视图失败断言。旧固定4A的首5例全部断言失败，其中4例缺新local模式，1例是原回退原因尚未细分，不把5例全说成5个语义bug；第6例为后补真实异常通路。
+- 本轮仍是提交前预检，正式4B首切片review0/3。下一步按白名单push，固定Git blob后运行快速全仓库和相关独立集合；未开始4C、不合并、无API/业务全图/外部服务。

@@ -36,12 +36,13 @@ from .common import (
 )
 from .dense_update import write_partitions
 from .embedding import Embeddings, bound
-from .extract import embedding_texts, extract
+from .extract import embedding_texts, extract, module_name
 from .graph import Graph
 from .lexical import add_document
 from .python_analysis import Atom, Result
 from .simple_python import CERTIFICATE, certify
 from . import analysis_inputs
+from . import passive_python
 from .value_flow import LIMIT as VALUE_FLOW_LIMIT
 
 DDL = """
@@ -236,7 +237,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 import_requests=None, nodes=(), edges=(), certified_files=(),
                 analysis_reads=None, analysis_watches=None,
                 analysis_dependency_truncated=False, value_flow=None,
-                analysis_input_payload=None):
+                analysis_input_payload=None, passive_certificates=()):
     """Prepare immutable site evidence and a compact manifest before publication."""
     graph = m["graph"]
     sites = graph["sites"]
@@ -256,6 +257,10 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.executemany("insert into simple_python_certificates values(?,?,?)", (
             (f["repository"], f["path"], f["sha256"]) for f in certified_files
             if f["path"].endswith(".py")))
+        db.execute("create table passive_python_certificates(repository text not null,path text not null,sha256 text not null,policy text not null,primary key(repository,path))")
+        db.executemany("insert into passive_python_certificates values(?,?,?,?)", (
+            (r["repository"], r["path"], r["sha256"], r["policy"])
+            for r in passive_certificates))
         db.execute("create table query_observations(key text primary key, data text not null, checksum text not null)")
         db.executemany("insert into query_observations values(?,?,?)", (
             (canonical(record["key"]), canonical(record), digest(canonical(record)))
@@ -391,6 +396,9 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
     m["value_flow_schema"] = 1
     m["analysis_input_schema"] = analysis_inputs.SCHEMA
+    m["passive_python_schema"] = 1
+    m["passive_python_policy"] = passive_python.POLICY
+    m["passive_python_count"] = len(passive_certificates)
     m["analysis_input_coverage"] = analysis_inputs.COVERAGE
     m["analysis_input_scope_count"] = len(inputs["scopes"])
     m["analysis_input_member_count"] = len(inputs["members"])
@@ -516,6 +524,23 @@ class FileDependencies:
                                                ") and kind='module'", batch))
                 if not analysis_inputs.valid(payload, modules):
                     raise ToolError("Previous analysis input endpoints unavailable")
+            self.passive_available = manifest.get("passive_python_schema") == 1
+            if manifest.get("passive_python_schema") not in (None, 1):
+                raise ToolError("Previous passive source schema unavailable")
+            if self.passive_available:
+                if (manifest.get("passive_python_policy") != passive_python.POLICY or
+                        type(manifest.get("passive_python_count")) is not int or
+                        manifest["passive_python_count"] < 0 or
+                        not {"repository", "path", "sha256", "policy"} <= {
+                            r[1] for r in self.db.execute(
+                                "pragma table_info('passive_python_certificates')")}):
+                    raise ToolError("Previous passive source certificate unavailable")
+                rows = list(self.db.execute("select repository,path,sha256,policy "
+                                            "from passive_python_certificates"))
+                if (len(rows) != manifest["passive_python_count"] or
+                        any(policy != passive_python.POLICY or not path.endswith(".py")
+                            for _, path, _, policy in rows)):
+                    raise ToolError("Previous passive source certificate invalid")
             if manifest.get("value_flow_schema") == 1:
                 if (manifest.get("value_flow_coverage") not in
                         ("certified-dictionary-v1", "partial") or
@@ -627,6 +652,12 @@ class FileDependencies:
         return set(self.db.execute(
             "select c.repository,c.path from analysis_input_consumers c "
             "where c.scope_id=?", (analysis_inputs.CAPTURE,)))
+
+    def passive_sources(self):
+        if not self.passive_available:
+            raise ToolError("Previous passive source evidence unavailable")
+        return {(r, p): sha for r, p, sha in self.db.execute(
+            "select repository,path,sha256 from passive_python_certificates")}
 
     def importers(self, repository, module):
         rows = self.db.execute(
@@ -829,6 +860,9 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             "select consumer_module,kind,universe from analysis_watches order by consumer_module,kind,universe"))
         input_payload = analysis_inputs.read(db, schema=analysis_inputs.SCHEMA)
         input_payload["truncated"] = prior["analysis_input_truncated"]
+        passive_certificates = [dict(repository=r,path=p,sha256=s,policy=q)
+                                for r,p,s,q in db.execute(
+                                    "select repository,path,sha256,policy from passive_python_certificates order by repository,path")]
         if prior.get("value_flow_schema") == 1:
             value_flow = dict(
                 nodes=[json.loads(raw) for (raw,) in db.execute("select data from value_nodes order by id")],
@@ -846,6 +880,7 @@ def _reuse_python_graph(folder, prior, files, repos, c):
                 _import_dependencies=dependencies, _import_requests=requests,
                 _analysis_reads=analysis_reads, _analysis_watches=analysis_watches,
                 _analysis_inputs=input_payload,
+                _passive_python=passive_certificates,
                 _analysis_dependency_truncated=prior["analysis_dependency_truncated"],
                 _value_flow=value_flow)
     info["jedi_queries_reused"] = info["jedi_queries"]
@@ -978,10 +1013,19 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                     else:
                         from .python_incremental import prepare
                         with FileDependencies(old_folder, old_manifest) as dependencies:
+                            parsed_cache = {}
                             candidate, reason = prepare(
                                 old_folder, old_manifest, files, repos,
                                 dependencies=dependencies, graph_sites=GRAPH_SITES,
-                                attempts=local_attempts)
+                                attempts=local_attempts, parsed_cache=parsed_cache)
+                            if candidate is None and reason in {
+                                    "previous-simple-python-certificate-unavailable",
+                                    "selected-python-syntax-unsupported"}:
+                                candidate, reason = prepare(
+                                    old_folder, old_manifest, files, repos,
+                                    dependencies=dependencies, graph_sites=GRAPH_SITES,
+                                    attempts=local_attempts, general=True,
+                                    parsed_cache=parsed_cache)
                         if candidate is not None:
                             nodes, edges, graph_info, local_metrics = candidate
                             prepared = nodes, edges, graph_info
@@ -1032,12 +1076,18 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
         analysis_watches = graph_info.pop("_analysis_watches", None)
         analysis_dependency_truncated = graph_info.pop("_analysis_dependency_truncated", False)
         input_payload = graph_info.pop("_analysis_inputs", None)
+        passive_certificates = graph_info.pop("_passive_python", None)
+        if passive_certificates is None:
+            passive_certificates = [proof for f in files if f["path"].endswith(".py")
+                                    if (proof := passive_python.certify(
+                                        f, asts.get(f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1")))
+                                    is not None]
         value_flow = graph_info.pop("_value_flow", None)
         graph_info["query_reuse_reason"] = reuse_reason
         graph_info["query_runtime"] = QUERY_RUNTIME
         graph_info["import_dependency_count"] = len(import_dependencies)
         analysis_scope = dict(
-            mode=("certified-simple-python-component" if local_metrics is not None else
+            mode=(preparation_reason if local_metrics is not None else
                   "identical-python-capture-reuse" if prepared is not None else "full-graph"),
             reason=preparation_reason,
             python_files_parsed=local_metrics["parsed_python_files"] if local_metrics else 0 if prepared is not None else sum(
@@ -1052,6 +1102,8 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             document_files_parsed=sum(not f["path"].endswith(".py") for f in files),
             reused_graph_sites=(local_metrics["reused_sites"] if local_metrics else
                                 graph_info["call_sites"] if prepared is not None else 0),
+            context_source_files=local_metrics.get("context_source_files", 0) if local_metrics else 0,
+            context_source_bytes=local_metrics.get("context_source_bytes", 0) if local_metrics else 0,
             sites_analyzed=(graph_info["call_sites"] - local_metrics["reused_sites"]
                             if local_metrics else 0 if prepared is not None else graph_info["call_sites"]),
             jedi_queries_executed=graph_info["jedi_queries_executed"],
@@ -1233,7 +1285,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             split_graph(folder, m, observations, import_dependencies, import_requests,
                         nodes, edges, files if m.get("simple_python_certificate") else (),
                         analysis_reads, analysis_watches, analysis_dependency_truncated,
-                        value_flow, input_payload)
+                        value_flow, input_payload, passive_certificates)
             atomic(folder / "manifest.json", m)
             validate_folder(folder, m)
             atomic(folder / "summary.json", m)

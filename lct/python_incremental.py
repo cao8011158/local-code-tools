@@ -9,11 +9,16 @@ from contextlib import closing
 from . import extract as extraction
 from . import python_analysis
 from . import analysis_inputs
+from . import passive_python
 from .common import canonical, digest
 from .evidence_reuse import EvidenceReuseRejected, RebindContext
 from .extract import definition_version, extract, module_name
 from .graph import Graph
+from .python_analysis import RequiredAnalysisContext
 from .simple_python import CERTIFICATE, certify
+
+_PASSIVE_NODE_QUERY = ("select node_id from nodes where repository=? "
+                       "and kind in ('module','function') and path=?")
 
 
 def merge_analysis_dependencies(old_reads, old_watches, new_reads, new_watches, *,
@@ -57,13 +62,61 @@ def merge_analysis_dependencies(old_reads, old_watches, new_reads, new_watches, 
     return (sorted(reads), sorted(watches)), None
 
 
-def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=None):
+def _passive_empty(folder, proofs):
+    """Verify old passive source proof has no nonlexical semantic facts."""
+    if not proofs:
+        return set()
+    with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() +
+                                 "?mode=ro&immutable=1", uri=True)) as catalog, closing(
+            sqlite3.connect((folder / "graph-sites.sqlite").as_uri() +
+                            "?mode=ro&immutable=1", uri=True)) as evidence:
+        owner = {}
+        bad = set()
+        for repo, path in proofs:
+            found = [row[0] for row in catalog.execute(_PASSIVE_NODE_QUERY, (repo, path))]
+            if not found:
+                bad.add((repo, path))
+            owner.update((ident, (repo, path)) for ident in found)
+        for source, target in catalog.execute(
+                "select source,target from edges where kind!='CONTAINS'"):
+            bad.update(key for ident in (source, target) if (key := owner.get(ident)))
+        for table, column in (("sites", "execution_owner"),
+                              ("query_observations", "key"),
+                              ("import_dependencies", "source_module"),
+                              ("import_requests", "source_module"),
+                              ("value_nodes", "module")):
+            for (raw,) in evidence.execute(f"select data from {table}"):
+                ident = json.loads(raw)[column]
+                if column == "key":
+                    ident = ident[0]
+                if ident in owner:
+                    bad.add(owner[ident])
+        for consumer, producer in evidence.execute(
+                "select consumer_module,producer_module from analysis_reads"):
+            bad.update(key for ident in (consumer, producer) if (key := owner.get(ident)))
+        for table, field in (("analysis_watches", "consumer_module"),
+                             ("analysis_input_consumers", "module_id"),
+                             ("analysis_input_members", "module_id")):
+            for (ident,) in evidence.execute(f"select {field} from {table}"):
+                if ident in owner:
+                    bad.add(owner[ident])
+        bad.update((r, p) for r, p in evidence.execute(
+            "select consumer_repository,consumer_path from value_reads") if (r, p) in proofs)
+    return set(proofs) - bad
+
+
+def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=None,
+            general=False, forced=None, parsed_cache=None):
     """Return (nodes, edges, graph, metrics) or (None, reason)."""
-    if prior.get("simple_python_certificate") != CERTIFICATE:
+    if not general and prior.get("simple_python_certificate") != CERTIFICATE:
         return None, "previous-simple-python-certificate-unavailable"
-    if (prior.get("value_flow_schema") != 1 or
+    if not general and (prior.get("value_flow_schema") != 1 or
             prior.get("value_flow_coverage") != "certified-dictionary-v1"):
         return None, "previous-value-flow-evidence-unavailable"
+    if general and (prior.get("passive_python_schema") != 1 or
+                    prior.get("passive_python_policy") != passive_python.POLICY or
+                    not dependencies.passive_available):
+        return None, "previous-passive-source-evidence-unavailable"
     if prior.get("analysis_dependency_schema") not in (1, 2) or prior.get("analysis_dependency_truncated"):
         return None, "previous-analysis-dependency-evidence-unavailable"
     if (prior.get("analysis_input_schema") != analysis_inputs.SCHEMA or
@@ -119,10 +172,23 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                and dependencies.has_descendant_requesters(key[0], module_name(key[1]))
                for key in changed):
             return None, "ancestor-module-layout-changed"
-        # The old sidecar certifies all old modules. New/changed modules must fit
-        # the subset; parse the selected closure later, never all unchanged ASTs.
-        selected = set(changed)
-        queue = deque(sorted(changed))
+        if general and any(module_name(path).split(".")[0] in {"re", "dataclasses"}
+                           for _, path in changed):
+            return None, "stdlib-helper-shadow-layout-changed"
+        passive_retained = set()
+        if general:
+            proofs = dependencies.passive_sources()
+            candidate_passive = {key: sha for key, sha in proofs.items()
+                                 if key in python and key not in changed and
+                                 key in old_files and old_files[key][0] == sha == python[key]["sha256"]}
+            passive_retained = _passive_empty(folder, candidate_passive)
+            if not passive_retained:
+                return None, "no-verified-passive-reuse"
+        # Strict mode relies on the old whole-capture certificate. General mode
+        # selects every complex file and retains only verified passive files.
+        selected = (set(changed) | (python.keys() - passive_retained) if general
+                    else set(changed)) | set(forced or ())
+        queue = deque(sorted(selected))
         # The global watch is one immutable old-capture subscription. Fetch it
         # once, not for each selected module in the worklist.
         for watcher in dependencies.analysis_watchers("slot-writer-universe"):
@@ -133,14 +199,15 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             if watcher not in selected:
                 selected.add(watcher)
                 queue.append(watcher)
-        parsed = {}
+        parsed = parsed_cache if parsed_cache is not None else {}
         while queue:
             key = queue.popleft()
             candidates = dependencies.adjacent(*key)
             # Use the old exact entry subscriptions, including reads of absent
             # keys; old evidence is indispensable after a write is deleted.
-            for entry in dependencies.entry_ids_for_file(*key):
-                candidates.update(dependencies.value_readers(entry))
+            if dependencies.value_flow_complete:
+                for entry in dependencies.entry_ids_for_file(*key):
+                    candidates.update(dependencies.value_readers(entry))
             candidates.update(dependencies.analysis_readers(*key))
             candidates.update(dependencies.input_scope_readers(*key))
             # Existing analyzer watch coverage was seeded once above; this
@@ -177,8 +244,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     selected.add(candidate)
                     queue.append(candidate)
         selected_present = selected & python.keys()
-        # Certify every selected current AST, including all imported targets. An
-        # omitted old module must have no active importer or the gate fails.
+        if general and not selected_present:
+            return None, "general-to-whole-v6-rebuild"
+        # Strict mode certifies selected ASTs. General mode analyzes every
+        # selected complex source and uses the passive source/empty-fact proof.
         selected_files = [python[k] for k in sorted(selected_present)]
         local_nodes, local_asts = [], {}
         for key in sorted(selected_present):
@@ -190,11 +259,15 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             ns, trees = parsed[key]
             local_nodes.extend(ns)
             local_asts.update(trees)
-        # Certification requires the full import universe but only selected ASTs.
-        # Supply unchanged module trees from old frozen source only if referenced
-        # by a selected import, in which case closure should have selected it.
-        if certify(selected_files, local_asts, graph=resolver) != CERTIFICATE:
+        # The resolver has the complete captured module catalog; selected ASTs
+        # come only from parsed files, with general mode expanding on demand.
+        if not general and certify(selected_files, local_asts, graph=resolver) != CERTIFICATE:
             return None, "selected-python-syntax-unsupported"
+        if general and certify(selected_files, local_asts, graph=resolver) == CERTIFICATE:
+            # Retained passive files are strict-v6 and have no imports. A full
+            # closed capture needs the v6 component policy on both oracle and
+            # candidate, so rebuild rather than analyze it with missing ASTs.
+            return None, "general-to-whole-v6-rebuild"
         with closing(sqlite3.connect((folder / graph_sites).as_uri() + "?mode=ro&immutable=1", uri=True)) as evidence:
             try:
                 certified = {(r, p): sha for r, p, sha in evidence.execute(
@@ -203,7 +276,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 return None, "old-syntax-certificates-unavailable"
             old_python = {key: item[0] for key, item in old_files.items()
                           if key[1].endswith(".py")}
-            if certified != old_python:
+            if not general and certified != old_python:
                 return None, "old-syntax-certificates-incomplete"
             old_order = [nid for (nid,) in evidence.execute("select node_id from node_order order by ordinal")]
             old_sites = [json.loads(raw) for (raw,) in evidence.execute("select data from sites order by ordinal")]
@@ -277,21 +350,32 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         return None, "new-node-identity-collision"
     # An import added in a selected module can pull in an unchanged target;
     # the bounded graph must see every selected target and no outside module.
-    selected_graph_nodes = [n for n in nodes if n["kind"] == "repository"
-                            or (n["repository"], n["path"]) in selected_present]
+    selected_graph_nodes = (nodes if general else [n for n in nodes if n["kind"] == "repository"
+                            or (n["repository"], n["path"]) in selected_present])
     graph = Graph(selected_graph_nodes, local_asts, repos)
     full_graph = Graph(nodes, {}, repos)
     if graph.cross_bindings != prior["graph"].get("dependency_bindings"):
         return None, "dependency-bindings-changed"
-    local_edges, info = graph.build()
+    source_context = ({f"{r}:{p}:module:{module_name(p)}#1": f["text"]
+                       for (r, p), f in python.items()} if general else None)
+    try:
+        local_edges, info = graph.build(source_context=source_context)
+    except RequiredAnalysisContext as required:
+        key = required.repository, required.path
+        if not general or key not in python or key in selected_present:
+            return None, "required-analysis-context-unavailable"
+        return prepare(folder, prior, files, repos, dependencies=dependencies,
+                       graph_sites=graph_sites, attempts=attempts, general=True,
+                       forced=set(forced or ()) | {key}, parsed_cache=parsed)
     local_flow = info.get("_value_flow")
-    if local_flow is None or not local_flow["complete"]:
+    if local_flow is None or not general and not local_flow["complete"]:
         return None, "local-value-flow-witness-incomplete"
     if info["analysis_limited"]:
         return None, "local-association-budget-limited"
-    if prior_bound + info["association_evaluations"] > 20000:
+    if (prior_bound + info["association_evaluations"] > 20000 and not general):
         return None, "combined-association-budget-uncertified"
-    info["association_bound"] = prior_bound + info["association_evaluations"]
+    info["association_bound"] = (info["association_evaluations"] if general else
+                                 prior_bound + info["association_evaluations"])
     context = RebindContext(old_nodes=old_nodes, new_nodes=byid, old_trees={},
                             new_trees={}, selected_paths=selected,
                             verified_sources=verified)
@@ -398,7 +482,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 retained_reads.append(record)
         local_flow = dict(nodes=retained_nodes + local_flow["nodes"],
                           edges=retained_edges + local_flow["edges"],
-                          reads=retained_reads + local_flow["reads"], complete=True)
+                          reads=retained_reads + local_flow["reads"],
+                          complete=(local_flow["complete"] if general else True))
         if (len(local_flow["nodes"]) + len(local_flow["edges"]) +
                 len(local_flow["reads"]) > python_analysis.ANALYSIS_DEPENDENCY_LIMIT):
             return None, "combined-value-flow-budget-uncertified"
@@ -417,6 +502,19 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
     info["_analysis_reads"] = analysis_reads
     info["_analysis_watches"] = analysis_watches
     info["_analysis_inputs"] = input_payload
+    retained_proofs = []
+    for key, sha in dependencies.passive_sources().items() if dependencies.passive_available else ():
+        if key in selected:
+            continue
+        if (key not in verified or key not in python or key not in old_files or
+                old_files[key][0] != sha or python[key]["sha256"] != sha):
+            return None, "old-passive-source-proof-unavailable"
+        retained_proofs.append(dict(repository=key[0], path=key[1], sha256=sha,
+                                    policy=passive_python.POLICY))
+    selected_proofs = [proof for f in selected_files
+                       if (proof := passive_python.certify(f, local_asts.get(
+                           f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1")))]
+    info["_passive_python"] = retained_proofs + selected_proofs
     info["_analysis_dependency_truncated"] = False
     info["_value_flow"] = local_flow
     info["dependency_bindings"] = graph.cross_bindings
@@ -425,4 +523,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                                     parsed_python_files=len(selected_present),
                                     reused_python_files=len(python) - len(selected_present),
                                     reused_sites=len(reused_sites), reused_edges=reused_edge_count,
-                                    selected_keys=sorted(selected_present))), "certified-simple-python-component"
+                                    selected_keys=sorted(selected_present),
+                                    context_source_files=len(source_context or {}),
+                                    context_source_bytes=sum(len(s.encode("utf-8")) for s in (source_context or {}).values()))), (
+                                        "general-passive-component" if general else
+                                        "certified-simple-python-component")

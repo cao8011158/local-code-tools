@@ -1,0 +1,58 @@
+.F.............................................F........................ [ 10%]
+.......................................s................................ [ 21%]
+.............................s................................ss........ [ 32%]
+..sss.......s.....s...sss.s.sssssssssss...sss........................... [ 42%]
+........................................................................ [ 53%]
+........................................................................ [ 64%]
+........................................................................ [ 75%]
+........................................................................ [ 85%]
+........................................................................ [ 96%]
+........................                                                 [100%]
+=================================== FAILURES ===================================
+_______ test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-136/test_actual_item_unit_importer0')
+
+    def test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back(tmp_path):
+        config, repo, module = setup(tmp_path, caller=True)
+        baseline = build(config, offline=True, lexical_only=True)
+        before = records(config, baseline["version"])
+        module.write_bytes(module.read_bytes().replace(b"2**63 - 1", b"2**63 - 2"))
+        updated = build(config, offline=True, lexical_only=True)
+        scope = updated["incremental"]["analysis_scope"]
+        assert scope["mode"] == "certified-simple-python-component"
+        assert scope["python_files_parsed"] == 2
+        assert scope["reused_python_files"] == 20
+        assert records(config, baseline["version"]) == before
+        oracle(tmp_path, config, updated)
+    
+        # A newly captured local module can change where `import re` resolves.
+        (repo / "src/re.py").write_text("def fullmatch(pattern, value):\n    return None\n")
+        shadow = build(config, offline=True, lexical_only=True)
+>       assert shadow["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E       AssertionError: assert 'general-passive-component' == 'full-graph'
+E         
+E         - full-graph
+E         + general-passive-component
+
+tests/test_actual_item_unit_incremental.py:86: AssertionError
+_____________ test_class_change_falls_back_after_bounded_preflight _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-136/test_class_change_falls_back_a0')
+
+    def test_class_change_falls_back_after_bounded_preflight(tmp_path):
+        c, repo = fixture(tmp_path)
+        (repo / "src/weights.py").write_text("class Box(Base):\n    def __init__(self): pass\n")
+        result = build(c, offline=True, lexical_only=True)
+        scope = result["incremental"]["analysis_scope"]
+>       assert scope["mode"] == "full-graph"
+E       AssertionError: assert 'general-passive-component' == 'full-graph'
+E         
+E         - full-graph
+E         + general-passive-component
+
+tests/test_changed_python_gate.py:22: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_actual_item_unit_incremental.py::test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back
+FAILED tests/test_changed_python_gate.py::test_class_change_falls_back_after_bounded_preflight
+2 failed, 643 passed, 27 skipped in 34.90s

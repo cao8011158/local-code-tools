@@ -28,6 +28,14 @@ from .python_effects import (
 
 _DYNAMIC = object()
 _SAME_INPUT_SCOPE = object()
+
+
+class RequiredAnalysisContext(Exception):
+    """A captured Jedi target needs its AST in the bounded compute component."""
+
+    def __init__(self, repository, path):
+        self.repository, self.path = repository, path
+        super().__init__(repository, path)
 ANALYSIS_DEPENDENCY_LIMIT = 20000
 ANALYSIS_READ_KINDS = frozenset({"container-effects", "member-lookup", "return-body",
                                  "parameter-origin", "jedi-target"})
@@ -97,7 +105,7 @@ class Analyzer:
     """Resolve one private source capture with recursion and work budgets."""
 
     def __init__(self, nodes, trees, repos, imported, query_reuse=None,
-                 candidate_components=None):
+                 candidate_components=None, source_context=None):
         ensure_parso_cache_timestamps()
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
@@ -130,13 +138,17 @@ class Analyzer:
         self.coverage_models = {}
         self.method_effects = {}
         self.execution_nodes = {}
-        for ident, t in self.modules.items():
+        context = (source_context if source_context is not None else
+                   {ident: tree._lct_source for ident, tree in self.modules.items()})
+        for ident, source in context.items():
+            if ident not in nodes or nodes[ident]["kind"] != "module":
+                raise ValueError("Captured context module unavailable")
             n = nodes[ident]
             path = self.root / n["repository"] / n["path"]
             if not path.resolve().is_relative_to(self.root):
                 raise ValueError("Source path escapes captured workspace")
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(t._lct_source, encoding="utf-8")
+            path.write_text(source, encoding="utf-8")
             self.paths[path.resolve()] = ident
         roots = defaultdict(set)
         for path, ident in self.paths.items():
@@ -157,7 +169,7 @@ class Analyzer:
         projects = {}
         for repository in roots:
             dependencies = set()
-            for ident in self.modules:
+            for ident in context:
                 module = nodes[ident]
                 if module["repository"] == repository:
                     continue
@@ -171,6 +183,8 @@ class Analyzer:
                 load_unsafe_extensions=False,
             )
         for path, ident in self.paths.items():
+            if ident not in self.modules:
+                continue
             self.scripts[ident] = jedi.Script(
                 code=trees[ident]._lct_source, path=path,
                 project=projects[nodes[ident]["repository"]],
@@ -571,6 +585,9 @@ class Analyzer:
         )
         path = Path(name.module_path).resolve() if name.module_path else None
         module = self.paths.get(path)
+        if module is not None and module not in self.modules:
+            owner = self.nodes[module]
+            raise RequiredAnalysisContext(owner["repository"], owner["path"])
         if not module:
             if not name.module_path and not name.full_name:
                 raw["mapping"] = "unlocatable-jedi-result"
@@ -748,6 +765,8 @@ class Analyzer:
                         record["mapping"] = "dependency-version-unmatched"
                 raw.append(record)
                 results.append(value)
+        except RequiredAnalysisContext:
+            raise
         except Exception as exc:
             raw.append(dict(error=type(exc).__name__, mapping="jedi-error"))
             results.append(unknown("jedi-error:" + type(exc).__name__))

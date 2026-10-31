@@ -3,6 +3,7 @@
 from lct.common import inventory
 from lct.python_incremental import prepare
 from lct.storage import GRAPH_SITES, FileDependencies, build, manifest
+from tests.test_general_passive_incremental import semantic
 from tests.synthetic_support import initialize
 
 
@@ -14,15 +15,18 @@ def fixture(tmp_path):
     return c, repo
 
 
-def test_class_change_falls_back_after_bounded_preflight(tmp_path):
+def test_class_change_recomputes_complex_module_and_reuses_passive_peer(tmp_path):
     c, repo = fixture(tmp_path)
     (repo / "src/weights.py").write_text("class Box(Base):\n    def __init__(self): pass\n")
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "selected-python-syntax-unsupported"
-    assert scope["local_preflight_python_files_parsed"] == 1
-    assert scope["total_python_files_parsed"] == 3
+    assert scope["mode"] == "general-passive-component"
+    assert scope["python_files_parsed"] == 1
+    assert scope["reused_python_files"] == 1
+    assert scope["total_python_files_parsed"] == 1
+    fresh_config = dict(c, data=str(tmp_path / "fresh"))
+    fresh = build(fresh_config, offline=True, lexical_only=True)
+    assert semantic(c, result["version"]) == semantic(fresh_config, fresh["version"])
 
 
 def test_ordinary_class_change_uses_bounded_component(tmp_path):
