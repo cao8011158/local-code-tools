@@ -1,0 +1,374 @@
+--- a/lct/python_analysis.py
++++ b/lct/python_analysis.py
+@@ -218,6 +218,7 @@
+         self.analysis_reads = set()
+         self.analysis_watches = set()
+         self.analysis_dependency_truncated = False
++        self.value_reads = {}
+         self.access = ReceiverAccess(self, Atom, Result)
+ 
+     def _record_analysis_dependency(self, destination, record):
+@@ -2294,6 +2295,10 @@
+         result = union(*results) if results else unknown("unresolved-container-slot")
+         cov.events.extend(events)
+         self.coverage[(scope, id(expr))] = cov.export()
++        # Private evidence is recorded at the actual resolver read. Source spans,
++        # rather than transient AST object addresses, are exported by Graph.
++        if isinstance(expr.slice, ast.Constant) and type(expr.slice.value) is str:
++            self.value_reads[(scope, expr.lineno, expr.col_offset)] = result
+         return result
+ 
+     def literal_key(self, expr):
+--- a/lct/graph.py
++++ b/lct/graph.py
+@@ -7,6 +7,7 @@
+ 
+ from .common import ToolError, canonical, digest, git
+ from .python_analysis import CALLABLE_KINDS, Analyzer
++from .value_flow import evidence as value_flow_evidence
+ 
+ 
+ class Graph:
+@@ -476,6 +477,8 @@
+                 _import_requests=import_requests,
+                 _analysis_reads=sorted(analyzer.analysis_reads),
+                 _analysis_watches=sorted(analyzer.analysis_watches),
++                _value_flow=value_flow_evidence(list(self.nodes.values()), self.asts,
++                                                analyzer, sites),
+                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
+                 dependency_bindings=self.cross_bindings,
+                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
+--- a/lct/storage.py
++++ b/lct/storage.py
+@@ -233,7 +233,7 @@
+ def split_graph(folder, m, query_observations=(), import_dependencies=(),
+                 import_requests=None, nodes=(), edges=(), certified_files=(),
+                 analysis_reads=None, analysis_watches=None,
+-                analysis_dependency_truncated=False):
++                analysis_dependency_truncated=False, value_flow=None):
+     """Prepare immutable site evidence and a compact manifest before publication."""
+     graph = m["graph"]
+     sites = graph["sites"]
+@@ -287,6 +287,24 @@
+         db.execute("create index analysis_read_producer on analysis_reads(producer_repository,producer_path,kind,consumer_repository,consumer_path)")
+         db.execute("create table analysis_watches(consumer_module text not null, consumer_repository text not null, consumer_path text not null, kind text not null, universe text not null, primary key(consumer_module,kind,universe))")
+         db.execute("create index analysis_watch_kind on analysis_watches(kind,universe,consumer_repository,consumer_path)")
++        db.execute("create table value_nodes(id text primary key, kind text not null, repository text not null, path text not null, data text not null)")
++        db.execute("create index value_node_file on value_nodes(repository,path,kind,id)")
++        db.execute("create table value_edges(source text not null,target text not null,kind text not null,primary key(source,target,kind))")
++        db.execute("create index value_edge_target on value_edges(target,kind,source)")
++        db.execute("create table value_reads(entry text not null,read text not null,consumer_repository text not null,consumer_path text not null,primary key(entry,read))")
++        db.execute("create index value_read_consumer on value_reads(consumer_repository,consumer_path,entry)")
++        flow = value_flow or {"nodes": [], "edges": [], "reads": []}
++        for record in flow["nodes"]:
++            owner = modules.get(record["module"])
++            if owner is None:
++                raise ToolError("Value node owner unavailable")
++            db.execute("insert into value_nodes values(?,?,?,?,?)", (record["id"], record["kind"],
++                *owner, canonical(record)))
++        db.executemany("insert into value_edges values(?,?,?)", (
++            (e["source"], e["target"], e["kind"]) for e in flow["edges"]))
++        db.executemany("insert into value_reads values(?,?,?,?)", (
++            (r["entry"], r["read"], r["consumer_repository"], r["consumer_path"])
++            for r in flow["reads"]))
+         for consumer, producer, kind in analysis_reads or ():
+             if consumer not in modules or producer not in modules or kind != "container-effects":
+                 raise ToolError("Analysis read module ownership unavailable")
+@@ -351,6 +369,12 @@
+         m["analysis_read_count"] = len(analysis_reads)
+         m["analysis_watch_count"] = len(analysis_watches)
+         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
++    m["value_flow_schema"] = 1
++    m["value_flow_coverage"] = ("certified-dictionary-v1" if
++                                m.get("simple_python_certificate") == "simple-python-v5" else "partial")
++    m["value_flow_node_count"] = len((value_flow or {}).get("nodes", ()))
++    m["value_flow_edge_count"] = len((value_flow or {}).get("edges", ()))
++    m["value_flow_projection"] = "internal-sqlite-only"
+     m["graph_detail"] = GRAPH_SITES
+     m["metadata_layout"] = 2
+     for rel in (GRAPH_SITES, SOURCE_FILES):
+@@ -407,6 +431,17 @@
+                     not isinstance(manifest.get("analysis_dependency_truncated"), bool)):
+                 raise ToolError("Previous analysis dependency summary unavailable")
+             self.analysis_dependency_truncated = manifest["analysis_dependency_truncated"]
++            if manifest.get("value_flow_schema") == 1:
++                required = {"value_nodes", "value_edges", "value_reads"}
++                present = {r[0] for r in self.db.execute(
++                    "select name from sqlite_master where type='table' and name in ('value_nodes','value_edges','value_reads')")}
++                if present != required or not {"value_node_file"} <= {
++                    r[1] for r in self.db.execute("pragma index_list('value_nodes')")
++                } or not {"value_edge_target"} <= {
++                    r[1] for r in self.db.execute("pragma index_list('value_edges')")
++                }:
++                    raise ToolError("Previous value-flow index unavailable")
++            self.value_flow_available = manifest.get("value_flow_schema") == 1
+         except (sqlite3.Error, ToolError):
+             self.close()
+             raise
+@@ -417,6 +452,36 @@
+             "union select source_repository,source_path from file_adjacency where target_repository=? and target_path=?",
+             (repository, path, repository, path))
+         return set(rows)
++
++    def entry_ids_for_file(self, repository, path):
++        """Seed only entries belonging to one changed producer file."""
++        if not self.value_flow_available:
++            raise ToolError("Previous value-flow index unavailable")
++        return {r[0] for r in self.db.execute(
++            "select id from value_nodes where repository=? and path=? and kind='entry'",
++            (repository, path))}
++
++    def value_readers(self, entry):
++        """Exact container-origin/key subscription, including prior missing keys."""
++        if not self.value_flow_available:
++            raise ToolError("Previous value-flow index unavailable")
++        return set(self.db.execute(
++            "select consumer_repository,consumer_path from value_reads where entry=?", (entry,)))
++
++    def get_value_nodes(self, ids):
++        """Bounded internal evidence lookup, never a search catalog inventory."""
++        if not self.value_flow_available or len(ids) > 100:
++            raise ToolError("Value node request unavailable or too large")
++        return [json.loads(row[0]) for ident in ids for row in self.db.execute(
++            "select data from value_nodes where id=?", (ident,))]
++
++    def get_value_relations(self, node_id, direction="out", limit=100):
++        if not self.value_flow_available or direction not in ("in", "out") or not 1 <= limit <= 100:
++            raise ToolError("Invalid value relation request")
++        column = "source" if direction == "out" else "target"
++        return [dict(source=s, target=t, kind=k) for s, t, k in self.db.execute(
++            f"select source,target,kind from value_edges where {column}=? order by kind,source,target limit ?",
++            (node_id, limit + 1))][:limit]
+ 
+     def analysis_readers(self, repository, path):
+         """Observed container-effect consumers, not a complete invalidation set."""
+@@ -815,6 +880,7 @@
+         analysis_reads = graph_info.pop("_analysis_reads", None)
+         analysis_watches = graph_info.pop("_analysis_watches", None)
+         analysis_dependency_truncated = graph_info.pop("_analysis_dependency_truncated", False)
++        value_flow = graph_info.pop("_value_flow", None)
+         graph_info["query_reuse_reason"] = reuse_reason
+         graph_info["query_runtime"] = QUERY_RUNTIME
+         graph_info["import_dependency_count"] = len(import_dependencies)
+@@ -1011,7 +1077,8 @@
+                 m["artifact_sizes"][rel] = size
+             split_graph(folder, m, observations, import_dependencies, import_requests,
+                         nodes, edges, files if m.get("simple_python_certificate") else (),
+-                        analysis_reads, analysis_watches, analysis_dependency_truncated)
++                        analysis_reads, analysis_watches, analysis_dependency_truncated,
++                        value_flow)
+             atomic(folder / "manifest.json", m)
+             validate_folder(folder, m)
+             atomic(folder / "summary.json", m)
+--- a/lct/simple_python.py
++++ b/lct/simple_python.py
+@@ -4,8 +4,9 @@
+ 
+ from .extract import module_name
+ from .graph import Graph
+-
+-CERTIFICATE = "simple-python-v4"
++from .value_flow import dictionary_shape
++
++CERTIFICATE = "simple-python-v5"
+ _EXPRESSIONS = (ast.Name, ast.Constant, ast.Call, ast.keyword, ast.Attribute,
+                 ast.Load, ast.Store, ast.BoolOp, ast.And, ast.Compare, ast.Is,
+                 ast.IsNot, ast.Eq, ast.LtE, ast.Subscript, ast.Set, ast.BinOp,
+@@ -229,7 +230,7 @@
+     return not local_assignments & (params | globals_)
+ 
+ 
+-def certify(files, asts, *, graph=None):
++def _certify_v4(files, asts, *, graph=None):
+     """Certify a closed explicit-import universe; never infer missing source."""
+     python = [f for f in files if f["path"].endswith(".py")]
+     if not python:
+@@ -311,3 +312,29 @@
+             if any(not _function(s, globals_, method=True) for s in methods):
+                 return None
+     return CERTIFICATE
++
++
++def certify(files, asts, *, graph=None):
++    """Retain the v4 subset and add one structurally closed dictionary form."""
++    if _certify_v4(files, asts, graph=graph) == CERTIFICATE:
++        return CERTIFICATE
++    python = [f for f in files if f["path"].endswith(".py")]
++    if not python or graph is None:
++        return None
++    if any(len(ids) != 1 for ids in graph.modules.values()):
++        return None
++    admitted_dictionary = False
++    for f in python:
++        repo, path = f["repository"], f["path"]
++        module = f"{repo}:{path}:module:{module_name(path)}#1"
++        tree = asts.get(module)
++        if tree is None:
++            return None
++        shape = dictionary_shape(tree)
++        if shape is not None:
++            # The dictionary form has no imports or external calls. Other
++            # captured files may be independently certified by the old gate.
++            admitted_dictionary = True
++        elif _certify_v4([f], asts, graph=graph) != CERTIFICATE:
++            return None
++    return CERTIFICATE if admitted_dictionary else None
+--- /dev/null
++++ b/lct/value_flow.py
+@@ -0,0 +1,156 @@
++"""Conservative, non-searchable evidence for one straight-line dictionary form.
++
++This inventory never resolves a call. It records supports only when the existing
++Analyzer has resolved the corresponding subscript and the structural certificate
++excludes other writes, escapes and control-flow paths.
++"""
++
++import ast
++
++from .common import canonical, digest
++
++
++def dictionary_shape(tree):
++    """Return exact local registry declarations/writes/reads, or None.
++
++    Only module-local string keys and direct callable definitions are admitted.
++    An empty dictionary is supported so a previously missing key is subscribed.
++    """
++    if not isinstance(tree, ast.Module):
++        return None
++    definitions = {}
++    for stmt in tree.body:
++        if isinstance(stmt, ast.FunctionDef):
++            if (stmt.name in definitions or stmt.decorator_list or stmt.args.args
++                    or stmt.args.posonlyargs or stmt.args.kwonlyargs or stmt.args.vararg
++                    or stmt.args.kwarg or stmt.args.defaults or stmt.args.kw_defaults
++                    or stmt.returns or any(not isinstance(s, ast.Pass) for s in stmt.body)
++                    and not _reader_body(stmt.body)):
++                return None
++            definitions[stmt.name] = stmt
++        elif not isinstance(stmt, ast.Assign):
++            return None
++    registries, writes, reads = {}, [], []
++    for stmt in tree.body:
++        if isinstance(stmt, ast.Assign):
++            if len(stmt.targets) != 1:
++                return None
++            target = stmt.targets[0]
++            if isinstance(target, ast.Name) and isinstance(stmt.value, ast.Dict):
++                if target.id in registries or target.id in definitions:
++                    return None
++                registries[target.id] = stmt.value
++                for key, value in zip(stmt.value.keys, stmt.value.values):
++                    if not _key(key) or not isinstance(value, ast.Name) or value.id not in definitions:
++                        return None
++                    writes.append((target.id, key.value, stmt, value.id, key))
++            elif isinstance(target, ast.Subscript) and isinstance(target.value, ast.Name):
++                if (target.value.id not in registries or not _key(target.slice)
++                        or not isinstance(stmt.value, ast.Name) or stmt.value.id not in definitions):
++                    return None
++                writes.append((target.value.id, target.slice.value, stmt, stmt.value.id, target.slice))
++            else:
++                return None
++        elif isinstance(stmt, ast.FunctionDef):
++            aliases = {}
++            for inner in stmt.body:
++                if isinstance(inner, ast.Pass):
++                    continue
++                if isinstance(inner, ast.Assign):
++                    if (len(inner.targets) != 1 or not isinstance(inner.targets[0], ast.Name)
++                            or not isinstance(inner.value, ast.Name)
++                            or inner.value.id not in registries):
++                        return None
++                    alias = inner.targets[0].id
++                    if alias in aliases or alias in registries or alias in definitions:
++                        return None
++                    aliases[alias] = inner.value.id
++                    continue
++                call = inner.value if isinstance(inner, ast.Expr) else None
++                if (not isinstance(call, ast.Call) or call.args or call.keywords
++                        or not isinstance(call.func, ast.Subscript)
++                        or not isinstance(call.func.value, ast.Name)
++                        or not _key(call.func.slice)):
++                    return None
++                name = call.func.value.id
++                registry = aliases.get(name, name)
++                if registry not in registries:
++                    return None
++                reads.append((registry, call.func.slice.value, stmt, call.func))
++    if not registries or not reads:
++        return None
++    return registries, writes, reads
++
++
++def _reader_body(body):
++    return all(isinstance(s, (ast.Pass, ast.Assign, ast.Expr)) for s in body)
++
++
++def _key(node):
++    return isinstance(node, ast.Constant) and type(node.value) is str
++
++
++def evidence(nodes, asts, analyzer, sites):
++    """Make private semantic nodes/relations only for witnessed analyzer reads."""
++    by_node = {n["node_id"]: n for n in nodes}
++    functions = {(n.get("parent"), n.get("name")): n["node_id"] for n in nodes
++                 if n["kind"] == "function"}
++    site_by_pos = {(s["execution_owner"], s["line"], s["column"]): s for s in sites}
++    records = {"nodes": [], "edges": [], "reads": []}
++    for module, tree in asts.items():
++        owner = by_node.get(module)
++        if not owner or owner["kind"] != "module":
++            continue
++        shape = dictionary_shape(tree)
++        if shape is None:
++            continue
++        registries, writes, reads = shape
++        definitions = {name: ident for (parent, name), ident in functions.items()
++                       if parent == module}
++        def ident(kind, *parts):
++            return "value:" + digest(canonical([owner["repository"], owner["path"],
++                                              owner["snapshot_id"], kind, *parts]))
++        containers = {name: ident("container", expr.lineno, expr.col_offset, name)
++                      for name, expr in registries.items()}
++        entries = {(name, key): ident("entry", containers[name], key)
++                   for name, key, *_ in writes + [(n, k, None, None, None) for n, k, *_ in reads]}
++        latest = {}
++        for name, expr in registries.items():
++            records["nodes"].append(dict(id=containers[name], kind="container", module=module,
++                                         name=name, line=expr.lineno, column=expr.col_offset))
++        for (name, key), entry in entries.items():
++            records["nodes"].append(dict(id=entry, kind="entry", container=containers[name],
++                                         key=key, module=module))
++            records["edges"].append(dict(source=containers[name], target=entry, kind="HAS_ENTRY"))
++        for name, key, stmt, target, key_ast in writes:
++            write = ident("write", stmt.lineno, stmt.col_offset, key_ast.col_offset)
++            records["nodes"].append(dict(id=write, kind="write", module=module,
++                                         line=stmt.lineno, column=stmt.col_offset,
++                                         target=definitions[target]))
++            records["edges"].extend((dict(source=write, target=entries[name, key], kind="WRITES"),
++                                     dict(source=write, target=definitions[target], kind="VALUE")))
++            latest[name, key] = write, definitions[target]
++        for name, key, fn, expr in reads:
++            call_site = site_by_pos.get((functions.get((module, fn.name)),
++                                         expr.lineno, expr.col_offset))
++            result = analyzer.value_reads.get((call_site["execution_owner"], expr.lineno,
++                                               expr.col_offset)) if call_site else None
++            expected = {latest[name, key][1]} if (name, key) in latest else set()
++            actual = {a.target for a in result.atoms if a.kind == "callable"} if result else set()
++            if call_site is None or result is None or actual != expected or result.reasons:
++                continue
++            read = ident("read", expr.lineno, expr.col_offset, key)
++            records["nodes"].append(dict(id=read, kind="read", module=module,
++                                         site_id=call_site["site_id"], line=expr.lineno,
++                                         column=expr.col_offset, unknown=bool(result.reasons),
++                                         targets=sorted(a.target for a in result.atoms
++                                                        if a.kind in ("callable", "method"))))
++            records["edges"].append(dict(source=read, target=entries[name, key], kind="READS"))
++            if (name, key) in latest:
++                records["edges"].append(dict(source=latest[name, key][0], target=read,
++                                             kind="REACHES"))
++            records["reads"].append(dict(producer_repository=owner["repository"],
++                                         producer_path=owner["path"], entry=entries[name, key],
++                                         consumer_repository=owner["repository"],
++                                         consumer_path=owner["path"], read=read))
++    return records

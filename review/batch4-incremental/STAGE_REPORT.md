@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31（北京时间）：阶段71，DICT-IMPORT-01跨文件字典接收者映射修复已推送ad5b96c12e8b4ae362985bff9db69b4c7ee4d767，经独立第1/3轮审阅565 passed、25 skipped/24.82秒。字典身份已能正确追踪到second，但本提交没有新增生产字典/条目图节点或开放v5增量准入。未完成草稿保留并归档，Batch4未完成、未合并。[本轮审阅](dict-import-receiver-independent-review.md)。
+
 2026-10-31（北京时间）：阶段67，函数值依赖设计契约、项目专用Skill和差距清单已完成并通过限定独立第1/3轮审阅。固定提交cc3c02d82b8f6046b5e6cb6494ef57cc23da132b，仅文档/Skill/审阅材料，无生产或测试变更；未运行pytest。Batch4仍未完成、未合并。
 
 本轮导航：[设计契约](../../docs/FUNCTION_VALUE_DEPENDENCIES.md) · [现状差距](FUNCTION_VALUE_GAP_AUDIT.md) · [独立审阅](function-value-doc-independent-review.md) · [Skill演练原文](function-value-skill-forward-output.md)。详见阶段65—67。
@@ -496,3 +498,10 @@ GPT-6 SOL medium子Agent完成限定文档交付，尚未提交/推送，未合�
 GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定位的Subscript直接Name接收者，先找写入之前的唯一、完整literal Dict来源，再返回字典身份。未把slot值当容器，不放开序列、未知/自定义/歧义来源。既有Name赋值映射不改。仅python_analysis.py生产修改和新test_dictionary_import_receiver.py。
 - 开发者定向106 passed/日志保存、ruff通过；其中包含主Agent独立用例但不算独立执行结果。主Agent独立基线3 failed、2 passed/0.41秒；修复后独立5 passed/0.41秒（未提交副本预检），涵盖直导入、别名、Unicode列/两个字典、条件不确定性和自定义下标。固定远端后的回归仍待执行。
 - 尚未推送/未合并；未完成value-flow/v5草稿暂停原位保留，不夹带上传。未新增服务/API/图构建，下一步单独固定修复SHA并独立第1轮review。
+
+
+## 阶段71：DICT-IMPORT-01固定提交独立第1/3轮审阅通过
+2026-10-31（北京时间）。远端ad5b96c12e8b4ae362985bff9db69b4c7ee4d767、treedeff0ac83d7aafe260574e1c19466bb73e839954，439份blob核验、全部生产/测试材料齐全。主Agent未改生产；固定提交快回归加独立反例565 passed、25 skipped/24.82秒，退出0。565已含独立5项，不与开发106或预检重复相加。
+- DICT-IMPORT-01关闭：Jedi精确token定位到字典写入接收者时，LCT先解析写入前的唯一literal Dict，再使用原slot/调用裁决。直导入/别名/Unicode/异字典正确，条件与自定义下标保留不确定性。既有模块候选映射遍历未改，不虚报整体性能优化。
+- 无新确认阻塞、无放宽历史断言。旧原始基线3失败2通过、开发定向106、主Agent预检5与远端快回归日志分别保存。25跳过均条件缺失，不是通过；无服务/API/真实图/Drive。
+- 下一步恢复节点+关系+增量接线草稿，先合入本修复，再将原跨文件A/B实例重新纳入验收。草稿未上传到生产路径；review内dictionary-v5-incomplete-draft.patch/JSON仅恢复材料，标明缺接线、测试和兼容验证，不可自动应用。本限定修复通过，整个Batch4未完成、不合并。

@@ -1,0 +1,12 @@
+{
+  "status": "INCOMPLETE_NOT_SHIPPED_DO_NOT_APPLY_AUTOMATICALLY",
+  "base": "d455ec3710f3c3bc5ec385c76db94a8cc3ce38f9",
+  "files": [
+    "lct/python_analysis.py",
+    "lct/graph.py",
+    "lct/storage.py",
+    "lct/simple_python.py",
+    "lct/value_flow.py"
+  ],
+  "warning": "Paused for DICT-IMPORT-01. Missing update wiring/tests/validation; rebase onto reviewed import repair before resuming. This is a recovery artifact, not installed production code."
+}
