@@ -101,14 +101,22 @@ def test_old_schema_kind_validation_and_truncation_fail_closed(tmp_path):
     legacy.mkdir()
     shutil.copy2(folder / GRAPH_SITES, legacy / GRAPH_SITES)
     with sqlite3.connect(legacy / GRAPH_SITES) as db:
+        # Recreate the actual old format, without the newly declared input scope
+        # tables. Keeping new summary fields would instead require its catalog.
+        for table in ("analysis_input_consumers", "analysis_input_members", "analysis_input_scopes"):
+            db.execute(f"drop table {table}")
         db.execute("delete from analysis_reads where kind != 'container-effects'")
         count = db.execute("select count(*) from analysis_reads").fetchone()[0]
     checksum, size = hash_artifact(legacy, GRAPH_SITES)
-    old = dict(meta, analysis_dependency_schema=1, analysis_read_count=count,
+    old = dict({k: v for k, v in meta.items() if not k.startswith("analysis_input_")},
+               analysis_dependency_schema=1, analysis_read_count=count,
                artifacts={**meta["artifacts"], GRAPH_SITES: checksum},
                artifact_sizes={**meta["artifact_sizes"], GRAPH_SITES: size})
     with FileDependencies(legacy, old) as deps:
         assert deps.analysis_readers("synthetic-review", "src/b.py") == set()
+        assert deps.input_scope_available is False
+        with pytest.raises(ToolError, match="unavailable"):
+            deps.input_scope_readers("synthetic-review", "src/b.py")
     with pytest.raises(ToolError, match="records unavailable"):
         FileDependencies(folder, dict(meta, analysis_dependency_schema=1))
     # A separate copy with an actual populated row exercises unknown-kind rejection.

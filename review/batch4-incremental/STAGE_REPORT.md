@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段95，B4-WIT-01生产d1857dfebcb138c977ef0e6433dd8692f7afe190已推送，第1轮审阅进行中；首次704 passed/32 skipped/1 failed，失败是旧格式夹具混留新scope声明但缺catalog，非确认生产缺陷。已按真实旧格式补齐夹具、原断言保留并新增拒绝新scope断言，单项通过；待固定证据提交后完整复跑。不合并。
+
 2026-10-31：阶段94，B4-WIT-01已完成提交前定向修正/预检，尚未提交。补去catalog全节点JSON解析，改按已知module ID批量身份列；最终快速626 passed/27 skipped/33.49秒，独立8 passed/2.52秒。0/20/100无关范围仍两索引SEARCH、1SQL/1使用者，VM仅相差1且不随增长继续增加。待固定远端review0/3，准入仍partial，不合并。
 
 2026-10-31：阶段92，统一读取入口审计完成，现有五类成功读/容器writer订阅已实际消费；缺失败Jedi、候选集合和未来成员等依据。下一限定切片B4-WIT-01建立Jedi捕获输入范围记录及实际反查/闭包消费者，使用共享范围避免K²重复记录；不放宽v6、不宣称六复杂模块已局部化。基线7e9e1a8e73e91e4684fa7335ff4806c8d0f4a09e，新切片正式review0/3。
@@ -728,3 +730,10 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 主Agent独立预检8 passed/2.52秒，包含公开build负结果来源、实际readers消费/full全部新旧语义表、发布失败/旧视图/不变捕获、真实Jedi空/异常/缓存、共享100成员/100消费者201记录、merge避免逐consumer扫描目录、SQLite真实索引/0/20/100无关范围。旧固定代码5个行为反例全部失败/1.03秒，日志保留。
 - 初独立测量7通过1失败，因为要求索引VM步数完全相同：0组26/19/19，20组27/20/20。两者均两个覆盖索引SEARCH、无SCAN/1SQL/1行。保留原测量和用例，以相同静态18条opcode、固定1成员1消费者下最多2倍指令数36步作为确定性上界，再增100组实测27/20/20，未继续随N增长；不拿单步游标分支差异当全局扫描，不改生产制造计数相同。详情analysis-inputs-index-profile.json。
 - 尚未正式远端review，轮次0/3；下一步按白名单推送、固定提交全套与独立边界验证。未调用API/业务全图/Neo4j/Drive、不合并。
+
+## 阶段95：生产推送及旧格式夹具阻塞定位（正式第1轮尚未完成）
+
+- 生产已推送d1857dfebcb138c977ef0e6433dd8692f7afe190，tree33d237ccba1da3aa281c630f980630962ad0bcbf，基线7e9e1a8，分支feat/incremental-index-updates；25变更文件491300字节。587恢复文件按远端Git blob相符，262无关旧review制品缺失，生产/测试齐全。
+- 固定远端首套独立回归：704 passed、32 skipped、1 failed/53.46秒。唯一失败test_observed_semantic_reads.py的旧schema夹具：只复制graph-sites.sqlite却从新manifest继承analysis_input_schema=1等新字段；新校验按其声明读取catalog而该夹具未提供。原始日志analysis-inputs-independent-suite-initial.log与原夹具全文保留。
+- 根因属于历史测试夹具的新格式声明自相矛盾，不是已确认生产语义缺陷。修正为真正旧格式：移除三张新scope表及analysis_input_*新声明，仍降级旧analysis_dependency_schema=1；原旧kind/未知kind/截断所有断言不变，另明确旧格式input_scope_available=False且新查询拒绝。单项通过，未改任何生产行。
+- 正式第1轮审阅因夹具条件阻塞尚未完成，不冒充通过或开始新轮次；先将证据/夹具修正推送固定，再对相同生产内容完整复跑。无P0/P1确认、无API/服务/业务全图/Drive、未合并。
