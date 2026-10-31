@@ -1,0 +1,215 @@
+{
+  "batch": "Batch4",
+  "slice": "B4-WIT-01",
+  "review_round": 1,
+  "max_review_rounds": 3,
+  "verdict": "PASS_LIMITED_SLICE",
+  "base": "7e9e1a8e73e91e4684fa7335ff4806c8d0f4a09e",
+  "reviewed_commit": "eb53788a2a8ba783e269744ddedb79d3388409b5",
+  "reviewed_tree": "90772966928eadbd29be330ca5e3de6ad31be7d1",
+  "production_commit": "d1857dfebcb138c977ef0e6433dd8692f7afe190",
+  "branch": "feat/incremental-index-updates",
+  "reviewer": "root, independent of production implementation",
+  "source_audit": {
+    "verified_files": 590,
+    "mismatches": [],
+    "missing_irrelevant_historical_review_artifacts": 262,
+    "production_and_tests_complete": true,
+    "production_frozen": true
+  },
+  "tests": {
+    "command": "PYTHONPATH=. python -m pytest -q -rs tests review/batch4-incremental/test_analysis_inputs_independent.py review/batch4-incremental/test_relative_import_independent.py review/batch4-incremental/test_common_certificate_independent.py review/batch4-incremental/test_observed_semantic_reads.py review/batch4-incremental/test_scope_reads_independent.py review/batch4-incremental/test_analysis_reads_independent.py review/batch4-incremental/test_dictionary_flow_independent.py review/batch4-incremental/test_dictionary_local_independent.py review/batch4-incremental/test_value_index_independent.py review/batch4-incremental/test_import_receiver_independent.py review/batch4-incremental/test_changed_python_independent.py review/batch4-incremental/test_mixed_dictionary_independent.py review/batch4-incremental/test_value_projection_independent.py review/batch4-incremental/test_value_projection_binding_independent.py --tb=short",
+    "passed": 705,
+    "skipped": 32,
+    "failed": 0,
+    "seconds": 50.93,
+    "exit_code": 0,
+    "new_independent_cases": 8,
+    "included_in_total": true,
+    "service_skips": 31,
+    "optional_existing_cache_skip": 1
+  },
+  "initial_formal_gate": {
+    "commit": "d1857dfebcb138c977ef0e6433dd8692f7afe190",
+    "passed": 704,
+    "skipped": 32,
+    "failed": 1,
+    "seconds": 53.46,
+    "cause": "legacy test fixture retained new input-scope declarations but omitted required catalog",
+    "production_change_for_fix": false,
+    "fixture_fix": "drop new scope tables and declarations; preserve all old assertions and assert new API unavailable",
+    "verdict_before_fix": "blocked; review not complete"
+  },
+  "independent_baseline": {
+    "cases": 5,
+    "failed": 5,
+    "seconds": 1.03,
+    "behavior_assertions": true
+  },
+  "preflight": {
+    "passed": 8,
+    "seconds": 2.52
+  },
+  "developer_final_fast": {
+    "passed": 626,
+    "skipped": 27,
+    "seconds": 33.49
+  },
+  "scope_contract": {
+    "schema": 1,
+    "coverage": "captured-query-scopes-partial",
+    "private_normalized_tables": 3,
+    "record_budget": 20000,
+    "independent_of_analysis_read_budget": true,
+    "uniform_query_entry_before_cache": true,
+    "component_members_shared": true,
+    "wide_capture_does_not_enumerate_members": true,
+    "actual_prepare_consumer": true,
+    "same_capture_reuse_and_local_merge_preserved": true,
+    "manifest_summary_only": true
+  },
+  "locality": [
+    {
+      "unrelated_pairs": 0,
+      "vm_steps": [
+        26,
+        19,
+        19
+      ],
+      "queries_per_probe": 1,
+      "returned_rows": 1,
+      "plan": [
+        [
+          3,
+          0,
+          55,
+          "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+        ],
+        [
+          8,
+          0,
+          56,
+          "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+        ]
+      ],
+      "opcode_program": [
+        "Init",
+        "OpenRead",
+        "OpenRead",
+        "String8",
+        "String8",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "Column",
+        "ResultRow",
+        "Next",
+        "Next",
+        "Halt",
+        "Transaction",
+        "Goto"
+      ],
+      "opcode_budget": 36
+    },
+    {
+      "unrelated_pairs": 20,
+      "vm_steps": [
+        27,
+        20,
+        20
+      ],
+      "queries_per_probe": 1,
+      "returned_rows": 1,
+      "plan": [
+        [
+          3,
+          0,
+          55,
+          "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+        ],
+        [
+          8,
+          0,
+          56,
+          "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+        ]
+      ],
+      "opcode_program": [
+        "Init",
+        "OpenRead",
+        "OpenRead",
+        "String8",
+        "String8",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "Column",
+        "ResultRow",
+        "Next",
+        "Next",
+        "Halt",
+        "Transaction",
+        "Goto"
+      ],
+      "opcode_budget": 36
+    },
+    {
+      "unrelated_pairs": 100,
+      "vm_steps": [
+        27,
+        20,
+        20
+      ],
+      "queries_per_probe": 1,
+      "returned_rows": 1,
+      "plan": [
+        [
+          3,
+          0,
+          55,
+          "SEARCH m USING COVERING INDEX analysis_input_member_producer (repository=? AND path=?)"
+        ],
+        [
+          8,
+          0,
+          56,
+          "SEARCH c USING COVERING INDEX analysis_input_consumer_scope (scope_id=?)"
+        ]
+      ],
+      "opcode_program": [
+        "Init",
+        "OpenRead",
+        "OpenRead",
+        "String8",
+        "String8",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "SeekGE",
+        "IdxGT",
+        "Column",
+        "Column",
+        "ResultRow",
+        "Next",
+        "Next",
+        "Halt",
+        "Transaction",
+        "Goto"
+      ],
+      "opcode_budget": 36
+    }
+  ],
+  "limitations": [
+    "Still partial captured input scope, not a complete Jedi internal/external dependency witness",
+    "No widening of v6 syntax or value-flow certificate; six complex real files still not admitted",
+    "Future callers, named lookup absence and other read entrances remain incomplete",
+    "No paid API, complete business graph, Neo4j/MCP service, or Drive verification this slice",
+    "Whole Batch4 incomplete; no merge"
+  ]
+}

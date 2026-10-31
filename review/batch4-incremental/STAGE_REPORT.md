@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段96，B4-WIT-01统一Jedi捕获输入范围eb53788a2a8ba783e269744ddedb79d3388409b5经独立第1/3轮通过：705 passed、32 skipped/50.93秒，590恢复文件Git blob相符。新范围三表、实际反查/闭包、相同捕获/局部合并与旧视图已验收；覆盖仍partial，六复杂文件仍未准入，Batch4不合并。[本轮审阅](analysis-inputs-independent-review.md)。
+
 2026-10-31：阶段95，B4-WIT-01生产d1857dfebcb138c977ef0e6433dd8692f7afe190已推送，第1轮审阅进行中；首次704 passed/32 skipped/1 failed，失败是旧格式夹具混留新scope声明但缺catalog，非确认生产缺陷。已按真实旧格式补齐夹具、原断言保留并新增拒绝新scope断言，单项通过；待固定证据提交后完整复跑。不合并。
 
 2026-10-31：阶段94，B4-WIT-01已完成提交前定向修正/预检，尚未提交。补去catalog全节点JSON解析，改按已知module ID批量身份列；最终快速626 passed/27 skipped/33.49秒，独立8 passed/2.52秒。0/20/100无关范围仍两索引SEARCH、1SQL/1使用者，VM仅相差1且不随增长继续增加。待固定远端review0/3，准入仍partial，不合并。
@@ -737,3 +739,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 固定远端首套独立回归：704 passed、32 skipped、1 failed/53.46秒。唯一失败test_observed_semantic_reads.py的旧schema夹具：只复制graph-sites.sqlite却从新manifest继承analysis_input_schema=1等新字段；新校验按其声明读取catalog而该夹具未提供。原始日志analysis-inputs-independent-suite-initial.log与原夹具全文保留。
 - 根因属于历史测试夹具的新格式声明自相矛盾，不是已确认生产语义缺陷。修正为真正旧格式：移除三张新scope表及analysis_input_*新声明，仍降级旧analysis_dependency_schema=1；原旧kind/未知kind/截断所有断言不变，另明确旧格式input_scope_available=False且新查询拒绝。单项通过，未改任何生产行。
 - 正式第1轮审阅因夹具条件阻塞尚未完成，不冒充通过或开始新轮次；先将证据/夹具修正推送固定，再对相同生产内容完整复跑。无P0/P1确认、无API/服务/业务全图/Drive、未合并。
+
+## 阶段96：统一捕获输入范围独立第1/3轮通过
+
+- 固定eb53788a2a8ba783e269744ddedb79d3388409b5，tree90772966928eadbd29be330ca5e3de6ad31be7d1；生产仍d1857dfebcb138c977ef0e6433dd8692f7afe190。590文件远端Git blob相符且测试后未变，262无关历史review未恢复，所需生产/测试齐全。
+- 同一正式第1轮恢复后完整集合705 passed、32 skipped/50.93秒，退出0；8个新独立用例包含其中。31跳过需Neo4j、1旧缓存，本轮没有真实服务验收。初704通过/1夹具错误/32跳过及修正历史完整保留，不改生产、不重置轮次。
+- query统一输入范围已接入所有推断/缓存分支，规范化共享scope/member/consumer、独立2万条预算、manifest小摘要；input_scope_readers与watchers由prepare实际消费，同捕获copy、局部合并、新旧全部语义表full对照和失败旧视图通过。
+- 局部性：共享100/100为201条、200/200为401条，禁止重复枚举；merge避免逐consumer扫目录；模块身份按已知ID批量读必要列。实际反查0/20/100组无关范围均两个覆盖索引SEARCH、1SQL/1使用者，VM26/19/19、27/20/20、27/20/20，不将1步差异当全局扫描。完整证据analysis-inputs-index-profile.json。
+- 裁决：当前切片无确认未解决阻塞，第1/3轮通过；Jedi捕获输入范围是partial，不代表内部/外部全部依赖。候选排除/未来caller、名称缺失和普通resolve稳定依赖仍待补；六复杂真实文件仍拒绝，整体Batch4尚需更广准入和端到端发布/检索/恢复。不合并，无API/业务全图/Drive。
