@@ -3,6 +3,7 @@
 import ast
 import json
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -228,6 +229,69 @@ def test_closed_world_consecutive_callback_retargets_match_fresh(tmp_path):
                     ("unit_source_supports", "unit_container_subscriptions",
                      "unit_container_writes")}
         assert origins(config, updated["version"]) == origins(full_config, full["version"])
+
+
+def test_selected_open_receiver_without_source_coverage_rebuilds_full(tmp_path):
+    config, repo = initialize(tmp_path / "actual-open-receiver")
+    (repo / "src/weights.py").unlink()
+    (repo / "docs/guide.md").unlink()
+    sources = Path(__file__).resolve().parents[1] / "review/batch4-incremental/fixtures"
+    for name in ("combat", "dnd_runtime", "item_package", "availability",
+                 "errors", "item_units"):
+        family = ("actual-source-subset" if name in
+                  {"availability", "errors", "item_units"} else "actual-related-source")
+        relative = Path("src/trpg_state_machine") / (name + ".py")
+        target = repo / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((sources / family / relative).read_bytes())
+    build(config, offline=True, lexical_only=True)
+    runtime = repo / "src/trpg_state_machine/dnd_runtime.py"
+    runtime.write_bytes(runtime.read_bytes() + b"\n# Captured source comment\n")
+    prior = build(config, offline=True, lexical_only=True)
+    assert prior["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    unit = repo / "src/trpg_state_machine/item_units.py"
+    source = unit.read_bytes()
+    assert b"2**63 - 1" in source
+    unit.write_bytes(source.replace(b"2**63 - 1", b"2**62 - 1", 1))
+    updated = build(config, offline=True, lexical_only=True)
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert updated["incremental"]["analysis_scope"]["reason"] == (
+        "open-receiver-source-coverage-unavailable")
+    fresh_config = dict(config, data=str(tmp_path / "fresh-open-receiver"))
+    full = build(fresh_config, offline=True, lexical_only=True)
+    for filename, tables in (("catalog.sqlite", ("nodes", "edges")),
+                             ("graph-sites.sqlite", (
+                                 "sites", "query_observations", "import_dependencies",
+                                 "import_requests", "analysis_reads", "analysis_watches",
+                                 "analysis_input_scopes", "analysis_input_members",
+                                 "analysis_input_consumers", "value_nodes", "value_edges",
+                                 "value_reads", "unit_source_supports",
+                                 "unit_container_subscriptions", "unit_container_writes",
+                                 "unit_analysis_reads", "unit_analysis_watches",
+                                 "unit_input_events"))):
+        def rows(c, version):
+            folder, _ = manifest(c, version)
+            with sqlite3.connect(folder / filename) as db:
+                return sorted(tuple(str(v) for v in row) for table in tables
+                              for row in db.execute("select * from " + table))
+        assert rows(config, updated["version"]) == rows(fresh_config, full["version"])
+
+
+def test_non_field_open_receiver_has_no_field_receipt_and_does_not_crash(tmp_path):
+    config, repo = fixture(tmp_path, {
+        "opaque.py": "class Opaque:\n    def direct(self): self()\n",
+        "idle.py": "def fn(): return 1\n"})
+    first = build(config, offline=True, lexical_only=True)
+    open_site = next(site for site in sites(config, first["version"])
+                     if site["expression"] == "self")
+    assert "open-receiver-input" in open_site["unresolved_reasons"]
+    assert open_site["resolution_decision"]["write_source_coverage"] is None
+    (repo / "src/idle.py").write_text("def fn(): return 2\n")
+    updated = build(config, offline=True, lexical_only=True)
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    fresh_config = dict(config, data=str(tmp_path / "fresh-non-field"))
+    full = build(fresh_config, offline=True, lexical_only=True)
+    assert sites(config, updated["version"]) == sites(fresh_config, full["version"])
 
 
 def test_candidate_scope_changes_reobserve_retained_owners_in_both_directions(tmp_path):

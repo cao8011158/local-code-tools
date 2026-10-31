@@ -962,3 +962,11 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 六文件dnd_runtime追加注释控制先与fresh完全一致，root要求再做实际函数数值约束2**63-1→2**62-1。此后发现availability.query_action_availability的targets/UNKNOWN/完整性相同，但association trace44对100、write coverage gaps122对1134；owner事件不同。调用边及其他17表相同，不能删除来源字段凑通过。consumer已被选择，问题是局部分析缺少opaque receiver的全局输入/解释上下文，不是漏选。
 - 固定旧4537843 full对同一六文件数值输入也给100/1134、12807 association、未limited，确认由B2 owner路径引入，非旧Jedi核心新问题。B4-OWN-04-OPEN-RECEIVER-COVERAGE，P2 confirmed/open/blocking；发现B3、归属当前step前批B2。按原授权重开B2，保留第1轮pass历史、不清零，暂停B3冻结/验收与merge。
 - 限定修法按已受影响consumer实际open-receiver-input及不完整instance-field-coverage证明不足明确full；须保留普通开放callback和无关opaque函数的局部复用，不能按全项目UNKNOWN/语法或轨迹长度统一拒绝，不改Full Analyzer精度。root新独立正/反控制及原红日志保留，修复后固定新提交进行B2第2/3轮复审，再恢复B3。
+
+## 阶段122：B4-OWN-04限定修复开发冻结，待第2轮固定审阅
+
+- 仅unit_incremental.py、INCREMENTAL_UPDATE.md、test_owner_incremental.py三文件生产/文档/项目测试delta；原04根因不改Full Analyzer。对已选consumer旧站点的实际无target/boundary、open-receiver-input和不完整instance-field-coverage一次建owner索引，选中时明确full；新分析产生同类站点也full并累计preflight成本，普通UNKNOWN不普遍拒绝。
+- 根因变体公开self()站点的write_source_coverage为None，初修曾触发AttributeError；root独立1 failed/0.47秒，开发改为dict类型检查后读取，不扩大guard语义。该退化属于同一04修复链，原红日志保留。
+- root首个“无关Opaque”控制前提错误：旧真实unit_analysis_reads已有caller→Opaque.ignored parameter-origin读，因此caller改动按现有Full语义确实相关，不能为测试绿灯跳过。root改为有明确无读的idle函数常量变化，证明含opaque类的捕获仍可owner；另保留已记录依赖时应full的对照，不改参数负候选精度或降低fresh断言。新独立4例含六真实值改动、无关idle、旧真实依赖、None receipt均通过。
+- 静止主tests675 passed/27 skipped，定向67 passed；三文件SHA校验全部OK，F/E9及diff空白检查通过。DEVELOPER_BATCH2_REVIEW2_FIX.md及SHA、原始主/定向与失败日志保存。B3未完项目测试已移任务检查点，不夹带B2修复提交；先前B3九文件证据不冒充新guard提交验收。
+- 04仍待正式关闭：下一步固定修复头，从独立目录核验完整B2 base..head并重跑要求集合，B2正式第2/3轮；原第1轮历史及重开原因保留。B3依赖工作仍暂停，未合并。

@@ -1,0 +1,57 @@
+F
+=================================== FAILURES ===================================
+______ test_complex_seed_group_missing_external_context_and_fresh_update _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-280/test_complex_seed_group_missin0')
+
+    def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
+        c, repo, original = prepare(tmp_path, SIX)
+        assert len(original) == 6
+        with forbid_provider():
+            first = build(c, offline=True, lexical_only=True)
+        assert not first["graph"]["analysis_limited"]
+        sites = semantic(c, first["version"])["sites"]
+        assert sites
+        source = repo / "src/trpg_state_machine/dnd_runtime.py"
+        source.write_bytes(source.read_bytes() + b"\n# B3 source comment, semantics unchanged\n")
+        with forbid_provider():
+            updated = build(c, offline=True, lexical_only=True)
+        assert updated["incremental"]["analysis_scope"]["python_files_parsed"] >= 1
+        full_equal(tmp_path, c, updated, "six-comment")
+        assert semantic(c, first["version"])["sites"] == sites
+        unit = repo / "src/trpg_state_machine/item_units.py"
+        original_bytes = unit.read_bytes()
+        assert b"2**63 - 1" in original_bytes
+        unit.write_bytes(original_bytes.replace(b"2**63 - 1", b"2**62 - 1", 1))
+        with forbid_provider():
+            changed_value = build(c, offline=True, lexical_only=True)
+        assert changed_value["incremental"]["analysis_scope"]["mode"] in {
+            "incremental-owners", "full-graph"}
+>       full_equal(tmp_path, c, changed_value, "six-value")
+
+tests/test_batch3_actual_acceptance.py:251: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-280/test_complex_seed_group_missin0')
+c = {'data': '/tmp/pytest-of-root/pytest-280/test_complex_seed_group_missin0/actual-fixture/data', 'embedding': {'batch_by...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}
+result = {'toolkit_version': '1.0.0', 'program_hash': '618d5285ab5a771290df151fc6b394c8eb29ea0d182eea105390734f2497a403', 'schema': 1, 'format': 1, ...}
+name = 'six-value'
+
+    def full_equal(tmp_path, c, result, name):
+        oracle_config = dict(c, data=str(tmp_path / ("fresh-" + name)))
+        with forbid_provider():
+            fresh = build(oracle_config, offline=True, lexical_only=True)
+>       assert semantic(c, result["version"]) == semantic(oracle_config, fresh["version"])
+E       assert {'nodes': [('...fae4f')], ...} == {'nodes': [('...fae4f')], ...}
+E         
+E         Omitting 17 identical items, use -vv to show
+E         Differing items:
+E         {'unit_input_events': [('synthetic-review:src/trpg_state_machine/availability.py:function:AvailabilityRuntime.query_ac...'synthetic-review:src/trpg_state_machine/combat.py:module:trpg_state_machine.combat#1', '[]', 'call-candidates'), ...]} != {'unit_input_events': [('synthetic-review:src/trpg_state_machine/availability.py:function:AvailabilityRuntime.query_ac...'synthetic-review:src/trpg_state_machine/combat.py:module:trpg_state_machine.combat#1', '[]', 'call-candidates'), ...]}
+E         {'sites': [('0', '{"boundaries":...
+E         
+E         ...Full output truncated (3 lines hidden), use '-vv' to show
+
+tests/test_batch3_actual_acceptance.py:92: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_batch3_actual_acceptance.py::test_complex_seed_group_missing_external_context_and_fresh_update
+1 failed, 2 deselected in 9.19s

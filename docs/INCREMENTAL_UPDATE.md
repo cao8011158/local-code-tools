@@ -30,6 +30,15 @@ and value-flow coverage rules remain authoritative. `simple_python.certify`
 continues to compute compatible full-graph metadata and candidate policy; it
 does not admit this owner update path.
 
+When a selected execution owner has an actual targetless `open-receiver-input`
+site with incomplete `instance-field-coverage`, its receiver may depend on
+writers outside the recorded source range. The update uses a full build with
+`open-receiver-source-coverage-unavailable`. The check is indexed by selected
+owner in the prior site inventory and also checks newly produced selected
+sites. An unrelated open site is not a global syntax gate; a selected owner
+reached through a recorded parameter-origin read is genuinely affected and
+must be analyzed or conservatively rebuilt.
+
 `analysis_scope.mode=incremental-owners` reports selected and reused owner
 counts, parsed changed files, reused sites/edges, complete context file count,
 analysis passes, and actual cumulative query/association work. A failed owner

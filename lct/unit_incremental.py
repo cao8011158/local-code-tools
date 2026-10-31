@@ -54,6 +54,21 @@ def _owner_changed(old, new, previous, current):
             ast.dump(previous, include_attributes=True) != ast.dump(current, include_attributes=True))
 
 
+def _unproved_open_receiver_site(site):
+    """An opaque instance receiver can consume unrecorded writer inputs.
+
+    A targetless site with this actual coverage gap has no finite producer
+    range that certifies its explanation or analysis-input observations.
+    Other UNKNOWN sites and concrete receiver candidates remain eligible.
+    """
+    coverage = site.get("resolution_decision", {}).get("write_source_coverage", {})
+    return ("open-receiver-input" in site.get("unresolved_reasons", ()) and
+            not site.get("targets") and not site.get("boundaries") and
+            isinstance(coverage, dict) and
+            coverage.get("rule") == "instance-field-coverage" and
+            coverage.get("complete") is not True)
+
+
 def _candidate_header_changed(previous, current):
     """A class base or decorator can change unrelated receiver candidate traces."""
     if type(previous) is not type(current):
@@ -340,6 +355,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             return None, "previous-node-order-invalid"
         old_sites = [json.loads(raw) for (raw,) in evidence.execute(
             "select data from sites order by ordinal")]
+        old_open_receiver_owners = {site["execution_owner"] for site in old_sites
+                                    if _unproved_open_receiver_site(site)}
         old_edges = [json.loads(raw) for (raw,) in catalog.execute("select data from edges")]
         observations = [json.loads(raw) for (raw,) in evidence.execute(
             "select data from query_observations order by key")]
@@ -505,6 +522,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         previous_work = (0, 0, 0)
         try:
             for _ in range(len(new_trees) + 1):
+                if selected & old_open_receiver_owners:
+                    return None, "open-receiver-source-coverage-unavailable"
                 try:
                     fresh_edges, fresh_info = graph.build(
                         source_context=context, selected_owners=selected,
@@ -531,6 +550,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                         attempts.get("owner_jedi_queries_executed", 0) + delta[0])
                     attempts["owner_association_evaluations"] = (
                         attempts.get("owner_association_evaluations", 0) + delta[1])
+                if any(_unproved_open_receiver_site(site) for site in fresh_info["sites"]):
+                    return None, "open-receiver-source-coverage-unavailable"
                 expanded = set(selected)
                 # Component policy is computed from the entire new capture.
                 # A retained owner's old query scope is invalid when that

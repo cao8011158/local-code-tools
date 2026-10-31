@@ -1,0 +1,17 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______ test_real_value_edit_with_opaque_selected_receiver_matches_full ________
+review/batch4-incremental/test_owner_receiver_coverage_independent.py:28: in test_real_value_edit_with_opaque_selected_receiver_matches_full
+    helpers["oracle"](c, updated["version"], tmp_path, "fresh-value")
+review/batch4-incremental/test_owner_update_independent.py:83: in oracle
+    assert got.get(table) == expected.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: sites
+______ test_unrelated_opaque_method_does_not_reject_known_callback_update ______
+review/batch4-incremental/test_owner_receiver_coverage_independent.py:51: in test_unrelated_opaque_method_does_not_reject_known_callback_update
+    assert "Opaque.ignored" not in queries
+E   AssertionError: assert 'Opaque.ignored' not in ['execute', 'unrelated', 'Opaque.ignored', 'Opaque.ignored', 'run', 'local_unrelated', ...]
+=========================== short test summary info ============================
+FAILED review/batch4-incremental/test_owner_receiver_coverage_independent.py::test_real_value_edit_with_opaque_selected_receiver_matches_full
+FAILED review/batch4-incremental/test_owner_receiver_coverage_independent.py::test_unrelated_opaque_method_does_not_reject_known_callback_update
+2 failed in 9.19s
