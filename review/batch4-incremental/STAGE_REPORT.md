@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-10-31：阶段80，Neo4j字典值流投影4a2bcf827e33eb393de5b288260ee63321734dd9独立第1/3轮通过；快速619 passed/31 skipped，真实服务集合13 passed，另发布/反向分页与大记录分片各1 passed。基于已认证SQLite接入新图/官方只读MCP，未扩展解析语法，未更新业务图/Drive，Batch4未完成、不合并。[本轮审阅](value-projection-independent-review.md)。
+
 2026-10-31（北京时间）：阶段77，字典模块与普通调用者混合准入fc12a03044ce8c4288d22d55a830a50ab3426a7a独立第1/3轮通过，613 passed、25 skipped/35.66秒。A->B->C/D已能局部重算，0/20无关文件与producer-only字典保留，公开和中间图表与full一致。仅simple_python.py上下文修复，未改模型/数据库/解析器。Batch4未完成、不合并。[本轮审阅](mixed-dictionary-independent-review.md)。
 
 2026-10-31（北京时间）：阶段74，跨文件固定字符串key字典函数值切片cf4b0fbac0e11f18d53f7dbff1be8b1e40cd6505经第1/3轮独立审阅通过：599 passed、25 skipped/34.65秒。原A/B跨文件更新及删除/新增/失败恢复与full一致；0/20无关producer-only文件仍只解析A/B，实际反查SQL每项1行、18/15 VM步保持。新增关系已在内部SQLite图接入实际增量选择，尚未投影Neo4j/MCP，复杂语法仍有限定回退，Batch4未完成、不合并。[实际小图](dictionary-flow-example.md) · [本轮审阅](dictionary-flow-independent-review.md)。
@@ -577,3 +579,14 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 变更：3个生产模块、3个文档、1个测试模块，另开发报告/日志/主 Agent 独立检查；实际差异统计见 value-projection-change-stat.json。
 - 限制：仅投影既有已认证字典子集；未扩展解析器/准入/向量/搜索层级，未重建业务图或调用API。整个Batch4未完成、不合并。
 - 下一阶段：推送并核对远端，按固定源码运行独立快速回归、真实服务、官方MCP及EXPLAIN/PROFILE。
+
+## 阶段80：Neo4j 字典值流投影独立第1/3轮通过
+
+已提交并推送 `4a2bcf827e33eb393de5b288260ee63321734dd9`，远端核对一致。480份文件按Git blob验证；生产代码由开发子Agent完成，主Agent只加独立测试/证据。
+
+- 快速回归初次618 passed、30 skipped、1项环境失败（审阅副本缺少.venv）；补齐同一环境路径，失败单项0.25秒通过；全套复跑619 passed、31 skipped/37.25秒。历史失败日志保留。
+- 真实Neo4j5.26/APOC环境定向集合13 passed/24.44秒（含6个离线用例），官方MCP实际读取成功、写入探针被拒绝。
+- 实际bind_current/resolve_current、函数反向值关系及limit1分页1 passed/6.94秒；超大值节点按分片完整恢复1 passed/6.26秒。
+- 真实EXPLAIN/PROFILE：0/1000无关节点，标记读取9 DbHits/1行/134字节，关系查询54 DbHits/4行/1582字节，首次/重复保持，无全标签或全节点扫描。仅同数据库另一namespace的扩容，不冒充业务规模。
+- 已确认：完整v3指纹绑定所有值数组，别名/缺失key/读取订阅/现有函数端点未丢失，分批失败保持不可查询且可重试，旧图保持，v2查询与迁移兼容。
+- 限制：现有已认证语法范围未扩大，真实业务增量及整流程恢复仍待Batch4验收，未重建业务图/向量或更新Drive。整个Batch4不合并。完整报告及原始操作符见value-projection-independent-review.md、value-projection-profile.json。
