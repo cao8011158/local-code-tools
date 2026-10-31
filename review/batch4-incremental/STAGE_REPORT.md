@@ -531,3 +531,18 @@ GPT-6 SOL medium在独立基线副本完成：Analyzer.map_name对Jedi精确定�
 - 实际生成合成内部图7节点/11关系，引用2个已有函数节点；声明和导入指同字典，go条目保存两次写入，仅后一次REACHES调用，实际目标second。dictionary-flow-example.md/JSON保存实际数据与图示；非Neo4j截图、非付费调用。
 - 原失败日志与限制如实保留：开发证据顺序和before sentinel已修，旧v4字面断言改为当前CERTIFICATE常量，未放宽行为断言；root原局部更新失败对照在本提交已通过。无新确认阻塞。
 - 仅支持的字典结构切片通过；数值/动态key、复杂写入、同库普通模块导入modeled字典模块函数的mixed路径等仍可能full回退，旧broad watch影响扇出仍在。其他函数值流/真实业务范围准入、Neo4j中间关系投影和完整功能验收尚未完成。未合并、无服务/API/真实业务图/Drive。
+
+
+## 阶段75：字典模块与普通调用者混合准入修复开始
+2026-10-31（北京时间）。用户“那么请继续”。基线f86acd211948b53f13e8eccb8605b24e31a4b7ae、treee5779a7193e9d2be4231aa1a5d601f096f5cc762，仍用feat/incremental-index-updates。适用AGENTS/项目Skill/batch-dev-review/locality-review，GPT-6 SOL medium开发、主Agent独立审阅。
+- 已定位：certify的字典结构验证已覆盖A/B，但plain_files仅包含C等普通模块，_certify_v4把这个列表误当整个可引用上下文，所以C导入B.run被拒绝，初建缺整批证书，后续走full。不是缺CALLS边或解析工具无法跟踪。
+- 限定方案：给私有v4校验helper传入已通过字典结构验证后的完整当前模块上下文，保持默认行为/公开certify接口和所有源码/导出/AST/绑定/函数体校验。只验证普通模块函数体但允许引用已验证的字典模块定义；不伪造AST、跳过目标验证或放开逃逸。
+- 允许生产仅simple_python.py，新mixed组件测试和小型文档状态/开发记录；不改解析器、schema、模型节点、Neo4j或向量。公开A/B/C与可选D、多代修改/删除/新增key、失败旧视图及full对照；0/20无关普通与producer-only文件不解析；未支持provider/export/escape仍full。
+- 主Agent已新增独立test_mixed_dictionary_independent.py及基线日志；下一步开发定向、一次快回归、固定提交后独立第1轮review。整个Batch4未完成、不合并，无服务/API/业务全图/Drive。
+
+阶段75独立基线：3 failed、3 passed/1.87秒，A/B/C及双层普通调用者仍全量；逃逸、缺provider、缺export三个拒绝对照原已通过。mixed-dictionary-baseline-independent.log保留。
+
+## 阶段76：字典模块普通调用者准入开发完成
+GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_python.py：私有_certify_v4增加selected_context=None，默认仍按自身files确定上下文；mixed分支先通过capture_shape，再传入本次捕获的完整模块集合，仍验证普通模块体和真实目标module/AST/导出/精确绑定。公开certify接口、模型/schema/解析器/索引不变。
+- 新test_mixed_dictionary_components.py，INCREMENTAL_UPDATE小型状态更新及开发报告/日志。开发最终定向48 passed，快回归578 passed、25 skipped，ruff通过；原A->B->C/D、0/20无关文件/producer-only复用、替换/新增key、失败旧版与full对照通过；未支持AST/export/provider/rebinding/dynamic/condition/escape均保持回退。
+- 下一步固定远端后主Agent独立第1轮审阅，实际耗时见原始日志与开发报告。整个Batch4仍未完成，不合并；无服务/API/真实业务图/Drive。

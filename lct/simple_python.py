@@ -230,7 +230,7 @@ def _function(fn, globals_, *, method=False):
     return not local_assignments & (params | globals_)
 
 
-def _certify_v4(files, asts, *, graph=None):
+def _certify_v4(files, asts, *, graph=None, selected_context=None):
     """Certify a closed explicit-import universe; never infer missing source."""
     python = [f for f in files if f["path"].endswith(".py")]
     if not python:
@@ -242,7 +242,11 @@ def _certify_v4(files, asts, *, graph=None):
                         kind="module", repository=f["repository"], path=f["path"],
                         qualname=module_name(f["path"])) for f in python]
         graph = Graph(modules, asts, [])
-    selected = {(f["repository"], f["path"]) for f in python}
+    # A mixed v5 capture can validate modeled dictionary modules separately,
+    # then let plain modules import their definitions. The default remains the
+    # original self-contained v4 selection for every other caller.
+    selected = (selected_context if selected_context is not None else
+                {(f["repository"], f["path"]) for f in python})
     if any(len(ids) != 1 for ids in graph.modules.values()):
         return None
     re_shadowed = {repository for repository, name in graph.modules
@@ -330,4 +334,5 @@ def certify(files, asts, *, graph=None):
     plain_files = [f for f in python if
                    f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1" not in modeled]
     return CERTIFICATE if (not plain_files or _certify_v4(plain_files, asts,
-                                                          graph=graph) == CERTIFICATE) else None
+        graph=graph, selected_context={(f["repository"], f["path"]) for f in python})
+        == CERTIFICATE) else None

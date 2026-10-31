@@ -237,9 +237,13 @@ dictionary slice admits a narrow literal-container reader and uses nonempty
 read/watch evidence to select the component. The earlier v4-only certificate
 exercised the empty-relation case. This partial sidecar still cannot certify
 general Python dependencies. Old `indexed-v2` snapshots safely rebuild graph
-analysis. A plain v4 file importing definitions from a modeled dictionary
-component is outside the present mixed v5 certificate and falls back; the
-slice does not claim general transitive caller support.
+analysis. The mixed v5 certificate now validates plain v4 callers against
+the complete already-captured component context, so `A`'s dictionary,
+`B`'s known-key reader, and ordinary `C`/`D` callers can be selected and
+rebuilt together. It still validates each plain caller's body and exact
+exported definition in the captured target AST, using the normal import/pin
+resolver; an absent target, missing AST, registry escape or unsupported
+provider falls back. This does not certify general dynamic callers.
 
 # Parso cache compatibility
 
