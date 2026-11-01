@@ -492,9 +492,10 @@ class Graph:
                             ast.unparse(base),
                         )
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
+            whole_capture = selected is None or selected == self.asts.keys()
             flow = (value_flow_evidence(list(self.nodes.values()), self.asts,
                                         analyzer, sites, self.imported)
-                    if selected is None else dict(nodes=[], edges=[], reads=[], complete=False))
+                    if whole_capture else dict(nodes=[], edges=[], reads=[], complete=False))
             info = dict(
                 engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
                 schema=3,
@@ -523,8 +524,7 @@ class Graph:
                 _unit_writes=list(analyzer.unit_container_writes.values()),
                 _unit_dependency_truncated=analyzer.unit_dependency_truncated,
                 _value_flow=flow,
-                **({"_value_read_witnesses": dict(analyzer.value_reads)}
-                   if selected is not None else {}),
+                _value_read_witnesses=dict(analyzer.value_reads),
                 _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},

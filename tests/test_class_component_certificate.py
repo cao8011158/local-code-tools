@@ -1,15 +1,15 @@
 """The bounded class gate and event identity use only relevant syntax."""
 
 import ast
-import json
-import sqlite3
 
 import pytest
 
 from lct.python_effects import EffectCatalog
 from lct.simple_python import CERTIFICATE, certify
-from lct.storage import build, manifest
+from lct.storage import build
 from tests.synthetic_support import initialize
+from tests.semantic_comparison import assert_semantic_equal
+from tests.test_batch3_actual_acceptance import semantic
 
 
 def certificate(source):
@@ -87,22 +87,8 @@ def test_returned_instance_attribute_call_matches_full_catalog(tmp_path):
     build(config, offline=True, lexical_only=True)
     owner.write_text(owner.read_text().replace("self.cb = first", "self.cb = second"))
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 2
+    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 1
     oracle = build(dict(config, data=str(tmp_path / "oracle")), offline=True, lexical_only=True)
 
-    def all_records(settings, version):
-        folder, _ = manifest(settings, version)
-        output = {}
-        for database, tables in (
-            ("catalog.sqlite", ("nodes", "edges")),
-            ("graph-sites.sqlite", ("sites", "query_observations",
-                                    "import_dependencies", "import_requests")),
-        ):
-            with sqlite3.connect(folder / database) as db:
-                for table in tables:
-                    output[table] = sorted(json.dumps(json.loads(row[0]), sort_keys=True)
-                                           for row in db.execute(f"select data from {table}"))
-        return output
-
-    assert all_records(config, updated["version"]) == all_records(
-        dict(config, data=str(tmp_path / "oracle")), oracle["version"])
+    assert_semantic_equal(semantic(config, updated["version"]), semantic(
+        dict(config, data=str(tmp_path / "oracle")), oracle["version"]))

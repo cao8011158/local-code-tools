@@ -1,0 +1,263 @@
+........................................................................ [ 28%]
+........................................................................ [ 56%]
+........................................................................ [ 85%]
+......FFF.FFFFF..........F....FF......                                   [100%]
+=================================== FAILURES ===================================
+___________ test_container_entry_call_edges_and_exact_reverse_lookup ___________
+tests/test_dictionary_value_flow.py:31: in test_container_entry_call_edges_and_exact_reverse_lookup
+    built = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+________________ test_negative_entry_and_bounded_relation_page _________________
+tests/test_dictionary_value_flow.py:75: in test_negative_entry_and_bounded_relation_page
+    meta = build(c, offline=True, lexical_only=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+_______ test_unrelated_producer_only_dictionary_retained_without_reparse _______
+tests/test_dictionary_value_flow.py:98: in test_unrelated_producer_only_dictionary_retained_without_reparse
+    first = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+_________ test_import_module_and_function_aliases_bind_same_container __________
+tests/test_dictionary_value_flow.py:154: in test_import_module_and_function_aliases_bind_same_container
+    built = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+____________ test_old_or_partial_value_evidence_falls_back[schema] _____________
+tests/test_dictionary_value_flow.py:173: in test_old_or_partial_value_evidence_falls_back
+    first = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+___________ test_old_or_partial_value_evidence_falls_back[coverage] ____________
+tests/test_dictionary_value_flow.py:173: in test_old_or_partial_value_evidence_falls_back
+    first = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+______ test_record_budget_marks_partial_without_persisting_partial_claim _______
+tests/test_dictionary_value_flow.py:199: in test_record_budget_marks_partial_without_persisting_partial_claim
+    built = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+____ test_reverse_entry_lookup_work_does_not_scale_with_unrelated_producers ____
+tests/test_dictionary_value_flow.py:225: in test_reverse_entry_lookup_work_does_not_scale_with_unrelated_producers
+    built = build(c, offline=True, lexical_only=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+___________ test_writer_getter_return_and_terminal_call_update_twice ___________
+review/local-only-updates/test_local_only_flow_independent.py:110: in test_writer_getter_return_and_terminal_call_update_twice
+    c, repo = setup_sources(tmp_path, {
+review/local-only-updates/test_local_only_flow_independent.py:28: in setup_sources
+    build(c, offline=True, lexical_only=True)
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+_____ test_unknown_writer_selects_subscriber_without_sibling_functions[0] ______
+review/local-only-updates/test_local_only_flow_independent.py:157: in test_unknown_writer_selects_subscriber_without_sibling_functions
+    c, repo = setup_sources(tmp_path, {
+review/local-only-updates/test_local_only_flow_independent.py:28: in setup_sources
+    build(c, offline=True, lexical_only=True)
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+_____ test_unknown_writer_selects_subscriber_without_sibling_functions[30] _____
+review/local-only-updates/test_local_only_flow_independent.py:157: in test_unknown_writer_selects_subscriber_without_sibling_functions
+    c, repo = setup_sources(tmp_path, {
+review/local-only-updates/test_local_only_flow_independent.py:28: in setup_sources
+    build(c, offline=True, lexical_only=True)
+lct/storage.py:1400: in build
+    atomic(folder / "manifest.json", m)
+lct/common.py:64: in atomic
+    stream.write(canonical(value) + "\n")
+                 ^^^^^^^^^^^^^^^^
+lct/common.py:50: in canonical
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+E   TypeError: keys must be str, int, float, bool or None, not tuple
+=========================== short test summary info ============================
+FAILED tests/test_dictionary_value_flow.py::test_container_entry_call_edges_and_exact_reverse_lookup
+FAILED tests/test_dictionary_value_flow.py::test_negative_entry_and_bounded_relation_page
+FAILED tests/test_dictionary_value_flow.py::test_unrelated_producer_only_dictionary_retained_without_reparse
+FAILED tests/test_dictionary_value_flow.py::test_import_module_and_function_aliases_bind_same_container
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[schema]
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[coverage]
+FAILED tests/test_dictionary_value_flow.py::test_record_budget_marks_partial_without_persisting_partial_claim
+FAILED tests/test_dictionary_value_flow.py::test_reverse_entry_lookup_work_does_not_scale_with_unrelated_producers
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_writer_getter_return_and_terminal_call_update_twice
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_unknown_writer_selects_subscriber_without_sibling_functions[0]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_unknown_writer_selects_subscriber_without_sibling_functions[30]
+11 failed, 243 passed in 13.47s

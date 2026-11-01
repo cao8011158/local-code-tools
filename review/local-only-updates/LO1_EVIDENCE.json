@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "batch_id": "LO-1",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/local-only-updates",
+  "base_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "implementation_actor": "/root/local_only_developer:gpt-6-sol/medium",
+  "merge_authorized": false,
+  "authorization_reference": "User approved LOCAL-ONLY-UPDATES three batches; implementation and feature-branch publication. Merge permission evaluated at final gate.",
+  "scope": [
+    "Semantic oracle comparison and related contract; no production analyzer/scheduler changes"
+  ],
+  "acceptance_criteria": [
+    "Graph identities/call targets/UNKNOWN/completeness/source facts preserved",
+    "Rejected candidate trace and repeated identical receipt differences accepted",
+    "Distinct source location/reason/target losses rejected"
+  ],
+  "feature_complete": false,
+  "scale_required": false,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_semantic_comparison.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "tests/test_batch3_actual_acceptance.py::test_complex_seed_group_missing_external_context_and_fresh_update",
+        "--tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "lo1-target-final.log",
+      "log_sha256": "db44beae07a071798c9064a9196a65eab2700694ed5f7ed1ab693f4d6744afc7"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "lo1-fast-main-final.log",
+      "log_sha256": "b9bcfac98a81513478517dae7864159f2cf3d1548a2aba439fa3a8095d2e14f9"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "lo1-review1-root-suite.log",
+      "log_sha256": "4227fb78217d511df3dc68bfe75724078f5f1fad28087b918bcf093402182c77"
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+      "remote_head_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "Fixed432 materialized remote blobs; independently tested nested and transitive receipt repetitions and rejection of lost actual dependencies/location changes;705passed27skipped1deselected109.14s."
+    }
+  ],
+  "findings": [
+    {
+      "id": "LO1-NESTED-RECEIPT",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "discovered_in_batch": "LO-1",
+      "owner_step": "LOCAL-ONLY-UPDATES",
+      "owner_batch": "LO-1",
+      "origin": "current",
+      "dependency_core": false,
+      "route": "resolved during pre-publication self-test feedback",
+      "location": "tests/semantic_comparison.py",
+      "evidence": "lo1-root-preflight.log"
+    },
+    {
+      "id": "LO1-TRANSITIVE-RECEIPT",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "discovered_in_batch": "LO-1",
+      "owner_step": "LOCAL-ONLY-UPDATES",
+      "owner_batch": "LO-1",
+      "origin": "current",
+      "dependency_core": false,
+      "route": "resolved during pre-publication self-test feedback",
+      "location": "tests/semantic_comparison.py",
+      "evidence": "lo1-root-transitive-preflight.log"
+    }
+  ]
+}

@@ -9,6 +9,8 @@ from lct.simple_python import CERTIFICATE
 from lct.python_incremental import prepare
 from lct.storage import build, current, manifest
 from tests.synthetic_support import initialize
+from tests.semantic_comparison import assert_semantic_equal
+from tests.test_batch3_actual_acceptance import semantic
 
 
 def records(config, version):
@@ -53,14 +55,14 @@ def test_relative_provider_change_is_local_and_full_equal(tmp_path, monkeypatch,
     monkeypatch.setattr(extraction, "python_nodes", count)
     (package / "b.py").write_text("def f(): other()\ndef other(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert sorted(parsed) == sorted(
-        [str(path.relative_to(repo)) for path in repo.rglob("*.py")] + ["src/pkg/b.py"])
-    assert updated["incremental"]["analysis_scope"]["owner_preflight_analysis_iterations"] == 0
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert parsed == ["src/pkg/b.py"]
+    assert updated["incremental"]["analysis_scope"]["owner_analysis_iterations"] >= 1
     assert records(config, first["version"]) == before
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
-    assert records(config, updated["version"]) == records(oracle, fresh["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(oracle, fresh["version"]))
 
 
 def test_new_relative_provider_and_failed_publication(tmp_path):
@@ -74,10 +76,11 @@ def test_new_relative_provider_and_failed_publication(tmp_path):
         build(config, offline=True, lexical_only=True, fail_at="before_publish")
     assert current(config) == first["version"] and records(config, first["version"]) == old
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
-    assert records(config, updated["version"]) == records(oracle, fresh["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(oracle, fresh["version"]))
 
 
 def test_parent_level_and_same_named_other_package_stay_separate(tmp_path, monkeypatch):
@@ -100,12 +103,12 @@ def test_parent_level_and_same_named_other_package_stay_separate(tmp_path, monke
     monkeypatch.setattr(extraction, "python_nodes", count)
     (package / "b.py").write_text("def f(): other()\ndef other(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert sorted(parsed) == sorted(
-        [str(path.relative_to(repo)) for path in repo.rglob("*.py")] + ["src/pkg/b.py"])
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert parsed == ["src/pkg/b.py"]
     oracle = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(oracle, offline=True, lexical_only=True)
-    assert records(config, updated["version"]) == records(oracle, fresh["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(oracle, fresh["version"]))
 
 
 def test_old_certificate_fails_before_any_local_evidence_read():

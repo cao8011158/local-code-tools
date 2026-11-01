@@ -1,0 +1,10 @@
+..............F                                                          [100%]
+=================================== FAILURES ===================================
+____ test_limited_initial_analysis_does_not_lose_container_return_consumers ____
+review/local-only-updates/test_local_only_flow_independent.py:208: in test_limited_initial_analysis_does_not_lose_container_return_consumers
+    assert any(":function:run#" in name for name in selected)
+E   assert False
+E    +  where False = any(<generator object test_limited_initial_analysis_does_not_lose_container_return_consumers.<locals>.<genexpr> at 0x7fba0188e9b0>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_limited_initial_analysis_does_not_lose_container_return_consumers
+1 failed, 14 passed in 5.52s

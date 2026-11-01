@@ -1,0 +1,10 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+____ test_limited_container_origin_separate_from_callback_definition[True] _____
+review/local-only-updates/test_local_only_flow_independent.py:232: in test_limited_container_origin_separate_from_callback_definition
+    assert "second" in call_targets(c, updated, "run", "fn")
+E   AssertionError: assert 'second' in set()
+E    +  where set() = call_targets({'data': '/tmp/pytest-of-root/pytest-49/test_limited_container_origin_1/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': 'f1b0bd4adacd21e57fef987cb283467608a543a477c6a24472b3fd7a6fabd1a8', 'schema': 1, 'format': 1, ...}, 'run', 'fn')
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_limited_container_origin_separate_from_callback_definition[True]
+1 failed, 1 passed in 1.25s

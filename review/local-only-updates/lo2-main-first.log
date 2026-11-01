@@ -1,0 +1,310 @@
+.FFF.....F..............FF...................FF..FFFF...........FFFFF... [  9%]
+......FFFFFFFFFF.........................s..FFFF.FFF..............F...FF [ 19%]
+F.FFFF...............F...F.FFF.........s................FFFFFF...F...... [ 29%]
+ss.....F..F.sss.......s.....s...sss.s.sssssssssss...sss....FFFFF.....FFF [ 39%]
+FF.F...F................................................................ [ 49%]
+........................................................................ [ 59%]
+........................................................................ [ 69%]
+........................................................................ [ 79%]
+........................................................................ [ 89%]
+...........................FFFF..............................FF......... [ 99%]
+..F.                                                                     [100%]
+=================================== FAILURES ===================================
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_actual_item_unit_incremental.py:86: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_analysis_dependency_sidecar.py:182: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: Regex pattern did not match.
+      Expected regex: 'Injected interruption'
+      Actual message: 'Local update unavailable: changed-opaque-call-effect-unavailable'
+/workspace/scratch/45363df3617b/local-only-work/tests/test_analysis_inputs.py:210: AssertionError: Regex pattern did not match.
+E   AssertionError: Regex pattern did not match.
+      Expected regex: 'Injected interruption'
+      Actual message: 'Local update unavailable: changed-opaque-call-effect-unavailable'
+/workspace/scratch/45363df3617b/local-only-work/tests/test_analysis_inputs.py:210: AssertionError: Regex pattern did not match.
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_batch3_actual_acceptance.py:211: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_batch3_actual_acceptance.py:254: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_changed_python_gate.py:23: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_changed_python_gate.py:41: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: document-or-other-input-changed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: document-or-other-input-changed
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_changed_python_gate.py:63: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+E   lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+E   lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-definition-header-candidate-universe
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   assert 0 == 2
+/workspace/scratch/45363df3617b/local-only-work/tests/test_container_slot_scope_index.py:51: assert 0 == 2
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:96: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: dependency-bindings-changed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: dependency-bindings-changed
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:131: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:169: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:187: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:207: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Index incompatible with program/config; rebuild before querying
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:97: lct.common.ToolError: Index incompatible with program/config; rebuild before querying
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: combined-value-flow-witness-incomplete
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: combined-value-flow-witness-incomplete
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: no-affected-owners
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: no-affected-owners
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:249: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:279: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: document-or-other-input-changed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: document-or-other-input-changed
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:68: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:68: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: no-python-source-change
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: no-python-source-change
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+E   lct.common.ToolError: Local update unavailable: previous-owner-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: previous-owner-evidence-unavailable
+E   lct.common.ToolError: Previous owner artifact integrity failed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1095: lct.common.ToolError: Previous owner artifact integrity failed
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: unbounded-changed-writer-input
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-writer-origin-unresolved
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:257: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   assert ['{"basis":"A...a088f"}', ...] == ['{"basis":"A...a088f"}', ...]
+      
+      At index 8 diff: '{"basis":"unique captured import lookup namespace; name unresolved","column":0,"edge_id":"a31ef496443b1eb999c034e15acd42e91b4936e0db9f50f864a69f2fb6a5183a","expression":"","kind":"LOOKUP_IN","line":0,"lookup":{"module":"c","name":"missing","repository":"synthetic-review"},"lookup_status":"unresolved","source":"boundary:unresolved-import:2cb96fde06c117398dbab7c8fed7ba499decdde2c029b8a83cbca939cc034ebb","source_version_id":null,"status":"resolved","target":"synthetic-review:src/c.py:module:c#1","target_version_id":"d2b6c0b0ee1f929cb5272a76c4e4900dff05df1...
+      
+      ...Full output truncated (3 lines hidden), use '-vv' to show
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:343: assert ['{"basis":"A...a088f"}', ...] == ['{"basis":"A...a088f"}', ...]
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_relative_python_incremental.py:77: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+E   lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: changed-opaque-call-effect-unavailable
+E   lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1107: lct.common.ToolError: Local update unavailable: old-owner-evidence-rebind-uncertified
+=========================== short test summary info ============================
+FAILED tests/test_actual_item_unit_incremental.py::test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back
+FAILED tests/test_actual_item_unit_incremental.py::test_builtin_shadow_or_ordered_guard_rejects_certificate
+FAILED tests/test_actual_item_unit_incremental.py::test_new_helper_bindings_cannot_escape_or_impersonate_stdlib
+FAILED tests/test_analysis_dependency_sidecar.py::test_real_certified_local_path_keeps_empty_analysis_records
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[0]
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[20]
+FAILED tests/test_batch3_actual_acceptance.py::test_three_actual_sources_owner_lifecycle_and_membership
+FAILED tests/test_batch3_actual_acceptance.py::test_complex_seed_group_missing_external_context_and_fresh_update
+FAILED tests/test_changed_python_gate.py::test_class_change_recomputes_complex_module_and_reuses_passive_peer
+FAILED tests/test_changed_python_gate.py::test_ordinary_class_change_uses_bounded_component
+FAILED tests/test_changed_python_gate.py::test_simultaneous_document_and_python_change_falls_back
+FAILED tests/test_changed_python_gate.py::test_association_bound_survives_local_and_exact_capture_generations
+FAILED tests/test_class_component_certificate.py::test_returned_instance_attribute_call_matches_full_catalog
+FAILED tests/test_common_python_certificate.py::test_actual_three_file_availability_local_and_full_oracle[0]
+FAILED tests/test_common_python_certificate.py::test_actual_three_file_availability_local_and_full_oracle[20]
+FAILED tests/test_common_python_certificate.py::test_connected_caller_is_selected_and_matches_full
+FAILED tests/test_common_python_certificate.py::test_errors_passive_default_and_property_with_importer
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: dangerous()]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: External]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-@dataclass(frozen=True, slots=True)-@dataclass(frozen=True, slots=True, init=False)]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-class StateMachineError(Exception):-class StateMachineError(CustomBase):]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-@property-@other_property]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-return self.issue.code-return self.issue.code()]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-super().__init__(message)-super().other(message)]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-path: str = ""-path: str = factory()]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[availability.py-self._combat.query_action_availability-getattr(self, '_combat').query_action_availability]
+FAILED tests/test_container_slot_scope_index.py::test_unrelated_local_alias_writers_do_not_grow_consumer_checks
+FAILED tests/test_cross_repository_python_incremental.py::test_new_local_import_expands_closure_without_parsing_unrelated_repo
+FAILED tests/test_cross_repository_python_incremental.py::test_exact_pinned_cross_repository_import_and_local_precedence
+FAILED tests/test_cross_repository_python_incremental.py::test_binding_change_and_unmatched_pin_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_removed_local_shadow_reanalyzes_requester_and_pinned_provider
+FAILED tests/test_cross_repository_python_incremental.py::test_package_initializer_shadow_changes_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_ancestor_module_shadow_changes_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_pinned_provider_package_context_parses_only_actual_prefix
+FAILED tests/test_dictionary_value_flow.py::test_negative_entry_and_bounded_relation_page
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[schema]
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[coverage]
+FAILED tests/test_dictionary_value_flow.py::test_record_budget_marks_partial_without_persisting_partial_claim
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[True]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1.0]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[unknown_key]
+FAILED tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise[20-errors]
+FAILED tests/test_general_passive_incremental.py::test_new_import_of_passive_provider_expands_selected_context
+FAILED tests/test_general_passive_incremental.py::test_deleted_passive_source_keeps_remaining_unrelated_proofs
+FAILED tests/test_general_passive_incremental.py::test_complex_capture_becoming_whole_v6_rebuilds_policy
+FAILED tests/test_general_passive_incremental.py::test_v6_local_preserves_passive_proofs_for_new_complex_capture
+FAILED tests/test_incremental_query_reuse.py::test_committed_docs_edit_reuses_jedi_with_identical_public_evidence
+FAILED tests/test_incremental_query_reuse.py::test_python_definition_change_full_fallback_and_import_inventory[from helper import fresh as alias\nalias()\n-from helper import fresh as alias\nalias()\n]
+FAILED tests/test_incremental_query_reuse.py::test_python_definition_change_full_fallback_and_import_inventory[from reexport import handler as alias\nalias()\n-from reexport import handler as alias\nalias()\n]
+FAILED tests/test_incremental_query_reuse.py::test_callback_alias_edit_keeps_full_fallback
+FAILED tests/test_incremental_query_reuse.py::test_deleted_export_returns_to_named_unresolved_lookup
+FAILED tests/test_incremental_query_reuse.py::test_changed_other_python_module_reuses_unchanged_function_local_query
+FAILED tests/test_lifecycle.py::test_mutations_cursor_failure_recovery - lct....
+FAILED tests/test_mixed_dictionary_components.py::test_missing_export_and_unsafe_provider_fail_closed
+FAILED tests/test_mixed_dictionary_components.py::test_mixed_context_does_not_override_invalid_provider[registry[dynamic_key]=second\n]
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[schema]
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[payload]
+FAILED tests/test_owner_incremental.py::test_changed_mutation_never_uses_unobserved_old_dependency_as_proof[del worker.unrelated]
+FAILED tests/test_owner_incremental.py::test_changed_mutation_never_uses_unobserved_old_dependency_as_proof[worker.unrelated += worker.execute]
+FAILED tests/test_owner_incremental.py::test_changed_mutation_never_uses_unobserved_old_dependency_as_proof[worker.registry.update({'go': worker.execute})]
+FAILED tests/test_owner_incremental.py::test_unresolved_attribute_receiver_falls_back_with_reason
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(registry): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\nfrom other import registry\ndef change(): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(flag):\n    if flag: registry={}\n    registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change():\n    registry['go']=second\n    registry={}\n]
+FAILED tests/test_owner_incremental.py::test_selected_open_receiver_without_source_coverage_rebuilds_full
+FAILED tests/test_owner_incremental.py::test_unresolved_import_lookup_keeps_only_current_importer_support[True]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[0]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[20]
+FAILED tests/test_relative_python_incremental.py::test_new_relative_provider_and_failed_publication
+FAILED tests/test_relative_python_incremental.py::test_parent_level_and_same_named_other_package_stay_separate
+FAILED tests/test_source_prepare.py::test_python_edit_add_delete_and_corrupt_sidecar_force_full
+FAILED tests/test_source_prepare.py::test_reused_member_order_matches_fresh_after_prepended_definition
+FAILED tests/test_synthetic_dense.py::test_synthetic_change_delete_move_and_failure
+75 failed, 622 passed, 27 skipped, 1 deselected in 74.75s (0:01:14)

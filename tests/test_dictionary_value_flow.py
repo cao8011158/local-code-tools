@@ -9,7 +9,7 @@ import pytest
 
 from lct.common import ToolError
 from lct.python_analysis import Analyzer
-from lct.storage import FileDependencies, build, manifest
+from lct.storage import FileDependencies, build, current, manifest
 from tests.synthetic_support import initialize
 
 
@@ -180,8 +180,14 @@ def test_old_or_partial_value_evidence_falls_back(tmp_path, missing):
     (folder / "summary.json").write_text(json.dumps(updated))
     (repo / "src/a.py").write_text(
         "def target(): pass\ndef other(): pass\nregistry={'go':other}\n")
-    changed = build(c, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    if missing == "schema":
+        previous = current(c)
+        with pytest.raises(ToolError, match="Local update unavailable"):
+            build(c, offline=True, lexical_only=True)
+        assert current(c) == previous
+    else:
+        changed = build(c, offline=True, lexical_only=True)
+        assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
 
 
 def test_record_budget_marks_partial_without_persisting_partial_claim(tmp_path, monkeypatch):
@@ -204,7 +210,7 @@ def test_record_budget_marks_partial_without_persisting_partial_claim(tmp_path, 
     (repo / "src/a.py").write_text(
         "def target(): pass\ndef other(): pass\nregistry={'go':other}\n")
     changed = build(c, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
 
 
 def test_reverse_entry_lookup_work_does_not_scale_with_unrelated_producers(tmp_path):
@@ -245,4 +251,4 @@ def test_unmodeled_keys_do_not_enter_exact_dictionary_certificate(tmp_path, key_
     (repo / "src/a.py").write_text(
         f"def target(): pass\ndef another(): pass\nregistry={{{key_expression}:another}}\n")
     changed = build(c, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"

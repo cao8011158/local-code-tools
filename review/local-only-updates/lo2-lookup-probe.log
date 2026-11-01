@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0 -- /workspace/scratch/45363df3617b/local-only-work/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/45363df3617b/local-only-work
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 2 items
+
+tests/test_owner_incremental.py::test_unresolved_import_lookup_keeps_only_current_importer_support[False] PASSED [ 50%]
+tests/test_owner_incremental.py::test_unresolved_import_lookup_keeps_only_current_importer_support[True] FAILED [100%]
+
+=================================== FAILURES ===================================
+___ test_unresolved_import_lookup_keeps_only_current_importer_support[True] ____
+tests/test_owner_incremental.py:343: in test_unresolved_import_lookup_keeps_only_current_importer_support
+    assert edges(config, updated["version"]) == edges(fresh_config, full["version"])
+E   assert ['{"basis":"A...a088f"}', ...] == ['{"basis":"A...a088f"}', ...]
+E     
+E     At index 8 diff: '{"basis":"unique captured import lookup namespace; name unresolved","column":0,"edge_id":"a31ef496443b1eb999c034e15acd42e91b4936e0db9f50f864a69f2fb6a5183a","expression":"","kind":"LOOKUP_IN","line":0,"lookup":{"module":"c","name":"missing","repository":"synthetic-review"},"lookup_status":"unresolved","source":"boundary:unresolved-import:2cb96fde06c117398dbab7c8fed7ba499decdde2c029b8a83cbca939cc034ebb","source_version_id":null,"status":"resolved","target":"synthetic-review:src/c.py:module:c#1","target_version_id":"d2b6c0b0ee1f929cb5272a76c4e4900dff05df1...
+E     
+E     ...Full output truncated (24 lines hidden), use '-vv' to show
+=========================== short test summary info ============================
+FAILED tests/test_owner_incremental.py::test_unresolved_import_lookup_keeps_only_current_importer_support[True]
+========================= 1 failed, 1 passed in 1.78s ==========================

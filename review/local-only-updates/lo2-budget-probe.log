@@ -1,0 +1,10 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_association_bound_survives_local_and_exact_capture_generations ______
+tests/test_changed_python_gate.py:83: in test_association_bound_survives_local_and_exact_capture_generations
+    assert candidate is not None and reason == "incremental-owners", reason
+E   AssertionError: combined-association-budget-uncertified
+E   assert (None is not None)
+=========================== short test summary info ============================
+FAILED tests/test_changed_python_gate.py::test_association_bound_survives_local_and_exact_capture_generations
+1 failed in 0.99s

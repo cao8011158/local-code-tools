@@ -6,6 +6,8 @@ import subprocess
 
 from lct.storage import FileDependencies, build, manifest
 from tests.synthetic_support import initialize
+from tests.test_batch3_actual_acceptance import semantic
+from tests.semantic_comparison import assert_semantic_equal
 
 
 def fixture(tmp_path, *, pinned=False, local_shadow=False, provider_package=False):
@@ -53,7 +55,8 @@ def records(config, version):
 def same_as_full(config, updated, tmp_path):
     oracle_config = dict(config, data=str(tmp_path / "oracle"))
     oracle = build(oracle_config, offline=True, lexical_only=True)
-    assert records(config, updated["version"]) == records(oracle_config, oracle["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(oracle_config, oracle["version"]))
 
 
 def test_two_independent_repositories_with_same_path_reuse_other_owner(tmp_path):
@@ -79,8 +82,8 @@ def test_new_local_import_expands_closure_without_parsing_unrelated_repo(tmp_pat
     (consumer / "src/helper.py").write_text("def target(): pass\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "python-membership-changed"
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reason"] == "incremental-owners"
     same_as_full(config, updated, tmp_path)
 
 
@@ -93,8 +96,8 @@ def test_exact_pinned_cross_repository_import_and_local_precedence(tmp_path):
     caller.write_text(caller.read_text() + "def second(): target()\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "python-owner-membership-changed"
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reason"] == "incremental-owners"
     same_as_full(config, updated, tmp_path)
 
     # With a captured local module of the same name, the graph's local-first
@@ -103,7 +106,7 @@ def test_exact_pinned_cross_repository_import_and_local_precedence(tmp_path):
     local.parent.mkdir(exist_ok=True)
     local.write_text("def target(): pass\n")
     local_result = build(config, offline=True, lexical_only=True)
-    assert local_result["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert local_result["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     same_as_full(config, local_result, tmp_path / "shadow")
 
 
@@ -114,10 +117,15 @@ def test_binding_change_and_unmatched_pin_fall_back(tmp_path):
     build(config, offline=True, lexical_only=True)
     (provider / "src/dnd5e_engine/evaluation.py").write_text("def target(): return 1\n")
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert updated["incremental"]["analysis_scope"]["reason"] == "dependency-bindings-changed"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     assert not updated["graph"]["dependency_bindings"]["synthetic-review"]["matched"]
     same_as_full(config, updated, tmp_path)
+    (provider / "src/dnd5e_engine/evaluation.py").write_text("def target(): pass\n")
+    restored = build(config, offline=True, lexical_only=True)
+    assert restored["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert restored["graph"]["dependency_bindings"]["synthetic-review"]["matched"]
+    same_as_full(config, restored, tmp_path / "restored")
 
 
 def test_removed_local_shadow_reanalyzes_requester_and_pinned_provider(tmp_path):
@@ -128,7 +136,7 @@ def test_removed_local_shadow_reanalyzes_requester_and_pinned_provider(tmp_path)
     (consumer / "src/dnd5e_engine/evaluation.py").unlink()
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
+    assert scope["mode"] == "incremental-owners"
     same_as_full(config, updated, tmp_path)
 
 
@@ -166,13 +174,13 @@ def test_package_initializer_shadow_changes_fall_back(tmp_path):
     initializer = package / "__init__.py"
     initializer.write_text("")
     added = build(config, offline=True, lexical_only=True)
-    assert added["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert added["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert added["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     same_as_full(config, added, tmp_path)
     initializer.unlink()
     removed = build(config, offline=True, lexical_only=True)
-    assert removed["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert removed["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert removed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert removed["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     same_as_full(config, removed, tmp_path / "removed")
 
 
@@ -184,13 +192,13 @@ def test_ancestor_module_shadow_changes_fall_back(tmp_path):
     shadow = consumer / "src/dnd5e_engine.py"
     shadow.write_text("def unrelated(): pass\n")
     added = build(config, offline=True, lexical_only=True)
-    assert added["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert added["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert added["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     same_as_full(config, added, tmp_path)
     shadow.unlink()
     removed = build(config, offline=True, lexical_only=True)
-    assert removed["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert removed["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert removed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert removed["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     same_as_full(config, removed, tmp_path / "removed")
 
 
@@ -204,7 +212,7 @@ def test_pinned_provider_package_context_parses_only_actual_prefix(tmp_path):
     caller.write_text(caller.read_text() + "def again(): action()\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "python-owner-membership-changed"
-    assert scope["python_files_parsed"] == 5
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reason"] == "incremental-owners"
+    assert scope["python_files_parsed"] == 1
     same_as_full(config, updated, tmp_path)

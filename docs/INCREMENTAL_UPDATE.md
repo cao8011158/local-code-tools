@@ -1,13 +1,19 @@
 # Incremental update planner contract (Batch 4, first layer)
 
-The owner-update and full-fallback behavior documented below is the current
-implementation through Batch 3. The user-authorized LOCAL-ONLY-UPDATES policy
-for subsequent normal updates requires function-level local scheduling from
-explicit source supports, subscriptions and reads, without automatic full
-rebuild or hidden all-owner analysis. `UNKNOWN` alone is not grounds for
-rejection. A corrupt or incompatible cache may fail explicitly while keeping
-the previous current version. LO-1 defines the semantic oracle comparison;
-the planner changes are pending LO-2. Full fresh builds remain test oracles.
+The owner-update and full-fallback behavior in the historical Batch 2 section
+below describes the implementation through Batch 3. LOCAL-ONLY-UPDATES LO-2
+now routes warm builds through owner-level scheduling from source supports,
+container subscriptions, observed reads and import/negative namespace requests.
+It never automatically invokes full graph analysis after a prior snapshot.
+The public cold builder seeds all newly captured AST owners into the same
+conservative indexed candidate engine. It still analyzes the full initial
+capture and computes full-capture value-flow evidence; selecting all newly
+owned definitions here is explicit initial indexing, not a warm fallback.
+`UNKNOWN` alone is not grounds for rejection. Corrupt/incompatible prior
+evidence fails explicitly before publication, leaving the previous current
+version intact. First indexing and independent test oracles can use a full
+fresh build. The historical full fallback statements below do not describe
+the current warm route.
 
 Oracle comparison preserves graph identities, targets, `UNKNOWN`, completeness,
 provenance, source supports, subscriptions and writes. Candidate traversal
@@ -16,7 +22,25 @@ owner execution-read/input ledgers need independent functional invalidation
 tests, since a full traversal may inspect rejected candidates that a selected
 owner update need not visit.
 
-## Owner updates for changed Python sources (Batch 2)
+LO-2 handles added/deleted files and definitions, package and ancestor shadows,
+reexports, and pinned dependency dirty/clean transitions through indexed import
+lookup keys and related module requesters. A limited initial analyzer retains
+its `analysis_limited` precision flag; when its early budget stop omitted a
+container subscription, changed writers follow recorded providing-module reads
+and import namespace requests to affected consumers. Auxiliary execution
+observations are replaced for selected owners; unchanged owners retain their
+observations. Partial value-flow records remain partial, while existing
+positive read witnesses are revalidated and used for invalidation.
+
+The AST effect catalog still prepares a writer-scope index from all cached AST
+scopes at analyzer creation. This metadata preparation is measured separately
+from selected owner query/association work and remains a locality/performance
+item for full-input acceptance.
+
+## Historical owner updates for changed Python sources (Batch 2)
+
+The following paragraphs record the Batch 2 route and its original fallback
+gates. The LO-2 warm route described above supersedes those gates.
 
 `storage.build` first checks the immutable prior catalog and graph-site artifacts,
 program/config/runtime/pins, compatible AST cache, source hashes, source-origin

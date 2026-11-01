@@ -1,8 +1,8 @@
 """Owner-level update of the captured Python graph.
 
-This path never admits a source by a syntax whitelist.  It uses immutable old
-evidence, changed source hashes and directional owner subscriptions.  Missing
-or incompatible evidence returns a reason so the ordinary full build runs.
+This path never admits a source by a syntax whitelist. It uses immutable old
+evidence, changed source hashes and directional owner subscriptions. Missing
+or incompatible evidence returns an explicit failure reason without publication.
 """
 
 import ast
@@ -52,33 +52,6 @@ def _owner_changed(old, new, previous, current):
         return _signature(previous) != _signature(current)
     return (old["fingerprint"] != new["fingerprint"] or
             ast.dump(previous, include_attributes=True) != ast.dump(current, include_attributes=True))
-
-
-def _unproved_open_receiver_site(site):
-    """An opaque instance receiver can consume unrecorded writer inputs.
-
-    A targetless site with this actual coverage gap has no finite producer
-    range that certifies its explanation or analysis-input observations.
-    Other UNKNOWN sites and concrete receiver candidates remain eligible.
-    """
-    coverage = site.get("resolution_decision", {}).get("write_source_coverage", {})
-    return ("open-receiver-input" in site.get("unresolved_reasons", ()) and
-            not site.get("targets") and not site.get("boundaries") and
-            isinstance(coverage, dict) and
-            coverage.get("rule") == "instance-field-coverage" and
-            coverage.get("complete") is not True)
-
-
-def _candidate_header_changed(previous, current):
-    """A class base or decorator can change unrelated receiver candidate traces."""
-    if type(previous) is not type(current):
-        return True
-    fields = ("bases", "keywords", "decorator_list") if isinstance(
-        current, ast.ClassDef) else ("decorator_list",)
-    return any(ast.dump(ast.Tuple(elts=getattr(previous, name, []), ctx=ast.Load()),
-                        include_attributes=False) !=
-               ast.dump(ast.Tuple(elts=getattr(current, name, []), ctx=ast.Load()),
-                        include_attributes=False) for name in fields)
 
 
 def _unbounded_changed_effect(tree):
@@ -319,12 +292,9 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             prior.get("origin_dependency_schema") != dependency_origins.SCHEMA or
             prior.get("origin_dependency_coverage") != dependency_origins.COVERAGE or
             prior.get("origin_dependency_truncated") or
-            prior.get("analysis_dependency_truncated") or prior.get("analysis_input_truncated") or
-            prior["graph"].get("analysis_limited")):
+            prior.get("analysis_dependency_truncated") or prior.get("analysis_input_truncated")):
         return None, "previous-owner-evidence-unavailable"
-    if (prior.get("value_flow_node_count", 0) or prior.get("value_flow_edge_count", 0)) and (
-            prior.get("value_flow_schema") != 1 or
-            prior.get("value_flow_coverage") != "certified-dictionary-v1"):
+    if prior.get("value_flow_schema") != 1:
         return None, "previous-value-flow-evidence-unavailable"
     python = {(f["repository"], f["path"]): f for f in files if f["path"].endswith(".py")}
     with closing(sqlite3.connect((folder / "catalog.sqlite").as_uri() +
@@ -334,17 +304,12 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         old_files = {(r, p): (sha, source) for r, p, sha, source in catalog.execute(
             "select repository,path,sha256,text from files")}
         old_python = {k: item for k, item in old_files.items() if k[1].endswith(".py")}
-        if any(k not in python or k not in old_python for k in python.keys() | old_python.keys()):
-            return None, "python-membership-changed"
-        if {k: v[0] for k, v in old_files.items() if k not in old_python} != {
-                (f["repository"], f["path"]): f["sha256"] for f in files
-                if not f["path"].endswith(".py")}:
-            return None, "document-or-other-input-changed"
-        changed = {k for k, f in python.items() if old_python[k][0] != f["sha256"]}
-        if not changed:
-            return None, "no-python-source-change"
-        if any(k[1] == "__init__.py" or k[1].endswith("/__init__.py") for k in changed):
-            return None, "package-initializer-changed"
+        document_changed = {k: v[0] for k, v in old_files.items() if k not in old_python} != {
+            (f["repository"], f["path"]): f["sha256"] for f in files
+            if not f["path"].endswith(".py")}
+        changed = {k for k in python.keys() | old_python.keys()
+                   if k not in python or k not in old_python or
+                   old_python[k][0] != python[k]["sha256"]}
         old_nodes = {ident: json.loads(raw) for ident, raw in catalog.execute(
             "select node_id,data from nodes")}
         old_trees = unit_evidence.load(evidence, old_nodes,
@@ -355,8 +320,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             return None, "previous-node-order-invalid"
         old_sites = [json.loads(raw) for (raw,) in evidence.execute(
             "select data from sites order by ordinal")]
-        old_open_receiver_owners = {site["execution_owner"] for site in old_sites
-                                    if _unproved_open_receiver_site(site)}
         old_edges = [json.loads(raw) for (raw,) in catalog.execute("select data from edges")]
         observations = [json.loads(raw) for (raw,) in evidence.execute(
             "select data from query_observations order by key")]
@@ -372,11 +335,11 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         old_inputs["truncated"] = False
         old_value_nodes = [json.loads(raw) for (raw,) in evidence.execute(
             "select data from value_nodes")]
-        if (prior.get("value_flow_coverage") != "certified-dictionary-v1" and
-                (old_value_nodes or evidence.execute(
-                    "select 1 from value_edges limit 1").fetchone() or evidence.execute(
-                    "select 1 from value_reads limit 1").fetchone())):
-            return None, "previous-partial-value-evidence-unavailable"
+        # Partial coverage can contain valid positive read witnesses. It is
+        # not a certificate that absent reads have no dependency, but those
+        # recorded reads must be retained and invalidated by producer entry.
+        if prior.get("value_flow_coverage") not in {"certified-dictionary-v1", "partial"}:
+            return None, "previous-value-flow-evidence-unavailable"
         old_origin = tuple([json.loads(raw) for (raw,) in evidence.execute(
             "select data from " + table)] for table in
             ("unit_source_supports", "unit_container_subscriptions", "unit_container_writes"))
@@ -391,7 +354,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                      for repo in {f["repository"] for f in files}}
         fresh_trees = {}
         fresh_nodes = defaultdict(list)
-        for key in sorted(changed):
+        for key in sorted(changed & python.keys()):
             f = dict(python[key], snapshot_id=snapshots[key[0]])
             ns, trees = extraction.python_nodes(f)
             if attempts is not None:
@@ -433,8 +396,27 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 n["node_id"] for n in nodes if n["kind"] in {"module", "class", "function"}}:
             return None, "new-owner-catalog-unavailable"
         graph = Graph(nodes, new_trees, repos)
-        if graph.cross_bindings != prior["graph"].get("dependency_bindings"):
-            return None, "dependency-bindings-changed"
+        old_bindings = prior["graph"].get("dependency_bindings", {})
+        binding_requesters = set()
+        binding_prefixes = {"dnd5e-engine": "dnd5e_engine",
+                            "dnd5e-srd-data": "dnd5e_srd_data"}
+        for repository in set(old_bindings) | set(graph.cross_bindings):
+            before = old_bindings.get(repository, {}).get("dependencies", {})
+            after = graph.cross_bindings.get(repository, {}).get("dependencies", {})
+            for dependency in set(before) | set(after):
+                if before.get(dependency) == after.get(dependency):
+                    continue
+                prefix = binding_prefixes.get(dependency)
+                if prefix is None:
+                    return None, "unknown-dependency-binding-changed"
+                # Source-repository/module is the indexed negative as well as
+                # positive import request. A dirty/clean pin transition can
+                # change the target even without source-byte changes.
+                binding_requesters.update(evidence.execute(
+                    "select distinct source_repository,source_path "
+                    "from import_lookup_keys where source_repository=? "
+                    "and module>=? and module<?",
+                    (repository, prefix, prefix + "/")))
         changed_owners = {ident for ident in set(old_trees) | set(new_trees)
                           if ident not in old_trees or ident not in new_trees or
                           (ident in old_nodes and (old_nodes[ident]["repository"],
@@ -443,25 +425,24 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         # initial seed; only downstream consumers are selected by provenance.
         selected = {ident for ident in new_trees if (byid[ident]["repository"],
                     byid[ident]["path"]) in changed}
+        selected.update(ident for ident in new_trees if
+                        (byid[ident]["repository"], byid[ident]["path"]) in binding_requesters)
         for ident in changed_owners:
-            if (ident in old_trees and ident in new_trees and
-                    isinstance(new_trees[ident], (ast.ClassDef, ast.FunctionDef,
-                                                 ast.AsyncFunctionDef)) and
-                    _candidate_header_changed(old_trees[ident], new_trees[ident])):
-                return None, "changed-definition-header-candidate-universe"
             selected.update(consumer for consumer, _ in dependencies.unit_readers(ident)
                             if consumer in new_trees)
             if ident in old_trees and ident in new_trees:
-                for tree in (old_trees[ident], new_trees[ident]):
-                    if _unbounded_changed_effect(tree):
-                        return None, "unbounded-changed-writer-input"
-                if _changed_calls_have_unbound_effect(old_trees[ident], new_trees[ident],
-                                                      old_sites, ident):
-                    return None, "changed-opaque-call-effect-unavailable"
-            else:
-                # New/deleted definitions can satisfy failed candidates and
-                # otherwise have no prior producer site to reverse.
-                return None, "python-owner-membership-changed"
+                if (_owner_changed(old_nodes[ident], byid[ident],
+                                   old_trees[ident], new_trees[ident]) and
+                        (_unbounded_changed_effect(new_trees[ident]) or
+                         _changed_calls_have_unbound_effect(
+                             old_trees[ident], new_trees[ident], old_sites, ident))):
+                    selected.update(owner for (owner,) in evidence.execute(
+                        "select owner from unit_analysis_watches "
+                        "where kind=? and universe=?",
+                        ("slot-writer-universe", "all-captured-python"))
+                        if owner in new_trees)
+            # New/deleted definitions can satisfy failed namespace requests;
+            # requesters and old producer edges are added below.
         # A new writer has no old support edge. Resolve its receiver against
         # captured literal/import bindings and ask the old origin subscriber
         # index; an unsupported receiver deliberately falls back to full.
@@ -472,21 +453,90 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             origins = _prospective_changed_writer_origins(ident, new_tree, new_trees,
                                                            byid, graph)
             if origins is None:
-                return None, "changed-writer-origin-unresolved"
+                # Unknown receiver identity cannot exclude any subscriber.
+                # Follow the recorded universe watch, not all owners.
+                selected.update(owner for (owner,) in evidence.execute(
+                    "select owner from unit_analysis_watches "
+                    "where kind=? and universe=?",
+                    ("slot-writer-universe", "all-captured-python"))
+                    if owner in new_trees)
+                if prior["graph"].get("analysis_limited"):
+                    # An early budget stop may have prevented the old range
+                    # subscription entirely. Expand through this writer's
+                    # captured imports and their namespace requesters.
+                    n = byid[ident]
+                    for (raw,) in evidence.execute(
+                            "select data from import_requests where "
+                            "source_repository=? and source_path=?",
+                            (n["repository"], n["path"])):
+                        request = json.loads(raw)
+                        candidates = set(graph.imported(
+                            n["repository"], request["requested_module"]))
+                        if request.get("namespace_module"):
+                            candidates.add(request["namespace_module"])
+                        selected.update(module for module in candidates if module in new_trees)
+                continue
             for origin in origins:
                 selected.update(row["consumer_owner"] for row in
                                 dependencies.unit_container_readers(origin)
                                 if row["consumer_owner"] in new_trees)
+                if prior["graph"].get("analysis_limited"):
+                    # A bounded initial analyzer may have stopped before it
+                    # could publish the container subscription. It can still
+                    # have observed the providing module as a read input.
+                    # Follow that owner-specific recorded input, rather than
+                    # treating the missing subscription as negative proof.
+                    providing_scope = origin.rsplit(":", 2)[0]
+                    if providing_scope in old_nodes:
+                        if providing_scope in new_trees:
+                            selected.add(providing_scope)
+                        selected.update(owner for (owner,) in evidence.execute(
+                            "select owner from unit_analysis_reads where producer=?",
+                            (providing_scope,)) if owner in new_trees)
         # The old owner ledger records concrete cross-module reads. This also
         # covers member/return/effect inputs not materialized as CALLS.
         old_module_by_file = {(n["repository"], n["path"]): ident
                               for ident, n in old_nodes.items() if n["kind"] == "module"}
+        old_site_by_id = {s["site_id"]: s for s in old_sites}
+        read_nodes = {r["id"]: r for r in old_value_nodes if r["kind"] == "read"}
         for key in changed:
             module = old_module_by_file.get(key)
             if module is not None:
                 selected.update(owner for (owner,) in evidence.execute(
                     "select distinct owner from unit_analysis_reads where producer=?", (module,))
                     if owner in new_trees)
+            # Persisted positive dictionary reads have exact entry→read
+            # relations even when whole-capture value-flow coverage is partial.
+            # The entry-file index and read primary key localize this lookup.
+            for (read_id,) in evidence.execute(
+                    "select vr.read from value_nodes entry join value_reads vr "
+                    "on vr.entry=entry.id where entry.repository=? and entry.path=? "
+                    "and entry.kind='entry'", key):
+                record = read_nodes.get(read_id)
+                site = old_site_by_id.get(record.get("site_id")) if record else None
+                if site is not None and site["execution_owner"] in new_trees:
+                    selected.add(site["execution_owner"])
+        for key in changed:
+            # A previously absent module/definition can satisfy a negative
+            # import request. Old request keys are indexed even on failures.
+            module = next((n for n in nodes if n["kind"] == "module" and
+                           (n["repository"], n["path"]) == key), None)
+            if module is None and key in old_module_by_file:
+                module = old_nodes[old_module_by_file[key]]
+            if module is not None:
+                affected = dependencies.requesters(module["repository"], module["qualname"])
+                if module["node_id"] not in old_nodes or module["node_id"] not in byid:
+                    # A newly created package initializer or ancestor module
+                    # can shadow imports of its descendants even when the
+                    # ancestor itself had no old request key.
+                    affected.update(evidence.execute(
+                        "select distinct source_repository,source_path "
+                        "from import_lookup_keys where source_repository=? "
+                        "and module>=? and module<?",
+                        (module["repository"], module["qualname"] + ".",
+                         module["qualname"] + "/")))
+                selected.update(i for i in new_trees if (byid[i]["repository"],
+                                                          byid[i]["path"]) in affected)
         for ident in changed_owners:
             n = byid.get(ident, old_nodes.get(ident))
             if (n and n["kind"] == "module" and
@@ -498,14 +548,27 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                             | dependencies.input_scope_readers(*key))
                 selected.update(i for i in new_trees if (byid[i]["repository"],
                                                       byid[i]["path"]) in affected)
+        # Retained edges into removed/changed definitions need their source
+        # owners reanalyzed before any edge is merged from the old snapshot.
+        selected.update(e["source"] for e in old_edges if e["target"] in changed_owners
+                        and e["source"] in new_trees)
         selected.intersection_update(new_trees)
-        if not selected:
-            return None, "no-affected-owners"
+        # A document-only capture changes source snapshot identity but needs
+        # no Python owner query. Retained evidence is rebound below.
         def expand_dependencies(current):
             pending = deque(current)
             while pending:
                 producer = pending.popleft()
-                for consumer, _ in dependencies.unit_readers(producer):
+                consumers = {consumer for consumer, _ in dependencies.unit_readers(producer)}
+                n = byid.get(producer)
+                if n is not None and n["kind"] == "module":
+                    # Reexports are namespaces too: a selected intermediary
+                    # module can turn an old failed import into a new target.
+                    affected = (dependencies.importers(n["repository"], n["qualname"])
+                                | dependencies.requesters(n["repository"], n["qualname"]))
+                    consumers.update(ident for ident in new_trees if
+                                     (byid[ident]["repository"], byid[ident]["path"]) in affected)
+                for consumer in consumers:
                     if consumer in new_trees and consumer not in current:
                         current.add(consumer)
                         pending.append(consumer)
@@ -522,8 +585,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         previous_work = (0, 0, 0)
         try:
             for _ in range(len(new_trees) + 1):
-                if selected & old_open_receiver_owners:
-                    return None, "open-receiver-source-coverage-unavailable"
                 try:
                     fresh_edges, fresh_info = graph.build(
                         source_context=context, selected_owners=selected,
@@ -532,8 +593,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     shared_analyzer = fresh_info.pop("_analyzer")
                 except RequiredAnalysisContext:
                     return None, "required-analysis-context-unavailable"
-                if fresh_info["analysis_limited"]:
-                    return None, "local-association-budget-limited"
                 iterations += 1
                 current_work = (fresh_info["jedi_queries_executed"],
                                 fresh_info["association_evaluations"],
@@ -550,8 +609,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                         attempts.get("owner_jedi_queries_executed", 0) + delta[0])
                     attempts["owner_association_evaluations"] = (
                         attempts.get("owner_association_evaluations", 0) + delta[1])
-                if any(_unproved_open_receiver_site(site) for site in fresh_info["sites"]):
-                    return None, "open-receiver-source-coverage-unavailable"
                 expanded = set(selected)
                 # Component policy is computed from the entire new capture.
                 # A retained owner's old query scope is invalid when that
@@ -574,6 +631,13 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 for support in fresh_info.get("_unit_supports", ()):
                     if support["producer_owner"] in selected and support["consumer_owner"] in new_trees:
                         expanded.add(support["consumer_owner"])
+                # Resolving a selected owner can visit an actual upstream
+                # owner through callbacks, returns or constructor effects.
+                # Replace that owner's old observations in the same pass.
+                for ledger_name in ("_unit_analysis_reads", "_unit_analysis_watches",
+                                    "_unit_input_events"):
+                    expanded.update(row[0] for row in fresh_info.get(ledger_name, ())
+                                    if row[0] in new_trees)
                 expanded = expand_dependencies(expanded)
                 if expanded == selected:
                     break
@@ -583,8 +647,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         finally:
             if shared_analyzer is not None:
                 shared_analyzer.close()
-        if prior["graph"].get("association_bound", 20001) + total_associations > 20000:
-            return None, "combined-association-budget-uncertified"
         rebinder = RebindContext(old_nodes=old_nodes, new_nodes=byid,
                                 old_trees=old_trees, new_trees=new_trees,
                                 selected_paths=set())
@@ -592,7 +654,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             site_ids, retained_sites = {}, []
             for site in old_sites:
                 ident = site["execution_owner"]
-                if ident in selected:
+                if ident in selected or ident not in byid:
                     continue
                 updated = rebinder.rebind(site, owner_id=ident)
                 n = byid[ident]
@@ -610,7 +672,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                                          location["end_line"], location["end_column"], role]))
             edges, reused_edge_count = [], 0
             for edge in old_edges:
-                if edge["kind"] == "CONTAINS" or edge["source"] in selected:
+                if (edge["kind"] == "CONTAINS" or edge["source"] in selected or
+                        edge["source"] in old_trees and edge["source"] not in byid):
                     continue
                 if edge["target"] in changed_owners and edge["source"] in old_trees:
                     return None, "unselected-edge-depends-on-changed-definition"
@@ -644,9 +707,12 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             reused_edge_count = sum(e["kind"] != "CONTAINS" and
                                     e["edge_id"] in retained_edge_ids for e in edges)
             retained_queries = [rebinder.rebind(r, owner_id=r["execution_owner"])
-                                for r in observations if r["execution_owner"] not in selected]
-            retained_imports = [r for r in imports if r["source_module"] not in selected]
-            retained_requests = [r for r in requests if r["source_module"] not in selected]
+                                for r in observations if r["execution_owner"] not in selected
+                                and r["execution_owner"] in byid]
+            retained_imports = [r for r in imports if r["source_module"] not in selected
+                                and r["source_module"] in byid]
+            retained_requests = [r for r in requests if r["source_module"] not in selected
+                                 and r["source_module"] in byid]
             retained_origin = []
             for table, records in enumerate(old_origin):
                 kept = []
@@ -693,6 +759,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                                       s["column"], s["kind"]))
         fresh_info["sites"] = all_sites
         fresh_info["call_sites"] = len(all_sites)
+        fresh_info["analysis_limited"] = bool(
+            fresh_info["analysis_limited"] or prior["graph"].get("analysis_limited"))
         fresh_info["_query_observations"] = list({
             canonical(r["key"]): r for r in
             retained_queries + fresh_info["_query_observations"]}.values())
@@ -736,7 +804,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         if fresh_info["_analysis_dependency_truncated"]:
             return None, "combined-analysis-dependency-budget-uncertified"
         witnesses = fresh_info.pop("_value_read_witnesses")
-        old_site_by_id = {s["site_id"]: s for s in old_sites}
         for record in old_value_nodes:
             if record["kind"] != "read" or record["module"] not in byid:
                 continue
@@ -754,11 +821,11 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                                          if (proof := passive_python.certify(
                                              f, new_trees.get(f"{f['repository']}:{f['path']}:module:"
                                                               f"{module_name(f['path'])}#1"))) is not None]
-        if fresh_info["_simple_python_certificate"] is not None and not flow["complete"]:
-            return None, "combined-value-flow-witness-incomplete"
+        # A partial flow is published as partial; it must not masquerade as a
+        # complete negative dependency certificate.
         fresh_info["_ast_cache"] = new_trees
-        fresh_info["association_bound"] = (prior["graph"]["association_bound"] +
-                                            total_associations)
+        fresh_info["association_bound"] = max(
+            prior["graph"].get("association_bound", 0), total_associations)
         fresh_info["association_evaluations"] = total_associations
         fresh_info["jedi_queries_executed"] = total_queries
         fresh_info["jedi_queries_reused"] = total_reused_queries

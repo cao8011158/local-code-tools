@@ -1,0 +1,34 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_returned_instance_attribute_call_matches_full_catalog __________
+tests/test_class_component_certificate.py:90: in test_returned_instance_attribute_call_matches_full_catalog
+    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 2
+E   assert 1 == 2
+______________ test_connected_caller_is_selected_and_matches_full ______________
+tests/test_common_python_certificate.py:68: in test_connected_caller_is_selected_and_matches_full
+    assert scope["mode"] == "full-graph", scope
+E   AssertionError: {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, ...}
+E   assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+___________ test_relative_provider_change_is_local_and_full_equal[0] ___________
+tests/test_relative_python_incremental.py:56: in test_relative_provider_change_is_local_and_full_equal
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+__________ test_relative_provider_change_is_local_and_full_equal[20] ___________
+tests/test_relative_python_incremental.py:56: in test_relative_provider_change_is_local_and_full_equal
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+=========================== short test summary info ============================
+FAILED tests/test_class_component_certificate.py::test_returned_instance_attribute_call_matches_full_catalog
+FAILED tests/test_common_python_certificate.py::test_connected_caller_is_selected_and_matches_full
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[0]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[20]
+4 failed in 3.27s

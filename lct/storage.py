@@ -1059,8 +1059,9 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
           on_candidate=None):
     """Build all channels from captured source; publish only after rechecking source bytes.
 
-    AST/Jedi relationships are reused only for identical captured Python repositories;
-    HNSW is maintained during update, not retrieval. SQLite
+    Warm Python changes select owners through immutable dependency evidence;
+    incompatible evidence fails without publishing. HNSW is maintained during
+    update, not retrieval. SQLite
     nodes/edges/postings update by content difference; unchanged vectors never call API.
     """
     data = Path(c["data"])
@@ -1085,63 +1086,33 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             except (OSError, ToolError, KeyError, ValueError, sqlite3.Error):
                 preparation_reason = "previous-graph-evidence-unavailable"
         if previous and prepared is None:
+            old_folder, old_manifest = manifest(c, previous, compatible=False)
+            _, compatibility, _, _ = _same_python_inputs(
+                old_folder, old_manifest, files, repos, c)
+            if compatibility in {"program-or-config-or-cache-changed",
+                                 "repository-or-pin-metadata-changed"}:
+                raise ToolError(f"Local update requires compatible evidence: {compatibility}")
+            if old_manifest.get("dependency_store") != "indexed-v3":
+                raise ToolError("Local update requires compatible indexed evidence")
+            for artifact in ("catalog.sqlite", GRAPH_SITES):
+                checksum, size = hash_artifact(old_folder, artifact)
+                if (checksum != old_manifest["artifacts"][artifact] or
+                        size != old_manifest["artifact_sizes"][artifact]):
+                    raise ToolError("Previous owner artifact integrity failed")
+            from .unit_incremental import prepare as prepare_owners
             try:
-                old_folder, old_manifest = manifest(c, previous, compatible=False)
-                eligible, reason, _, _ = _same_python_inputs(
-                    old_folder, old_manifest, files, repos, c)
-                if eligible or reason == "no-unchanged-python-modules":
-                    if old_manifest.get("dependency_store") == "indexed-v3":
-                        for artifact in ("catalog.sqlite", GRAPH_SITES):
-                            checksum, size = hash_artifact(old_folder, artifact)
-                            if (checksum != old_manifest["artifacts"][artifact] or
-                                    size != old_manifest["artifact_sizes"][artifact]):
-                                raise ToolError("Previous owner artifact integrity failed")
-                        from .unit_incremental import prepare as prepare_owners
-                        with FileDependencies(old_folder, old_manifest) as dependencies:
-                            owner_attempted = True
-                            candidate, preparation_reason = prepare_owners(
-                                old_folder, old_manifest, files, repos,
-                                dependencies=dependencies, graph_sites=GRAPH_SITES,
-                                attempts=local_attempts)
-                        if candidate is not None:
-                            nodes, edges, graph_info, local_metrics = candidate
-                            prepared = nodes, edges, graph_info
-                else:
-                    preparation_reason = reason
-            except (OSError, ToolError, KeyError, ValueError, sqlite3.Error, SyntaxError):
-                preparation_reason = "previous-owner-evidence-unavailable"
-        if previous and prepared is None and not owner_attempted:
-            try:
-                old_folder, old_manifest = manifest(c, previous, compatible=False)
-                compatible, reason, _, _ = _same_python_inputs(
-                    old_folder, old_manifest, files, repos, c)
-                if compatible and old_manifest.get("dependency_store") == "indexed-v3":
-                    checksum, size = hash_artifact(old_folder, "catalog.sqlite")
-                    if (checksum != old_manifest["artifacts"]["catalog.sqlite"]
-                            or size != old_manifest["artifact_sizes"]["catalog.sqlite"]):
-                        reason = "previous-catalog-integrity-failed"
-                    else:
-                        from .python_incremental import prepare
-                        with FileDependencies(old_folder, old_manifest) as dependencies:
-                            parsed_cache = {}
-                            candidate, reason = prepare(
-                                old_folder, old_manifest, files, repos,
-                                dependencies=dependencies, graph_sites=GRAPH_SITES,
-                                attempts=local_attempts, parsed_cache=parsed_cache)
-                            if candidate is None and reason in {
-                                    "previous-simple-python-certificate-unavailable",
-                                    "selected-python-syntax-unsupported"}:
-                                candidate, reason = prepare(
-                                    old_folder, old_manifest, files, repos,
-                                    dependencies=dependencies, graph_sites=GRAPH_SITES,
-                                    attempts=local_attempts, general=True,
-                                    parsed_cache=parsed_cache)
-                        if candidate is not None:
-                            nodes, edges, graph_info, local_metrics = candidate
-                            prepared = nodes, edges, graph_info
-                preparation_reason = reason
-            except (OSError, ToolError, KeyError, ValueError, sqlite3.Error, SyntaxError):
-                preparation_reason = "previous-local-evidence-unavailable"
+                with FileDependencies(old_folder, old_manifest) as dependencies:
+                    owner_attempted = True
+                    candidate, preparation_reason = prepare_owners(
+                        old_folder, old_manifest, files, repos,
+                        dependencies=dependencies, graph_sites=GRAPH_SITES,
+                        attempts=local_attempts)
+            except (OSError, KeyError, ValueError, sqlite3.Error, SyntaxError) as exc:
+                raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+            if candidate is None:
+                raise ToolError(f"Local update unavailable: {preparation_reason}")
+            nodes, edges, graph_info, local_metrics = candidate
+            prepared = nodes, edges, graph_info
         if prepared is None:
             nodes, asts = extract(files)
         else:
@@ -1173,12 +1144,18 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             if not previous:
                 graph = Graph(nodes, asts, repos)
             try:
-                edges, graph_info = graph.build(query_reuse=reuse)
+                # Cold indexing genuinely owns every new AST definition. Use
+                # the same conservative candidate index as warm owner updates.
+                edges, graph_info = graph.build(
+                    query_reuse=reuse, selected_owners=set(asts))
             finally:
                 if reuse is not None:
                     reuse.close()
         if prepared is None:
             graph_info["association_bound"] = graph_info["association_evaluations"]
+            # The cold owner engine records transient tuple-keyed read witnesses
+            # for parity with selected updates; only the flow sidecar persists.
+            graph_info.pop("_value_read_witnesses", None)
         observations = graph_info.pop("_query_observations")
         import_dependencies = graph_info.pop("_import_dependencies")
         import_requests = graph_info.pop("_import_requests", None)

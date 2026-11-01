@@ -13,6 +13,8 @@ from lct.simple_python import CERTIFICATE, certify, component_policy
 from lct.storage import build
 from tests.synthetic_support import initialize
 from tests.test_actual_item_unit_incremental import records
+from tests.test_batch3_actual_acceptance import semantic
+from tests.semantic_comparison import assert_semantic_equal
 
 SOURCE = (Path(__file__).parents[1] / "review/batch4-incremental/fixtures"
           / "actual-source-subset/src/trpg_state_machine")
@@ -34,7 +36,8 @@ def setup(tmp_path, noise=0):
 def oracle(tmp_path, config, updated):
     fresh_config = dict(config, data=str(tmp_path / "oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
-    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(fresh_config, fresh["version"]))
 
 
 @pytest.mark.parametrize("noise", [0, 20])
@@ -47,8 +50,8 @@ def test_actual_three_file_availability_local_and_full_oracle(tmp_path, noise):
     module.write_bytes(module.read_bytes().replace(b"context=context", b"context=None"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph", scope
-    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
+    assert scope["mode"] == "incremental-owners", scope
+    assert scope["reason"] == "incremental-owners"
     oracle(tmp_path, config, updated)
     assert records(config, baseline["version"]) == old
 
@@ -65,8 +68,8 @@ def test_connected_caller_is_selected_and_matches_full(tmp_path):
     module.write_bytes(module.read_bytes().replace(b"context=context", b"context=None"))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph", scope
-    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
+    assert scope["mode"] == "incremental-owners", scope
+    assert scope["reason"] == "incremental-owners"
     oracle(tmp_path, config, updated)
 
 
@@ -82,8 +85,8 @@ def test_errors_passive_default_and_property_with_importer(tmp_path):
     module.write_bytes(module.read_bytes().replace(b'path: str = ""', b'path: str = "root"'))
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph", scope
-    assert scope["reason"] == "changed-writer-origin-unresolved"
+    assert scope["mode"] == "incremental-owners", scope
+    assert scope["reason"] == "incremental-owners"
     oracle(tmp_path, config, updated)
 
 

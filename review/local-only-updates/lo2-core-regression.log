@@ -1,0 +1,21 @@
+...F..FF..........                                                       [100%]
+=================================== FAILURES ===================================
+_____ test_association_bound_survives_local_and_exact_capture_generations ______
+tests/test_changed_python_gate.py:83: in test_association_bound_survives_local_and_exact_capture_generations
+    assert candidate is not None and reason == "incremental-owners"
+E   assert (None is not None)
+___________ test_relative_provider_change_is_local_and_full_equal[0] ___________
+tests/test_relative_python_incremental.py:60: in test_relative_provider_change_is_local_and_full_equal
+    assert updated["incremental"]["analysis_scope"]["owner_preflight_analysis_iterations"] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'owner_preflight_analysis_iterations'
+__________ test_relative_provider_change_is_local_and_full_equal[20] ___________
+tests/test_relative_python_incremental.py:60: in test_relative_provider_change_is_local_and_full_equal
+    assert updated["incremental"]["analysis_scope"]["owner_preflight_analysis_iterations"] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'owner_preflight_analysis_iterations'
+=========================== short test summary info ============================
+FAILED tests/test_changed_python_gate.py::test_association_bound_survives_local_and_exact_capture_generations
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[0]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[20]
+3 failed, 15 passed in 20.29s

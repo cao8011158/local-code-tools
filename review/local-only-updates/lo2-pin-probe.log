@@ -1,0 +1,12 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_binding_change_and_unmatched_pin_fall_back ________________
+tests/test_cross_repository_python_incremental.py:117: in test_binding_change_and_unmatched_pin_fall_back
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+=========================== short test summary info ============================
+FAILED tests/test_cross_repository_python_incremental.py::test_binding_change_and_unmatched_pin_fall_back
+1 failed in 1.28s

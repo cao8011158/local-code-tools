@@ -1,0 +1,199 @@
+........................FF......................................F....... [  9%]
+...............F.........................s..FFFF.FFF..................FF [ 19%]
+F.FFFF...............F...F.F.F.........s................FFFFFF.......... [ 29%]
+ss.....F....sss.......s.....s...sss.s.sssssssssss...sss....FF........FFF [ 39%]
+FF.F.................................................................... [ 49%]
+........................................................................ [ 59%]
+........................................................................ [ 69%]
+........................................................................ [ 79%]
+........................................................................ [ 89%]
+.............................................................F.......... [ 99%]
+....                                                                     [100%]
+=================================== FAILURES ===================================
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_analysis_inputs.py:214: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_analysis_inputs.py:214: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   assert 1 == 2
+/workspace/scratch/45363df3617b/local-only-work/tests/test_class_component_certificate.py:90: assert 1 == 2
+E   assert 0 == 2
+/workspace/scratch/45363df3617b/local-only-work/tests/test_container_slot_scope_index.py:51: assert 0 == 2
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:82: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:96: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: dependency-bindings-changed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: dependency-bindings-changed
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:131: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:169: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:187: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_cross_repository_python_incremental.py:207: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: combined-value-flow-witness-incomplete
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: combined-value-flow-witness-incomplete
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_dictionary_value_flow.py:248: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:71: AssertionError: assert 'incremental-owners' == 'full-graph'
+E   AssertionError: assert ['src/trpg_st...execution.py'] == ['src/noise_0...e_13.py', ...]
+      
+      At index 0 diff: 'src/trpg_state_machine/_execution.py' != 'src/noise_0.py'
+      Right contains 22 more items, first extra item: 'src/noise_1.py'
+      Use -v to get more diff
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:178: AssertionError: assert ['src/trpg_st...execution.py'] == ['src/noise_0...e_13.py', ...]
+E   AssertionError: assert [] == ['src/noise_0...e_13.py', ...]
+      
+      Right contains 21 more items, first extra item: 'src/noise_0.py'
+      Use -v to get more diff
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:229: AssertionError: assert [] == ['src/noise_0...e_13.py', ...]
+E   AssertionError: assert ['src/trpg_st...ne/errors.py'] == ['src/noise_0...e_13.py', ...]
+      
+      At index 0 diff: 'src/trpg_state_machine/_execution.py' != 'src/noise_0.py'
+      Right contains 20 more items, first extra item: 'src/noise_10.py'
+      Use -v to get more diff
+/workspace/scratch/45363df3617b/local-only-work/tests/test_general_passive_incremental.py:280: AssertionError: assert ['src/trpg_st...ne/errors.py'] == ['src/noise_0...e_13.py', ...]
+E   assert 0 > 0
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:44: assert 0 > 0
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:68: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:68: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:90: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   lct.common.ToolError: Local update unavailable: no-python-source-change
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: no-python-source-change
+E   AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+      
+      - python-source-or-membership-changed;local-query-only
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_incremental_query_reuse.py:131: AssertionError: assert 'incremental-owners' == 'python-sourc...al-query-only'
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+E   lct.common.ToolError: Local update unavailable: previous-owner-evidence-unavailable
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1112: lct.common.ToolError: Local update unavailable: previous-owner-evidence-unavailable
+E   lct.common.ToolError: Previous owner artifact integrity failed
+/workspace/scratch/45363df3617b/local-only-work/lct/storage.py:1100: lct.common.ToolError: Previous owner artifact integrity failed
+E   AssertionError: assert 'incremental-owners' == 'changed-writ...in-unresolved'
+      
+      - changed-writer-origin-unresolved
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:183: AssertionError: assert 'incremental-owners' == 'changed-writ...in-unresolved'
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:203: AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:203: AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:203: AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:203: AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+E   AssertionError: assert 'incremental-owners' == 'open-receive...e-unavailable'
+      
+      - open-receiver-source-coverage-unavailable
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_owner_incremental.py:258: AssertionError: assert 'incremental-owners' == 'open-receive...e-unavailable'
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+      
+      - full-graph
+      + incremental-owners
+/workspace/scratch/45363df3617b/local-only-work/tests/test_source_prepare.py:62: AssertionError: assert 'incremental-owners' == 'full-graph'
+=========================== short test summary info ============================
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[0]
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[20]
+FAILED tests/test_class_component_certificate.py::test_returned_instance_attribute_call_matches_full_catalog
+FAILED tests/test_container_slot_scope_index.py::test_unrelated_local_alias_writers_do_not_grow_consumer_checks
+FAILED tests/test_cross_repository_python_incremental.py::test_new_local_import_expands_closure_without_parsing_unrelated_repo
+FAILED tests/test_cross_repository_python_incremental.py::test_exact_pinned_cross_repository_import_and_local_precedence
+FAILED tests/test_cross_repository_python_incremental.py::test_binding_change_and_unmatched_pin_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_removed_local_shadow_reanalyzes_requester_and_pinned_provider
+FAILED tests/test_cross_repository_python_incremental.py::test_package_initializer_shadow_changes_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_ancestor_module_shadow_changes_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_pinned_provider_package_context_parses_only_actual_prefix
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[schema]
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[coverage]
+FAILED tests/test_dictionary_value_flow.py::test_record_budget_marks_partial_without_persisting_partial_claim
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[True]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1.0]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[unknown_key]
+FAILED tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise[20-errors]
+FAILED tests/test_general_passive_incremental.py::test_new_import_of_passive_provider_expands_selected_context
+FAILED tests/test_general_passive_incremental.py::test_deleted_passive_source_keeps_remaining_unrelated_proofs
+FAILED tests/test_general_passive_incremental.py::test_v6_local_preserves_passive_proofs_for_new_complex_capture
+FAILED tests/test_incremental_query_reuse.py::test_committed_docs_edit_reuses_jedi_with_identical_public_evidence
+FAILED tests/test_incremental_query_reuse.py::test_python_definition_change_full_fallback_and_import_inventory[from helper import fresh as alias\nalias()\n-from helper import fresh as alias\nalias()\n]
+FAILED tests/test_incremental_query_reuse.py::test_python_definition_change_full_fallback_and_import_inventory[from reexport import handler as alias\nalias()\n-from reexport import handler as alias\nalias()\n]
+FAILED tests/test_incremental_query_reuse.py::test_callback_alias_edit_keeps_full_fallback
+FAILED tests/test_incremental_query_reuse.py::test_deleted_export_returns_to_named_unresolved_lookup
+FAILED tests/test_incremental_query_reuse.py::test_changed_other_python_module_reuses_unchanged_function_local_query
+FAILED tests/test_mixed_dictionary_components.py::test_missing_export_and_unsafe_provider_fail_closed
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[schema]
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[payload]
+FAILED tests/test_owner_incremental.py::test_unresolved_attribute_receiver_falls_back_with_reason
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(registry): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\nfrom other import registry\ndef change(): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(flag):\n    if flag: registry={}\n    registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change():\n    registry['go']=second\n    registry={}\n]
+FAILED tests/test_owner_incremental.py::test_selected_open_receiver_without_source_coverage_rebuilds_full
+FAILED tests/test_source_prepare.py::test_python_edit_add_delete_and_corrupt_sidecar_force_full
+38 failed, 659 passed, 27 skipped, 1 deselected in 92.49s (0:01:32)

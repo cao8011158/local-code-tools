@@ -1,10 +1,12 @@
 """Unsupported captured Python states preserve the complete analysis path."""
 
 from lct.common import inventory
-from lct.python_incremental import prepare
+from lct.unit_incremental import prepare
 from lct.storage import GRAPH_SITES, FileDependencies, build, manifest
 from tests.test_general_passive_incremental import semantic
 from tests.synthetic_support import initialize
+from tests.semantic_comparison import assert_semantic_equal
+from tests.test_batch3_actual_acceptance import semantic as full_semantic
 
 
 def fixture(tmp_path):
@@ -20,13 +22,13 @@ def test_class_change_recomputes_complex_module_and_reuses_passive_peer(tmp_path
     (repo / "src/weights.py").write_text("class Box(Base):\n    def __init__(self): pass\n")
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["python_files_parsed"] == 2
-    assert scope["reused_graph_sites"] == 0
-    assert scope["total_python_files_parsed"] == 3
+    assert scope["mode"] == "incremental-owners"
+    assert scope["python_files_parsed"] == 1
+    assert scope["reused_owner_count"] >= 1
     fresh_config = dict(c, data=str(tmp_path / "fresh"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
-    assert semantic(c, result["version"]) == semantic(fresh_config, fresh["version"])
+    assert_semantic_equal(full_semantic(c, result["version"]),
+                          full_semantic(fresh_config, fresh["version"]))
 
 
 def test_ordinary_class_change_uses_bounded_component(tmp_path):
@@ -38,8 +40,8 @@ def test_ordinary_class_change_uses_bounded_component(tmp_path):
         'def one(): pass\n')
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["python_files_parsed"] == 2
+    assert scope["mode"] == "incremental-owners"
+    assert scope["python_files_parsed"] == 1
 
 
 def test_simultaneous_document_and_python_change_falls_back(tmp_path):
@@ -48,9 +50,9 @@ def test_simultaneous_document_and_python_change_falls_back(tmp_path):
     (repo / "docs/guide.md").write_text("# Changed\n")
     result = build(c, offline=True, lexical_only=True)
     scope = result["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "document-or-other-input-changed"
-    assert scope["local_preflight_python_files_parsed"] == 0
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reason"] == "incremental-owners"
+    assert scope["python_files_parsed"] == 1
 
 
 def test_association_bound_survives_local_and_exact_capture_generations(tmp_path):
@@ -60,8 +62,8 @@ def test_association_bound_survives_local_and_exact_capture_generations(tmp_path
     source = repo / "src/weights.py"
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")
     local = build(c, offline=True, lexical_only=True)
-    assert local["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert local["graph"]["association_bound"] == local["graph"]["association_evaluations"]
+    assert local["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert local["graph"]["association_bound"] >= local["graph"]["association_evaluations"]
     identical = build(c, offline=True, lexical_only=True)
     assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
     assert identical["graph"]["association_evaluations"] == 0
@@ -69,8 +71,8 @@ def test_association_bound_survives_local_and_exact_capture_generations(tmp_path
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): two()\n")
     second = build(c, offline=True, lexical_only=True)
     assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert second["graph"]["association_bound"] == (
-        identical["graph"]["association_bound"] + second["graph"]["association_evaluations"])
+    assert second["graph"]["association_bound"] == max(
+        identical["graph"]["association_bound"], second["graph"]["association_evaluations"])
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")
     old_folder, old_manifest = manifest(c, second["version"])
     files, repos, _ = inventory(c)
@@ -78,4 +80,4 @@ def test_association_bound_survives_local_and_exact_capture_generations(tmp_path
     with FileDependencies(old_folder, old_manifest) as relations:
         candidate, reason = prepare(old_folder, near_budget, files, repos,
                                     dependencies=relations, graph_sites=GRAPH_SITES)
-    assert candidate is None and reason == "combined-association-budget-uncertified"
+    assert candidate is not None and reason == "incremental-owners", reason

@@ -1,0 +1,15 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+_____ test_unknown_writer_selects_subscriber_without_sibling_functions[0] ______
+review/local-only-updates/test_local_only_flow_independent.py:168: in test_unknown_writer_selects_subscriber_without_sibling_functions
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:38: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1112: in build
+    raise ToolError(f"Local update unavailable: {preparation_reason}")
+E   lct.common.ToolError: Local update unavailable: previous-value-flow-evidence-unavailable
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_unknown_writer_selects_subscriber_without_sibling_functions[0]
+1 failed, 1 passed, 11 deselected in 1.41s

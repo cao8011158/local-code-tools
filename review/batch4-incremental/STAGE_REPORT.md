@@ -1,6 +1,12 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-01：阶段131，LO-2本地开发冻结，尚未推送/正式review。开发者最终254定向通过/16.73秒；699 passed/27 skipped/1 deselected/100.69秒主快速回归。正常warm只走owner路径，初始cold选择全部新owner；有效partial/预算截断通过导入/来源链补选，缓存不兼容明确失败保留旧current。 [开发报告](../local-only-updates/LO2_DEVELOPER.md)。
+
+2026-11-01：阶段130，LO-2实施/预检进行中，尚未冻结或正式审阅。普通未知回调、文件/定义增删、包导出、容器getter/末端消费、损坏/不兼容缓存与同文件无关函数控制已进入独立测试。新增预算耗尽反例确认漏选末端消费，正在修复其分离存储来源/参数写入变体；不恢复全量回退。
+
+2026-11-01：阶段129，LO-1固定8fef684ac0491e2be34601ed2979a2edccacfa9b第1/3轮独立审阅通过；432物化文件Git blob匹配，705 passed/27 skipped/1 deselected/109.14秒。两项收据规范化预检问题已关闭。进入LO-2生产路径修改；完整功能未完成，不合并。 [审阅报告](../local-only-updates/LO1_REVIEW.md)。
+
 2026-11-01：阶段128，LO-1本地开发完成、文件冻结，尚未推送/正式审阅。仅改比较器、验收测试与适用契约；生产调度/分析器未改。最终定向29 passed/22.57秒；最终主快速回归697 passed/27 skipped/1 deselected/118.03秒；未修改原始UNKNOWN或来源表来求通过。 [开发报告](../local-only-updates/LO1_DEVELOPER.md)。
 
 2026-11-01：阶段127，用户批准后续更新只用局部的新三批工作（LO-1测试语义、LO-2取消自动全量回退、LO-3完整项目验收）。远端基线/目标 e3db45fcf1362f0a26e0ab7760b12b4fd408ce64，工作分支 feat/local-only-updates。开发已派发，未提交新生产代码、未正式审阅。完整83文件SM原字节已校验。 [本轮计划](../local-only-updates/PLAN.md)。
@@ -1023,3 +1029,25 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 开发者/root预检曾发现LCT嵌套decision与transitive dependencies中的重复原因未被规范化；原始1失败日志保留，按实际相同原因去重，distinct位置/原因仍必须不同。两项开发预检不冒充正式review轮次。
 - 未提交基线快速回归为677 passed/27 skipped/1 deselected/117.13秒；最终代码新增20项主测试。原始review单文件pytest入口缺sys.path导致collection error，改用python -m pytest后实际断言执行，环境错误与逻辑失败分列。
 - 完整83文件原字节冷建图180秒上限内未完成，exit124，无新版本成功发布；仅记耗时验证阻塞，尚不据此认定正确性/外部核心缺陷。日志full-sm-baseline.log。该诊断不作为LO-1通过证据。
+
+## 阶段129：LO-1第1轮独立审阅通过
+
+2026-11-01：阶段129，LO-1固定8fef684ac0491e2be34601ed2979a2edccacfa9b第1/3轮独立审阅通过；432物化文件Git blob匹配，705 passed/27 skipped/1 deselected/109.14秒。两项收据规范化预检问题已关闭。进入LO-2生产路径修改；完整功能未完成，不合并。 [审阅报告](../local-only-updates/LO1_REVIEW.md)。
+
+- 修改与已验证边界详见LO1_REVIEW.md/LO1_EVIDENCE.json；来源三表仍严格比较，辅助日志有效性待后续功能验证。原始失败、模型、环境、测试命令与排除项均保留。
+
+## 阶段130：LO-2局部路径开发与真实预检缺陷
+
+2026-11-01：阶段130，LO-2实施/预检进行中，尚未冻结或正式审阅。普通未知回调、文件/定义增删、包导出、容器getter/末端消费、损坏/不兼容缓存与同文件无关函数控制已进入独立测试。新增预算耗尽反例确认漏选末端消费，正在修复其分离存储来源/参数写入变体；不恢复全量回退。
+
+- 已证实并修复的开发期问题包括：兼容性检查遗漏（program/config/runtime三反例）、共享LOOKUP_IN边界支持误删、有效partial值流被误拒绝、模块遮蔽/新增导出与pin干净状态转换的请求者传播。开发者自测逐项保留，不视为正式review。
+- LO2-LIMITED-DEPENDENCY：强制初次预算0模拟截断，旧来源三表为空，writer改first→second后旧局部结果fn目标为空，正常fresh为first+second，selected只有writer两个owner。JSON原始结果与测试日志保留。原同文件存储修法通过后，容器store.py与函数provider.py分离的直接/参数写入两反例继续失败；fresh两例均first+second。开发者按存储命名空间、导入/返回链修复，不把两类模块等同，不选择idle.unrelated。此为新允许有限旧图后暴露的问题，不倒写成此前充分预算回调示例的缺陷。
+- 无新已确认P0/P1或外部核心故障。完整83文件cold legacy180秒未完成、indexed诊断90秒推进8200查询/9614sites后限时终止，尚未作为完整项目通过证据。
+
+## 阶段131：LO-2开发完成，待固定远端独立审阅
+
+2026-11-01：阶段131，LO-2本地开发冻结，尚未推送/正式review。开发者最终254定向通过/16.73秒；699 passed/27 skipped/1 deselected/100.69秒主快速回归。正常warm只走owner路径，初始cold选择全部新owner；有效partial/预算截断通过导入/来源链补选，缓存不兼容明确失败保留旧current。 [开发报告](../local-only-updates/LO2_DEVELOPER.md)。
+
+- 原预算变体（分离存储模块/函数模块、参数写入）已由开发者修正，17项root行为控制含于254定向；保留analysis_limited并遵循读取/命名空间实际关系，不恢复全量。原始失败和修复日志保留。
+- 生产变更4文件（storage/unit_incremental/graph/python_analysis）；历史mode/parse/raw-trace断言按新契约迁移，来源/UNKNOWN/完整性检查继续。完整83与规模未完成。
+- root下一轮独立审阅补测普通callee函数体变化时，同一个导入文件中的无关函数是否被误选；正式轮次尚未消耗。

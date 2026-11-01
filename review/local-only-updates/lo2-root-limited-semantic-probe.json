@@ -1,0 +1,1 @@
+{"local_targets": [], "fresh_targets": ["first", "second"], "selected": ["synthetic-review:src/writer.py:function:configure#1.1", "synthetic-review:src/writer.py:module:writer#1"], "local_limited": false}

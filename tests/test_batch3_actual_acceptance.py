@@ -167,13 +167,13 @@ def test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch(tmp_pa
                           jedi=lexical["graph"]["jedi_queries_executed"],
                           sites=lexical["graph"]["call_sites"],
                           dense_partitions=len(metadata["partitions"]))), flush=True)
-    # A changed genuine file cannot admit owner reuse after the limited graph.
+    # Limited initial precision retains UNKNOWN while later work stays local.
     source = repo / "src/trpg_state_machine/_execution.py"
     source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_b3"', 1))
     with forbid_provider():
         updated = build(c, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert updated["incremental"]["analysis_scope"]["reason"] == "previous-owner-evidence-unavailable"
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     assert updated["graph"]["analysis_limited"]
     assert semantic(c, old_version) == old_semantic
     full_equal(tmp_path, c, updated, "nine-edited")
@@ -208,14 +208,14 @@ def test_three_actual_sources_owner_lifecycle_and_membership(tmp_path):
     added_path.write_text("def isolated_b3():\n    return 1\n")
     with forbid_provider():
         added = build(c, offline=True, lexical_only=True)
-    assert added["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert added["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert added["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     full_equal(tmp_path, c, added, "three-added")
     added_path.unlink()
     with forbid_provider():
         deleted = build(c, offline=True, lexical_only=True)
-    assert deleted["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert deleted["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+    assert deleted["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert deleted["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     full_equal(tmp_path, c, deleted, "three-deleted")
     q = Query(c)
     with forbid_provider():
@@ -251,9 +251,8 @@ def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
     unit.write_bytes(original_bytes.replace(b"2**63 - 1", b"2**62 - 1", 1))
     with forbid_provider():
         changed_value = build(c, offline=True, lexical_only=True)
-    assert changed_value["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert changed_value["incremental"]["analysis_scope"]["reason"] == (
-        "open-receiver-source-coverage-unavailable")
+    assert changed_value["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert changed_value["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     fresh = full_equal(tmp_path, c, changed_value, "six-value", traversal_independent=True)
     # These are actual semantic producer/consumer evidence, not rejected
     # candidate traversal. The oracle compares the rows exactly above.

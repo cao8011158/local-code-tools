@@ -3,6 +3,7 @@
 import json
 import sqlite3
 import subprocess
+from pathlib import Path
 
 import jedi
 import pytest
@@ -10,6 +11,8 @@ import pytest
 import lct.storage as storage
 from lct.incremental import module_import_dependents
 from tests.synthetic_support import initialize, seed_cache
+from tests.test_batch3_actual_acceptance import semantic
+from tests.semantic_comparison import assert_semantic_equal
 
 
 def commit(repo, message):
@@ -29,9 +32,8 @@ def records(c, version):
 
 
 def full_again(c, monkeypatch):
-    with monkeypatch.context() as patch:
-        patch.setattr(storage, "_same_python_inputs", lambda *_: (False, "forced-full-control", set(), False))
-        return storage.build(c, lexical_only=True)
+    fresh = dict(c, data=str(Path(c["data"]).parent / "fresh-control"))
+    return storage.build(fresh, lexical_only=True)
 
 
 def test_committed_docs_edit_reuses_jedi_with_identical_public_evidence(tmp_path, monkeypatch):
@@ -41,12 +43,14 @@ def test_committed_docs_edit_reuses_jedi_with_identical_public_evidence(tmp_path
     commit(repo, "documentation only")
     reused = storage.build(c, lexical_only=True)
     assert reused["repositories"][0]["head"] != first["repositories"][0]["head"]
-    assert reused["graph"]["jedi_queries_reused"] > 0
+    assert reused["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert reused["incremental"]["analysis_scope"]["python_files_parsed"] == 0
     assert reused["graph"]["jedi_queries_executed"] + reused["graph"]["jedi_queries_reused"] == reused["graph"]["jedi_queries"]
-    assert reused["graph"]["query_reuse_reason"] == "python-inputs-identical"
+    assert reused["graph"]["query_reuse_reason"] == "incremental-owners"
     control = full_again(c, monkeypatch)
     assert control["graph"]["jedi_queries_reused"] == 0
-    assert records(c, reused["version"])[:3] == records(c, control["version"])[:3]
+    assert_semantic_equal(semantic(c, reused["version"]), semantic(
+        dict(c, data=str(Path(c["data"]).parent / "fresh-control")), control["version"]))
 
 
 @pytest.mark.parametrize("old,new", [
@@ -65,7 +69,7 @@ def test_python_definition_change_full_fallback_and_import_inventory(tmp_path, m
     (repo / "src" / "caller.py").write_text(new)
     commit(repo, "add missing exported name")
     updated = storage.build(c, lexical_only=True)
-    assert updated["graph"]["query_reuse_reason"] == "python-source-or-membership-changed;local-query-only"
+    assert updated["graph"]["query_reuse_reason"] == "incremental-owners"
     assert updated["graph"]["jedi_queries_reused"] == 0
     assert updated["graph"]["import_dependency_count"] >= 1
     folder, _ = storage.manifest(c, updated["version"])
@@ -75,7 +79,8 @@ def test_python_definition_change_full_fallback_and_import_inventory(tmp_path, m
     assert any("caller" in node for node in closure)
     assert first["version"] != updated["version"]
     control = full_again(c, monkeypatch)
-    assert records(c, updated["version"])[:3] == records(c, control["version"])[:3]
+    assert_semantic_equal(semantic(c, updated["version"]), semantic(
+        dict(c, data=str(Path(c["data"]).parent / "fresh-control")), control["version"]))
 
 
 def test_callback_alias_edit_keeps_full_fallback(tmp_path, monkeypatch):
@@ -87,9 +92,10 @@ def test_callback_alias_edit_keeps_full_fallback(tmp_path, monkeypatch):
     commit(repo, "alias call")
     updated = storage.build(c, lexical_only=True)
     assert updated["graph"]["jedi_queries_reused"] == 0
-    assert updated["graph"]["query_reuse_reason"] == "python-source-or-membership-changed;local-query-only"
+    assert updated["graph"]["query_reuse_reason"] == "incremental-owners"
     control = full_again(c, monkeypatch)
-    assert records(c, updated["version"])[:3] == records(c, control["version"])[:3]
+    assert_semantic_equal(semantic(c, updated["version"]), semantic(
+        dict(c, data=str(Path(c["data"]).parent / "fresh-control")), control["version"]))
 
 
 def test_deleted_export_returns_to_named_unresolved_lookup(tmp_path, monkeypatch):
@@ -106,7 +112,8 @@ def test_deleted_export_returns_to_named_unresolved_lookup(tmp_path, monkeypatch
     assert any(row["kind"] == "IMPORTS" and row.get("lookup", {}).get("name") == "exported"
                and row["status"] == "unresolved" for row in rows)
     control = full_again(c, monkeypatch)
-    assert records(c, updated["version"])[:3] == records(c, control["version"])[:3]
+    assert_semantic_equal(semantic(c, updated["version"]), semantic(
+        dict(c, data=str(Path(c["data"]).parent / "fresh-control")), control["version"]))
 
 
 def test_changed_other_python_module_reuses_unchanged_function_local_query(tmp_path, monkeypatch):
@@ -128,12 +135,13 @@ def test_changed_other_python_module_reuses_unchanged_function_local_query(tmp_p
     with monkeypatch.context() as patch:
         patch.setattr(jedi.Script, "infer", traced_infer)
         updated = storage.build(c, lexical_only=True)
-    assert updated["graph"]["query_reuse_reason"] == "python-source-or-membership-changed;local-query-only"
-    assert updated["graph"]["jedi_queries_reused"] > 0
+    assert updated["graph"]["query_reuse_reason"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reused_owner_count"] >= 1
     assert updated["graph"]["jedi_queries_executed"] + updated["graph"]["jedi_queries_reused"] == updated["graph"]["jedi_queries"]
     assert "local.py" not in invoked and "other.py" in invoked
     control = full_again(c, monkeypatch)
-    assert records(c, updated["version"])[:3] == records(c, control["version"])[:3]
+    assert_semantic_equal(semantic(c, updated["version"]), semantic(
+        dict(c, data=str(Path(c["data"]).parent / "fresh-control")), control["version"]))
 
 
 def test_import_reverse_index_accepts_fragment_in_workspace_path(tmp_path):

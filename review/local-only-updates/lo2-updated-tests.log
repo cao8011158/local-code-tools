@@ -1,0 +1,299 @@
+...........FFFFFF...........FFFFF.........FFFFFFFF...F...F.F.F.FF....... [ 75%]
+.FFFFF.F...FFF.F........                                                 [100%]
+=================================== FAILURES ===================================
+___________ test_three_actual_sources_owner_lifecycle_and_membership ___________
+tests/test_batch3_actual_acceptance.py:212: in test_three_actual_sources_owner_lifecycle_and_membership
+    assert added["incremental"]["analysis_scope"]["reason"] == "python-membership-changed"
+E   AssertionError: assert 'incremental-owners' == 'python-membership-changed'
+E     
+E     - python-membership-changed
+E     + incremental-owners
+______ test_complex_seed_group_missing_external_context_and_fresh_update _______
+tests/test_batch3_actual_acceptance.py:255: in test_complex_seed_group_missing_external_context_and_fresh_update
+    assert changed_value["incremental"]["analysis_scope"]["reason"] == (
+E   AssertionError: assert 'incremental-owners' == 'open-receive...e-unavailable'
+E     
+E     - open-receiver-source-coverage-unavailable
+E     + incremental-owners
+_____ test_class_change_recomputes_complex_module_and_reuses_passive_peer ______
+tests/test_changed_python_gate.py:24: in test_class_change_recomputes_complex_module_and_reuses_passive_peer
+    assert scope["python_files_parsed"] == 2
+E   assert 1 == 2
+______________ test_ordinary_class_change_uses_bounded_component _______________
+tests/test_changed_python_gate.py:42: in test_ordinary_class_change_uses_bounded_component
+    assert scope["python_files_parsed"] == 2
+E   assert 1 == 2
+___________ test_simultaneous_document_and_python_change_falls_back ____________
+tests/test_changed_python_gate.py:52: in test_simultaneous_document_and_python_change_falls_back
+    assert scope["reason"] == "document-or-other-input-changed"
+E   AssertionError: assert 'incremental-owners' == 'document-or-...input-changed'
+E     
+E     - document-or-other-input-changed
+E     + incremental-owners
+_____ test_association_bound_survives_local_and_exact_capture_generations ______
+tests/test_changed_python_gate.py:72: in test_association_bound_survives_local_and_exact_capture_generations
+    assert second["graph"]["association_bound"] == (
+E   assert 1 == (1 + 1)
+__________ test_returned_instance_attribute_call_matches_full_catalog __________
+tests/test_class_component_certificate.py:90: in test_returned_instance_attribute_call_matches_full_catalog
+    assert updated["incremental"]["analysis_scope"]["python_files_parsed"] == 2
+E   assert 1 == 2
+_________ test_actual_three_file_availability_local_and_full_oracle[0] _________
+tests/test_common_python_certificate.py:51: in test_actual_three_file_availability_local_and_full_oracle
+    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
+E   AssertionError: assert 'incremental-owners' == 'changed-opaq...t-unavailable'
+E     
+E     - changed-opaque-call-effect-unavailable
+E     + incremental-owners
+________ test_actual_three_file_availability_local_and_full_oracle[20] _________
+tests/test_common_python_certificate.py:51: in test_actual_three_file_availability_local_and_full_oracle
+    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
+E   AssertionError: assert 'incremental-owners' == 'changed-opaq...t-unavailable'
+E     
+E     - changed-opaque-call-effect-unavailable
+E     + incremental-owners
+______________ test_connected_caller_is_selected_and_matches_full ______________
+tests/test_common_python_certificate.py:69: in test_connected_caller_is_selected_and_matches_full
+    assert scope["reason"] == "changed-opaque-call-effect-unavailable"
+E   AssertionError: assert 'incremental-owners' == 'changed-opaq...t-unavailable'
+E     
+E     - changed-opaque-call-effect-unavailable
+E     + incremental-owners
+____________ test_errors_passive_default_and_property_with_importer ____________
+tests/test_common_python_certificate.py:86: in test_errors_passive_default_and_property_with_importer
+    assert scope["reason"] == "changed-writer-origin-unresolved"
+E   AssertionError: assert 'incremental-owners' == 'changed-writ...in-unresolved'
+E     
+E     - changed-writer-origin-unresolved
+E     + incremental-owners
+_ test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: dangerous()] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 10, "complete": true, "completeness_basis": ["undefined-captured-lexical-name...49e2765a9bc66a06ad24f7fa64314b9faf30a90cff0", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 10, "complete": true, "completeness_basis": ["undefined-captured-lexical-name...49e2765a9bc66a06ad24f7fa64314b9faf30a90cff0", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: External] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...f1d132f8d04a0bea11e096b18dadf726d609bc1f7b6", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...f1d132f8d04a0bea11e096b18dadf726d609bc1f7b6", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-@dataclass(frozen=True, slots=True)-@dataclass(frozen=True, slots=True, init=False)] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...7a848adbb28dbe1a782bf20bdb893301775bcbcbcc4", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...7a848adbb28dbe1a782bf20bdb893301775bcbcbcc4", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-class StateMachineError(Exception):-class StateMachineError(CustomBase):] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...b6dc84a0ca0dad339f80de71876a02ac21e9b96d235", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...b6dc84a0ca0dad339f80de71876a02ac21e9b96d235", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-@property-@other_property] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...e0aaa3005735b1f2efc62904585a782e4ca9f5284be", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...e0aaa3005735b1f2efc62904585a782e4ca9f5284be", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-return self.issue.code-return self.issue.code()] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 30, "end_lin...dd1b5a0274c1b6dcd23e35fadb0ed1d51f5457ac961", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 30, "end_lin...dd1b5a0274c1b6dcd23e35fadb0ed1d51f5457ac961", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-super().__init__(message)-super().other(message)] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...bff085307504a2ca3d1ac7304570fb4c43d7fc40951", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...bff085307504a2ca3d1ac7304570fb4c43d7fc40951", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+_ test_unsafe_form_does_not_gain_certificate[errors.py-path: str = ""-path: str = factory()] _
+tests/test_common_python_certificate.py:206: in test_unsafe_form_does_not_gain_certificate
+    oracle(tmp_path, config, result)
+tests/test_common_python_certificate.py:37: in oracle
+    assert records(config, updated["version"]) == records(fresh_config, fresh["version"])
+E   assert {'nodes': ['{...ons': [], ...} == {'nodes': ['{...ons': [], ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...ec6cc557dd6b8fe570c278a9f8496fe5c31105a97cb", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]} != {'sites': ['{"boundaries": [], "column": 15, "complete": false, "completeness_basis": null, "end_column": 53, "end_lin...ec6cc557dd6b8fe570c278a9f8496fe5c31105a97cb", "targets": [], "unknown_origin": false, "unresolved_reasons": []}', ...]}
+E     Use -v to get more diff
+______ test_real_execution_and_errors_reuse_only_passive_noise[20-errors] ______
+tests/test_general_passive_incremental.py:71: in test_real_execution_and_errors_reuse_only_passive_noise
+    assert updated["incremental"]["analysis_scope"]["mode"] == (
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+_________ test_new_import_of_passive_provider_expands_selected_context _________
+tests/test_general_passive_incremental.py:178: in test_new_import_of_passive_provider_expands_selected_context
+    assert sorted(parsed) == sorted(
+E   AssertionError: assert ['src/trpg_st...execution.py'] == ['src/noise_0...e_13.py', ...]
+E     
+E     At index 0 diff: 'src/trpg_state_machine/_execution.py' != 'src/noise_0.py'
+E     Right contains 22 more items, first extra item: 'src/noise_1.py'
+E     Use -v to get more diff
+_________ test_deleted_passive_source_keeps_remaining_unrelated_proofs _________
+tests/test_general_passive_incremental.py:229: in test_deleted_passive_source_keeps_remaining_unrelated_proofs
+    assert sorted(parsed) == sorted(str(path.relative_to(repo)) for path in repo.rglob("*.py"))
+E   AssertionError: assert [] == ['src/noise_0...e_13.py', ...]
+E     
+E     Right contains 21 more items, first extra item: 'src/noise_0.py'
+E     Use -v to get more diff
+________ test_v6_local_preserves_passive_proofs_for_new_complex_capture ________
+tests/test_general_passive_incremental.py:280: in test_v6_local_preserves_passive_proofs_for_new_complex_capture
+    assert sorted(parsed) == sorted(str(path.relative_to(repo)) for path in repo.rglob("*.py"))
+E   AssertionError: assert ['src/trpg_st...ne/errors.py'] == ['src/noise_0...e_13.py', ...]
+E     
+E     At index 0 diff: 'src/trpg_state_machine/_execution.py' != 'src/noise_0.py'
+E     Right contains 20 more items, first extra item: 'src/noise_10.py'
+E     Use -v to get more diff
+___________ test_missing_or_corrupt_owner_ast_cache_rebuilds[schema] ___________
+tests/test_owner_incremental.py:65: in test_missing_or_corrupt_owner_ast_cache_rebuilds
+    updated = build(config, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1112: in build
+    raise ToolError(f"Local update unavailable: {preparation_reason}")
+E   lct.common.ToolError: Local update unavailable: previous-owner-evidence-unavailable
+__________ test_missing_or_corrupt_owner_ast_cache_rebuilds[payload] ___________
+tests/test_owner_incremental.py:65: in test_missing_or_corrupt_owner_ast_cache_rebuilds
+    updated = build(config, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1100: in build
+    raise ToolError("Previous owner artifact integrity failed")
+E   lct.common.ToolError: Previous owner artifact integrity failed
+__________ test_unresolved_attribute_receiver_falls_back_with_reason ___________
+tests/test_owner_incremental.py:183: in test_unresolved_attribute_receiver_falls_back_with_reason
+    assert scope["reason"] == "changed-writer-origin-unresolved"
+E   AssertionError: assert 'incremental-owners' == 'changed-writ...in-unresolved'
+E     
+E     - changed-writer-origin-unresolved
+E     + incremental-owners
+_ test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(registry): registry['go']=second\n] _
+tests/test_owner_incremental.py:203: in test_ambiguous_new_writer_receiver_never_chooses_first_binding
+    assert updated["incremental"]["analysis_scope"]["reason"] in {
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+_ test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\nfrom other import registry\ndef change(): registry['go']=second\n] _
+tests/test_owner_incremental.py:203: in test_ambiguous_new_writer_receiver_never_chooses_first_binding
+    assert updated["incremental"]["analysis_scope"]["reason"] in {
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+_ test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(flag):\n    if flag: registry={}\n    registry['go']=second\n] _
+tests/test_owner_incremental.py:203: in test_ambiguous_new_writer_receiver_never_chooses_first_binding
+    assert updated["incremental"]["analysis_scope"]["reason"] in {
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+_ test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change():\n    registry['go']=second\n    registry={}\n] _
+tests/test_owner_incremental.py:203: in test_ambiguous_new_writer_receiver_never_chooses_first_binding
+    assert updated["incremental"]["analysis_scope"]["reason"] in {
+E   AssertionError: assert 'incremental-owners' in {'changed-opaque-call-effect-unavailable', 'changed-writer-origin-unresolved'}
+______ test_selected_open_receiver_without_source_coverage_rebuilds_full _______
+tests/test_owner_incremental.py:258: in test_selected_open_receiver_without_source_coverage_rebuilds_full
+    assert updated["incremental"]["analysis_scope"]["reason"] == (
+E   AssertionError: assert 'incremental-owners' == 'open-receive...e-unavailable'
+E     
+E     - open-receiver-source-coverage-unavailable
+E     + incremental-owners
+___ test_unresolved_import_lookup_keeps_only_current_importer_support[True] ____
+tests/test_owner_incremental.py:343: in test_unresolved_import_lookup_keeps_only_current_importer_support
+    assert edges(config, updated["version"]) == edges(fresh_config, full["version"])
+E   assert ['{"basis":"A...a088f"}', ...] == ['{"basis":"A...a088f"}', ...]
+E     
+E     At index 8 diff: '{"basis":"unique captured import lookup namespace; name unresolved","column":0,"edge_id":"a31ef496443b1eb999c034e15acd42e91b4936e0db9f50f864a69f2fb6a5183a","expression":"","kind":"LOOKUP_IN","line":0,"lookup":{"module":"c","name":"missing","repository":"synthetic-review"},"lookup_status":"unresolved","source":"boundary:unresolved-import:2cb96fde06c117398dbab7c8fed7ba499decdde2c029b8a83cbca939cc034ebb","source_version_id":null,"status":"resolved","target":"synthetic-review:src/c.py:module:c#1","target_version_id":"d2b6c0b0ee1f929cb5272a76c4e4900dff05df1...
+E     
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+___________ test_relative_provider_change_is_local_and_full_equal[0] ___________
+tests/test_relative_python_incremental.py:57: in test_relative_provider_change_is_local_and_full_equal
+    assert sorted(parsed) == sorted(
+E   AssertionError: assert ['src/pkg/b.py'] == ['src/pkg/a.p...src/pkg/b.py']
+E     
+E     At index 0 diff: 'src/pkg/b.py' != 'src/pkg/a.py'
+E     Right contains 2 more items, first extra item: 'src/pkg/b.py'
+E     Use -v to get more diff
+__________ test_relative_provider_change_is_local_and_full_equal[20] ___________
+tests/test_relative_python_incremental.py:57: in test_relative_provider_change_is_local_and_full_equal
+    assert sorted(parsed) == sorted(
+E   AssertionError: assert ['src/pkg/b.py'] == ['src/noise_0...e_13.py', ...]
+E     
+E     At index 0 diff: 'src/pkg/b.py' != 'src/noise_0.py'
+E     Right contains 22 more items, first extra item: 'src/noise_1.py'
+E     Use -v to get more diff
+_________ test_parent_level_and_same_named_other_package_stay_separate _________
+tests/test_relative_python_incremental.py:104: in test_parent_level_and_same_named_other_package_stay_separate
+    assert sorted(parsed) == sorted(
+E   AssertionError: assert ['src/pkg/b.py'] == ['src/elsewhe...pkg/sub/a.py']
+E     
+E     At index 0 diff: 'src/pkg/b.py' != 'src/elsewhere/a.py'
+E     Right contains 4 more items, first extra item: 'src/elsewhere/b.py'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/test_batch3_actual_acceptance.py::test_three_actual_sources_owner_lifecycle_and_membership
+FAILED tests/test_batch3_actual_acceptance.py::test_complex_seed_group_missing_external_context_and_fresh_update
+FAILED tests/test_changed_python_gate.py::test_class_change_recomputes_complex_module_and_reuses_passive_peer
+FAILED tests/test_changed_python_gate.py::test_ordinary_class_change_uses_bounded_component
+FAILED tests/test_changed_python_gate.py::test_simultaneous_document_and_python_change_falls_back
+FAILED tests/test_changed_python_gate.py::test_association_bound_survives_local_and_exact_capture_generations
+FAILED tests/test_class_component_certificate.py::test_returned_instance_attribute_call_matches_full_catalog
+FAILED tests/test_common_python_certificate.py::test_actual_three_file_availability_local_and_full_oracle[0]
+FAILED tests/test_common_python_certificate.py::test_actual_three_file_availability_local_and_full_oracle[20]
+FAILED tests/test_common_python_certificate.py::test_connected_caller_is_selected_and_matches_full
+FAILED tests/test_common_python_certificate.py::test_errors_passive_default_and_property_with_importer
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: dangerous()]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-code: str-code: External]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-@dataclass(frozen=True, slots=True)-@dataclass(frozen=True, slots=True, init=False)]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-class StateMachineError(Exception):-class StateMachineError(CustomBase):]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-@property-@other_property]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-return self.issue.code-return self.issue.code()]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-super().__init__(message)-super().other(message)]
+FAILED tests/test_common_python_certificate.py::test_unsafe_form_does_not_gain_certificate[errors.py-path: str = ""-path: str = factory()]
+FAILED tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise[20-errors]
+FAILED tests/test_general_passive_incremental.py::test_new_import_of_passive_provider_expands_selected_context
+FAILED tests/test_general_passive_incremental.py::test_deleted_passive_source_keeps_remaining_unrelated_proofs
+FAILED tests/test_general_passive_incremental.py::test_v6_local_preserves_passive_proofs_for_new_complex_capture
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[schema]
+FAILED tests/test_owner_incremental.py::test_missing_or_corrupt_owner_ast_cache_rebuilds[payload]
+FAILED tests/test_owner_incremental.py::test_unresolved_attribute_receiver_falls_back_with_reason
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(registry): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\nfrom other import registry\ndef change(): registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change(flag):\n    if flag: registry={}\n    registry['go']=second\n]
+FAILED tests/test_owner_incremental.py::test_ambiguous_new_writer_receiver_never_chooses_first_binding[from provider import registry\ndef change():\n    registry['go']=second\n    registry={}\n]
+FAILED tests/test_owner_incremental.py::test_selected_open_receiver_without_source_coverage_rebuilds_full
+FAILED tests/test_owner_incremental.py::test_unresolved_import_lookup_keeps_only_current_importer_support[True]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[0]
+FAILED tests/test_relative_python_incremental.py::test_relative_provider_change_is_local_and_full_equal[20]
+FAILED tests/test_relative_python_incremental.py::test_parent_level_and_same_named_other_package_stay_separate
+35 failed, 61 passed, 1 deselected in 52.12s

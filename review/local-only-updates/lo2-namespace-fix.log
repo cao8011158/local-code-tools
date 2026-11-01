@@ -1,0 +1,24 @@
+FF..                                                                     [100%]
+=================================== FAILURES ===================================
+______________ test_package_initializer_shadow_changes_fall_back _______________
+tests/test_cross_repository_python_incremental.py:184: in test_package_initializer_shadow_changes_fall_back
+    same_as_full(config, removed, tmp_path / "removed")
+tests/test_cross_repository_python_incremental.py:58: in same_as_full
+    assert_semantic_equal(semantic(config, updated["version"]),
+tests/semantic_comparison.py:64: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: edges
+________________ test_ancestor_module_shadow_changes_fall_back _________________
+tests/test_cross_repository_python_incremental.py:202: in test_ancestor_module_shadow_changes_fall_back
+    same_as_full(config, removed, tmp_path / "removed")
+tests/test_cross_repository_python_incremental.py:58: in same_as_full
+    assert_semantic_equal(semantic(config, updated["version"]),
+tests/semantic_comparison.py:64: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: edges
+=========================== short test summary info ============================
+FAILED tests/test_cross_repository_python_incremental.py::test_package_initializer_shadow_changes_fall_back
+FAILED tests/test_cross_repository_python_incremental.py::test_ancestor_module_shadow_changes_fall_back
+2 failed, 2 passed in 3.74s

@@ -1,0 +1,20 @@
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+_________ test_deleted_passive_source_keeps_remaining_unrelated_proofs _________
+tests/test_general_passive_incremental.py:228: in test_deleted_passive_source_keeps_remaining_unrelated_proofs
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+______________ test_new_relative_provider_and_failed_publication _______________
+tests/test_relative_python_incremental.py:77: in test_new_relative_provider_and_failed_publication
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+=========================== short test summary info ============================
+FAILED tests/test_general_passive_incremental.py::test_deleted_passive_source_keeps_remaining_unrelated_proofs
+FAILED tests/test_relative_python_incremental.py::test_new_relative_provider_and_failed_publication
+2 failed, 1 passed in 2.10s

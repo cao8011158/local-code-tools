@@ -1,0 +1,22 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[program_hash] __
+review/local-only-updates/test_local_only_flow_independent.py:146: in test_incompatible_snapshot_cannot_be_reused_by_new_warm_route
+    with pytest.raises(ToolError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ToolError
+__ test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[config_hash] __
+review/local-only-updates/test_local_only_flow_independent.py:146: in test_incompatible_snapshot_cannot_be_reused_by_new_warm_route
+    with pytest.raises(ToolError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ToolError
+_ test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[query_runtime] _
+review/local-only-updates/test_local_only_flow_independent.py:146: in test_incompatible_snapshot_cannot_be_reused_by_new_warm_route
+    with pytest.raises(ToolError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ToolError
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[program_hash]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[config_hash]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_incompatible_snapshot_cannot_be_reused_by_new_warm_route[query_runtime]
+3 failed, 8 deselected in 1.22s

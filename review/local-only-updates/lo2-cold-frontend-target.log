@@ -1,0 +1,103 @@
+........................................................................ [ 28%]
+........................................................................ [ 57%]
+........................................................................ [ 85%]
+............FF.FFFF.................                                     [100%]
+=================================== FAILURES ===================================
+___________ test_old_or_partial_value_evidence_falls_back[coverage] ____________
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:189: in test_old_or_partial_value_evidence_falls_back
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+______ test_record_budget_marks_partial_without_persisting_partial_claim _______
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:212: in test_record_budget_marks_partial_without_persisting_partial_claim
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+_____ test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[True] ______
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:253: in test_unmodeled_keys_do_not_enter_exact_dictionary_certificate
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+_______ test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1] _______
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:253: in test_unmodeled_keys_do_not_enter_exact_dictionary_certificate
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+______ test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1.0] ______
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:253: in test_unmodeled_keys_do_not_enter_exact_dictionary_certificate
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+__ test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[unknown_key] __
+lct/storage.py:1106: in build
+    candidate, preparation_reason = prepare_owners(
+lct/unit_incremental.py:806: in prepare
+    witnesses = fresh_info.pop("_value_read_witnesses")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_value_read_witnesses'
+
+The above exception was the direct cause of the following exception:
+tests/test_dictionary_value_flow.py:253: in test_unmodeled_keys_do_not_enter_exact_dictionary_certificate
+    changed = build(c, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1111: in build
+    raise ToolError(f"Local update evidence unavailable: {exc}") from exc
+E   lct.common.ToolError: Local update evidence unavailable: '_value_read_witnesses'
+=========================== short test summary info ============================
+FAILED tests/test_dictionary_value_flow.py::test_old_or_partial_value_evidence_falls_back[coverage]
+FAILED tests/test_dictionary_value_flow.py::test_record_budget_marks_partial_without_persisting_partial_claim
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[True]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[1.0]
+FAILED tests/test_dictionary_value_flow.py::test_unmodeled_keys_do_not_enter_exact_dictionary_certificate[unknown_key]
+6 failed, 246 passed in 17.02s

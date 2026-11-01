@@ -100,7 +100,7 @@ def test_missing_export_and_unsafe_provider_fail_closed(tmp_path):
     assert baseline["simple_python_certificate"] == CERTIFICATE
     (repo / "src/a.py").write_text(A + "def expose(): return registry\n")
     unsupported = build(config, offline=True, lexical_only=True)
-    assert unsupported["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert unsupported["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
 
 
 def test_missing_target_ast_cannot_be_certified(tmp_path):

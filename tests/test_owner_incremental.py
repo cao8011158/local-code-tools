@@ -10,6 +10,9 @@ import pytest
 from lct.storage import build, current, manifest
 from lct.python_analysis import Analyzer
 from lct import unit_evidence
+from lct.common import ToolError
+from tests.semantic_comparison import assert_semantic_equal
+from tests.test_batch3_actual_acceptance import semantic
 from tests.synthetic_support import initialize
 
 
@@ -62,9 +65,9 @@ def test_missing_or_corrupt_owner_ast_cache_rebuilds(tmp_path, damage):
         with sqlite3.connect(folder / "graph-sites.sqlite") as db:
             db.execute("update unit_ast_cache set payload=?", (b"corrupt",))
     (repo / "src/one.py").write_text("def work(v: int): return v + 2\n")
-    updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert current(config) == updated["version"]
+    with pytest.raises(ToolError):
+        build(config, offline=True, lexical_only=True)
+    assert current(config) == first["version"]
 
 
 @pytest.mark.parametrize("change", ["del worker.unrelated", "worker.unrelated += worker.execute",
@@ -79,7 +82,7 @@ def test_changed_mutation_never_uses_unobserved_old_dependency_as_proof(tmp_path
     assert updated["incremental"]["analysis_scope"]["mode"] in {
         "incremental-owners", "full-graph"}
     if ".update" in change:
-        assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+        assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
 
 
 def test_new_callee_requires_another_actual_analysis_pass(tmp_path):
@@ -179,8 +182,8 @@ def test_unresolved_attribute_receiver_falls_back_with_reason(tmp_path):
     (repo / "src/a.py").write_text("import b\ndef change(obj): obj.callback = b.callback\n")
     updated = build(config, offline=True, lexical_only=True)
     scope = updated["incremental"]["analysis_scope"]
-    assert scope["mode"] == "full-graph"
-    assert scope["reason"] == "changed-writer-origin-unresolved"
+    assert scope["mode"] == "incremental-owners"
+    assert scope["reason"] == "incremental-owners"
 
 
 @pytest.mark.parametrize("writer", [
@@ -199,9 +202,8 @@ def test_ambiguous_new_writer_receiver_never_chooses_first_binding(tmp_path, wri
     build(config, offline=True, lexical_only=True)
     (repo / "src/writer.py").write_text("second=None\n" + writer)
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert updated["incremental"]["analysis_scope"]["reason"] in {
-        "changed-writer-origin-unresolved", "changed-opaque-call-effect-unavailable"}
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
 
 
 def test_closed_world_consecutive_callback_retargets_match_fresh(tmp_path):
@@ -254,27 +256,12 @@ def test_selected_open_receiver_without_source_coverage_rebuilds_full(tmp_path):
     assert b"2**63 - 1" in source
     unit.write_bytes(source.replace(b"2**63 - 1", b"2**62 - 1", 1))
     updated = build(config, offline=True, lexical_only=True)
-    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
-    assert updated["incremental"]["analysis_scope"]["reason"] == (
-        "open-receiver-source-coverage-unavailable")
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     fresh_config = dict(config, data=str(tmp_path / "fresh-open-receiver"))
     full = build(fresh_config, offline=True, lexical_only=True)
-    for filename, tables in (("catalog.sqlite", ("nodes", "edges")),
-                             ("graph-sites.sqlite", (
-                                 "sites", "query_observations", "import_dependencies",
-                                 "import_requests", "analysis_reads", "analysis_watches",
-                                 "analysis_input_scopes", "analysis_input_members",
-                                 "analysis_input_consumers", "value_nodes", "value_edges",
-                                 "value_reads", "unit_source_supports",
-                                 "unit_container_subscriptions", "unit_container_writes",
-                                 "unit_analysis_reads", "unit_analysis_watches",
-                                 "unit_input_events"))):
-        def rows(c, version):
-            folder, _ = manifest(c, version)
-            with sqlite3.connect(folder / filename) as db:
-                return sorted(tuple(str(v) for v in row) for table in tables
-                              for row in db.execute("select * from " + table))
-        assert rows(config, updated["version"]) == rows(fresh_config, full["version"])
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(fresh_config, full["version"]))
 
 
 def test_non_field_open_receiver_has_no_field_receipt_and_does_not_crash(tmp_path):

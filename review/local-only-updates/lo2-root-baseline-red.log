@@ -1,0 +1,132 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+_________ test_unknown_receiver_does_not_disable_real_callback_updates _________
+review/local-only-updates/test_local_only_flow_independent.py:70: in test_unknown_receiver_does_not_disable_real_callback_updates
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76da84e80>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76da84e80> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76dbda900>}.get
+___ test_namespace_membership_changes_update_real_import_consumers[add_file] ___
+review/local-only-updates/test_local_only_flow_independent.py:90: in test_namespace_membership_changes_update_real_import_consumers
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76d139cc0>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76d139cc0> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76db100b0>}.get
+_ test_namespace_membership_changes_update_real_import_consumers[add_definition] _
+review/local-only-updates/test_local_only_flow_independent.py:90: in test_namespace_membership_changes_update_real_import_consumers
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76cf1f740>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76cf1f740> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76db10ad0>}.get
+_ test_namespace_membership_changes_update_real_import_consumers[delete_definition] _
+review/local-only-updates/test_local_only_flow_independent.py:90: in test_namespace_membership_changes_update_real_import_consumers
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76d9d8a40>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76d9d8a40> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76d9df9e0>}.get
+_ test_namespace_membership_changes_update_real_import_consumers[delete_file] __
+review/local-only-updates/test_local_only_flow_independent.py:90: in test_namespace_membership_changes_update_real_import_consumers
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76d865300>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76d865300> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76db12720>}.get
+___________ test_package_reexport_change_retargets_existing_consumer ___________
+review/local-only-updates/test_local_only_flow_independent.py:103: in test_package_reexport_change_retargets_existing_consumer
+    updated = local_update(c)
+              ^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76d924cc0>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76d924cc0> = {'query_reuse': <lct.storage._QueryReuse object at 0x7ff76d9df2f0>}.get
+___________ test_writer_getter_return_and_terminal_call_update_twice ___________
+review/local-only-updates/test_local_only_flow_independent.py:120: in test_writer_getter_return_and_terminal_call_update_twice
+    compare_fresh(c, updated, tmp_path, "fresh-writer-" + name)
+review/local-only-updates/test_local_only_flow_independent.py:46: in compare_fresh
+    assert_semantic_equal(semantic(c, result["version"]), semantic(other, fresh["version"]))
+tests/semantic_comparison.py:64: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: sites
+_______ test_corrupt_snapshot_fails_explicitly_without_replacing_current _______
+review/local-only-updates/test_local_only_flow_independent.py:131: in test_corrupt_snapshot_fails_explicitly_without_replacing_current
+    local_update(c)
+review/local-only-updates/test_local_only_flow_independent.py:37: in local_update
+    result = build(c, offline=True, lexical_only=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1176: in build
+    edges, graph_info = graph.build(query_reuse=reuse)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+review/local-only-updates/test_local_only_flow_independent.py:34: in disallow_full
+    assert kwargs.get("selected_owners") is not None, "automatic full analysis attempted"
+E   AssertionError: automatic full analysis attempted
+E   assert None is not None
+E    +  where None = <built-in method get of dict object at 0x7ff76d71df40>('selected_owners')
+E    +    where <built-in method get of dict object at 0x7ff76d71df40> = {'query_reuse': None}.get
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_unknown_receiver_does_not_disable_real_callback_updates
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_namespace_membership_changes_update_real_import_consumers[add_file]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_namespace_membership_changes_update_real_import_consumers[add_definition]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_namespace_membership_changes_update_real_import_consumers[delete_definition]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_namespace_membership_changes_update_real_import_consumers[delete_file]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_package_reexport_change_retargets_existing_consumer
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_writer_getter_return_and_terminal_call_update_twice
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_corrupt_snapshot_fails_explicitly_without_replacing_current
+8 failed in 3.39s

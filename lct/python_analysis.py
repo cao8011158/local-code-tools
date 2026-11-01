@@ -2964,7 +2964,10 @@ class Analyzer:
                 keys.add((scope, id(expr)))
         if not keys:
             return None
-        receipts = [self.coverage.get(k) for k in keys]
+        # Requirement keys contain process-local AST identities. A set's
+        # iteration order cannot define published coverage evidence order.
+        receipts = sorted((self.coverage.get(k) for k in keys),
+                          key=lambda receipt: canonical(receipt))
         if len(receipts) == 1 and receipts[0] is not None:
             return receipts[0]
         return dict(

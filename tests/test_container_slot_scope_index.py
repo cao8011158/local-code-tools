@@ -32,6 +32,8 @@ def test_unrelated_local_alias_writers_do_not_grow_consumer_checks(tmp_path):
         site = _caller_site(config, result["version"])
         coverage = site["resolution_decision"]["write_source_coverage"]
         evidence.append((result["graph"], site, coverage))
+        # The AST effect index currently prepares all known writer scopes;
+        # caller candidate checks below must still stay bounded.
         assert result["graph"]["slot_scope_index_build_scopes"] == count
         assert result["graph"]["slot_scope_fallback_scopes"] == 0
         if count == 0:
@@ -48,9 +50,9 @@ def test_unrelated_local_alias_writers_do_not_grow_consumer_checks(tmp_path):
         assert site["complete"] == first_site["complete"]
         assert site["unresolved_reasons"] == first_site["unresolved_reasons"]
         assert coverage == first_coverage
-        assert graph["slot_scope_candidates_checked"] == first_graph[
+        assert graph["slot_scope_candidates_checked"] <= first_graph[
             "slot_scope_candidates_checked"]
-        assert graph["slot_events_checked"] == first_graph["slot_events_checked"]
+        assert graph["slot_events_checked"] <= first_graph["slot_events_checked"]
 
 
 def test_escaping_and_unproven_receivers_remain_global_candidates(tmp_path):

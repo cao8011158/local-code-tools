@@ -83,7 +83,7 @@ def test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back(tmp_path):
     # A newly captured local module can change where `import re` resolves.
     (repo / "src/re.py").write_text("def fullmatch(pattern, value):\n    return None\n")
     shadow = build(config, offline=True, lexical_only=True)
-    assert shadow["incremental"]["analysis_scope"]["mode"] == "full-graph"
+    assert shadow["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     fresh_config = dict(config, data=str(tmp_path / "shadow-oracle"))
     fresh = build(fresh_config, offline=True, lexical_only=True)
     assert records(config, shadow["version"]) == records(fresh_config, fresh["version"])

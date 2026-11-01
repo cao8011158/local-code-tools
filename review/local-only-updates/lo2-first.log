@@ -1,0 +1,14 @@
+......F.                                                                 [100%]
+=================================== FAILURES ===================================
+___________ test_writer_getter_return_and_terminal_call_update_twice ___________
+review/local-only-updates/test_local_only_flow_independent.py:120: in test_writer_getter_return_and_terminal_call_update_twice
+    compare_fresh(c, updated, tmp_path, "fresh-writer-" + name)
+review/local-only-updates/test_local_only_flow_independent.py:46: in compare_fresh
+    assert_semantic_equal(semantic(c, result["version"]), semantic(other, fresh["version"]))
+tests/semantic_comparison.py:64: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: sites
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_writer_getter_return_and_terminal_call_update_twice
+1 failed, 7 passed in 5.66s

@@ -1,0 +1,36 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_persisted_scope_reader_and_local_full_equality[0] ____________
+tests/test_analysis_inputs.py:214: in test_persisted_scope_reader_and_local_full_equality
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+___________ test_persisted_scope_reader_and_local_full_equality[20] ____________
+tests/test_analysis_inputs.py:214: in test_persisted_scope_reader_and_local_full_equality
+    assert updated["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+______ test_record_budget_marks_partial_without_persisting_partial_claim _______
+tests/test_dictionary_value_flow.py:207: in test_record_budget_marks_partial_without_persisting_partial_claim
+    assert changed["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+_____________ test_missing_export_and_unsafe_provider_fail_closed ______________
+tests/test_mixed_dictionary_components.py:103: in test_missing_export_and_unsafe_provider_fail_closed
+    assert unsupported["incremental"]["analysis_scope"]["mode"] == "full-graph"
+E   AssertionError: assert 'incremental-owners' == 'full-graph'
+E     
+E     - full-graph
+E     + incremental-owners
+=========================== short test summary info ============================
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[0]
+FAILED tests/test_analysis_inputs.py::test_persisted_scope_reader_and_local_full_equality[20]
+FAILED tests/test_dictionary_value_flow.py::test_record_budget_marks_partial_without_persisting_partial_claim
+FAILED tests/test_mixed_dictionary_components.py::test_missing_export_and_unsafe_provider_fail_closed
+4 failed in 3.73s
