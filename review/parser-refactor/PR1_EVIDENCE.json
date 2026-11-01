@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "batch_id": "PR-1",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/local-only-updates",
+  "base_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+  "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "implementation_actor": "/root/parser_capability_audit:gpt-6-sol/medium",
+  "merge_authorized": false,
+  "authorization_reference": "User authorized whole parser audit then evidence-based refactor with 好的 请开始工作; necessary feature branch publication authorized, merge not assumed.",
+  "scope": [
+    "Tool-backed direct/name-alias call targets, separate source collection and reuse, counters, tests"
+  ],
+  "acceptance_criteria": [
+    "Covered direct and alias callees do not re-enter legacy target inference",
+    "Preserve real source/dependency and proven semantic exceptions",
+    "Source collection does not repeat shared lookup for every caller",
+    "Owner updates and immutable old views preserved"
+  ],
+  "feature_complete": false,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "log": "pr1-frozen-focused.stdout",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_jedi_tool_first_lexical.py",
+        "tests/test_python_review_regressions.py::test_empty_adapter_answer_is_not_a_proof",
+        "tests/test_changed_python_gate.py::test_association_bound_survives_local_and_exact_capture_generations",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "d95ab5208d03a6d6fb5f379190e03afc2a57e568537e3505bb35985fdfe39f64",
+      "executed_before_publication": true,
+      "source_verified": "PR1_REVIEW1_SOURCE.json"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "log": "pr1-frozen-fast.stdout",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "08e73b8b29d5fc4ea8c0848d5d85cea7118361faf13f3465a1e33bae82389a03",
+      "executed_before_publication": true,
+      "source_verified": "PR1_REVIEW1_SOURCE.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "log": "pr1-review1-root-fast.log",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "80a992ed2a9f4a6fa7fa906a50d03509e5417a48b53f7ac8af2054254b0a01b0",
+      "passed": 791,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 135.89
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "log": "pr1-shared-source-control.log",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "review/parser-refactor/test_tool_first_independent.py::test_shared_alias_source_is_not_relocated_for_every_call",
+        "--tb=short"
+      ],
+      "exit_code": 1,
+      "result": "fail",
+      "log_sha256": "bb7167e96ac682944937aadca6e781efecee06912084255dafe3745d8b060a9d",
+      "note": "New root counterexample outside candidate testtree; actual sourcefixed/matches remote. Shared12-binding chain20calls repeatedlookup20times; baselineonlyonce."
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "remote_head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "663 blobs verified653historicalpreserved; independent791passed27skip1deselect135.89s. Tool consumption/source invalidation controls pass, publicaliasfirst-second-first retainsoldview. Sharedsourcegrowthcase: baseline32modulelookups vsnew260, sharedaliasprefix12lookupseach20times; oldonce. Source-onlywalkmustreusememoizedsharedsuffix while reattachingconsumerrecords. Ninepublicbuildinterruptedexit130whenidentifiedcandidateissue, no completedcurrent9/83acceptance."
+    }
+  ],
+  "findings": [
+    {
+      "id": "PR1-SHARED-SOURCE-REPEAT",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "origin": "current",
+      "discovered_in_batch": "PR-1",
+      "owner_batch": "PR-1",
+      "owner_step": "whole-parser-refactor",
+      "dependency_core": false,
+      "location": "lct/python_analysis.py::tool_first_lexical",
+      "route": "repair under existing authorization; next review2/3",
+      "evidence": "pr1-shared-source-baseline.log;pr1-shared-source-candidate.log;pr1-shared-source-control.log;pr1-shared-source-baseline-control.log",
+      "note": "Already memoized shared Name RHS bindings are walked from scratch for each call.20calls x12sharedbindings; candidate260 modulelookups, baseline32. Alltargetsremainfirst; duplicatework moved from inference tosourcecollection."
+    }
+  ]
+}

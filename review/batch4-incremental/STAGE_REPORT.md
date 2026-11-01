@@ -1331,3 +1331,26 @@ Root对真实Graph.build观察现有测试语料，343passed/1skipped/22.03s/exi
 开发冻结定向10passed/1.18s；快速全回归（main+旧5root+JD1两份+新root5）791passed/27skipped/1deselected125.28s，exit0；六个受控文件前后SHA一致。原未保存日志的整套tests尝试中断exit130，不算通过；冻结原始stdout/stderr/status已保存。开发交付完整报告review/parser-refactor/PR1_DEVELOPER.md。接下来固定远端并独立第1轮，不能将开发自评当成独立通过。
 
 另Root固定旧60085dc进行90秒cProfile诊断（显著测量开销，非验收）：只准备456sites/457真实Jedi、slotchecks0、budget仍20000，不能将该段或整体超时归因于容器；自耗时/包含耗时分开记录且不得把嵌套累计相加。完整83与新runtime九文件验收仍未完成。PR-2容器来源与writer索引设计已提出，尚未实施。
+
+
+## 阶段148：PR-1独立第1轮要求修复共享来源重复定位
+
+# PR-1 independent review
+
+## Round1/3: changes required
+
+Fixed remote da91cfd3761c18ad42b2a2ec4f4f01bc84990af0/tree70f060d78e94e37b2f230f8528306912375e06d5, base60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b, targete3db45fcf1362f0a26e0ab7760b12b4fd408ce64 unchanged.663 localblobsmatch;653unmaterializedhistorypreserved. Root did notmodifyproduction.
+
+Independent frozen-tree fast **791passed/27skipped/1deselected135.89s exit0**. Direct/alias target consumption bypasses oldnameinference and laterreferencepass reusesmemo; actualparameter/unbound/registeredcontainer controls pass. Realpublic aliasfirst->second->first localupdates andoldviewimmutable pass inpreflight. Threecounters reset onidenticalcapture. Syntheticemptyadapterfixture nowtrulyexerciseslegacyadapterwithoutweakeningtarget/unknownassertions. Root initiallylaunchedfast againstbyteverifiedmaterializedsource, theninterruptedexit130 andranisolatedpr1-review1-fixed above; firstlogretained, notasecondpass. Firstnineharnesspathfailedbeforeexecutionexit2, corrected; actualninepubliclifecycleinterruptedexit130duringfirstbuildafterfindingbelow, notatargetassertionfailure orcompletedacceptance.
+
+**PR1-SHARED-SOURCE-REPEAT P2 confirmed/current**. Twelve sharedaliases and20calls allreachfirst. Oldbaseline performs32modulebindinglookups:20rootlookups plus12sharedsuffixlookups. Newsource-onlyhelper performs260:it traversesthe12sharedsuffixbindingsagainforeachcall, despitememoalreadycontainingtheirvalidanswers. Rawcounts/priornormalcontrol archived; independentregression failscandidate andpassesbaseline. This movesduplicatedwork intoprovenancecollection andviolateslocality. Afirstsimplealiascasewasinsufficient.
+
+Repair: reuseprovedsame-snapshot lexicalsuffix/sourcebinding facts instead ofwalkingthemalways. Keepperconsumer rootinput/read/sourceevidence andpublictraces; donotsuppressdependencyrecords fornewconsumers, invent asecondtarget engine, or addper-targetallsource scans. Prefer existingmemo/trace andexplicitvaliditycontext. Addmultiplecallsiteandmultipleconsumerinvalidations, ensure aliasrebind/deletion/unbound/closure/receiver exceptions remain. Nextformalreview2/3; noreset.
+
+PR-2 read-onlyprobesnowconfirmJediAPIprovidesdict typeandlexicalpositions butnotgeneralallocationidentitythroughaliases/params/returns, andget_referencesisnotfullvalueflowsupport. Thuscontaineroriginrecordsneeded; thisdoesnotjustifyduplicatingknowncalltargets orglobalunknownwriterpoolperread. ReportPR2_PROBES.md. PR-2productionpausedpendingPR-1repair. No claimwhole83performanceorcompletegraphacceptance.
+
+## 阶段149：PR-1第1轮修复开发交付（待第2轮独立复审）
+
+针对PR1-SHARED-SOURCE-REPEAT，开发复用同snapshot、同scope/AST/before且已证明的memo来源后缀；新调用只关联既有trace并为当前消费函数重放来源观察，不再逐项重新定位共享绑定。新增的来源元数据仅用于依赖重放，memo仍是结果权威；无全局候选缓存。修正来源观察归属，保持多个消费者的unit输入和来源支持。无PR-2生产代码。
+
+开发冻结定向41passed/19.54s；快速794passed/27skipped/1deselected121.51s，exit0，六文件前后SHA一致，完整stdout/stderr/status已保存。新测试覆盖多消费者来源记录与强制旧路径一致、别名改绑与删除、无关writer增长。Root另实测同一12层别名/20调用反例：检查260降到32，各共享绑定一次，与原基线同量；这仍是复审前预检，下一步固定远端提交并独立第2/3轮验证。

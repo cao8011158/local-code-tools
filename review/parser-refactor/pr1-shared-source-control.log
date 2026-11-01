@@ -1,0 +1,13 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_shared_alias_source_is_not_relocated_for_every_call ___________
+review/parser-refactor/test_tool_first_independent.py:65: in test_shared_alias_source_is_not_relocated_for_every_call
+    assert reads and max(reads.values()) == 1, dict(reads)
+E   AssertionError: {('fixture:src/demo.py:module:demo#1', 'a10', (13, 4)): 20, ('fixture:src/demo.py:module:demo#1', 'a9', (12, 4)): 20, ('fixture:src/demo.py:module:demo#1', 'a8', (11, 3)): 20, ('fixture:src/demo.py:module:demo#1', 'a7', (10, 3)): 20, ...}
+E   assert (Counter({('fixture:src/demo.py:module:demo#1', 'a10', (13, 4)): 20, ('fixture:src/demo.py:module:demo#1', 'a9', (12, 4..., ('fixture:src/demo.py:module:demo#1', 'a0', (3, 3)): 20, ('fixture:src/demo.py:module:demo#1', 'first', (2, 3)): 20}) and 20 == 1)
+E    +  where 20 = max(dict_values([20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]))
+E    +    where dict_values([20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]) = <built-in method values of Counter object at 0x7f27501cead0>()
+E    +      where <built-in method values of Counter object at 0x7f27501cead0> = Counter({('fixture:src/demo.py:module:demo#1', 'a10', (13, 4)): 20, ('fixture:src/demo.py:module:demo#1', 'a9', (12, 4..., ('fixture:src/demo.py:module:demo#1', 'a0', (3, 3)): 20, ('fixture:src/demo.py:module:demo#1', 'first', (2, 3)): 20}).values
+=========================== short test summary info ============================
+FAILED review/parser-refactor/test_tool_first_independent.py::test_shared_alias_source_is_not_relocated_for_every_call
+1 failed in 1.75s

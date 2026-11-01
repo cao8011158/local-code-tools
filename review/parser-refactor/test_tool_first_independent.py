@@ -46,3 +46,20 @@ def test_registered_container_gap_is_preserved(tmp_path):
     source = 'def first(): pass\nregistry={}\ndef register(key, value): registry[key]=value\nregister("go",first)\ndef run(): registry["go"]()\n'
     r = analyze(tmp_path, {'src/demo.py': source}, closed=False)
     assert site(r, "registry['go']", 'run')['names'] == {'first'}
+
+
+def test_shared_alias_source_is_not_relocated_for_every_call(tmp_path):
+    import collections
+    source = ('def first():pass\na0=first\n' +
+              ''.join(f'a{i}=a{i-1}\n' for i in range(1,12)) +
+              'def run():\n' + ' a11()\n' * 20)
+    reads = collections.Counter()
+    original = Analyzer.reaching
+    def watch(a, scope, name, before):
+        if a.nodes[scope]['kind'] == 'module' and name != 'a11':
+            reads[(scope, name, before)] += 1
+        return original(a, scope, name, before)
+    with patch.object(Analyzer, 'reaching', watch):
+        result = analyze(tmp_path, {'src/demo.py': source}, closed=False)
+    assert len(result[2]['sites']) == 20
+    assert reads and max(reads.values()) == 1, dict(reads)

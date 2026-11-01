@@ -1,0 +1,18 @@
+global
+{"decision": "finite-association-with-missing-jedi-signal", "expr": "registry['go']", "jedi": [], "line": 5, "local": ["target"], "reasons": [], "selected": ["target"]}
+SUB {"consumer_owner": "fixture:demo.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:demo.py:module:demo#1:2:9", "read_location": {"column": 11, "end_column": 25, "end_line": 5, "expression": "registry['go']", "line": 5, "path": "demo.py", "repository": "fixture"}, "unknown_reasons": []}
+same_alias
+{"decision": "finite-association-with-missing-jedi-signal", "expr": "first['go']", "jedi": [], "line": 5, "local": ["target"], "reasons": [], "selected": ["target"]}
+SUB {"consumer_owner": "fixture:demo.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:demo.py:module:demo#1:2:6", "read_location": {"column": 11, "end_column": 22, "end_line": 5, "expression": "first['go']", "line": 5, "path": "demo.py", "repository": "fixture"}, "unknown_reasons": []}
+fresh_separate
+{"decision": "matching-signals", "expr": "left['go']", "jedi": [], "line": 5, "local": [], "reasons": [], "selected": []}
+SUB {"consumer_owner": "fixture:demo.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:demo.py:module:demo#1:2:5", "read_location": {"column": 11, "end_column": 21, "end_line": 5, "expression": "left['go']", "line": 5, "path": "demo.py", "repository": "fixture"}, "unknown_reasons": []}
+import_alias
+{"decision": "matching-signals", "expr": "alias['go']", "jedi": ["target"], "line": 4, "local": ["target"], "reasons": ["conditional-or-dynamic-slot-write"], "selected": ["target"]}
+SUB {"consumer_owner": "fixture:client.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:base.py:module:base#1:1:9", "read_location": {"column": 11, "end_column": 22, "end_line": 4, "expression": "alias['go']", "line": 4, "path": "client.py", "repository": "fixture"}, "unknown_reasons": []}
+parameter_writer
+{"decision": "finite-association-with-missing-jedi-signal", "expr": "registry['go']", "jedi": [], "line": 5, "local": ["target"], "reasons": ["conditional-or-dynamic-slot-write", "container-mutation-or-escape"], "selected": ["target"]}
+SUB {"consumer_owner": "fixture:demo.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:demo.py:module:demo#1:2:9", "read_location": {"column": 11, "end_column": 25, "end_line": 5, "expression": "registry['go']", "line": 5, "path": "demo.py", "repository": "fixture"}, "unknown_reasons": []}
+return_origin
+{"decision": "matching-signals", "expr": "bucket['go']", "jedi": ["target"], "line": 5, "local": ["target"], "reasons": ["conditional-or-dynamic-slot-write"], "selected": ["target"]}
+SUB {"consumer_owner": "fixture:demo.py:function:run#1.1", "key": "string:go", "key_kind": "exact", "origin": "fixture:demo.py:function:make#1.1:2:19", "read_location": {"column": 11, "end_column": 23, "end_line": 5, "expression": "bucket['go']", "line": 5, "path": "demo.py", "repository": "fixture"}, "unknown_reasons": []}

@@ -121,6 +121,9 @@ class Analyzer:
             i: t.body if not isinstance(t, ast.Lambda) else [] for i, t in trees.items()
         }
         self.queries, self.memo, self.container_exprs = {}, {}, {}
+        # Source-only proofs share the same exact AST/before key as resolve.memo.
+        # Keep only producer scopes needed to replay dependency observations.
+        self._tool_lexical_sources = {}
         self._query_context = {}
         self.query_reuse = query_reuse or {}
         self.reused_queries = 0
@@ -1229,11 +1232,19 @@ class Analyzer:
         chain = []
         visited = set()
         current_scope, current_expr = scope, expr
+        suffix = None
         while True:
             marker = (current_scope, current_expr.id, current_expr.lineno, current_expr.col_offset)
             if marker in visited or len(chain) >= 40:
                 return None
             visited.add(marker)
+            source_key = (current_scope, id(current_expr),
+                          (current_expr.lineno, current_expr.col_offset))
+            if (source_key in self._tool_lexical_sources and
+                    self.memo.get(source_key) == certified(
+                        known("callable", target), "reaching-lexical-binding")):
+                suffix = source_key
+                break
             lookup_scope = current_scope
             before = (current_expr.lineno, current_expr.col_offset)
             while True:
@@ -1247,7 +1258,13 @@ class Analyzer:
                     parameters += [a for a in (tree.args.vararg, tree.args.kwarg) if a]
                     if any(a.arg == current_expr.id for a in parameters):
                         return None
-                items = self.reaching(lookup_scope, current_expr.id, before)
+                # Reaching records an input event. Bind it to this call's
+                # consumer just as resolve's nested stack would do.
+                self.stack.append((scope, id(expr), (expr.lineno, expr.col_offset)))
+                try:
+                    items = self.reaching(lookup_scope, current_expr.id, before)
+                finally:
+                    self.stack.pop()
                 if items:
                     break
                 if self.local_bound(lookup_scope, current_expr.id):
@@ -1270,14 +1287,13 @@ class Analyzer:
             current_scope, current_expr = lookup_scope, source
         result = certified(known("callable", target), "reaching-lexical-binding")
         for index, (owner, name, producer_scope, _, _) in enumerate(chain):
-            self._observe_analysis_input(owner, "resolve-input")
-            self._observe_analysis_input(owner, "lexical-lookup")
-            self._observe_analysis_input(producer_scope, "lexical-lookup")
             key = (owner, id(name), (name.lineno, name.col_offset))
             if index + 1 < len(chain):
                 next_owner, next_name = chain[index + 1][:2]
                 child = (next_owner, id(next_name), (next_name.lineno, next_name.col_offset))
                 self.dependencies.setdefault(key, []).append(child)
+            elif suffix is not None and key != suffix:
+                self.dependencies.setdefault(key, []).append(suffix)
             self.traces[key] = dict(
                 scope=owner, path=self.nodes[owner]["path"], line=name.lineno,
                 column=name.col_offset, expression=ast.unparse(name), rule="Name",
@@ -1286,7 +1302,23 @@ class Analyzer:
                 unknown_reasons=[], proofs=sorted(result.proofs),
             )
             self.memo[key] = result
+            self._tool_lexical_sources[key] = (owner, producer_scope)
             self.source_only_lexical_visits += 1
+        # The memoized suffix was proved for this precise AST/before identity.
+        # Replay its source inputs for this call's owner without relocating any
+        # binding or re-inferring the target.
+        root = (scope, id(expr), (expr.lineno, expr.col_offset))
+        pending, replayed = [root], set()
+        while pending:
+            key = pending.pop()
+            if key in replayed or key not in self._tool_lexical_sources:
+                continue
+            replayed.add(key)
+            owner, producer_scope = self._tool_lexical_sources[key]
+            self._observe_analysis_input(owner, "resolve-input", consumer_scope=scope)
+            self._observe_analysis_input(owner, "lexical-lookup", consumer_scope=scope)
+            self._observe_analysis_input(producer_scope, "lexical-lookup", consumer_scope=scope)
+            pending.extend(self.dependencies.get(key, ()))
         self.tool_first_sites += 1
         return result
 

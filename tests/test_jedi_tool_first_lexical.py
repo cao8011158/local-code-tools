@@ -62,3 +62,35 @@ def caller():
     assert site(graph, "self.handler", "C.run")["names"] == {"target"}
     assert site(graph, "R['go']", "caller")["resolution_decision"]["target_provider"] == "finite-association-with-jedi-signal"
     assert site(graph, "self.handler", "C.run")["resolution_decision"]["target_provider"] == "finite-association-with-jedi-signal"
+
+
+def test_shared_alias_suffix_replays_source_inputs_for_each_consumer(tmp_path, monkeypatch):
+    source = "def first(): pass\na0=first\na1=a0\ndef one(): a1()\ndef two(): a1()\n"
+    selected = analyze(tmp_path, {"demo.py": source})
+    assert selected[2]["tool_first_sites"] == 2
+    assert selected[2]["source_only_lexical_visits"] == 4
+    monkeypatch.setattr(Analyzer, "tool_first_lexical", lambda *args: None)
+    legacy = analyze(tmp_path, {"demo.py": source})
+    for owner in ("one", "two"):
+        new_site, old_site = site(selected, "a1", owner), site(legacy, "a1", owner)
+        assert new_site["targets"] == old_site["targets"]
+        assert new_site["evidence"][2]["association_trace"] == old_site["evidence"][2]["association_trace"]
+    for key in ("_unit_input_events", "_unit_supports", "_analysis_inputs", "_unit_analysis_reads"):
+        assert selected[2][key] == legacy[2][key]
+
+
+def test_shared_source_change_delete_and_unrelated_growth(tmp_path):
+    prefix = "def first(): pass\ndef second(): pass\n"
+    for noise_count in (0, 20, 100):
+        noise = "".join(f"def noise_{i}():\n private={{}}\n private['x']={i}\n"
+                        for i in range(noise_count))
+        original = analyze(tmp_path, {"demo.py": prefix + "a0=first\na1=a0\ndef one(): a1()\ndef two(): a1()\n" + noise})
+        changed = analyze(tmp_path, {"demo.py": prefix + "a0=second\na1=a0\ndef one(): a1()\ndef two(): a1()\n" + noise})
+        deleted = analyze(tmp_path, {"demo.py": prefix + "a0=first\ndel a0\na1=a0\ndef one(): a1()\ndef two(): a1()\n" + noise})
+        for owner in ("one", "two"):
+            assert site(original, "a1", owner)["names"] == {"first"}
+            assert site(changed, "a1", owner)["names"] == {"second"}
+            assert site(deleted, "a1", owner)["names"] == set()
+        assert original[2]["source_only_lexical_visits"] == 4
+        assert changed[2]["source_only_lexical_visits"] == 4
+        assert deleted[2]["tool_first_sites"] == 0

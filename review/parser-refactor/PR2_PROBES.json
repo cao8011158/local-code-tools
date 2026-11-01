@@ -1,0 +1,637 @@
+{
+  "jedi_version": "0.20.1",
+  "cases": {
+    "global": [
+      {
+        "path": "demo.py",
+        "receiver": "registry",
+        "context": "Store",
+        "line": 3,
+        "column": 31,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 2,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 2,
+            "column": 0
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.register.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 3,
+            "column": 23
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.run.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      },
+      {
+        "path": "demo.py",
+        "receiver": "registry",
+        "context": "Load",
+        "line": 5,
+        "column": 19,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 2,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 2,
+            "column": 0
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.register.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 3,
+            "column": 23
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.run.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/global/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      }
+    ],
+    "same_alias": [
+      {
+        "path": "demo.py",
+        "receiver": "second",
+        "context": "Store",
+        "line": 4,
+        "column": 6,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "second",
+            "type": "statement",
+            "full_name": "demo.second",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 3,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "second",
+            "type": "statement",
+            "full_name": "demo.second",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "second",
+            "type": "statement",
+            "full_name": "demo.second",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 4,
+            "column": 0
+          }
+        ]
+      },
+      {
+        "path": "demo.py",
+        "receiver": "first",
+        "context": "Load",
+        "line": 5,
+        "column": 16,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "first",
+            "type": "statement",
+            "full_name": "demo.first",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 2,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "first",
+            "type": "statement",
+            "full_name": "demo.first",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 2,
+            "column": 0
+          },
+          {
+            "name": "first",
+            "type": "statement",
+            "full_name": "demo.first",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 3,
+            "column": 7
+          },
+          {
+            "name": "first",
+            "type": "statement",
+            "full_name": "demo.run.first",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/same_alias/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      }
+    ],
+    "fresh_separate": [
+      {
+        "path": "demo.py",
+        "receiver": "right",
+        "context": "Store",
+        "line": 4,
+        "column": 5,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "right",
+            "type": "statement",
+            "full_name": "demo.right",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 3,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "right",
+            "type": "statement",
+            "full_name": "demo.right",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "right",
+            "type": "statement",
+            "full_name": "demo.right",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 4,
+            "column": 0
+          }
+        ]
+      },
+      {
+        "path": "demo.py",
+        "receiver": "left",
+        "context": "Load",
+        "line": 5,
+        "column": 15,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "left",
+            "type": "statement",
+            "full_name": "demo.left",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 2,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "left",
+            "type": "statement",
+            "full_name": "demo.left",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 2,
+            "column": 0
+          },
+          {
+            "name": "left",
+            "type": "statement",
+            "full_name": "demo.run.left",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/fresh_separate/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      }
+    ],
+    "import_alias": [
+      {
+        "path": "client.py",
+        "receiver": "alias",
+        "context": "Store",
+        "line": 3,
+        "column": 5,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "base.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/base.py",
+            "line": 1,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "base.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/base.py",
+            "line": 1,
+            "column": 0
+          },
+          {
+            "name": "alias",
+            "type": "instance",
+            "full_name": "base.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 1,
+            "column": 29
+          },
+          {
+            "name": "alias",
+            "type": "statement",
+            "full_name": "client.alias",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "alias",
+            "type": "statement",
+            "full_name": "client.run.alias",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 4,
+            "column": 11
+          }
+        ]
+      },
+      {
+        "path": "client.py",
+        "receiver": "alias",
+        "context": "Load",
+        "line": 4,
+        "column": 16,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "alias",
+            "type": "statement",
+            "full_name": "client.alias",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 3,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "base.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/base.py",
+            "line": 1,
+            "column": 0
+          },
+          {
+            "name": "alias",
+            "type": "instance",
+            "full_name": "base.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 1,
+            "column": 29
+          },
+          {
+            "name": "alias",
+            "type": "statement",
+            "full_name": "client.alias",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "alias",
+            "type": "statement",
+            "full_name": "client.run.alias",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/import_alias/client.py",
+            "line": 4,
+            "column": 11
+          }
+        ]
+      }
+    ],
+    "parameter_writer": [
+      {
+        "path": "demo.py",
+        "receiver": "bucket",
+        "context": "Store",
+        "line": 3,
+        "column": 23,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "bucket",
+            "type": "param",
+            "full_name": null,
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 3,
+            "column": 8
+          }
+        ],
+        "get_references": [
+          {
+            "name": "bucket",
+            "type": "param",
+            "full_name": null,
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 3,
+            "column": 8
+          },
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.add.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 3,
+            "column": 17
+          }
+        ]
+      },
+      {
+        "path": "demo.py",
+        "receiver": "registry",
+        "context": "Load",
+        "line": 5,
+        "column": 19,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 2,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 2,
+            "column": 0
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 4,
+            "column": 4
+          },
+          {
+            "name": "registry",
+            "type": "statement",
+            "full_name": "demo.run.registry",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/parameter_writer/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      }
+    ],
+    "return_origin": [
+      {
+        "path": "demo.py",
+        "receiver": "bucket",
+        "context": "Store",
+        "line": 4,
+        "column": 6,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 3,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 4,
+            "column": 0
+          },
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.run.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      },
+      {
+        "path": "demo.py",
+        "receiver": "bucket",
+        "context": "Load",
+        "line": 5,
+        "column": 17,
+        "infer": [
+          {
+            "name": "dict",
+            "type": "instance",
+            "full_name": "builtins.dict",
+            "module_path": "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/builtins.pyi",
+            "line": null,
+            "column": null
+          }
+        ],
+        "goto": [
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 4,
+            "column": 0
+          }
+        ],
+        "get_references": [
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 3,
+            "column": 0
+          },
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 4,
+            "column": 0
+          },
+          {
+            "name": "bucket",
+            "type": "statement",
+            "full_name": "demo.run.bucket",
+            "module_path": "/tmp/lct-pr2-jedi-ybg_vv3n/return_origin/demo.py",
+            "line": 5,
+            "column": 11
+          }
+        ]
+      }
+    ]
+  }
+}

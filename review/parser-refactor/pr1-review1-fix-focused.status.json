@@ -1,0 +1,32 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_jedi_tool_first_lexical.py",
+    "review/parser-refactor/test_tool_first_independent.py",
+    "tests/test_owner_incremental.py",
+    "tests/test_actual_item_unit_incremental.py",
+    "tests/test_changed_python_gate.py",
+    "--tb=short"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 21.304,
+  "sha256_before": {
+    "lct/python_analysis.py": "281cf011fbf194fa91fea6cdd0ae7e0632d5fa08322048f8259f3fb16e615eb6",
+    "lct/graph.py": "dedf1ff6f15858508f9a056a0061f3979fd3870637c8d0010e04a9264052a2c9",
+    "lct/storage.py": "08bd55976581da5362f4b070f3ba952634bdd88d256cbca70d829d19d37b81e1",
+    "tests/test_jedi_tool_first_lexical.py": "59c91ee81df0ebcf0bbd45da44bd7513fecd5a337d6e65d44d48c77036891313",
+    "tests/test_python_review_regressions.py": "e44e0c30b9b24189fc2c7e8d4f930d2b44063745a4824fb938f5e891d07c3dda",
+    "tests/test_changed_python_gate.py": "933410074954ff16c2f80919a3c7b64bd208c39f497a7ee7cda306e6cc4ebf98"
+  },
+  "sha256_after": {
+    "lct/python_analysis.py": "281cf011fbf194fa91fea6cdd0ae7e0632d5fa08322048f8259f3fb16e615eb6",
+    "lct/graph.py": "dedf1ff6f15858508f9a056a0061f3979fd3870637c8d0010e04a9264052a2c9",
+    "lct/storage.py": "08bd55976581da5362f4b070f3ba952634bdd88d256cbca70d829d19d37b81e1",
+    "tests/test_jedi_tool_first_lexical.py": "59c91ee81df0ebcf0bbd45da44bd7513fecd5a337d6e65d44d48c77036891313",
+    "tests/test_python_review_regressions.py": "e44e0c30b9b24189fc2c7e8d4f930d2b44063745a4824fb938f5e891d07c3dda",
+    "tests/test_changed_python_gate.py": "933410074954ff16c2f80919a3c7b64bd208c39f497a7ee7cda306e6cc4ebf98"
+  }
+}

@@ -1,0 +1,5 @@
+sites 20
+module_reaching_total 12
+module_reaching_max_per_source 1
+source_only_lexical_visits 32
+tool_first_sites 20
