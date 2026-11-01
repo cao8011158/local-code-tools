@@ -4,7 +4,7 @@
   "repository": "agentic-trpg/local-code-tools",
   "branch": "feat/local-only-updates",
   "base_sha": "aa95ca6968812fdd357d5fe5b91740dc0ba0d371",
-  "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+  "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
   "target_branch": "feat/local-code-tools-import",
   "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
   "implementation_actor": "/root/jedi_contract_developer:gpt-6-sol/medium",
@@ -177,6 +177,129 @@
       "result": "fail",
       "log_sha256": "31f3f33262fa230f27ffff84d5b5101405516b30e0cf5ad2544951c733e27150",
       "note": "Bounded diagnostic, not wrong graph or upstream defect proof; no initial snapshot"
+    },
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_limited_precision_comparison.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--tb=short"
+      ],
+      "log": "developer-review1-oracle-focused-2.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "e6d9198a066c7729d69b2bee406ffebc482c2e3f426dd89bdee8da5538fb6a0e",
+      "passed": 25,
+      "seconds": 0.98,
+      "executed_before_publication": true,
+      "source_verified": "REVIEW2_SOURCE_VERIFICATION.json"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "log": "developer-review1-fast-frozen.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "49a7fd35706bb7ef50e50846bed9d98686566f6d7feb124594754f00b4ce89ee",
+      "passed": 783,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 124.82,
+      "executed_before_publication": true,
+      "source_verified": "REVIEW2_SOURCE_VERIFICATION.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "log": "review2-root-suite.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "3f57d8b2dfae611326ff4ebf61084f079f51b2ccb70e7fa5a4a4d5dd8527279a",
+      "passed": 783,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 146.27,
+      "source_verified": "REVIEW2_SOURCE_VERIFICATION.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "command": [
+        "PYTHONPATH=.",
+        ".venv/bin/python",
+        "review/jedi-contract/measure_candidate_work.py",
+        "--output",
+        "review/jedi-contract/review2-candidate-work.json"
+      ],
+      "log": "review2-candidate-work.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "ce97fbfc883a16c047f02393120dce6322453a58dc9a20ba4b196ee12400a5ad",
+      "note": "Actual candidate returns remain1/1/1 and unknown0/0/0 under unrelatedN0/20/100. Does not complete full83 scale acceptance."
+    },
+    {
+      "role": "reviewer",
+      "kind": "saved_public_oracle",
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "command": [
+        "PYTHONPATH=../jd1-review2-fixed",
+        ".venv/bin/python",
+        "review/jedi-contract/check_saved_nine_pair.py",
+        "/tmp/jd1-review1-nine/test_nine_original_bytes_limit0",
+        "--warm",
+        "20261101T191734-c79b5f11f2",
+        "--fresh",
+        "20261101T193005-0dce4313f9"
+      ],
+      "log": "review2-nine-oracle-reproducible.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "91d49497f6996af7de787575048aa39decdfc32b966d26d9f0442308e64bfd02",
+      "note": "Compatible=True, complete20-table comparator under existing normalizations; prior immutable outputs runtime-identical, no rebuild or provider."
     }
   ],
   "reviews": [
@@ -187,6 +310,14 @@
       "actor": "root-reviewer",
       "verdict": "changes_required",
       "counterexample_note": "Frozen603 materialized blobs; independent774pass27skip1deselect107.05s and actual unknown visitation0 atN0/20/100. Public9 local update and query stages succeed. Fresh comparison differs only2 valid additional REFERENCES; same408 callsites modulo order, all source/subscription/write evidence agree. Narrow oracle accepts eager annotation but rejects direct global class body reference; add source-binding proof and negatives. Full83 blocked in unchanged container writer analysis, no production fix inferred."
+    },
+    {
+      "round": 2,
+      "head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "remote_head_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "629 materialized blobs independently verified; whole JD1 delta aa95..head reviewed. Independent783pass27skip1deselect146.27s, root seven body-binding controls and two later-global/header negatives pass. Saved actual9 warm/fresh compatible=True and20-table comparison pass; no CALLS/source-subscription exclusion added. Actual candidate returns1/1/1, unknown0/0/0. Production runtime unchanged sincee625. JD1 requirements pass; full83 overall feature remains blocked by pre-existing CW-01; no merge."
     }
   ],
   "findings": [
@@ -234,13 +365,14 @@
       "id": "JD1-LIMITED-REFERENCE-ORACLE",
       "severity": "P2",
       "confirmed": true,
-      "blocking": true,
-      "state": "open",
+      "blocking": false,
+      "state": "resolved",
       "origin": "current",
       "owner_batch": "JD-1",
       "location": "tests/limited_precision_comparison.py::_eager_annotation",
-      "evidence": "review1-nine-edge-diff.json;review1-nine-all-table-diff.json;review1-nine-oracle-completion.log",
-      "note": "Warm642/fresh640 edges. Extras _WorldEffectOrigin->_WorldEffectKind annotation25 and _execution_data->_WorldEffectKind body38. Both source-true; reject none of these facts, extend only verified static global class references."
+      "evidence": "review1-nine-edge-diff.json;review1-nine-all-table-diff.json;review1-nine-oracle-completion.log;review2-root-suite.log;review2-nine-oracle-reproducible.log",
+      "note": "Warm642/fresh640 edges. Extras _WorldEffectOrigin->_WorldEffectKind annotation25 and _execution_data->_WorldEffectKind body38. Both source-true; reject none of these facts, extend only verified static global class references.",
+      "resolution": "Narrow source-backed direct global class body reference proof; root binding/phase/location negatives retained; all semantic checks unchanged except finite extra reference admission."
     },
     {
       "id": "CW-01-UNRELATED-WRITER-SCOPE",
@@ -254,5 +386,6 @@
       "evidence": "container-scope-diagnostic.json;container-scope-source-parity.json;REMAINING_CONTAINER_SCOPE.md",
       "note": "N0/20/100 fresh private dictionaries written with functionName make scope checks2/22/102, event checks3/63/303 despite same first target; actual83 has110 writer scopes, all fallback,0 indexed origins; whole83 acceptance still incomplete"
     }
-  ]
+  ],
+  "overall_status": "JD1 independent review passes; full feature/83 acceptance incomplete; CW-01 scope decision pending"
 }

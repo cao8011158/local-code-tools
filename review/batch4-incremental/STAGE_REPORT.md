@@ -1297,3 +1297,19 @@ Developer earlier17fail/230pass stdout was overwritten and is only a session obs
 开发者仅修改 tests/limited_precision_comparison.py 及其测试：允许额外的真实函数体类名 REFERENCES，但必须验证同模块唯一较早的类定义、真实函数所属范围、精确源码位置及无重绑定；参数/局部遮蔽、嵌套范围、局部注解、全局写入与定义头重绑定均拒绝。生产文件 SHA 与 e625662dc68a825382fb88865cff3ee066a80244 一致，未修改图输出以迎合测试。
 
 开发定向25 passed；冻结快速回归783 passed/27 skipped/1 deselected，124.82s，exit0。恢复原构建时内存配置后，普通 semantic() 使用 compatible=True 读取同一对已保存九文件 warm/fresh，完整20表比较通过，642/640 edges、408 sites。早先配置读取失败是重建测试脚本漏掉 retained_versions=8 与三项零 embedding 限额；program hash始终一致，不是生产缓存损坏。原失败日志保留。以上是开发自测，下一步固定远端并进行独立第2/3轮复审；完整83文件验收仍受 CW-01 阻塞。
+
+
+## 阶段145：JD-1独立第2轮通过，整体验收仍阻塞
+
+
+## Review2/3 — JD-1 passes; overall feature acceptance remains blocked
+
+Fixed remote `60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b`, tree `070e3f3c7cd3956aca575d7753d42083803c2440`, parent `e625662dc68a825382fb88865cff3ee066a80244`.629 materialized blobs verified;653 unmaterialized historical files preserved. Target remains `e3db45fcf1362f0a26e0ab7760b12b4fd408ce64`. Complete batch baseline remains aa95ca6968812fdd357d5fe5b91740dc0ba0d371; second commit changes only the comparison helper/tests and reports, not production. Runtime hashes match review1.
+
+Independent fixed-source fast regression: **783 passed,27 skipped,1 deselected in146.27s**, exit0 (`review2-root-suite.log`). The deselected expensive nine-file test previously timed out during its fresh comparison; its completed immutable public checkpoints and separately completed fresh output are rechecked here, not silently reported as a successful uninterrupted pytest invocation. Root seven body-reference cases and developer two global/header-rebinding negatives reject fabricated/incorrect extra facts. CALLS, source supports, container subscriptions and writes retain their existing checks. The narrow added rule admits only actual unshadowed direct body class-name references in the same module; no production edge removal or general REFERENCES exclusion.
+
+Read-only saved-pair recheck through ordinary compatible=True manifest: **20-table comparator passes**, warm642/fresh640 edges,408 sites,nine sources (`review2-nine-oracle-reproducible.log`, reproducible command in EVIDENCE). Existing diagnostic-ledger/count/order normalization remains unchanged. The two actual references are now validated from captured source. JD1-LIMITED-REFERENCE-ORACLE resolved. The earlier failed compatible-read came from reconstructing config without the fixture's four in-memory settings; program hash matched throughout, and restored settings succeed. No cache corruption established.
+
+Independent candidate generator rerun on this fixed runtime: N0/20/100 unrelated unknown calls and same-name methods yields1/1/1 actual candidate,0/0/0 unknown candidates; preserves0/20/100 unknown sites. Initial queries2/22/102 are separately counted, not claimed constant. Original review1 warm public and indexed reverse query evidence is retained; no runtime change since that measurement. No expensive full83 retry was justified by a test-only comparator repair.
+
+**Verdict: pass for JD-1**, completing formal round2/3 without resetting history. Full code-graph functionality is **not fully accepted**: complete83 initial snapshot and ensuing warm workflow remain uncompleted; CW-01 unrelated container writer scope cost remains open in unchanged legacy source/effect analysis. Concrete bounded follow-up scope is in REMAINING_CONTAINER_SCOPE.md. No merge or production changes in that additional subsystem. The gate must remain BLOCKED while the scope/acceptance blocker and missing merge authorization persist.
