@@ -55,7 +55,7 @@ def test_unrelated_local_alias_writers_do_not_grow_consumer_checks(tmp_path):
         assert graph["slot_events_checked"] <= first_graph["slot_events_checked"]
 
 
-def test_escaping_and_unproven_receivers_remain_global_candidates(tmp_path):
+def test_only_source_related_receivers_are_read_candidates(tmp_path):
     config, repo = initialize(tmp_path / "uncertain")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
@@ -77,10 +77,16 @@ def test_escaping_and_unproven_receivers_remain_global_candidates(tmp_path):
     result = build(config, offline=True, lexical_only=True)
     graph = result["graph"]
     assert graph["slot_scope_index_build_scopes"] == len(sources)
-    assert graph["slot_scope_fallback_scopes"] == len(sources)
+    assert graph["slot_writer_index_receivers"] == len(sources)
+    # Two unlocated parameter receivers retain a boundary/watch, without
+    # becoming candidate writers for every unrelated known container.
+    assert graph["slot_scope_fallback_scopes"] == 2
     coverage = _caller_site(config, result["version"])["resolution_decision"][
         "write_source_coverage"]
-    assert any("uncertain_" in ident for ident in coverage["required_events"])
+    assert any("uncertain_1.py" in ident for ident in coverage["required_events"])
+    assert any("uncertain_5.py" in ident for ident in coverage["required_events"])
+    assert not any(f"uncertain_{i}.py" in ident for ident in coverage["required_events"]
+                   for i in (0, 2, 3, 4))
 
 
 def test_alias_rebound_between_two_fresh_local_origins_stays_isolated(tmp_path):

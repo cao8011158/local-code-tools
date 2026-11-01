@@ -1,0 +1,10 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_new_changed_deleted_imported_writer_updates_negative_reader _______
+../local-only-work/review/parser-refactor/test_container_sources_independent.py:62: in test_new_changed_deleted_imported_writer_updates_negative_reader
+    assert any(f':function:{state}#' in target for target in s['targets'])
+E   assert False
+E    +  where False = any(<generator object test_new_changed_deleted_imported_writer_updates_negative_reader.<locals>.<genexpr> at 0x7f3802fb17e0>)
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/parser-refactor/test_container_sources_independent.py::test_new_changed_deleted_imported_writer_updates_negative_reader
+1 failed in 1.68s

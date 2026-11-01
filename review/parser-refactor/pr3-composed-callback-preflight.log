@@ -1,0 +1,2 @@
+{"owner": "execute", "expr": "callback", "targets": [], "reasons": ["open-project-input"], "jedi": []}
+{"owner": "run", "expr": "R['go']", "targets": ["execute"], "reasons": ["open-registry-writes"], "jedi": []}

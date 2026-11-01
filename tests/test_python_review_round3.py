@@ -485,7 +485,9 @@ def test_rule_label_without_coverage_is_not_complete_even_when_jedi_agrees(tmp_p
         return original(self, scope, expr, before)
 
     monkeypatch.setattr(Analyzer, "_resolve", incomplete)
-    source = 'def a(): pass\ndef caller():\n table={"go":a}\n table["go"]()\n'
+    # A related write sends this site through finite slot association, so the
+    # injected rule label still tests its missing independent coverage receipt.
+    source = 'def a(): pass\ndef caller():\n table={"go":a}\n table["x"]=a\n table["go"]()\n'
     s = check(
         analyze(tmp_path, {"demo.py": source}, closed=False), "table['go']", {"a"}, unknown=True
     )

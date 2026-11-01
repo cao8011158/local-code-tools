@@ -1,0 +1,3 @@
+{"noise": 0, "targets": ["first"], "complete": true, "scopes": 2, "events": 1, "tool_container_reads": 1}
+{"noise": 20, "targets": ["first"], "complete": true, "scopes": 4, "events": 42, "tool_container_reads": 0}
+{"noise": 100, "targets": ["first"], "complete": true, "scopes": 4, "events": 202, "tool_container_reads": 0}

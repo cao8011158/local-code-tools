@@ -1,0 +1,45 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests",
+    "review/parser-refactor/test_tool_first_independent.py",
+    "review/parser-refactor/test_container_sources_independent.py",
+    "review/local-only-updates/test_semantic_contract_independent.py",
+    "review/local-only-updates/test_local_only_flow_independent.py",
+    "review/local-only-updates/test_namespace_granularity_independent.py",
+    "review/local-only-updates/test_definition_context_independent.py",
+    "review/local-only-updates/test_limited_precision_independent.py",
+    "review/jedi-contract/test_jedi_contract_independent.py",
+    "review/jedi-contract/test_body_reference_oracle_independent.py",
+    "--deselect",
+    "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+    "--tb=short"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 98.527,
+  "sha256_before": {
+    "lct/python_analysis.py": "4d7e796fc863d95d096c058224484a5b4869f4348c1d5547c31ad097f5856c74",
+    "lct/graph.py": "f532cbbfbf3369955c01582c1227ede90d98c8cabbb23a1e1371be8e972bf08e",
+    "lct/storage.py": "fe0260feb6f5cac1897efdd3eb5051be47af5f98b8a83dcd20abd8353d8c2edd",
+    "lct/unit_incremental.py": "d50b5ff136601490e153ab89633bfaade5cfaf7f9abb0a0b80222f3f666b16c0",
+    "tests/test_jedi_tool_first_container.py": "17f7e558da1ae1594f9c928952117b309dabceaba66302f8ebc1b3d736f997d3",
+    "tests/test_container_slot_scope_index.py": "5270f766b1e4b4ac52592e00946c607c6bf5ca16d9b0b381f650e56d5d273526",
+    "tests/test_analysis_dependency_sidecar.py": "a9f46de9f5b3667d0d530a19119f8c10d5763dd7687ed5874b872655c9b5b95e",
+    "tests/test_analysis_inputs.py": "0a3fb2d75be4fe1367f930b13b6251870f815ecce69131bb01ef663353afecca",
+    "tests/test_python_review_round3.py": "ee1e7fd80ad4380302511c1bb2eebf0d8a70c98a462e6fdcadd06d905db96ad1"
+  },
+  "sha256_after": {
+    "lct/python_analysis.py": "4d7e796fc863d95d096c058224484a5b4869f4348c1d5547c31ad097f5856c74",
+    "lct/graph.py": "f532cbbfbf3369955c01582c1227ede90d98c8cabbb23a1e1371be8e972bf08e",
+    "lct/storage.py": "fe0260feb6f5cac1897efdd3eb5051be47af5f98b8a83dcd20abd8353d8c2edd",
+    "lct/unit_incremental.py": "d50b5ff136601490e153ab89633bfaade5cfaf7f9abb0a0b80222f3f666b16c0",
+    "tests/test_jedi_tool_first_container.py": "17f7e558da1ae1594f9c928952117b309dabceaba66302f8ebc1b3d736f997d3",
+    "tests/test_container_slot_scope_index.py": "5270f766b1e4b4ac52592e00946c607c6bf5ca16d9b0b381f650e56d5d273526",
+    "tests/test_analysis_dependency_sidecar.py": "a9f46de9f5b3667d0d530a19119f8c10d5763dd7687ed5874b872655c9b5b95e",
+    "tests/test_analysis_inputs.py": "0a3fb2d75be4fe1367f930b13b6251870f815ecce69131bb01ef663353afecca",
+    "tests/test_python_review_round3.py": "ee1e7fd80ad4380302511c1bb2eebf0d8a70c98a462e6fdcadd06d905db96ad1"
+  }
+}

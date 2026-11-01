@@ -346,6 +346,11 @@ class Graph:
                 # Always retain the actual Jedi observation, including rejected descriptors.
                 signal = analyzer.query(scope, expr)
                 result = analyzer.tool_first_lexical(scope, expr, signal)
+                tool_first_kind = "lexical" if result is not None else None
+                if result is None:
+                    result = analyzer.tool_first_subscript(scope, expr, signal)
+                    if result is not None:
+                        tool_first_kind = "container"
                 tool_first = result is not None
                 if result is None:
                     analyzer.legacy_target_sites += 1
@@ -356,7 +361,8 @@ class Graph:
                 result, decision = analyzer.adjudicate(scope, expr, result, signal)
                 if tool_first:
                     decision["target_provider"] = "jedi-exact-captured-definition"
-                    decision["reason"] = "jedi-target-with-lexical-source"
+                    decision["reason"] = ("jedi-target-with-lexical-source" if tool_first_kind == "lexical"
+                                          else "jedi-target-with-container-source")
                 else:
                     decision["target_provider"] = "finite-association-with-jedi-signal"
                 targets = sorted({a.target for a in result.atoms if a.kind in CALLABLE_KINDS})
@@ -404,7 +410,7 @@ class Graph:
                         ),
                         dict(
                             tool="lct",
-                            role=("lexical source evidence for Jedi target" if tool_first
+                            role=("source evidence for Jedi target" if tool_first
                                   else "validated binding/argument/container association"),
                             association_trace=analyzer.explain(scope, expr),
                             decision=decision,
@@ -680,6 +686,10 @@ class Graph:
                 analysis_limited=analyzer.limited,
                 association_evaluations=20000 - analyzer.budget,
                 slot_scope_index_build_scopes=analyzer.slot_scope_index_build_scopes,
+                slot_origin_binding_index_entries=analyzer.slot_origin_binding_index_entries,
+                slot_writer_index_receivers=analyzer.slot_writer_index_receivers,
+                slot_writer_index_events=analyzer.slot_writer_index_events,
+                slot_call_index_events=analyzer.slot_call_index_events,
                 slot_scope_fallback_scopes=len(analyzer._slot_fallback_scopes),
                 slot_scope_candidates_checked=analyzer.slot_scope_candidates_checked,
                 slot_events_checked=analyzer.slot_events_checked,
@@ -688,9 +698,12 @@ class Graph:
                 jedi_queries_executed=analyzer.executed_queries,
                 jedi_query_entries=analyzer.query_entries,
                 jedi_query_cache_hits=analyzer.query_cache_hits,
+                jedi_raw_observation_hits=analyzer.raw_jedi_observation_hits,
                 jedi_raw_result_counts=dict(analyzer.raw_query_counts),
                 tool_first_sites=analyzer.tool_first_sites,
                 source_only_lexical_visits=analyzer.source_only_lexical_visits,
+                source_only_container_reads=analyzer.source_only_container_reads,
+                source_only_literal_entries_checked=analyzer.source_only_literal_entries_checked,
                 legacy_target_sites=analyzer.legacy_target_sites,
                 candidate_site_queries_prepared=analyzer.site_queries_prepared,
                 classmethod_source_sites=analyzer.classmethod_source_sites,

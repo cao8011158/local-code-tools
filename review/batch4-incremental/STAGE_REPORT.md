@@ -1354,3 +1354,29 @@ PR-2 read-onlyprobesnowconfirmJediAPIprovidesdict typeandlexicalpositions butnot
 针对PR1-SHARED-SOURCE-REPEAT，开发复用同snapshot、同scope/AST/before且已证明的memo来源后缀；新调用只关联既有trace并为当前消费函数重放来源观察，不再逐项重新定位共享绑定。新增的来源元数据仅用于依赖重放，memo仍是结果权威；无全局候选缓存。修正来源观察归属，保持多个消费者的unit输入和来源支持。无PR-2生产代码。
 
 开发冻结定向41passed/19.54s；快速794passed/27skipped/1deselected121.51s，exit0，六文件前后SHA一致，完整stdout/stderr/status已保存。新测试覆盖多消费者来源记录与强制旧路径一致、别名改绑与删除、无关writer增长。Root另实测同一12层别名/20调用反例：检查260降到32，各共享绑定一次，与原基线同量；这仍是复审前预检，下一步固定远端提交并独立第2/3轮验证。
+
+
+## 阶段150：PR-1独立第2轮通过，继续整体重构
+
+
+## Round2/3: PR-1 passes; whole refactor continues
+
+Fixedremote f617682cf8d7046421fccd4884ebeed3a38e40f2/tree4d54922df061ab2b52ef515b1f4d337d72ec4c35, parentda91cfd3761c18ad42b2a2ec4f4f01bc84990af0; wholebatchbase60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b.689 materializedGitblobsverified,653historicalpathsnotmaterializedpreserved. Targete3db45fcf1362f0a26e0ab7760b12b4fd408ce64 unchanged. Rootnevermodifiedproduction.
+
+Independentfast **794passed/27skipped/1deselected136.14s exit0**, exactcommandsameasdeveloperfreezeandnewroot6. Wholebatchdiffreviewed: tool-backeddirect/alias sourcepath+memo, honestproviderlabel, rawJedi retention, originalexceptions, identicalcapturecounterreset, sourceinputconsumerattribution, scope/AST/before-restricted sharedsuffix reuse. OriginalemptyadapterteststillassertsknownJeditargetretainedwithunknownonlegacybranch; newtestsretaincallback/unbound/containerunknown rules.
+
+Originalsourcegrowthcase **32modulelookups** (12sharedsuffixbindingsonce+20distinctrootreads), matchingoldbaselineanddownfrom260inreview1. Independentmulti-consumer publiclifecycle **first->second->absent->first** updatesbothfunctionsusingincremental-owners andretainsoldsitesexactly. Targetinferenceisnotrepeatedbyoldname resolverforcoveredcall/alias; provenanceandconsumerinputsremain. PR1-SHARED-SOURCE-REPEAT resolved; formalreview2passes, historyretained.
+
+ScopeofpassisPR-1lexicaltarget/source separation. The originalninecurrent-runtime publiclifecycle wasinterruptedafterreview1findingbeforefirstsnapshot; itandfull83cold/warm/queryacceptancearependingforwholefeature. Existingfastthree/sixactualsourceowner/membership/retry/failure/querytestsrunonthisfixedruntime; nolargeruntimeorcompletegraphclaim. ContinuePR-2origin/writerindexandPR-3remainingcapabilitymigrationunderuserauthorization; no merge.
+
+## 阶段151：PR-2容器来源／工具结果复用开发交付（尚待独立审阅）
+
+开发将原全fallback writer候选改为实际容器origin索引，原未知写入保留独立边界/watch，不再逐读枚举；匹配写入在真实消费者上下文记录。简单局部/模块字典已知Jedi目标直接消费，保留literal writer/read订阅和source支持；有实际写入、复制/解包/序列边界、注册函数等有证据的路径保留有限补充。索引准备状态隔离，复用ReceiverAccess只读结构并共用预算；raw Jedi观察与上下文映射分开缓存，同一API位置不因准备/消费重新调用。事件按真实origin索引，并一次准备唯一模块绑定，避免把重复扫描移到准备阶段。
+
+Root在开发期发现并要求修复三类具体问题：全局字典读仍检查无关module绑定／调用；索引准备污染首个消费者的来源记录；热更新重新查询未变化文件调用点（N0/20/100真实Jedi1/21/101，而旧f617均1）。修复后的热更新N0/20/100选中owner均4、真实Jedi均1、query入口均2，AST调用索引准备1/21/101单列，不宣称整个捕获处理O(1)。Root当前独立五案例通过，随后新增热更新案例纳入冻结回归。
+
+另发现并证明原有缺陷PR2-NEW-FILE-WRITER-INVALIDATION：A空字典、B读取缺失键，新增C模块写入first后局部仍无目标，但同一捕获fresh有first；C改second及删除会正常处理。原f617同样失败，不是本次引入。根因prospective origin循环跳过old_tree=None。根据用户整体重构及来源／增量接线授权，本批最小修复新owner的prospective来源查询；保留旧batch审阅历史，不冒称此前已覆盖或重置旧问题轮次。独立新文件新增／修改／删除＋旧快照控制通过。
+
+开发冻结定向98passed/35.04s；快速810passed/27skipped/1deselected114.96s，exit0，九个受控源／测试文件前后SHA一致。原始stdout/stderr/status保存pr2-warm-fixed-{focused,fast}.*。中间fast第一次797pass+1旧全候选断言fail，第二次802pass+1旧人工替换provider缓存断言fail，以及808pass但不满足热更新局部性，均保留并不作为最终验收。显式旧契约测试改为真实writer(registry)关系、相关写入的覆盖注入以及清理raw cache后模拟provider替换，原目标/UNKNOWN/覆盖断言未削弱。详见PR2_DEVELOPER.md。
+
+本批生产仅python_analysis.py、graph.py、storage.py及具体新writer接线所需unit_incremental.py；当前尚未推送、PR-2正式review0/3。完整九文件和83首次／连续更新验收仍待全部迁移稳定后开展；不将810通过等同整个建图完成。

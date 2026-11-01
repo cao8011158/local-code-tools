@@ -134,6 +134,13 @@ def test_query_empty_error_and_cache_observe_same_capture_scope(tmp_path):
             def infer(self, *_): raise RuntimeError("injected")
         analyzer.scripts[module] = Fail()
         analyzer.queries.clear()
+        # Contextual mapping can be cleared without asking Jedi again for
+        # the same raw position. A synthetic provider change requires a fresh
+        # raw observation context before exercising its error path.
+        assert "jedi-no-result" in analyzer.query(
+            site["execution_owner"], site["_expr"]).reasons
+        analyzer.queries.clear()
+        analyzer._raw_jedi_observations.clear()
         assert "jedi-error:RuntimeError" in analyzer.query(
             site["execution_owner"], site["_expr"]).reasons
         assert analyzer.analysis_inputs.export() == first

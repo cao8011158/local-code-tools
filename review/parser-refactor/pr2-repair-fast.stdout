@@ -1,0 +1,23 @@
+.....................F.................................................. [  8%]
+.............................................s.......................... [ 17%]
+................................................s....................... [ 26%]
+.......................................ss..........sss.......s.....s...s [ 34%]
+ss.s.sssssssssss...sss.................................................. [ 43%]
+........................................................................ [ 52%]
+........................................................................ [ 60%]
+........................................................................ [ 69%]
+........................................................................ [ 78%]
+........................................................................ [ 86%]
+........................................................................ [ 95%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+_________ test_query_empty_error_and_cache_observe_same_capture_scope __________
+tests/test_analysis_inputs.py:137: in test_query_empty_error_and_cache_observe_same_capture_scope
+    assert "jedi-error:RuntimeError" in analyzer.query(
+E   AssertionError: assert 'jedi-error:RuntimeError' in frozenset({'jedi-no-result'})
+E    +  where frozenset({'jedi-no-result'}) = Result(atoms=frozenset(), reasons=frozenset({'jedi-no-result'}), proofs=frozenset(), requirements=frozenset()).reasons
+E    +    where Result(atoms=frozenset(), reasons=frozenset({'jedi-no-result'}), proofs=frozenset(), requirements=frozenset()) = query('r:a.py:function:f#1.1', <ast.Name object at 0x7f1503fe62d0>)
+E    +      where query = <lct.python_analysis.Analyzer object at 0x7f1508777cb0>.query
+=========================== short test summary info ============================
+FAILED tests/test_analysis_inputs.py::test_query_empty_error_and_cache_observe_same_capture_scope
+1 failed, 802 passed, 27 skipped, 1 deselected in 111.55s (0:01:51)

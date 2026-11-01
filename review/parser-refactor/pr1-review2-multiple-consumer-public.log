@@ -1,0 +1,4 @@
+{"target": "first", "mode": "full-graph", "consumers": 2, "old_unchanged": true}
+{"target": "second", "mode": "incremental-owners", "consumers": 2, "old_unchanged": true}
+{"target": null, "mode": "incremental-owners", "consumers": 2, "old_unchanged": true}
+{"target": "first", "mode": "incremental-owners", "consumers": 2, "old_unchanged": true}

@@ -21,10 +21,13 @@ def _base(tmp_path):
     return config, repo
 
 
-def test_observed_fallback_read_and_capture_wide_future_writer_watch(tmp_path):
+def test_actual_parameter_writer_read_and_capture_wide_future_writer_watch(tmp_path):
     config, repo = _base(tmp_path)
     (repo / "src/a.py").write_text(
         "def writer(registry):\n    registry['x']=1\n")
+    (repo / "src/b.py").write_text(
+        "from a import writer\ndef target(): pass\nregistry={'go':target}\n"
+        "writer(registry)\ndef run():\n    return registry['go']()\n")
     result = build(config, offline=True, lexical_only=True)
     folder, meta = manifest(config, result["version"])
     assert meta["analysis_dependency_coverage"] == "partial"
@@ -47,8 +50,8 @@ def test_observed_fallback_read_and_capture_wide_future_writer_watch(tmp_path):
                 "explain query plan " + sql, args))
             assert "SEARCH" in plan and index in plan and "SCAN" not in plan, plan
     old = result["version"]
-    # A newly added isolated writer cannot become an observed read, yet the
-    # prior watch can find B before that new file has any relation at all.
+    # Replacing the observed parameter writer with a fresh private container
+    # removes that actual read; the prior universe watch still finds B.
     (repo / "src/a.py").write_text(
         "def writer():\n    slot={}\n    slot['x']=1\n")
     with FileDependencies(folder, meta) as relations:
@@ -57,8 +60,11 @@ def test_observed_fallback_read_and_capture_wide_future_writer_watch(tmp_path):
     changed = build(config, offline=True, lexical_only=True)
     new_folder, new_meta = manifest(config, changed["version"])
     with FileDependencies(new_folder, new_meta) as relations:
-        assert ("synthetic-review", "src/b.py") not in relations.analysis_readers(
-            "synthetic-review", "src/a.py")
+        # The import still observes A's definition; only the container-effect
+        # read is removed when its receiver becomes a private fresh object.
+        assert not list(relations.db.execute(
+            "select 1 from analysis_reads where consumer_path='src/b.py' "
+            "and producer_path='src/a.py' and kind='container-effects'"))
         assert ("synthetic-review", "src/b.py") in relations.analysis_watchers(
             "slot-writer-universe")
     assert old != changed["version"]

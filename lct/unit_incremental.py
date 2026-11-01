@@ -606,7 +606,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         # index; an unsupported receiver expands through recorded watches.
         for ident in selected.copy():
             old_tree, new_tree = old_trees.get(ident), new_trees.get(ident)
-            if old_tree is None or new_tree is None or _signature(old_tree) == _signature(new_tree):
+            if new_tree is None or (old_tree is not None and
+                                    _signature(old_tree) == _signature(new_tree)):
                 continue
             origins = _prospective_changed_writer_origins(ident, new_tree, new_trees,
                                                            byid, graph)

@@ -1,0 +1,36 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_jedi_tool_first_container.py",
+    "tests/test_container_slot_scope_index.py",
+    "tests/test_dictionary_value_flow.py",
+    "tests/test_python_pipeline.py",
+    "tests/test_python_review_round3.py",
+    "tests/test_actual_item_unit_incremental.py",
+    "tests/test_cross_repository_python_incremental.py",
+    "tests/test_owner_incremental.py",
+    "review/parser-refactor/test_tool_first_independent.py",
+    "--tb=short"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 29.66,
+  "sha256_before": {
+    "lct/python_analysis.py": "7df04dd0ce1bacdfd26fe14df42ded9a2f8505a53f17fd0962d64d63346de0c0",
+    "lct/graph.py": "42ebbe8b75cd16b5aad41876b00ba7aed49514d9da7228208720707d684a1414",
+    "lct/storage.py": "c87d45a5e297d43dbfe921c4b450ca74beda2c5ea59b2b38408b9e89ad946718",
+    "tests/test_jedi_tool_first_container.py": "7ba16a5a389c8eeefbc78ef4d82ff31655ffd9ae0b2122f3ffeb345fadaf4d7a",
+    "tests/test_container_slot_scope_index.py": "5270f766b1e4b4ac52592e00946c607c6bf5ca16d9b0b381f650e56d5d273526",
+    "tests/test_python_review_round3.py": "ee1e7fd80ad4380302511c1bb2eebf0d8a70c98a462e6fdcadd06d905db96ad1"
+  },
+  "sha256_after": {
+    "lct/python_analysis.py": "7df04dd0ce1bacdfd26fe14df42ded9a2f8505a53f17fd0962d64d63346de0c0",
+    "lct/graph.py": "42ebbe8b75cd16b5aad41876b00ba7aed49514d9da7228208720707d684a1414",
+    "lct/storage.py": "c87d45a5e297d43dbfe921c4b450ca74beda2c5ea59b2b38408b9e89ad946718",
+    "tests/test_jedi_tool_first_container.py": "7ba16a5a389c8eeefbc78ef4d82ff31655ffd9ae0b2122f3ffeb345fadaf4d7a",
+    "tests/test_container_slot_scope_index.py": "5270f766b1e4b4ac52592e00946c607c6bf5ca16d9b0b381f650e56d5d273526",
+    "tests/test_python_review_round3.py": "ee1e7fd80ad4380302511c1bb2eebf0d8a70c98a462e6fdcadd06d905db96ad1"
+  }
+}

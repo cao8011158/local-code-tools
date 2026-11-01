@@ -1,0 +1,15 @@
+F.F                                                                      [100%]
+=================================== FAILURES ===================================
+_____ test_unrelated_function_dictionary_writers_do_not_grow_reads[module] _____
+review/parser-refactor/test_container_sources_independent.py:41: in test_unrelated_function_dictionary_writers_do_not_grow_reads
+    assert graph['slot_events_checked'] <= first['slot_events_checked']
+E   assert 23 <= 3
+_______ test_new_changed_deleted_imported_writer_updates_negative_reader _______
+review/parser-refactor/test_container_sources_independent.py:62: in test_new_changed_deleted_imported_writer_updates_negative_reader
+    assert any(f':function:{state}#' in target for target in s['targets'])
+E   assert False
+E    +  where False = any(<generator object test_new_changed_deleted_imported_writer_updates_negative_reader.<locals>.<genexpr> at 0x7f2052769380>)
+=========================== short test summary info ============================
+FAILED review/parser-refactor/test_container_sources_independent.py::test_unrelated_function_dictionary_writers_do_not_grow_reads[module]
+FAILED review/parser-refactor/test_container_sources_independent.py::test_new_changed_deleted_imported_writer_updates_negative_reader
+2 failed, 1 passed in 1.95s

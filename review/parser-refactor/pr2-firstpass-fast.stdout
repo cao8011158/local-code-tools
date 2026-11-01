@@ -1,0 +1,22 @@
+....F................................................................... [  8%]
+.............................................s.......................... [ 17%]
+................................................s....................... [ 26%]
+.....................................ss..........sss.......s.....s...sss [ 34%]
+.s.sssssssssss...sss.................................................... [ 43%]
+........................................................................ [ 52%]
+........................................................................ [ 61%]
+........................................................................ [ 69%]
+........................................................................ [ 78%]
+........................................................................ [ 87%]
+........................................................................ [ 96%]
+.................................                                        [100%]
+=================================== FAILURES ===================================
+_______ test_observed_fallback_read_and_capture_wide_future_writer_watch _______
+tests/test_analysis_dependency_sidecar.py:33: in test_observed_fallback_read_and_capture_wide_future_writer_watch
+    assert ("synthetic-review", "src/b.py") in relations.analysis_readers(
+E   AssertionError: assert ('synthetic-review', 'src/b.py') in set()
+E    +  where set() = analysis_readers('synthetic-review', 'src/a.py')
+E    +    where analysis_readers = <lct.storage.FileDependencies object at 0x7fa5a118f620>.analysis_readers
+=========================== short test summary info ============================
+FAILED tests/test_analysis_dependency_sidecar.py::test_observed_fallback_read_and_capture_wide_future_writer_watch
+1 failed, 797 passed, 27 skipped, 1 deselected in 151.30s (0:02:31)

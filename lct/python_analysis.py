@@ -5,9 +5,12 @@ engine: unsupported mutation and control flow contribute explicit unknown origin
 """
 
 import ast
+import copy
 import sys
 import tempfile
+from bisect import bisect_left
 from collections import defaultdict
+from heapq import merge
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -121,6 +124,10 @@ class Analyzer:
             i: t.body if not isinstance(t, ast.Lambda) else [] for i, t in trees.items()
         }
         self.queries, self.memo, self.container_exprs = {}, {}, {}
+        # Raw Jedi Names belong to this fixed capture; contextual mapping and
+        # source evidence live separately in self.queries.
+        self._raw_jedi_observations = {}
+        self.raw_jedi_observation_hits = 0
         # Source-only proofs share the same exact AST/before key as resolve.memo.
         # Keep only producer scopes needed to replay dependency observations.
         self._tool_lexical_sources = {}
@@ -140,6 +147,8 @@ class Analyzer:
         self.raw_query_counts = defaultdict(int)
         self.tool_first_sites = 0
         self.source_only_lexical_visits = 0
+        self.source_only_container_reads = 0
+        self.source_only_literal_entries_checked = 0
         self.legacy_target_sites = 0
         self._query_inflight = 0
         self.active = set()
@@ -299,8 +308,43 @@ class Analyzer:
             if key in self.queries:
                 self._observe_query(key, self.queries[key][0])
         self.effects = EffectCatalog(trees, self.execution_nodes)
-        self._slot_scopes_by_origin, self._slot_fallback_scopes = self._index_local_slot_scopes()
+        self._module_direct_bindings = self._index_module_literal_bindings()
+        self.slot_origin_binding_index_entries = sum(
+            len(bindings) for bindings in self._module_direct_bindings.values())
+        # Function/class declaration binding itself does not write a container.
+        # Default/decorator calls and class body execution remain separate events.
+        self._container_events = {
+            scope: [e for e in events if not (
+                e.kind == "binding" and isinstance(
+                    e.node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)))
+                    and e.kind != "call"
+                    and not (e.kind == "write" and isinstance(
+                        e.node, (ast.Assign, ast.AnnAssign, ast.Delete)) and
+                        all(isinstance(target, ast.Name)
+                            for target in self.write_targets(e.node)))
+                    and not (e.kind == "write" and any(
+                        isinstance(node, ast.Subscript) and
+                        isinstance(node.ctx, (ast.Store, ast.Del))
+                        for node in ast.walk(e.node)))]
+            for scope, events in self.effects.by_scope.items()
+        }
+        self._container_event_orders = {
+            scope: [e.order for e in events]
+            for scope, events in self._container_events.items()
+        }
+        self._slot_scopes_by_origin = defaultdict(set)
+        self._container_calls_by_origin = defaultdict(lambda: defaultdict(list))
+        self._container_call_orders = {}
+        self._container_writes_by_origin = defaultdict(lambda: defaultdict(list))
+        self._container_write_orders = {}
+        self._slot_fallback_scopes = set()
+        self._slot_writer_index_ready = False
+        self._slot_writer_index_active = False
+        self._indexing_writer_origins = False
         self.slot_scope_index_build_scopes = len(self.effects.slot_scopes)
+        self.slot_writer_index_receivers = 0
+        self.slot_writer_index_events = 0
+        self.slot_call_index_events = 0
         self.slot_scope_candidates_checked = 0
         self.slot_events_checked = 0
         self.value_reads = {}
@@ -310,6 +354,8 @@ class Analyzer:
     def _observe_analysis_input(self, scope, purpose, producer_scope=_SAME_INPUT_SCOPE,
                                 *, consumer_scope=None):
         """Record one captured input range without changing semantic resolution."""
+        if self._indexing_writer_origins:
+            return
         if not self._analysis_input_ready:
             raise RuntimeError("Analysis input observed during Analyzer initialization")
         consumer_scope = (consumer_scope if consumer_scope is not None else
@@ -336,6 +382,8 @@ class Analyzer:
             self.unit_input_events.add((owner, consumer, members, purpose))
 
     def _record_analysis_dependency(self, destination, record):
+        if self._indexing_writer_origins:
+            return
         if record in destination:
             return
         if len(self.analysis_reads) + len(self.analysis_watches) >= ANALYSIS_DEPENDENCY_LIMIT:
@@ -372,6 +420,8 @@ class Analyzer:
         return self._unit_site(scope, expr, "read"), expr
 
     def _unit_record(self, collection, record):
+        if self._indexing_writer_origins:
+            return
         if self.unit_dependency_truncated:
             return
         if (len(self.unit_supports) + len(self.unit_container_subscriptions) +
@@ -417,6 +467,8 @@ class Analyzer:
             kind=kind, status=status, detail=detail))
 
     def _unit_write(self, origin, key_kind, key, owner, expr, kind, status):
+        if self._indexing_writer_origins:
+            return None
         record = dict(origin=origin, key_kind=key_kind, key=key,
                       producer_owner=owner, producer_site=self._unit_site(owner, expr, "write"),
                       producer_location=dict(repository=self.nodes[owner]["repository"],
@@ -433,6 +485,8 @@ class Analyzer:
         return record
 
     def _unit_subscribe(self, origin, key_kind, key, scope, expr, reasons):
+        if self._indexing_writer_origins:
+            return
         # Resolution memo entries may be consumed by several distinct outer
         # call sites. Retain their actual reads for every later consumer.
         observation = (origin, key_kind, key, scope, expr, frozenset(reasons))
@@ -479,6 +533,8 @@ class Analyzer:
 
     def _record_scope_read(self, producer_scope, kind, consumer_scope=None):
         """Record an observed cross-module read at the current evaluation scope."""
+        if self._indexing_writer_origins:
+            return
         if consumer_scope is None:
             consumer_scope = self.stack[-1][0] if self.stack else None
         producer = self.module_for.get(producer_scope)
@@ -494,66 +550,235 @@ class Analyzer:
             if record.get("target") in self.module_for and record.get("mapping") == "exact-captured-definition":
                 self._record_scope_read(record["target"], "jedi-target", scope)
 
-    def _index_local_slot_scopes(self):
-        """Exclude only nonescaping, straight-line function-local containers.
+    def _index_module_literal_bindings(self):
+        """Index unique direct module allocations/aliases once, with rebound names out."""
+        indexed = {}
 
-        This is an admission proof for a scope, not an approximation of its
-        receivers. A failed proof keeps the entire scope in the original scan.
-        No resolution/Jedi work is performed while building this index.
-        """
-        by_origin = defaultdict(set)
-        fallback = set()
-        for scope in self.effects.slot_scopes:
-            tree = self.trees[scope]
-            if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                fallback.add(scope)
-                continue
-            bindings = {}
-            written = set()
-            safe = True
+        def stores(obj):
+            if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                yield obj.name
+                for part in getattr(obj, "decorator_list", ()):
+                    yield from stores(part)
+                return
+            if isinstance(obj, ast.Lambda):
+                return
+            if isinstance(obj, (ast.Import, ast.ImportFrom)):
+                for alias in obj.names:
+                    yield alias.asname or (alias.name.split(".")[0]
+                                           if isinstance(obj, ast.Import) else alias.name)
+                return
+            if isinstance(obj, ast.Name) and isinstance(obj.ctx, (ast.Store, ast.Del)):
+                yield obj.id
+            for child in ast.iter_child_nodes(obj):
+                yield from stores(child)
+
+        for module, tree in self.modules.items():
+            counts, candidates = defaultdict(int), {}
             for stmt in tree.body:
-                if isinstance(stmt, ast.Pass):
+                for name in stores(stmt):
+                    counts[name] += 1
+                if (isinstance(stmt, ast.Assign) and len(stmt.targets) == 1
+                        and isinstance(stmt.targets[0], ast.Name)
+                        and isinstance(stmt.value, (ast.Dict, ast.List, ast.Tuple, ast.Name))):
+                    candidates[stmt.targets[0].id] = stmt, stmt.value
+            indexed[module] = {name: source for name, source in candidates.items()
+                               if counts[name] == 1}
+        return indexed
+
+    def _simple_writer_origin(self, scope, expr, seen=None):
+        """Locate literal allocation/Name aliases without inferring slot values."""
+        if isinstance(expr, (ast.Dict, ast.List, ast.Tuple)):
+            key = f"{scope}:{expr.lineno}:{expr.col_offset}"
+            self.container_exprs[key] = scope, expr
+            return known("container", key)
+        if not isinstance(expr, ast.Name):
+            return None
+        seen = set() if seen is None else seen
+        marker = scope, id(expr)
+        if marker in seen:
+            return None
+        seen.add(marker)
+        lookup_scope, before = scope, (expr.lineno, expr.col_offset)
+        while lookup_scope in self.trees:
+            tree = self.trees[lookup_scope]
+            if not isinstance(tree, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+                return None
+            if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                args = tree.args.posonlyargs + tree.args.args + tree.args.kwonlyargs
+                args += [a for a in (tree.args.vararg, tree.args.kwarg) if a]
+                if any(a.arg == expr.id for a in args):
+                    return None
+            elif expr.id in self._module_direct_bindings.get(lookup_scope, {}):
+                statement, value = self._module_direct_bindings[lookup_scope][expr.id]
+                limit = (before, 10**9) if isinstance(before, int) else before
+                if (statement.lineno, statement.col_offset) < limit:
+                    return self._simple_writer_origin(lookup_scope, value, seen)
+                return None
+            items = self.reaching(lookup_scope, expr.id, before)
+            if items:
+                if len(items) != 1 or items[0][0] != "value":
+                    return None
+                return self._simple_writer_origin(lookup_scope, items[0][1], seen)
+            if self.local_bound(lookup_scope, expr.id):
+                return None
+            parent = self.nodes[lookup_scope]["parent"]
+            if parent not in self.trees or not isinstance(self.trees[parent], ast.Module):
+                return None
+            lookup_scope, before = parent, 10**9
+        return None
+
+    def _container_events_before(self, scope, anchor=None, origin=None):
+        """Read only effect-relevant event prefix indexed once per scope."""
+        limit = self.effects.points.get((scope, id(anchor)), float("inf"))
+        events = self._container_events.get(scope, ())
+        ordinary = events[:bisect_left(self._container_event_orders.get(scope, ()), limit)]
+        if origin is None:
+            return ordinary
+        calls = self._container_calls_by_origin.get(origin, {}).get(scope, ())
+        related_calls = calls[:bisect_left(
+            self._container_call_orders.get(origin, {}).get(scope, ()), limit)]
+        writes = self._container_writes_by_origin.get(origin, {}).get(scope, ())
+        related_writes = writes[:bisect_left(
+            self._container_write_orders.get(origin, {}).get(scope, ()), limit)]
+        return list(merge(ordinary, related_calls, related_writes,
+                          key=lambda event: event.order))
+
+    def _index_call_origins(self):
+        """Use the existing captured call summaries for source-related inputs."""
+        for function, events in self.effects.by_scope.items():
+            for event in events:
+                if event.kind != "call" or not event.reachable:
                     continue
-                if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
-                    continue
-                if isinstance(stmt, ast.Return) and (stmt.value is None or
-                        isinstance(stmt.value, ast.Constant)):
-                    continue
-                if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
-                    safe = False
-                    break
-                dest, value = stmt.targets[0], stmt.value
-                if isinstance(dest, ast.Name):
-                    if isinstance(value, (ast.Dict, ast.List, ast.Tuple)):
-                        parts = ([*value.keys, *value.values] if isinstance(value, ast.Dict)
-                                 else value.elts)
-                        if any(part is None or not isinstance(part, ast.Constant) for part in parts):
-                            safe = False
-                            break
-                        bindings[dest.id] = f"{scope}:{value.lineno}:{value.col_offset}"
-                    elif isinstance(value, ast.Name) and value.id in bindings:
-                        bindings[dest.id] = bindings[value.id]
-                    else:
-                        safe = False
-                        break
-                elif (isinstance(dest, ast.Subscript) and isinstance(dest.value, ast.Name)
-                      and dest.value.id in bindings and
-                      isinstance(dest.ctx, ast.Store) and
-                      self.literal_key(dest.slice)[0] and
-                      isinstance(value, ast.Constant)):
-                    written.add(bindings[dest.value.id])
-                else:
-                    safe = False
-                    break
-            if safe and written:
-                for origin in written:
-                    by_origin[origin].add(scope)
-            else:
-                fallback.add(scope)
-        return by_origin, fallback
+                self.slot_call_index_events += 1
+                call, callee = event.node, event.node.func
+                uses = [(function, use) for use in (
+                    ([callee.value] if isinstance(callee, ast.Attribute) else [])
+                    + call.args + [kw.value for kw in call.keywords])]
+                # prepare_site_queries already observed selected calls. The
+                # previous published site seeds unselected calls. Empty target
+                # sets are valid unknown observations, not a reason to query
+                # every unrelated caller again during a local update.
+                key = (self.module_for[function], callee.end_lineno,
+                       callee.end_col_offset, False)
+                positions = (pos for pos in self._site_keys.get(key, ())
+                             if self.sites[pos]["_call"] is call)
+                target_ids = {target for pos in positions
+                              for target in self._site_position_targets.get(pos, ())}
+                for target_id in target_ids:
+                    if target_id not in self.trees or not isinstance(
+                        self.trees[target_id],
+                        (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+                        continue
+                    summary = self.access.summary(target_id)
+                    uses.extend((target_id, ref) for ref, _ in summary["captures_all"])
+                origins = set()
+                for use_scope, use in uses:
+                    origins.update(self._container_input_origins(use_scope, use))
+                for origin in origins:
+                    self._container_calls_by_origin[origin][function].append(event)
+        self._container_call_orders = {
+            origin: {scope: [event.order for event in events]
+                     for scope, events in scopes.items()}
+            for origin, scopes in self._container_calls_by_origin.items()
+        }
+
+    def _container_input_origins(self, scope, expr, seen=None):
+        """Find explicit nested containers supplied to a captured call."""
+        if isinstance(expr, ast.Starred):
+            expr = expr.value
+        seen = set() if seen is None else seen
+        values = self._simple_writer_origin(scope, expr)
+        if values is None:
+            values = self.resolve(scope, expr)
+        origins = set()
+        for atom in values.atoms:
+            if atom.kind != "container":
+                continue
+            origin = self._unit_origin(atom)
+            origins.add(origin)
+            if origin in seen or atom.target not in self.container_exprs:
+                continue
+            seen.add(origin)
+            owner, obj = self.container_exprs[atom.target]
+            parts = obj.values if isinstance(obj, ast.Dict) else obj.elts
+            for part in parts:
+                if part is not None:
+                    origins.update(self._container_input_origins(owner, part, seen))
+        return origins
+
+    def _ensure_slot_writer_index(self):
+        """Locate captured writer receivers once by their actual container origin.
+
+        Unlocated receivers retain a separate boundary/watch; they are not
+        candidates for every unrelated known container read.
+        """
+        if self._slot_writer_index_ready or self._slot_writer_index_active:
+            return
+        self._slot_writer_index_active = True
+        self._indexing_writer_origins = True
+        prior_stack, self.stack = self.stack, []
+        # Private origin preparation cannot publish contextual mapped queries,
+        # memo results or effects into the real consumer's source ledger. Fresh
+        # work maps are O(1) to install regardless of capture size. Raw Jedi
+        # calls remain counted; actual consumers query/map and record again.
+        isolated = ("memo", "traces", "dependencies", "coverage", "coverage_models",
+                    "method_effects", "queries", "_query_context", "allocations",
+                    "_unit_subscriptions_by_query", "value_reads", "access")
+        prior = {name: getattr(self, name) for name in isolated}
+        private_access = copy.copy(self.access)
+        for name in ("summaries", "call_records", "private_bodies", "global_names",
+                     "captured_locals"):
+            setattr(private_access, name, {})
+        for name in isolated:
+            setattr(self, name,
+                    private_access if name == "access" else
+                    defaultdict(dict) if name == "_unit_subscriptions_by_query" else {})
+        try:
+            for function in sorted(self.effects.slot_scopes):
+                for event in self.effects.before(function):
+                    if event.kind != "write" or not event.reachable:
+                        continue
+                    statement = event.node
+                    if not isinstance(statement, (ast.Assign, ast.AnnAssign,
+                                                  ast.Delete, ast.AugAssign)):
+                        continue
+                    for dest in self.write_targets(statement):
+                        if not isinstance(dest, ast.Subscript):
+                            continue
+                        self.slot_writer_index_events += 1
+                        self.slot_writer_index_receivers += 1
+                        receiver = self._simple_writer_origin(function, dest.value)
+                        if receiver is None:
+                            receiver = self.resolve(function, dest.value)
+                        origins = {self._unit_origin(a) for a in receiver.atoms
+                                   if a.kind == "container"}
+                        for origin in origins:
+                            self._slot_scopes_by_origin[origin].add(function)
+                            if event not in self._container_writes_by_origin[origin][function]:
+                                self._container_writes_by_origin[origin][function].append(event)
+                        if receiver.unknown or not origins:
+                            self._slot_fallback_scopes.add(function)
+            self._index_call_origins()
+            self._container_write_orders = {
+                origin: {scope: [event.order for event in events]
+                         for scope, events in scopes.items()}
+                for origin, scopes in self._container_writes_by_origin.items()
+            }
+        finally:
+            # The private cache view shares immutable inventories but charges
+            # the same bounded ReceiverAccess budget for real analysis work.
+            prior["access"].budget = private_access.budget
+            for name, value in prior.items():
+                setattr(self, name, value)
+            self.stack = prior_stack
+            self._indexing_writer_origins = False
+            self._slot_writer_index_active = False
+        self._slot_writer_index_ready = True
 
     def _observe_query(self, key, result):
         """Index only observations already made by the ordinary query path."""
+        if self._indexing_writer_origins:
+            return
         positions = self._site_keys.get(key, ())
         new_targets = {atom.target for atom in result.atoms}
         for pos in positions:
@@ -591,6 +816,16 @@ class Analyzer:
             if owners != self._site_query_owners:
                 self._site_query_owners = owners
                 self._sites_prepared = False
+                # Actual argument sources can become available when the selected
+                # owner set expands. Rebuild source-origin membership once for
+                # that changed context, never on each container read.
+                self._slot_writer_index_ready = False
+                self._slot_scopes_by_origin.clear()
+                self._slot_fallback_scopes.clear()
+                self._container_calls_by_origin.clear()
+                self._container_call_orders.clear()
+                self._container_writes_by_origin.clear()
+                self._container_write_orders.clear()
         if self._sites_prepared or self._preparing_sites:
             return
         self._preparing_sites = True
@@ -996,13 +1231,27 @@ class Analyzer:
         raw, results = [], []
         self._query_inflight += 1
         try:
-            script = self.scripts[module]
-            self.executed_queries += 1
-            names = (
-                script.goto(expr.end_lineno, column, follow_imports=True)
-                if goto
-                else script.infer(expr.end_lineno, column)
-            )
+            observation = self._raw_jedi_observations.get(key)
+            if observation is None:
+                script = self.scripts[module]
+                self.executed_queries += 1
+                try:
+                    names = (
+                        script.goto(expr.end_lineno, column, follow_imports=True)
+                        if goto else script.infer(expr.end_lineno, column)
+                    )
+                    observation = tuple(names), None
+                except RequiredAnalysisContext:
+                    raise
+                except Exception as exc:
+                    observation = (), type(exc).__name__
+                self._raw_jedi_observations[key] = observation
+            else:
+                self.raw_jedi_observation_hits += 1
+            names, error = observation
+            if error:
+                raw.append(dict(error=error, mapping="jedi-error"))
+                results.append(unknown("jedi-error:" + error))
             for name in names:
                 value, record = self.map_name(name)
                 if (
@@ -1321,6 +1570,143 @@ class Analyzer:
             pending.extend(self.dependencies.get(key, ()))
         self.tool_first_sites += 1
         return result
+
+    def tool_first_subscript(self, scope, expr, signal):
+        """Record an exact literal dictionary read while using Jedi's target.
+
+        Admission is based on source origin, exact key and absence of related
+        effects. More general storage and all missing Jedi targets stay with
+        the finite container association.
+        """
+        if (not isinstance(expr, ast.Subscript) or not isinstance(expr.value, ast.Name)
+                or signal.reasons != frozenset({"jedi-inference-not-exhaustive"})):
+            return None
+        raw = self.queries.get((self.module_for[scope], expr.end_lineno,
+                                expr.end_col_offset, False), (None, ()))[1]
+        targets = {a.target for a in signal.atoms if a.kind == "callable"}
+        if (len(targets) != 1 or len(signal.atoms) != 1 or len(raw) != 1
+                or raw[0].get("mapping") != "exact-captured-definition"
+                or raw[0].get("target") not in targets):
+            return None
+        fixed, key = self.literal_key(expr.slice)
+        if not fixed:
+            return None
+        root = (scope, id(expr), (expr.lineno, expr.col_offset))
+        self.stack.append(root)
+        try:
+            containers = self.resolve(scope, expr.value)
+            if (containers.unknown or len(containers.atoms) != 1
+                    or not self.requirements_complete(containers)):
+                return None
+            atom = next(iter(containers.atoms))
+            if atom.kind != "container" or atom.allocation:
+                return None
+            origin_scope, obj = self.container_exprs[atom.target]
+            if (not isinstance(obj, ast.Dict) or
+                    origin_scope != scope and not (
+                        isinstance(self.trees[origin_scope], ast.Module)
+                        and self.nodes[scope]["parent"] == origin_scope)):
+                return None
+            entries = []
+            for source_key, value in zip(obj.keys, obj.values):
+                self.source_only_literal_entries_checked += 1
+                source_fixed, source_value = self.literal_key(source_key) if source_key else (False, None)
+                if not source_fixed:
+                    return None
+                entries.append((source_key, source_value, value))
+            selected = [value for _, address, value in entries if address == key]
+            if not selected or not isinstance(selected[-1], ast.Name):
+                return None
+            # This first source-only slice accepts a direct function source,
+            # not an actual-parameter/default/return association whose support
+            # would need a separate recorded producer path.
+            value = selected[-1]
+            bindings = self.reaching(origin_scope, value.id,
+                                     (value.lineno, value.col_offset))
+            producer_scope = origin_scope
+            if not bindings:
+                if self.local_bound(origin_scope, value.id):
+                    return None
+                parent = self.nodes[origin_scope]["parent"]
+                if parent not in self.trees or not isinstance(self.trees[parent], ast.Module):
+                    return None
+                bindings = self.reaching(parent, value.id, 10**9)
+                producer_scope = parent
+            if (len(bindings) != 1 or bindings[0][0] != "definition"
+                    or self.owner.get(id(bindings[0][1])) not in targets
+                    or getattr(bindings[0][1], "decorator_list", ())):
+                return None
+            self._ensure_slot_writer_index()
+            origin = self._unit_origin(atom)
+            if self._slot_scopes_by_origin.get(origin):
+                return None
+            relevant_scopes = {scope, origin_scope}
+            self.slot_scope_candidates_checked += len(relevant_scopes)
+            scoped_events = [event for current in sorted(relevant_scopes)
+                             for event in self._container_events_before(
+                                 current, expr if current == scope else None, origin)]
+            self.slot_events_checked += len(scoped_events)
+            if any(e.reachable and e.kind in ("call", "await", "region", "implicit-call",
+                                                  "scope-execution", "binding")
+                   for e in scoped_events):
+                return None
+            cov = EffectCoverage("container-write-source-coverage")
+            cov.source("finite-container-origin", True)
+            cov.source("selected-literal-slot-value", True)
+            for event in scoped_events:
+                cov.record(event, EffectOutcome(EffectKind.NO_EFFECT,
+                                                "no-container-dependency" if event.reachable
+                                                else "unreachable-after-termination"))
+            consumer = self.module_for[scope]
+            for current in relevant_scopes:
+                producer = self.module_for[current]
+                self.unit_analysis_reads.add((scope, consumer, producer, "container-effects"))
+                self._record_analysis_dependency(self.analysis_reads,
+                                                 (consumer, producer, "container-effects"))
+            self._record_analysis_dependency(self.analysis_watches,
+                                             (consumer, "slot-writer-universe", "all-captured-python"))
+            self.unit_analysis_watches.add((scope, consumer, "slot-writer-universe",
+                                            "all-captured-python"))
+            for source_key, address, _ in entries:
+                self._unit_write(origin, "exact", key_identity(address), origin_scope,
+                                 source_key, "dictionary-literal", "observed")
+            self._unit_subscribe(origin, "exact", key_identity(key), scope, expr,
+                                 containers.reasons)
+            target = next(iter(targets))
+            source_result = certified(known("callable", target), "reaching-lexical-binding")
+            source_key = (origin_scope, id(value), (value.lineno, value.col_offset))
+            self.dependencies.setdefault(root, []).append(source_key)
+            self._observe_analysis_input(origin_scope, "resolve-input")
+            self._observe_analysis_input(origin_scope, "lexical-lookup")
+            if producer_scope != origin_scope:
+                self._observe_analysis_input(producer_scope, "lexical-lookup")
+            self.traces[source_key] = dict(
+                scope=origin_scope, path=self.nodes[origin_scope]["path"], line=value.lineno,
+                column=value.col_offset, expression=ast.unparse(value), rule="Name",
+                alternatives=[dict(kind="callable", target=target, bound=False,
+                                   receiver="", allocation="")],
+                unknown_reasons=[], proofs=sorted(source_result.proofs),
+            )
+            self.memo[source_key] = source_result
+            result = certified(source_result, "literal-slot-state")
+            result = Result(result.atoms, result.reasons, result.proofs,
+                            frozenset({(scope, id(expr))}))
+            self.coverage[(scope, id(expr))] = cov.export()
+            self.traces[root] = dict(
+                scope=scope, path=self.nodes[scope]["path"], line=expr.lineno,
+                column=expr.col_offset, expression=ast.unparse(expr), rule="Subscript",
+                alternatives=[dict(kind="callable", target=next(iter(targets)), bound=False,
+                                   receiver="", allocation="")],
+                unknown_reasons=[], proofs=sorted(result.proofs),
+            )
+            self.memo[root] = result
+            if type(key) is str:
+                self.value_reads[(scope, expr.lineno, expr.col_offset)] = result
+            self.source_only_container_reads += 1
+            self.tool_first_sites += 1
+            return result
+        finally:
+            self.stack.pop()
 
     def _resolve(self, scope, expr, before):
         """Only explicit syntax associations are specialized."""
@@ -2529,6 +2915,9 @@ class Analyzer:
 
     def container_slots(self, atom, scope, anchor, lookup, seen=None, coverage=None):
         """Read a finite literal/copy snapshot, with ordered writes and explicit coverage."""
+        if self._indexing_writer_origins:
+            return {}, set(), [unknown("writer-origin-index-in-progress")], []
+        self._ensure_slot_writer_index()
         consumer = self.module_for[scope]
         self._record_analysis_dependency(
             self.analysis_watches, (consumer, "slot-writer-universe", "all-captured-python"))
@@ -2658,8 +3047,7 @@ class Analyzer:
                         sealed.add(k)
                     else:
                         uncertain("dynamic-literal-dict-key")
-        candidates = (self._slot_scopes_by_origin.get(atom.target, set()) |
-                      self._slot_fallback_scopes | {scope, owner})
+        candidates = self._slot_scopes_by_origin.get(self._unit_origin(atom), set()) | {scope, owner}
         self.slot_scope_candidates_checked += len(candidates)
         for function in sorted(candidates):
             root_owner = self.stack[0][0] if self.stack else scope
@@ -2668,7 +3056,8 @@ class Analyzer:
             self._record_analysis_dependency(
                 self.analysis_reads, (consumer, self.module_for[function], "container-effects"))
             tree = self.trees[function]
-            scoped_events = self.effects.before(function, anchor if function == scope else None)
+            scoped_events = self._container_events_before(
+                function, anchor if function == scope else None, self._unit_origin(atom))
             for event in scoped_events:
                 self.slot_events_checked += 1
                 statement = event.node

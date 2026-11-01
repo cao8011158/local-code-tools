@@ -1,0 +1,3 @@
+{"noise": 0, "mode": "incremental-owners", "owners": 4, "jedi": 1, "entries": 2, "callprep": null, "read_events": 4}
+{"noise": 20, "mode": "incremental-owners", "owners": 4, "jedi": 1, "entries": 2, "callprep": null, "read_events": 4}
+{"noise": 100, "mode": "incremental-owners", "owners": 4, "jedi": 1, "entries": 2, "callprep": null, "read_events": 4}

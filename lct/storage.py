@@ -973,11 +973,16 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             sorted(owner_observations[2]))
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
+    info["jedi_raw_observation_hits"] = 0
     info["association_evaluations"] = 0
-    for key in ("tool_first_sites", "source_only_lexical_visits", "legacy_target_sites"):
+    for key in ("tool_first_sites", "source_only_lexical_visits",
+                "source_only_container_reads", "source_only_literal_entries_checked",
+                "legacy_target_sites"):
         info[key] = 0
     for key in ("slot_scope_index_build_scopes", "slot_scope_fallback_scopes",
-                "slot_scope_candidates_checked", "slot_events_checked"):
+                "slot_scope_candidates_checked", "slot_events_checked",
+                "slot_writer_index_receivers", "slot_writer_index_events",
+                "slot_call_index_events", "slot_origin_binding_index_entries"):
         info[key] = 0
     return (nodes, edges, info), "python-capture-identical"
 
