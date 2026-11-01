@@ -318,6 +318,10 @@ class Graph:
             selected = None if selected_owners is None else frozenset(selected_owners)
             def chosen(owner):
                 return selected is None or owner in selected
+            # Build the reverse Jedi target index once for this capture's selected
+            # sites. Parameter and constructor queries then inspect only actual
+            # target observations or explicit matching call spellings.
+            analyzer.prepare_site_queries(selected)
             # This relation exists even when a base or receiver is unresolved:
             # changing the declaring class can alter a method's MRO lookup.
             # It is a source dependency, not an invocation edge.
@@ -399,6 +403,15 @@ class Graph:
                         ),
                     ],
                 )
+                goto_key = (analyzer.module_for[scope], expr.end_lineno,
+                            expr.end_col_offset, True)
+                if (any((target, id(expr)) in analyzer._classmethod_site_targets
+                        for target in targets) and goto_key in analyzer.queries):
+                    record["evidence"].append(dict(
+                        tool="jedi", version="0.20.1",
+                        role="exact inherited classmethod declaration via goto",
+                        raw=analyzer.queries[goto_key][1],
+                    ))
                 sites.append(record)
                 for target in targets:
                     if target in analyzer.trees:
@@ -663,6 +676,16 @@ class Graph:
                 jedi_queries=len(analyzer.queries),
                 jedi_queries_reused=analyzer.reused_queries,
                 jedi_queries_executed=analyzer.executed_queries,
+                jedi_query_entries=analyzer.query_entries,
+                jedi_query_cache_hits=analyzer.query_cache_hits,
+                jedi_raw_result_counts=dict(analyzer.raw_query_counts),
+                candidate_site_queries_prepared=analyzer.site_queries_prepared,
+                classmethod_source_sites=analyzer.classmethod_source_sites,
+                candidate_calls=analyzer.candidate_calls,
+                candidate_visits=analyzer.candidate_visits,
+                candidate_target_positions=analyzer.candidate_target_positions,
+                candidate_unknown_bucket_visits=analyzer.candidate_unknown_bucket_visits,
+                candidate_preparation_reentries=analyzer.preparation_candidate_reentries,
                 _query_observations=analyzer.reusable_queries(),
                 _import_dependencies=import_dependencies,
                 _import_requests=import_requests,

@@ -51,7 +51,7 @@ AWAIT_FORMS = [
 def test_await_position_matrix(tmp_path, operation):
     text = source("receiver.run=b", operation, asynchronous=True)
     s = check(
-        analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", set(), {"a", "b"}, True
+        analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a", "b"}, set(), True
     )
     assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
     assert not s["resolution_decision"]["excluded_jedi_targets"]
@@ -310,7 +310,7 @@ def test_unrelated_nested_body_in_region_does_not_resume(tmp_path):
         "receiver.run=b", "for _ in ():\n  async def nested():\n   await obj.change()", True
     )
     result = analyze(tmp_path, {"demo.py": text}, closed=False)
-    s = check(result, "obj.run", {"a"}, {"b"}, True)
+    s = check(result, "obj.run", {"a", "b"}, set(), True)
     assert "unsupported-protocol-region" in s["unresolved_reasons"]
     assert not any("deferred-" in r for r in s["unresolved_reasons"])
     owners = {n["node_id"]: n["qualname"] for n in result[0]}
@@ -374,8 +374,8 @@ def test_unresolved_deferred_receiver_is_an_association_gap(tmp_path):
     s = check(
         analyze(tmp_path, {"demo.py": source("receiver.run=b", "await flag")}, closed=False),
         "obj.run",
-        set(),
         {"a", "b"},
+        set(),
         True,
     )
     assert "deferred-receiver-association-gap" in s["unresolved_reasons"]
@@ -432,7 +432,7 @@ def test_forged_complete_flag_cannot_exclude_jedi_or_certify(tmp_path, receipt):
 )
 def test_unsupported_dependent_local_binding_refuses_summary(tmp_path, body):
     s = check(
-        analyze(tmp_path, {"demo.py": source(body)}, closed=False), "obj.run", {"a"}, {"b"}, True
+        analyze(tmp_path, {"demo.py": source(body)}, closed=False), "obj.run", {"a", "b"}, set(), True
     )
     assert "unsupported-summary-binding" in s["unresolved_reasons"]
 
@@ -447,7 +447,7 @@ def test_unsupported_dependent_local_binding_refuses_summary(tmp_path, body):
 def test_chained_comparison_resumption_is_conditional(tmp_path, operation):
     text = source("receiver.run=b", operation, True)
     s = check(
-        analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", set(), {"a", "b"}, True
+        analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a", "b"}, set(), True
     )
     assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
     a = analyzer_for(tmp_path, text)
@@ -460,7 +460,7 @@ def test_chained_comparison_resumption_is_conditional(tmp_path, operation):
 
 def test_executed_class_body_is_an_explicit_scope_dependency(tmp_path):
     text = source("receiver.run=b", "class Nested:\n  obj.run=b")
-    s = check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a"}, {"b"}, True)
+    s = check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a", "b"}, set(), True)
     assert "unsupported-class-definition-effects" in s["unresolved_reasons"]
 
 

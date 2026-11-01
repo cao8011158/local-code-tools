@@ -139,6 +139,10 @@ source certificate policy in this batch.
 
 ## Function-value dependency design status
 
+Jedi-backed caller discovery now prepares selected call-site observations once, then indexes mapped targets and literal lambda identity. Initial full analysis may inspect all captured call sites in preparation; ordinary local updates inspect selected owners and actual dependency relations. An unresolved or failed Jedi query stays at its original site with raw reason and external boundary evidence; matching a method spelling does not establish a caller relation. A mapped Jedi target remains a target when local association is merely unknown or lacks proof. A concrete semantic counterexample and applicable effect/source evidence are required to exclude it. Query entries, cache hits, real Jedi executions and candidate visits are separate measurements. These are possible static call targets, not proof that a runtime path executes.
+
+For an inherited `@classmethod` access where Jedi `infer` reports only `builtins.classmethod.__get__`, the same token's Jedi `goto(..., follow_imports=True)` can identify the captured declaration. Caller indexing uses that exact declaration only when the existing receiver association confirms a bound class receiver with complete source coverage. The original `infer` boundary stays in raw site evidence. This is a narrowly observed API path, not a general fallback over unknown calls.
+
 The private analysis dependency sidecar now writes schema 2 (schema 1 remains
 readable for its original container-effect kind). It records **observed**
 cross-module reads of known class members, function return bodies, matched

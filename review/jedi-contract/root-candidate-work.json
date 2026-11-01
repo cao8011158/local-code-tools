@@ -1,0 +1,78 @@
+{
+  "program_hash": "c2cffb2bb8bb639a4ee74c6bf32ef657594dd7981bb6006d04cd8cf41297368b",
+  "rows": [
+    {
+      "unrelated_unknown_calls": 0,
+      "unrelated_same_named_methods": 0,
+      "counted_actual_candidate_returns": {
+        "all": 1,
+        "unknown_noise": 0
+      },
+      "preserved_unknown_sites": 0,
+      "metrics": {
+        "candidate_site_queries_prepared": 2,
+        "candidate_calls": 1,
+        "candidate_visits": 1,
+        "candidate_unknown_bucket_visits": 0,
+        "jedi_query_entries": 6,
+        "jedi_queries_executed": 2,
+        "jedi_query_cache_hits": 4,
+        "jedi_raw_result_counts": {
+          "exact-captured-definition": 2
+        },
+        "candidate_preparation_reentries": 0
+      }
+    },
+    {
+      "unrelated_unknown_calls": 20,
+      "unrelated_same_named_methods": 20,
+      "counted_actual_candidate_returns": {
+        "all": 1,
+        "unknown_noise": 0
+      },
+      "preserved_unknown_sites": 20,
+      "metrics": {
+        "candidate_site_queries_prepared": 22,
+        "candidate_calls": 21,
+        "candidate_visits": 1,
+        "candidate_unknown_bucket_visits": 0,
+        "jedi_query_entries": 66,
+        "jedi_queries_executed": 22,
+        "jedi_query_cache_hits": 44,
+        "jedi_raw_result_counts": {
+          "exact-captured-definition": 2,
+          "empty": 20
+        },
+        "candidate_preparation_reentries": 0
+      }
+    },
+    {
+      "unrelated_unknown_calls": 100,
+      "unrelated_same_named_methods": 100,
+      "counted_actual_candidate_returns": {
+        "all": 1,
+        "unknown_noise": 0
+      },
+      "preserved_unknown_sites": 100,
+      "metrics": {
+        "candidate_site_queries_prepared": 102,
+        "candidate_calls": 101,
+        "candidate_visits": 1,
+        "candidate_unknown_bucket_visits": 0,
+        "jedi_query_entries": 306,
+        "jedi_queries_executed": 102,
+        "jedi_query_cache_hits": 204,
+        "jedi_raw_result_counts": {
+          "exact-captured-definition": 2,
+          "empty": 100
+        },
+        "candidate_preparation_reentries": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Actual candidate returns are counted by wrapping, not replacing, the real generator.",
+    "Initial frontend queries grow with source sites; this is not a warm update measurement.",
+    "No captured business code or provider is executed. Timing is not used as a correctness assertion."
+  ]
+}

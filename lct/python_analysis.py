@@ -125,6 +125,16 @@ class Analyzer:
         self.query_reuse = query_reuse or {}
         self.reused_queries = 0
         self.executed_queries = 0
+        self.query_entries = 0
+        self.query_cache_hits = 0
+        self.site_queries_prepared = 0
+        self.classmethod_source_sites = 0
+        self.candidate_calls = 0
+        self.candidate_visits = 0
+        self.candidate_target_positions = 0
+        self.candidate_unknown_bucket_visits = 0
+        self.preparation_candidate_reentries = 0
+        self.raw_query_counts = defaultdict(int)
         self._query_inflight = 0
         self.active = set()
         self.stack, self.traces, self.dependencies = [], {}, {}
@@ -235,14 +245,19 @@ class Analyzer:
 
         self._site_index_size = len(self.sites)
         self._site_keys = defaultdict(set)
-        self._site_spellings = defaultdict(set)
-        self._site_unqueried = set()
-        self._site_no_atoms = set()
         self._site_targets = defaultdict(set)
+        self._classmethod_site_targets = set()
+        self._sites_by_owner = defaultdict(list)
+        self._site_position_targets = defaultdict(set)
         previous_sites = {(s["execution_owner"], s["line"], s["column"], s["kind"]): s
                           for s in (candidate_site_evidence or ())}
+        site_query_owners = None if selected_owners is None else frozenset(selected_owners)
         selected_owners = frozenset(selected_owners or ())
         self._selected_owner_mode = bool(selected_owners)
+        self._site_query_owners = site_query_owners
+        self._sites_prepared = False
+        self._prepared_site_positions = set()
+        self._preparing_sites = False
         component_sites = {component: [] for component in (candidate_components or {}).values()}
         if self.candidate_components is not None:
             for pos, site in enumerate(self.sites):
@@ -260,26 +275,21 @@ class Analyzer:
         for pos, site in enumerate(self.sites):
             if site["_call"] is None:
                 continue
-            self._site_unqueried.add(pos)
+            self._sites_by_owner[site["execution_owner"]].append(pos)
             expr = site["_expr"]
             old = previous_sites.get((site["execution_owner"], site["line"],
                                       site["column"], site["kind"]))
             if (site["execution_owner"] not in selected_owners and old is not None
                     and old.get("expression") == site["expression"]):
-                if old.get("unknown_origin") or not old.get("complete"):
-                    # Unknown and partial candidates must stay in the search.
-                    pass
-                else:
-                    self._site_unqueried.discard(pos)
                 for target in old["targets"]:
                     self._site_targets[target].add(pos)
+                    self._site_position_targets[pos].add(target)
             key = (self.module_for[site["execution_owner"]], expr.end_lineno,
                    expr.end_col_offset, False)
             self._site_keys[key].add(pos)
-            spelling = (expr.id if isinstance(expr, ast.Name) else
-                        expr.attr if isinstance(expr, ast.Attribute) else None)
-            if spelling is not None:
-                self._site_spellings[spelling].add(pos)
+            if isinstance(expr, ast.Lambda) and id(expr) in self.owner:
+                self._site_targets[self.owner[id(expr)]].add(pos)
+                self._site_position_targets[pos].add(self.owner[id(expr)])
             if key in self.queries:
                 self._observe_query(key, self.queries[key][0])
         self.effects = EffectCatalog(trees, self.execution_nodes)
@@ -539,30 +549,89 @@ class Analyzer:
     def _observe_query(self, key, result):
         """Index only observations already made by the ordinary query path."""
         positions = self._site_keys.get(key, ())
-        self._site_unqueried.difference_update(positions)
-        if not result.atoms:
-            self._site_no_atoms.update(positions)
-        else:
-            for atom in result.atoms:
-                self._site_targets[atom.target].update(positions)
+        new_targets = {atom.target for atom in result.atoms}
+        for pos in positions:
+            literal = (self.owner.get(id(self.sites[pos]["_expr"]))
+                       if isinstance(self.sites[pos]["_expr"], ast.Lambda) else None)
+            for target in self._site_position_targets[pos] - new_targets - ({literal} if literal else set()):
+                self._site_targets[target].discard(pos)
+            self._site_position_targets[pos] = new_targets | ({literal} if literal else set())
+            for target in self._site_position_targets[pos]:
+                self._site_targets[target].add(pos)
 
     def candidate_sites(self, function):
-        """Preserve may_call's admission and original site order, including unknowns."""
+        """Locate callers only by observed target or literal lambda identity."""
         self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
+        if self._preparing_sites:
+            self.preparation_candidate_reentries += 1
+        self.prepare_site_queries()
         component = self._candidate_component(function)
-        if ((self._query_inflight and not self._selected_owner_mode) or
-                len(self.sites) != self._site_index_size):
-            return self.sites if component is None or len(self.sites) != self._site_index_size else self.sites_for(function)
+        targets = self._site_targets.get(function, set())
         if component is None:
-            positions = (self._site_spellings.get(self.nodes[function]["name"], set())
-                         | self._site_targets.get(function, set())
-                         | self._site_no_atoms | self._site_unqueried)
+            positions = targets
         else:
             allowed = self._component_site_positions[component]
-            positions = ((self._site_spellings.get(self.nodes[function]["name"], set()) & allowed)
-                         | (self._site_targets.get(function, set()) & allowed)
-                         | (self._site_no_atoms & allowed) | (self._site_unqueried & allowed))
-        return (self.sites[pos] for pos in sorted(positions))
+            positions = targets & allowed
+        ordered = sorted(positions)
+        self.candidate_calls += 1
+        self.candidate_visits += len(ordered)
+        self.candidate_target_positions += len(targets if component is None else targets & allowed)
+        return (self.sites[pos] for pos in ordered)
+
+    def prepare_site_queries(self, owners=None):
+        """Query each selected site once before per-function caller searches."""
+        if owners is not None:
+            owners = frozenset(owners)
+            if owners != self._site_query_owners:
+                self._site_query_owners = owners
+                self._sites_prepared = False
+        if self._sites_prepared or self._preparing_sites:
+            return
+        self._preparing_sites = True
+        try:
+            positions = (range(len(self.sites)) if self._site_query_owners is None else
+                         sorted(pos for owner in self._site_query_owners
+                                for pos in self._sites_by_owner.get(owner, ())))
+            newly_prepared = []
+            for pos in positions:
+                if pos not in self._prepared_site_positions and self.sites[pos]["_call"] is not None:
+                    site = self.sites[pos]
+                    self.query(site["execution_owner"], site["_expr"])
+                    self.site_queries_prepared += 1
+                    self._prepared_site_positions.add(pos)
+                    newly_prepared.append(pos)
+            for pos in newly_prepared:
+                site = self.sites[pos]
+                expr = site["_expr"]
+                signal = self.queries[(self.module_for[site["execution_owner"]],
+                                       expr.end_lineno, expr.end_col_offset, False)][0]
+                if not (isinstance(expr, ast.Attribute) and len(signal.atoms) == 1 and
+                        next(iter(signal.atoms)).kind == "boundary" and
+                        next(iter(signal.atoms)).target == "builtins.classmethod.__get__"):
+                    continue
+                # infer reports the descriptor; goto at this same source token
+                # supplies the captured declaration. Use that Jedi definition
+                # first and retain the original infer boundary observation.
+                declaration = self.query(site["execution_owner"], expr, goto=True)
+                declared = {a.target for a in declaration.atoms if a.kind == "callable"}
+                if len(declared) != 1:
+                    continue
+                local = self.resolve(site["execution_owner"], expr)
+                if local.unknown or not self.requirements_complete(local):
+                    continue
+                for atom in local.atoms:
+                    tree = self.trees.get(atom.target)
+                    if (atom.kind == "callable" and atom.target in declared and
+                            atom.bound and atom.receiver and
+                            isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)) and
+                            any(ast.unparse(d) == "classmethod" for d in tree.decorator_list)):
+                        self._site_targets[atom.target].add(pos)
+                        self._site_position_targets[pos].add(atom.target)
+                        self._classmethod_site_targets.add((atom.target, id(expr)))
+                        self.classmethod_source_sites += 1
+            self._sites_prepared = True
+        finally:
+            self._preparing_sites = False
 
     def _candidate_component(self, function):
         if self.candidate_components is None:
@@ -574,12 +643,8 @@ class Analyzer:
         return component
 
     def sites_for(self, function):
-        """The full ordered candidate universe within a certified component."""
-        self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
-        component = self._candidate_component(function)
-        if component is None or len(self.sites) != self._site_index_size:
-            return self.sites
-        return (self.sites[pos] for pos in self._component_site_order[component])
+        """Constructor callers use the same source-backed index as parameters."""
+        return self.candidate_sites(function)
 
     def close(self):
         """Release only this analyzer's private captured sources."""
@@ -893,10 +958,12 @@ class Analyzer:
 
     def query(self, scope, expr, goto=False):
         """Preserve tool failures and every raw definition mapping."""
+        self.query_entries += 1
         module = self.module_for[scope]
         self._observe_analysis_input(scope, "jedi-query")
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
+            self.query_cache_hits += 1
             self._record_query_targets(scope, self.queries[key][1])
             return self.queries[key][0]
         self._query_context[key] = (scope, expr)
@@ -951,6 +1018,11 @@ class Analyzer:
         finally:
             self._query_inflight -= 1
         result = union(*results) if results else unknown("jedi-no-result")
+        if not raw:
+            self.raw_query_counts["empty"] += 1
+        for record in raw:
+            mapping = record.get("mapping", "jedi-error" if "error" in record else "unmapped")
+            self.raw_query_counts[mapping] += 1
         if not goto and any(a.kind in ("callable", "class", "instance") for a in result.atoms):
             result = union(result, unknown("jedi-inference-not-exhaustive"))
         self.queries[key] = result, raw
@@ -2152,6 +2224,20 @@ class Analyzer:
             return unknown("unknown-constructor-field-input")
         return self.resolve(function, expr)
 
+    def caller_atoms(self, function, site):
+        """Use the same selected callee as the public call site for argument flow."""
+        scope, expr = site["execution_owner"], site["_expr"]
+        local = self.resolve(scope, expr)
+        signal = self.query(scope, expr)
+        selected, _ = self.adjudicate(scope, expr, local, signal)
+        matching = [a for a in selected.atoms
+                    if a.target == function and a.kind in CALLABLE_KINDS]
+        # Jedi's declaration alone does not encode receiver binding. A matching
+        # validated local atom carries the bound receiver and allocation.
+        local_atoms = [a for a in local.atoms
+                       if a.target == function and a.kind in CALLABLE_KINDS]
+        return local_atoms if local_atoms and matching else matching
+
     def parameter(self, scope, param):
         """Associate explicit callers, keeping receiver offset and open input provenance."""
         t = self.trees[scope]
@@ -2169,7 +2255,7 @@ class Analyzer:
             for site in self.candidate_sites(scope):
                 if site["_call"] is None or not self.may_call(scope, site):
                     continue
-                for a in self.resolve(site["execution_owner"], site["_expr"]).atoms:
+                for a in self.caller_atoms(scope, site):
                     if a.kind == "callable" and a.target == scope and a.bound and a.receiver:
                         self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         receivers.append(
@@ -2200,12 +2286,11 @@ class Analyzer:
             # A lexical body without an observed invocation can still be reached by
             # explicitly constructed instances; preserve those finite origins.
             if "classmethod" not in decorators:
-                for site in (self.candidate_sites(parent) if self._selected_owner_mode
-                             else self.sites_for(scope)):
+                for site in self.candidate_sites(parent):
                     if site["_call"] is None:
                         continue
-                    callee = self.resolve(site["execution_owner"], site["_expr"])
-                    if any(a.kind == "class" and a.target == parent for a in callee.atoms):
+                    if any(a.kind == "class" and a.target == parent
+                           for a in self.caller_atoms(parent, site)):
                         self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         allocation = f"{site['execution_owner']}:{site['_call'].lineno}:{site['_call'].col_offset}"
                         self.allocations[allocation] = (site["execution_owner"], site["_call"])
@@ -2235,8 +2320,7 @@ class Analyzer:
             call = site["_call"]
             if call is None or not self.may_call(scope, site):
                 continue
-            targets = self.resolve(site["execution_owner"], site["_expr"])
-            for a in targets.atoms:
+            for a in self.caller_atoms(scope, site):
                 if a.target != scope or a.kind != "callable":
                     continue
                 self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
@@ -2774,8 +2858,7 @@ class Analyzer:
             call = site["_call"]
             if call is None or not self.may_call(function, site):
                 continue
-            targets = self.resolve(site["execution_owner"], site["_expr"])
-            for a in targets.atoms:
+            for a in self.caller_atoms(function, site):
                 if a.target != function or a.kind != "callable":
                     continue
                 if allocation and a.allocation != allocation:
@@ -2824,29 +2907,26 @@ class Analyzer:
         return union(*results) if results else None
 
     def may_call(self, function, site):
-        """Cheap Jedi/name gate avoids recursively exploring unrelated parameter calls.
+        """Admit an observed target, exact spelling, or the literal lambda site.
 
-        It is only a work filter: every admitted candidate is subsequently resolved and
-        compared by exact node identity. Missing or failed Jedi observations are admitted
-        conservatively, preserving AST-only associations and explicit budget limits.
+        An unresolved Jedi call remains in the site inventory but does not become
+        a possible caller of every function. Admitted sites are resolved by exact
+        target identity before their arguments are used.
         """
         self._observe_analysis_input(function, "call-candidates",
                                      producer_scope=site["execution_owner"],
                                      consumer_scope=function)
         expr = site["_expr"]
-        name = (
-            expr.id
-            if isinstance(expr, ast.Name)
-            else expr.attr
-            if isinstance(expr, ast.Attribute)
-            else None
-        )
-        if name == self.nodes[function]["name"]:
+        if isinstance(expr, ast.Lambda) and self.owner.get(id(expr)) == function:
             return True
         signal = self.query(site["execution_owner"], expr)
         if any(a.target == function for a in signal.atoms):
             return True
-        return not signal.atoms
+        if (any(a.kind == "boundary" and a.target == "builtins.classmethod.__get__"
+                for a in signal.atoms) and
+                (function, id(expr)) in self._classmethod_site_targets):
+            return True
+        return False
 
     def parameter_default(self, function, name):
         """Locate the source expression supplying a positional or keyword-only default."""
@@ -3023,14 +3103,23 @@ class Analyzer:
         if conflict:
             if justified and not result.unknown:
                 reason = "tested-semantic-rule"
-            elif justified or receipt and result.unknown and result.proofs:
-                result = union(result, unknown("unresolved-partial-signal-conflict"))
+            elif justified or (receipt and result.unknown and
+                               result.proofs & derived_rules and receipt.get("events")):
+                # A partial field/slot receipt may still carry concrete reaching
+                # writers (for example a conditional field assignment). Such a
+                # source supports an LCT alternative alongside Jedi, without
+                # asserting that the result is complete.
+                result = union(result, signal, unknown("unresolved-partial-signal-conflict"))
                 reason = "partial-association-conflict-retained"
             else:
+                # A partial association is not grounds to discard a captured
+                # definition supplied by Jedi. Keep its raw uncertainty too.
                 result = union(
-                    Result(reasons=result.reasons), unknown("unadjudicated-jedi-lct-conflict")
+                    Result(frozenset(a for a in result.atoms if a.kind not in CALLABLE_KINDS),
+                           result.reasons, result.proofs, result.requirements),
+                    signal, unknown("unadjudicated-jedi-lct-conflict"),
                 )
-                reason = "unresolved-conflict-no-decisive-rule"
+                reason = "jedi-target-with-unproved-association"
         if not result.proofs and not result.unknown:
             result = union(result, unknown("no-completeness-proof"))
         if not chosen and any(

@@ -127,7 +127,7 @@ def test_component_candidates_read_only_indexed_sites(tmp_path, noise):
         assert list(analyzer.candidate_sites(target)) == expected
         analyzer._query_inflight = 0
         analyzer.sites.append(dict(_call=None))
-        assert analyzer.candidate_sites(target) is analyzer.sites
+        assert list(analyzer.candidate_sites(target)) == expected
     finally:
         analyzer.close()
 

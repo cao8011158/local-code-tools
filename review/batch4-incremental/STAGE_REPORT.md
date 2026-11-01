@@ -1,6 +1,14 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-02：阶段142，JD-1本地开发冻结、尚未新提交。开发侧343定向通过；最终774 passed/27 skipped/1 deselected/112.83秒，生产前后hash一致。取消未知/未查/同名全域候选，按工具已定位目标与明确来源建立反向索引；保留Jedi目标、原始infer/goto/unknown以及参数/容器支持。root独立0/20/100同名方法+未知调用实测候选返回恒1、未知返回0、全部unknown保留。完整83新逻辑cold预检进行中，待固定远端独立review；LO3整体未验收，不合并。 [开发报告](../jedi-contract/DEVELOPER.md)。
+
+2026-11-02：阶段141，用户批准JD-1新语义实施：保留未知，禁止逐函数扫描未知/未查调用集合，Jedi明确输出优先。远端aa95ca6968812fdd357d5fe5b91740dc0ba0d371/目标e3db45fc核验；开发已派发只读诊断，root建立独立反例。LO2历史三轮保留，LO3完整83待补验；新生产尚未修改、未正式review、不合并。 [本次计划](../jedi-contract/PLAN.md)。
+
+2026-11-01：阶段140，按用户“先暂停”停止完整83文件长时建图，工具会话确认exit130；保留当前代码和日志，不继续重跑或修改分析器。前两批已通过，LO3独立快速758通过；完整首次图和真实warm验收尚未完成。现有证据指向参数/接收者推导反复遍历候选，大量缓存命中仍付出检查/来源记录成本；不将1,480万入口次数说成实际Jedi查询。 [暂停状态](../local-only-updates/LO3_PAUSED_STATUS.json)。
+
+2026-11-01：阶段139，LO-3固定aa95ca6968812fdd357d5fe5b91740dc0ba0d371独立快速758 passed/27 skipped/1 deselected/113.42秒；583物化文件Git blob一致。独立N0/20/100计数10owner/6Jedi/8关联/3site及65/61VM不变，九文件真实输出重验来源证明通过。完整83文件首次图仍未得到；已开始1200秒限时、低频观察续验，尚非正式LO3结论、不合并。 [独立进展](../local-only-updates/LO3_INDEPENDENT_PROGRESS.md)。
+
 2026-11-01：阶段138，LO-3开发/验证材料冻结，生产与已通过f13f934984f834ef957198c1782c36f85beda8de一致。最终758 passed/27 skipped/1 deselected/117.46秒；九文件离线USEARCH1 passed/105.92秒；连续更新、失败保留current、新进程重试及0/20/100无关范围测量通过。完整83文件cold先300秒、再带只读观察600秒均超时124；第二次14,797,200查询入口调用/10,930实际Jedi，尚未首次图/暖更新验收。LO3完整功能阻塞，不能合并或宣称工具完成。 [开发报告](../local-only-updates/LO3_DEVELOPER.md)。
 
 2026-11-01：阶段137，LO-2固定f13f934984f834ef957198c1782c36f85beda8de第3/3轮独立审阅通过。536物化文件Git blob一致；741 passed/27 skipped/1 deselected/108.51秒，三个原P2已关闭。正常更新只走owner路径，未知/预算标记保留，损坏不兼容明确失败保留旧图。进入LO-3完整83文件和规模验收；尚未合并。 [累计审阅](../local-only-updates/LO2_REVIEW.md)。
@@ -1162,3 +1170,104 @@ After freezing the helper and tests, the final command was:
 It completed **758 passed, 27 skipped, 1 deselected in 117.46s**; raw log `lo3-fast-main-root-sourceproof-final.log`. The standalone nine original byte test passed separately as stated above. Earlier completed pre-hardening fast result (756 passed) and a partial interrupted run remain in `lo3-fast-main-root-final.log` and `lo3-fast-main-root-frozen.log`; they are not substituted for the final gate. Current focused class binding and source site proof controls passed **16 in 0.77s** (`lo3-source-owner-focused.log`), and the final helper passed on the saved nine public outputs (`lo3-nine-owner-recheck.log`).
 
 Changed developer files: `tests/limited_precision_comparison.py`, `tests/test_limited_precision_comparison.py`, `tests/test_lo3_public_lifecycle.py`, and the nine-test oracle call in `tests/test_batch3_actual_acceptance.py`; this report and `lo3_locality.py` plus raw logs are under this review directory. Root-owned independent files, full83 scripts/status, cumulative stage report and production files were not edited in LO-3. The **full-real-83 acceptance gate remains blocked** by incomplete bounded cold indexing; no merge or final product acceptance is claimed.
+
+## 阶段139：LO-3独立部分验证与长时首次建图
+
+# LO-3 independent verification in progress
+
+Fixed candidate `aa95ca6968812fdd357d5fe5b91740dc0ba0d371`, tree `fca68a59395159841f357fe412fbc6b2ee2e205f`, parent `f13f934984f834ef957198c1782c36f85beda8de`. 583 materialized remote files matched Git blob SHA, including the lossless XZ evidence; 653 unmaterialized historical files remain preserved. All 34 runtime/entrypoint/lock files remain exactly the accepted LO2 production source. No production edits by root or LO3 developer.
+
+Independent frozen-source quick command: `.venv/bin/python -m pytest -q tests review/local-only-updates/test_semantic_contract_independent.py review/local-only-updates/test_local_only_flow_independent.py review/local-only-updates/test_namespace_granularity_independent.py review/local-only-updates/test_definition_context_independent.py review/local-only-updates/test_limited_precision_independent.py --deselect tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short` → **758 passed, 27 skipped, 1 deselected, 113.42s, exit0**. `lo3-review1-root-suite.log`. This reruns developer coverage, not an additional758 distinct cases.
+
+Root independently reran the actual warm update/query/reverse SQL probe from frozen LO2 source: `PYTHONPATH=. .venv/bin/python ../local-only-work/review/local-only-updates/lo3_locality.py --output ../local-only-work/review/local-only-updates/lo3-root-locality-result.json` → exit0. N0/20/100 unrelated files keep10 selected owners,6 actual Jedi queries,8 associations,3 sites; indexed reverse queries use65 VMsteps first and61 repeated, constant with N. Output node859 bytes/relation1066 bytes, one node/one edge, first/repeat identical. Two source inventory fences, AST decode/mount, hashing and whole snapshot writes still grow with capture; no claim those costs are local. Root checked the public entry points and actual SQLite indexed plans in `lo3-root-locality-result.json`/`lo3-root-locality.log`.
+
+Root independently inspected the dedicated limited precision oracle, added the deferred annotation and wrong same-name binding negatives (both failed before repair and pass now), and checked actual9 public-entry snapshots against this fixed remote checker. `lo3-root-nine-refinement.log` → exit0; this is a checker rerun on the developer's output, not an independent Jedi/USEARCH rerun. All9 current sources were compared against pinned full83 original bytes, allowing exactly the test's documented actor-string edit in _execution.py. All408 callsites/CALLS/UNKNOWN agree; extras are a source-proven annotation reference and an existing read's direct conservative subscription. No general semantic table was dropped.
+
+Full83 initial graph has not yet completed. First unobserved300s and second read-only-observed600s attempts both exit124. These are bounded verification budgets, not a specified product SLA and not proof of incorrect output or a deadlock. The second reached14,797,200 query-entry attempts vs10,930 actualJedi queries, remaining1963 association budget, sampled chiefly in parameter/candidate/container paths. Original parameter/candidate implementation preexists this step; no upstream defect is established. Full raw output is preserved in `.log.xz`; extracted progress is labeled as such.
+
+To complete already authorized real-project acceptance, root started another unchanged public cold build with1200s bound and lower frequency query progress output (`final-long-data`, query_step100000). The analyzer arguments/results/candidate rules/budget remain unchanged. This is not a local update falling back to cold; no initial snapshot exists yet. Warm83 and graph queries are pending it. The formal LO3 review has **not completed**; no invented pass/fail round for this verification block, no merge. All future results must preserve these attempts.
+
+## 阶段140：按用户请求暂停
+
+2026-11-01：阶段140，按用户“先暂停”停止完整83文件长时建图，工具会话确认exit130；保留当前代码和日志，不继续重跑或修改分析器。前两批已通过，LO3独立快速758通过；完整首次图和真实warm验收尚未完成。现有证据指向参数/接收者推导反复遍历候选，大量缓存命中仍付出检查/来源记录成本；不将1,480万入口次数说成实际Jedi查询。 [暂停状态](../local-only-updates/LO3_PAUSED_STATUS.json)。
+
+
+第三次运行最后观察：`{"stage": "query_start", "seconds": 255.07, "attempts": 3700000, "executed": 10740, "owner": "_validate", "expression": "tuple", "budget": 9593}`。停止动作由工具会话Ctrl-C完成，exit130；未在600秒之外擅自修改生产代码、候选规则或预算。
+
+## 阶段141：JD-1用户批准的新设计
+
+# JD-1：按 Jedi 输出与明确关系定位调用者
+
+日期：2026-11-02（Asia/Shanghai）。用户已批准：“可以保留找不到或者当前解析不了函数来源的调用”，禁止分析每个函数时逐个遍历无来源调用集合，并在确认修改/验证步骤后回复“好的 开始工作”。按新建 prefer-proven-tools 的文档契约和证据原则执行。
+
+## 身份、权限与历史
+
+- 仓库 agentic-trpg/local-code-tools，工作分支 feat/local-only-updates，远端基线 aa95ca6968812fdd357d5fe5b91740dc0ba0d371，tree fca68a59395159841f357fe412fbc6b2ee2e205f。实际目标 feat/local-code-tools-import 仍为 e3db45fcf1362f0a26e0ab7760b12b4fd408ce64；已通过 GitHub API 核验。
+- 当前 local-only-work 是物化树，本地Git基线141e不是远端祖先；不得据此push/reset。lo3-review1-fixed保留583个逐blob核对的基线文件。此前未推送的报告/观察脚本及日志保留。发布叠加远端树，不覆盖未物化653历史文件。
+- 本次是用户明确改变未知候选规则和结果权威的新需求 JD-1，不伪装成旧LO2第4轮。保留LO2三轮及最终通过、原问题状态；同一旧问题如重新打开仍遵守原上限。LO3全83验收原先未完成，需在本次通过后补验，不能沿用旧完整通过结论。
+- 开发 /root/jedi_contract_developer，实际 gpt-6-sol/medium；root负责架构、反例和独立审阅，不修改生产。新需求正式review尚0/3。已授权实施、必要测试与分支发布；未假定合并授权。
+
+## 范围和实现约束
+
+取消candidate_sites每函数合入_site_no_atoms/_site_unqueried，以及query-inflight/索引变化导致的默认全site扫描；未知调用保留原始结果、UNKNOWN及原因，不作为任意函数的caller。构造器、receiver、registry路径使用同一具体关系索引。首次新捕获允许一次必要site准备；普通warm仍按selected owner和真实依赖，不将开销搬到每次query/每个参数。
+
+优先消费Jedi明确映射的目标。自研缺少证明或仅有部分结果，不能默认丢弃Jedi目标；保持未知/完整性、冲突证据与外部边界。已有确凿测试支持的局部语义扩展可保留，必须列依据，不能以不保证100%完整为由恢复全未知池。
+
+保留callback实参来源、container writer/read订阅和新旧支持替换、命名空间变化、失败发布/旧视图、预算限制与普通更新不自动full回退。不更换Jedi/Parso、不提升20k预算、不运行捕获业务、不付费Embedding、不启动Neo4j。必要修改仅限我方解析/建图接入、相关缓存调度和版本/计数、契约及测试；外部核心组件真正缺陷先报告。
+
+## 已确认根因与验收
+
+python_analysis.py candidate_sites合并空/未查池，may_call对空atoms放行；parameter的self/构造器/普通参数及registry消费，造成未知调用重复被枚举。adjudicate对非decisive冲突清空已知Jedi目标。map_name已有原始路径/位置/type/mapping和外部boundary分类，须复用，不把映射失败都称为Jedi未知。
+
+- 独立先失败反例：未知/未查调用不得进入无关函数候选；Jedi已知目标不得被自研无依据UNKNOWN抹掉；未知原始输出及原因仍存在。
+- 回归：明确导入/别名、callback多参数、self/构造器、registry/key、字典getter返回后调用、连续修改/重启、namespace、新旧视图与失败重试；新增目标后索引及时维护，不用全域重算补漏。
+- 计数：候选访问、未知桶枚举、准备site、query入口/唯一key/缓存/真实Jedi、raw空/映射失败/目标。固定相关输入，增加无关未知调用与无关函数，未知池每函数枚举必须0；初始一次全量site查询与必要捕获/哈希/序列化单列。
+- 最终快速 tests + 5份原独立控制；昂贵九文件与完整83固定SM a7b0804d5635e185a79ff3c1d1fa6241c2b858fe（83文件1,207,159bytes）在定向计数通过后只运行有区分力版本。源文件齐全且有外部边界，不要求运行时Python全解析。
+- 新语义明确取消旧“空Jedi必须入所有候选”断言；其它真实目标/来源断言不能仅为变绿而删除。对精度变化提供原始Jedi/源码依据及范围。
+
+每次开发/修复/正式review均追加原累计STAGE_REPORT并立即给用户摘要与链接；保留所有原始失败，按固定远端提交独立审阅。
+
+## 阶段142：JD-1开发候选冻结
+
+# JD-1 developer report (candidate before independent review)
+
+Source baseline: remote `aa95ca6968812fdd357d5fe5b91740dc0ba0d371` / tree `fca68a59395159841f357fe412fbc6b2ee2e205f`; this materialized working tree has a separate local Git baseline and has not been committed or pushed. Historical LO2/LO3 reports are retained.
+
+## Implementation
+
+- `lct/python_analysis.py`: one selected-site preparation pass indexes Jedi mapped target identities; `candidate_sites`, `sites_for` and `may_call` inspect actual indexed target positions, with literal lambda AST identity as a direct source. Removed the no-atom/unqueried all-function pools and same-spelling admission. Index maintenance replaces a site's prior targets when an observation changes. Selection expansion prepares only newly selected owners' sites; ordinary updates do not automatically run a full graph.
+- An uninvoked method's `self` can have an explicit construction origin: the fallback looks up the parent class's indexed construction sites. This restores the `Registry()` source for `Registry.dispatch` while retaining `Registry.register('go', target)` as its keyed writer.
+- In the actual inherited classmethod fixture, Jedi 0.20.1 `infer` of `Child.construct` returns the external typeshed `builtins.classmethod.__get__`; `goto` on the same token with imports followed returns the exact captured `Base.construct`. The narrow index supplement uses this Jedi declaration when existing LCT receiver evidence is bound and complete for the same `@classmethod` target. Jedi `infer` boundary and `goto` raw evidence are retained. This does not query `goto` for arbitrary unknown calls.
+- `caller_atoms` reuses the site's Jedi target and the same adjudication for parameter, receiver, constructor and registry source joins. In a real cross-file decorated alias, Jedi identifies `execute` while the local resolver has `decorated-binding-not-modeled`; the call's argument now contributes `first` or `second` to `execute(callback)` and records caller-to-parameter source support. A matching local bound atom supplies receiver/offset when available; a bare Jedi declaration alone is not fabricated into a bound receiver.
+- `adjudicate` preserves a mapped Jedi callable when LCT has no justified competing result. A partial field/slot receipt with actual source events can add a supported LCT alternative without declaring complete; a source-complete tested semantic rule can still exclude a conflicting Jedi target. Original raw Jedi mapping, unknown reasons and coverage receipts remain in sites. No Jedi/Parso version, association budget, provider or graph database was changed.
+- Graph info separately exposes site preparation, candidate calls/visits, unknown bucket visits (always zero because that bucket no longer exists), query entry/cache/actual execution, raw result mappings, and the narrow classmethod source count.
+
+## Changed old assumptions and retained evidence
+
+`tests/test_call_candidate_index.py` no longer treats every unqueried/failed call as every function's caller. It now checks index replacement, unknown preservation and no full-list fallback. Root's first synthetic frontend-error test incorrectly expected a direct `target()` relation while replacing Jedi for the *entire module* with an always failing script; the root control was corrected to expect a known target only outside that synthetic module-wide error. We removed the temporary direct-Name reparser introduced in response to the original overstrong assertion.
+
+`tests/test_python_pipeline.py` now expects `other` plus `UNKNOWN` for `@replace def original` where `replace(fn): return other`: actual Jedi raw maps `other` at demo.py line 1, column 4, and LCT retains `decorated-binding-not-modeled`. `original` stays excluded.
+
+Sixteen old assertions concerning a forged incomplete receipt, shadowed method, seven await forms, an uninvoked nested body, unresolved await receiver, two unsupported local bindings, two conditional awaits, and executed class body now retain Jedi's raw candidate targets with `UNKNOWN` and incomplete coverage. Their reason, effect event, source owner and coverage checks remain. In these cases raw Jedi can name `a` and `b` while LCT's source/event receipt is incomplete. A possible target does not assert that a runtime path executes. The shadowed method and empty nested-loop examples have source-level reasons why `b` does not execute in their demonstrated path; the current incomplete receipt cannot justify excluding it from the static candidate set under JD-1. This is an acknowledged precision widening. Fully covered field/slot rules and callback, registry, dictionary source assertions remain strict. In particular conditional field assignment/deletion retains source-supported `b` or `C.run` alongside Jedi's `a`, with uncertainty.
+
+## Locality evidence
+
+The later full-suite pass exposed the same approved unknown/partial authority assumption in `test_python_review_round4.py` (two await forms and one generator resumption) and `test_python_review_regressions.py` (a deliberately empty LCT answer with a known Jedi `a`). They now keep the mapped target plus the original unknown reason. The component candidate test's artificial appended site no longer forces an all-site fallback; it asserts the indexed candidates remain identical. The previous fast run happened while production code was changing; its `general_passive_incremental` program-hash compatibility failure is an invalid intermediate check. Its 8 failures, 763 passes, 27 skips and one deselection remain in `developer-fast.log`; a frozen rerun is required.
+
+For one fixed `first/target/driver` source, adding 20 unrelated `idle_i(opaque): opaque()` calls changed prepared sites 2→22, candidate calls 1→21, actual candidate visits **1→1**, unknown bucket visits 0→0, Jedi executions 2→22 and query entries/cache hits 4/2→44/22. Raw empty observations 0→20. The necessary one-time site preparation grows with input sites; it is not multiplied by function count. Eight independent `C_i.work` methods plus 0/20/100 `obj.work()` calls yielded candidate visits 0/0/0, unknown bucket visits 0/0/0 and prepared sites 0/20/100. Root's actual returned-candidate controls check unknown calls directly, rather than relying on the counter alone.
+
+## Tests and limits
+
+- Root's fixed-source independent preflight initially showed six failures/eight cases on the old baseline; the three later matching-spelling examples failed on the intermediate candidate. Logs: `root-baseline-contract.log`, `root-spelling-preflight.log`.
+- The first developer focused run reported 17 failures and 230 passes in the tool session; that early stdout was not separately saved. It is a session observation, not an archived raw log. The later `developer-targeted.log` was overwritten while iterating and contains only its final 261-pass state. No earlier log is claimed to exist.
+- Current expanded focused command: `.venv/bin/python -m pytest -q tests/test_call_candidate_index.py tests/test_python_pipeline.py tests/test_python_call_access.py tests/test_python_review_round3.py tests/test_python_effect_coverage.py tests/test_python_review_round4.py tests/test_python_review_regressions.py tests/test_core.py::test_registry_via_method tests/test_common_python_certificate.py::test_component_candidates_read_only_indexed_sites tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise review/jedi-contract/test_jedi_contract_independent.py --tb=short` → 343 passed in 15.02s, exit 0, `developer-targeted-2.log`.
+- `tests/test_call_candidate_index.py::test_same_spelling_unknown_methods_do_not_scale_with_method_count` tests eight same-name methods against 0/20/100 unresolved calls and real candidate visitation. `test_expanded_selected_owners_prepare_new_sites_on_shared_analyzer` checks selected owner expansion with one reused analyzer; `test_frontend_mapping_reentry_does_not_scan_or_hide_later_target` is a controlled frontend mapping hook that reenters candidate lookup. It does not prove all statement-mapping recursion paths. The root's decorated alias caller case checks first→second→first callback output and caller.py→worker.py source support under local updates.
+- Jedi API observation on the captured `Child.construct().work()` token (line 7, byte columns 19/29/36): `Child` infer/goto returns `demo.Child` class; `Child.construct` infer returns typeshed `builtins.classmethod.__get__`, goto with imports followed returns captured `demo.Base.construct`; outer `.work` infer/goto returns `demo.Child.work`. The tested source's LCT receiver is bound to `Child` with complete member-source coverage. This is the finite reason for the extra goto query, not a global frontend defect claim.
+- Full 83-file public cold graph and the expensive nine-original-byte test have not been run in this developer pass. Those belong to the independent acceptance after locality gates. Pre-query mapping can recursively enter associations; `candidate_preparation_reentries` records such events. The focused fixtures observed no reentry in three direct probes, which is not proof that no other project can trigger it. A reentry needs an explicit site-specific proof before claiming that a half-built target index preserved all provenance.
+
+## Frozen developer handoff
+
+The frozen fast command was `.venv/bin/python -m pytest -q tests review/local-only-updates/test_semantic_contract_independent.py review/local-only-updates/test_local_only_flow_independent.py review/local-only-updates/test_namespace_granularity_independent.py review/local-only-updates/test_definition_context_independent.py review/local-only-updates/test_limited_precision_independent.py review/jedi-contract/test_jedi_contract_independent.py --deselect tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short`. It returned exit **0**: **774 passed, 27 skipped, 1 deselected in 112.83s** (shell elapsed 120.263s), raw `developer-fast-frozen.log`. Production hashes before and after were identical: `python_analysis.py` SHA-256 `db7b1d1fdd80aece39774b70f0e4dce08aa2890d0822d6aaf2e1e517955ea766`; `graph.py` SHA-256 `729f1f9f1be0d7c41075945cf9f457f9185f49c21496346fb7db087c891b1929`. No production change, commit or push follows this handoff. The root independently runs fixed-source 83-file cold acceptance and remote review.
+
+
+Root独立枚举计数见[jedi-contract/root-candidate-work.json](../jedi-contract/root-candidate-work.json)，不把首次一次准备N个调用点说成warm恒定开销。

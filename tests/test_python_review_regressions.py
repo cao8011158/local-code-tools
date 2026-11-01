@@ -406,10 +406,10 @@ def test_empty_adapter_answer_is_not_a_proof(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Analyzer, "_resolve", missing)
     r = analyze(tmp_path, {"demo.py": "def a(): pass\ndef caller(): a()\n"}, closed=False)
-    s = expect(r, "a", "caller", set(), unknown=True, complete=False)
+    s = expect(r, "a", "caller", {"a"}, unknown=True, complete=False)
     assert s["resolution_decision"]["conflict"]
     assert s["resolution_decision"]["jedi_targets"]
-    assert s["resolution_decision"]["reason"] == "unresolved-conflict-no-decisive-rule"
+    assert s["resolution_decision"]["reason"] == "jedi-target-with-unproved-association"
 
 
 def test_conditional_instance_field_keeps_method_alternative(tmp_path):

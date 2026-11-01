@@ -226,7 +226,7 @@ async def caller():
  obj.run()
 """
     s = check(
-        analyze(tmp_path, {"demo.py": source}, closed=False), "obj.run", set(), {"a", "b"}, True
+        analyze(tmp_path, {"demo.py": source}, closed=False), "obj.run", {"a", "b"}, set(), True
     )
     assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
 
@@ -297,7 +297,7 @@ def caller():
         },
         closed=False,
     )
-    s = check(r, "obj.run", set(), {"a", "b"}, True)
+    s = check(r, "obj.run", {"a", "b"}, set(), True)
     assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
 
 

@@ -1,0 +1,31 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_matching_spelling_does_not_establish_a_caller_relation[known-other-method] _
+review/jedi-contract/test_jedi_contract_independent.py:124: in test_matching_spelling_does_not_establish_a_caller_relation
+    assert record not in list(a.candidate_sites(target)), "name coincidence admitted an unrelated caller"
+E   AssertionError: name coincidence admitted an unrelated caller
+E   assert {'site_id': 'c074c6940f864f4a1d4a72ecc1e20e387c3e64882394f7815a827f3e42f78e0a', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': 'c074c6940f864f4a1d4a72ecc1e20e387c3e64882394f7815a827f3e42f78e0a', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}]
+E    +  where [{'site_id': 'c074c6940f864f4a1d4a72ecc1e20e387c3e64882394f7815a827f3e42f78e0a', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}] = list(<generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb169b085f0>)
+E    +    where <generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb169b085f0> = candidate_sites('fixture:spell.py:function:work#1.1')
+E    +      where candidate_sites = <lct.python_analysis.Analyzer object at 0x7fb1695ecb90>.candidate_sites
+_ test_matching_spelling_does_not_establish_a_caller_relation[unknown-method] __
+review/jedi-contract/test_jedi_contract_independent.py:124: in test_matching_spelling_does_not_establish_a_caller_relation
+    assert record not in list(a.candidate_sites(target)), "name coincidence admitted an unrelated caller"
+E   AssertionError: name coincidence admitted an unrelated caller
+E   assert {'site_id': '01f4968e68b4a53b23cae5b31d35a255284c6c16219584d7d89805f617fde6d5', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '01f4968e68b4a53b23cae5b31d35a255284c6c16219584d7d89805f617fde6d5', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}]
+E    +  where [{'site_id': '01f4968e68b4a53b23cae5b31d35a255284c6c16219584d7d89805f617fde6d5', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}] = list(<generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb1689cdd80>)
+E    +    where <generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb1689cdd80> = candidate_sites('fixture:spell.py:function:C.work#1.1.1')
+E    +      where candidate_sites = <lct.python_analysis.Analyzer object at 0x7fb163fa4590>.candidate_sites
+_ test_matching_spelling_does_not_establish_a_caller_relation[shadowing-parameter] _
+review/jedi-contract/test_jedi_contract_independent.py:124: in test_matching_spelling_does_not_establish_a_caller_relation
+    assert record not in list(a.candidate_sites(target)), "name coincidence admitted an unrelated caller"
+E   AssertionError: name coincidence admitted an unrelated caller
+E   assert {'site_id': '9564ebffdbf75c065e4552e14c5e175da29b89bd25101fe765ff5639550fde14', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '9564ebffdbf75c065e4552e14c5e175da29b89bd25101fe765ff5639550fde14', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}]
+E    +  where [{'site_id': '9564ebffdbf75c065e4552e14c5e175da29b89bd25101fe765ff5639550fde14', 'lexical_owner': 'fixture:spell.py:function:caller#1.1', 'execution_owner': 'fixture:spell.py:function:caller#1.1', 'phase': 'body', ...}] = list(<generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb16815b5e0>)
+E    +    where <generator object Analyzer.candidate_sites.<locals>.<genexpr> at 0x7fb16815b5e0> = candidate_sites('fixture:spell.py:function:work#1.1')
+E    +      where candidate_sites = <lct.python_analysis.Analyzer object at 0x7fb168afc4d0>.candidate_sites
+=========================== short test summary info ============================
+FAILED review/jedi-contract/test_jedi_contract_independent.py::test_matching_spelling_does_not_establish_a_caller_relation[known-other-method]
+FAILED review/jedi-contract/test_jedi_contract_independent.py::test_matching_spelling_does_not_establish_a_caller_relation[unknown-method]
+FAILED review/jedi-contract/test_jedi_contract_independent.py::test_matching_spelling_does_not_establish_a_caller_relation[shadowing-parameter]
+3 failed, 8 deselected in 1.71s

@@ -334,7 +334,7 @@ def test_rule_label_without_coverage_cannot_exclude_jedi(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Analyzer, "_resolve", incomplete)
     r = analyze(tmp_path, {"demo.py": CASES[3][1]}, closed=False)
-    s = check(r, "table['go']", set(), {"a", "b"}, True)
+    s = check(r, "table['go']", {"b"}, {"a"}, True)
     assert s["resolution_decision"]["jedi_targets"]
     assert not s["resolution_decision"]["excluded_jedi_targets"]
     assert s["resolution_decision"]["write_source_coverage"] is None
@@ -466,7 +466,9 @@ def caller():
         },
         closed=False,
     )
-    check(r, "obj.run", {"a"}, {"b"}, True)
+    s = check(r, "obj.run", {"a", "b"}, set(), True)
+    assert "constructor-shadowed-receiver-method-effects" in s["unresolved_reasons"]
+    assert not s["resolution_decision"]["write_source_coverage"]["complete"]
 
 
 def test_rule_label_without_coverage_is_not_complete_even_when_jedi_agrees(tmp_path, monkeypatch):

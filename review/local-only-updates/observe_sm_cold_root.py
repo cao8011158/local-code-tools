@@ -13,7 +13,8 @@ from tests.synthetic_support import forbid_provider
 
 workspace = Path(sys.argv[1])
 config = json.loads((workspace / "acceptance-config.json").read_text())
-config["data"] = str(workspace / "observed-data")
+config["data"] = str(workspace / (sys.argv[2] if len(sys.argv) > 2 else "observed-data"))
+query_step = int(sys.argv[3]) if len(sys.argv) > 3 else 100
 started = time.monotonic()
 main_id = threading.get_ident()
 done = threading.Event()
@@ -50,7 +51,7 @@ def query(self, scope, expr, *args, **kwargs):
     query_count += 1
     index = query_count
     now = time.monotonic()
-    if index <= 3 or index % 100 == 0:
+    if index <= 3 or index % query_step == 0:
         emit("query_start", attempts=index, executed=self.executed_queries,
              owner=self.nodes[scope]["qualname"], expression=ast.unparse(expr), budget=self.budget)
     result = real_query(self, scope, expr, *args, **kwargs)

@@ -1,0 +1,9 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_known_jedi_caller_keeps_argument_sources_and_updates_consumers ______
+review/jedi-contract/test_jedi_contract_independent.py:151: in test_known_jedi_caller_keeps_argument_sources_and_updates_consumers
+    pytest.fail("known Jedi caller was discarded before its explicit arguments were joined")
+E   Failed: known Jedi caller was discarded before its explicit arguments were joined
+=========================== short test summary info ============================
+FAILED review/jedi-contract/test_jedi_contract_independent.py::test_known_jedi_caller_keeps_argument_sources_and_updates_consumers
+1 failed, 11 deselected in 2.15s

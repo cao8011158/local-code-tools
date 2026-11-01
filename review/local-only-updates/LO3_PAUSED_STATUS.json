@@ -1,0 +1,18 @@
+{
+  "status": "paused_by_user",
+  "exit_code": 130,
+  "reason": "User requested pause while discussing repeated candidate traversal",
+  "last_query": {
+    "stage": "query_start",
+    "seconds": 255.07,
+    "attempts": 3700000,
+    "executed": 10740,
+    "owner": "_validate",
+    "expression": "tuple",
+    "budget": 9593
+  },
+  "first_snapshot_completed": false,
+  "normal_warm83_not_run": true,
+  "production_unchanged": true,
+  "feature_branch_head": "aa95ca6968812fdd357d5fe5b91740dc0ba0d371"
+}

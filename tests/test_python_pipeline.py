@@ -504,5 +504,5 @@ def caller(): original()
 """
         },
     )
-    s = expect(r, "original", "caller", set(), unknown=True, complete=False, forbidden={"original"})
+    s = expect(r, "original", "caller", {"other"}, unknown=True, complete=False, forbidden={"original"})
     assert "decorated-binding-not-modeled" in s["unresolved_reasons"]

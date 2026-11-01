@@ -1,0 +1,47 @@
+FFFFF..F                                                                 [100%]
+=================================== FAILURES ===================================
+_____ test_unresolved_call_is_not_a_caller_of_unrelated_target[unqueried] ______
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:33: in test_unresolved_call_is_not_a_caller_of_unrelated_target
+    assert unresolved not in candidates, "unresolved call was made a universal caller"
+E   AssertionError: unresolved call was made a universal caller
+E   assert {'site_id': 'db35c7b75523301ffc0de64b4cc89c5e13d72d84d92ea3ccbfdf38c352f20e47', 'lexical_owner': 'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '1de353dfc153f4e6809a973db36b4e40def67a202bfe0374e5e8c25843c52e72', 'lexical_owner': 'fixture:demo.py:fun...'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}]
+_______ test_unresolved_call_is_not_a_caller_of_unrelated_target[empty] ________
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:33: in test_unresolved_call_is_not_a_caller_of_unrelated_target
+    assert unresolved not in candidates, "unresolved call was made a universal caller"
+E   AssertionError: unresolved call was made a universal caller
+E   assert {'site_id': 'db35c7b75523301ffc0de64b4cc89c5e13d72d84d92ea3ccbfdf38c352f20e47', 'lexical_owner': 'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '1de353dfc153f4e6809a973db36b4e40def67a202bfe0374e5e8c25843c52e72', 'lexical_owner': 'fixture:demo.py:fun...'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}]
+_______ test_unresolved_call_is_not_a_caller_of_unrelated_target[error] ________
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:33: in test_unresolved_call_is_not_a_caller_of_unrelated_target
+    assert unresolved not in candidates, "unresolved call was made a universal caller"
+E   AssertionError: unresolved call was made a universal caller
+E   assert {'site_id': 'db35c7b75523301ffc0de64b4cc89c5e13d72d84d92ea3ccbfdf38c352f20e47', 'lexical_owner': 'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '1de353dfc153f4e6809a973db36b4e40def67a202bfe0374e5e8c25843c52e72', 'lexical_owner': 'fixture:demo.py:fun...'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}]
+______ test_unresolved_call_is_not_a_caller_of_unrelated_target[inflight] ______
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:33: in test_unresolved_call_is_not_a_caller_of_unrelated_target
+    assert unresolved not in candidates, "unresolved call was made a universal caller"
+E   AssertionError: unresolved call was made a universal caller
+E   assert {'site_id': 'db35c7b75523301ffc0de64b4cc89c5e13d72d84d92ea3ccbfdf38c352f20e47', 'lexical_owner': 'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...} not in [{'site_id': '1de353dfc153f4e6809a973db36b4e40def67a202bfe0374e5e8c25843c52e72', 'lexical_owner': 'fixture:demo.py:fun...'fixture:demo.py:function:caller#1.1', 'execution_owner': 'fixture:demo.py:function:caller#1.1', 'phase': 'body', ...}]
+___________ test_jedi_target_survives_a_local_resolver_without_proof ___________
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:56: in test_jedi_target_survives_a_local_resolver_without_proof
+    assert record["names"] == {"first"}, "local UNKNOWN discarded the real Jedi target"
+E   AssertionError: local UNKNOWN discarded the real Jedi target
+E   assert set() == {'first'}
+E     
+E     Extra items in the right set:
+E     'first'
+E     Use -v to get more diff
+___ test_unknown_calls_are_not_enumerated_per_function_after_observation[20] ___
+../local-only-work/review/jedi-contract/test_jedi_contract_independent.py:95: in test_unknown_calls_are_not_enumerated_per_function_after_observation
+    assert visits == [], f"unknown pool enumerated per function: {visits[:8]}"
+E   AssertionError: unknown pool enumerated per function: [('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque'), ('first', 'opaque')]
+E   assert [('first', 'o...opaque'), ...] == []
+E     
+E     Left contains 460 more items, first extra item: ('first', 'opaque')
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_unresolved_call_is_not_a_caller_of_unrelated_target[unqueried]
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_unresolved_call_is_not_a_caller_of_unrelated_target[empty]
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_unresolved_call_is_not_a_caller_of_unrelated_target[error]
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_unresolved_call_is_not_a_caller_of_unrelated_target[inflight]
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_jedi_target_survives_a_local_resolver_without_proof
+FAILED ../local-only-work/review/jedi-contract/test_jedi_contract_independent.py::test_unknown_calls_are_not_enumerated_per_function_after_observation[20]
+6 failed, 2 passed in 1.40s
