@@ -1354,3 +1354,17 @@ PR-2 read-onlyprobesnowconfirmJediAPIprovidesdict typeandlexicalpositions butnot
 针对PR1-SHARED-SOURCE-REPEAT，开发复用同snapshot、同scope/AST/before且已证明的memo来源后缀；新调用只关联既有trace并为当前消费函数重放来源观察，不再逐项重新定位共享绑定。新增的来源元数据仅用于依赖重放，memo仍是结果权威；无全局候选缓存。修正来源观察归属，保持多个消费者的unit输入和来源支持。无PR-2生产代码。
 
 开发冻结定向41passed/19.54s；快速794passed/27skipped/1deselected121.51s，exit0，六文件前后SHA一致，完整stdout/stderr/status已保存。新测试覆盖多消费者来源记录与强制旧路径一致、别名改绑与删除、无关writer增长。Root另实测同一12层别名/20调用反例：检查260降到32，各共享绑定一次，与原基线同量；这仍是复审前预检，下一步固定远端提交并独立第2/3轮验证。
+
+
+## 阶段150：PR-1独立第2轮通过，继续整体重构
+
+
+## Round2/3: PR-1 passes; whole refactor continues
+
+Fixedremote f617682cf8d7046421fccd4884ebeed3a38e40f2/tree4d54922df061ab2b52ef515b1f4d337d72ec4c35, parentda91cfd3761c18ad42b2a2ec4f4f01bc84990af0; wholebatchbase60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b.689 materializedGitblobsverified,653historicalpathsnotmaterializedpreserved. Targete3db45fcf1362f0a26e0ab7760b12b4fd408ce64 unchanged. Rootnevermodifiedproduction.
+
+Independentfast **794passed/27skipped/1deselected136.14s exit0**, exactcommandsameasdeveloperfreezeandnewroot6. Wholebatchdiffreviewed: tool-backeddirect/alias sourcepath+memo, honestproviderlabel, rawJedi retention, originalexceptions, identicalcapturecounterreset, sourceinputconsumerattribution, scope/AST/before-restricted sharedsuffix reuse. OriginalemptyadapterteststillassertsknownJeditargetretainedwithunknownonlegacybranch; newtestsretaincallback/unbound/containerunknown rules.
+
+Originalsourcegrowthcase **32modulelookups** (12sharedsuffixbindingsonce+20distinctrootreads), matchingoldbaselineanddownfrom260inreview1. Independentmulti-consumer publiclifecycle **first->second->absent->first** updatesbothfunctionsusingincremental-owners andretainsoldsitesexactly. Targetinferenceisnotrepeatedbyoldname resolverforcoveredcall/alias; provenanceandconsumerinputsremain. PR1-SHARED-SOURCE-REPEAT resolved; formalreview2passes, historyretained.
+
+ScopeofpassisPR-1lexicaltarget/source separation. The originalninecurrent-runtime publiclifecycle wasinterruptedafterreview1findingbeforefirstsnapshot; itandfull83cold/warm/queryacceptancearependingforwholefeature. Existingfastthree/sixactualsourceowner/membership/retry/failure/querytestsrunonthisfixedruntime; nolargeruntimeorcompletegraphclaim. ContinuePR-2origin/writerindexandPR-3remainingcapabilitymigrationunderuserauthorization; no merge.

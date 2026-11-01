@@ -4,7 +4,7 @@
   "repository": "agentic-trpg/local-code-tools",
   "branch": "feat/local-only-updates",
   "base_sha": "60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b",
-  "head_sha": "da91cfd3761c18ad42b2a2ec4f4f01bc84990af0",
+  "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
   "target_branch": "feat/local-code-tools-import",
   "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
   "implementation_actor": "/root/parser_capability_audit:gpt-6-sol/medium",
@@ -121,6 +121,119 @@
       "result": "fail",
       "log_sha256": "bb7167e96ac682944937aadca6e781efecee06912084255dafe3745d8b060a9d",
       "note": "New root counterexample outside candidate testtree; actual sourcefixed/matches remote. Shared12-binding chain20calls repeatedlookup20times; baselineonlyonce."
+    },
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "log": "pr1-review1-fix-focused.stdout",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_jedi_tool_first_lexical.py",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "tests/test_owner_incremental.py",
+        "tests/test_actual_item_unit_incremental.py",
+        "tests/test_changed_python_gate.py",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "2b3fcf8f6b304978dd500851350eab7787aaf90975a18ce88fa1b036a1bd07be",
+      "executed_before_publication": true,
+      "source_verified": "PR1_REVIEW2_SOURCE.json"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "log": "pr1-review1-fix-fast.stdout",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "3834608a0889f67c7a52ec330af939419aaa4850c352ea8d436fbaef4e79dd41",
+      "executed_before_publication": true,
+      "source_verified": "PR1_REVIEW2_SOURCE.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "log": "pr1-review2-root-fast.log",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "a8a9b1c71c892d876508be59450663cabde673792e1a9f444d9f57b1b281b6e8",
+      "passed": 794,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 136.14
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "log": "pr1-review2-shared-source.log",
+      "command": [
+        "PYTHONPATH=.",
+        ".venv/bin/python",
+        "review/parser-refactor/shared_source_probe.py"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "3130a4c112213411badd97e5ecba2bd5ae215d162401b3f588ae716adbf23730",
+      "note": "20actualcallsitequeries/12sharedaliaslinks,32modulelookups;12suffixesonce,root20required; no oldnamecalleetargetinference inindependentfastcontrols."
+    },
+    {
+      "role": "reviewer",
+      "kind": "public_lifecycle",
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "log": "pr1-review2-multiple-consumer-public.log",
+      "command": [
+        "PYTHONPATH=.",
+        ".venv/bin/python",
+        "review/parser-refactor/multiple_consumer_public.py"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "0af7dceeb0d7cd57f3202698425d98f402ae2d2871dd45caa466d3f2c1562a64",
+      "note": "Actualpublicstoragebuild,2consumers first-second-absent-first,ownerupdates,oldviewunchanged; no sourceexecution/provider"
     }
   ],
   "reviews": [
@@ -131,6 +244,14 @@
       "actor": "root-reviewer",
       "verdict": "changes_required",
       "counterexample_note": "663 blobs verified653historicalpreserved; independent791passed27skip1deselect135.89s. Tool consumption/source invalidation controls pass, publicaliasfirst-second-first retainsoldview. Sharedsourcegrowthcase: baseline32modulelookups vsnew260, sharedaliasprefix12lookupseach20times; oldonce. Source-onlywalkmustreusememoizedsharedsuffix while reattachingconsumerrecords. Ninepublicbuildinterruptedexit130whenidentifiedcandidateissue, no completedcurrent9/83acceptance."
+    },
+    {
+      "round": 2,
+      "head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "remote_head_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+      "actor": "root-reviewer",
+      "verdict": "pass",
+      "counterexample_note": "689materializedblobs verified653historypreserved;whole60085dc..headruntime/testdelta reviewed. Independent794pass27skip1deselect136.14s. Sharedsuffixcounterexample32lookups matchesbaseline versus260oldcandidate; public2consumerfirst-second-absent-firstownerupdatesandoldviewpass. Sources/unknown/guard/rawJedi/nooldnamecontrols pass. Current-runtimeoriginal9andfull83remainwhole-stepacceptance, notclaimedcompleted."
     }
   ],
   "findings": [
@@ -138,8 +259,8 @@
       "id": "PR1-SHARED-SOURCE-REPEAT",
       "severity": "P2",
       "confirmed": true,
-      "blocking": true,
-      "state": "open",
+      "blocking": false,
+      "state": "resolved",
       "origin": "current",
       "discovered_in_batch": "PR-1",
       "owner_batch": "PR-1",
@@ -148,7 +269,10 @@
       "location": "lct/python_analysis.py::tool_first_lexical",
       "route": "repair under existing authorization; next review2/3",
       "evidence": "pr1-shared-source-baseline.log;pr1-shared-source-candidate.log;pr1-shared-source-control.log;pr1-shared-source-baseline-control.log",
-      "note": "Already memoized shared Name RHS bindings are walked from scratch for each call.20calls x12sharedbindings; candidate260 modulelookups, baseline32. Alltargetsremainfirst; duplicatework moved from inference tosourcecollection."
+      "note": "Already memoized shared Name RHS bindings are walked from scratch for each call.20calls x12sharedbindings; candidate260 modulelookups, baseline32. Alltargetsremainfirst; duplicatework moved from inference tosourcecollection.",
+      "resolution": "Exactmemo/AST/before source suffix reused; producer scope observationreplayed perconsumer; independentcount/publicchangecontrols pass.",
+      "resolution_evidence": "pr1-review2-root-fast.log;pr1-review2-shared-source.log;pr1-review2-multiple-consumer-public.log"
     }
-  ]
+  ],
+  "step_status": "PR-1 passed2/3; continuePR-2/PR-3 underexistinguserwhole-refactorauthorization; original9/full83andwholefeatureacceptance pending; notmerged"
 }

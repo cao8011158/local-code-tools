@@ -4,7 +4,7 @@ Read-only probes against Jedi 0.20.1 and the current graph, using synthetic capt
 
 | Receiver case | Raw `infer` | Raw `goto` | `get_references` | Graph's source origin and target |
 | --- | --- | --- | --- | --- |
-| Global `registry={}`, writer/read `registry['go']` | `builtins.dict` instance at both sites | same `registry` assignment line 2 | declaration and both uses | origin at dict literal line 2; Jedi subscript target empty, custom target `target` |
+| Global `registry={}`, modified through `register(key, fn)`, then read `registry['go']` | `builtins.dict` instance at both sites | same `registry` assignment line 2 | declaration and both uses | origin at dict literal line 2; Jedi subscript target empty, custom target `target` |
 | `first={}; second=first`; writer via `second`, read via `first` | `builtins.dict` both | `second` declaration line 3 versus `first` declaration line 2 | separate reference sets for the two symbols | graph unifies to `first` literal line 2; Jedi subscript empty, custom target `target` |
 | Independent `left={}; right={}`; writer via `right`, read via `left` | same `builtins.dict` instance type both | distinct assignments lines 2/3 | separate symbol reference sets | graph read subscribes to `left` literal; no target (missing key), correctly excludes `right` writer |
 | `from base import registry as alias`; writer/read alias | `builtins.dict` both | writer resolves `base.registry` declaration, **read points to later alias subscript mutation** in client line 3 | grouped references include base declaration, import alias, writer and reader | graph origin is base literal; Jedi subscript target `target` but graph keeps conditional/dynamic write unknown |
