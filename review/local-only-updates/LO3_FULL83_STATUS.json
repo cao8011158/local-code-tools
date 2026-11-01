@@ -1,0 +1,67 @@
+{
+  "source_repository": "agentic-trpg/trpg-state-machine",
+  "source_commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+  "files": 83,
+  "source_bytes": 1207159,
+  "production_head": "f13f934984f834ef957198c1782c36f85beda8de",
+  "attempts": [
+    {
+      "command": [
+        "PYTHONPATH=.",
+        "timeout",
+        "300",
+        ".venv/bin/python",
+        "../local-only-work/review/local-only-updates/profile_sm_full.py",
+        "--source",
+        "/workspace/scratch/45363df3617b/task-evidence/sm-full-fixed",
+        "--workspace",
+        "/workspace/scratch/45363df3617b/task-evidence/sm-full-final-run"
+      ],
+      "exit_code": 124,
+      "log": "lo3-root-full83-cold.log"
+    },
+    {
+      "command": [
+        "PYTHONPATH=.",
+        "timeout",
+        "600",
+        ".venv/bin/python",
+        "../local-only-work/review/local-only-updates/observe_sm_cold_root.py",
+        "/workspace/scratch/45363df3617b/task-evidence/sm-full-final-run"
+      ],
+      "exit_code": 124,
+      "log": "lo3-root-full83-observed.log.gz",
+      "observers": "Real methods called without changing arguments/results; query attempt counter, stage timings and a daemon Python stack sample every20s. Observer overhead included; not faulthandler."
+    }
+  ],
+  "last_query": {
+    "stage": "query_start",
+    "seconds": 599.69,
+    "attempts": 14797200,
+    "executed": 10930,
+    "owner": "PerceptionRuntime.get_scene_view",
+    "expression": "self._conn.execute",
+    "budget": 1963
+  },
+  "analyzer_init": {
+    "stage": "analyzer_init_end",
+    "seconds": 7.11,
+    "sites": 9614,
+    "selected_mode": true
+  },
+  "finished": false,
+  "raw_log_bytes": 28052069,
+  "raw_log_sha256": "cc00557dc32bbe09e8ee38d3a3fa1bd7a16be051ad1bb73d0b70fe6cb3f069eb",
+  "gzip_bytes": 2657437,
+  "gzip_sha256": "fb3f3cbd01353109e859e148ac0e9ae22df0f14bbb7de4b8ada1db186bcbcd88",
+  "interpretation": "Validation blocked, not completed. No first graph snapshot, warm83 checks not run. Existing parameter/candidate checks repeatedly reuse Jedi cache while resolving receiver/container origins. This is not proof of a wrong graph result, nor an upstream dependency defect.",
+  "limits": [
+    "Timeout is a bounded test budget, not a product SLA.",
+    "Query attempts include hits and recursion; they are not graph edge/function counts.",
+    "All83 SM src Python files are present; external project repositories remain outside capture.",
+    "Full raw observer log is preserved losslessly compressed; progress JSON is explicitly an extracted subset."
+  ],
+  "xz_bytes": 1005016,
+  "xz_sha256": "7a7187765c8f091f4a549a60686cd85e009923e20f4dd22235bdcdf3a00fdfdd",
+  "published_lossless_log": "lo3-root-full83-observed.log.xz"
+}

@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-01：阶段138，LO-3开发/验证材料冻结，生产与已通过f13f934984f834ef957198c1782c36f85beda8de一致。最终758 passed/27 skipped/1 deselected/117.46秒；九文件离线USEARCH1 passed/105.92秒；连续更新、失败保留current、新进程重试及0/20/100无关范围测量通过。完整83文件cold先300秒、再带只读观察600秒均超时124；第二次14,797,200查询入口调用/10,930实际Jedi，尚未首次图/暖更新验收。LO3完整功能阻塞，不能合并或宣称工具完成。 [开发报告](../local-only-updates/LO3_DEVELOPER.md)。
+
+2026-11-01：阶段137，LO-2固定f13f934984f834ef957198c1782c36f85beda8de第3/3轮独立审阅通过。536物化文件Git blob一致；741 passed/27 skipped/1 deselected/108.51秒，三个原P2已关闭。正常更新只走owner路径，未知/预算标记保留，损坏不兼容明确失败保留旧图。进入LO-3完整83文件和规模验收；尚未合并。 [累计审阅](../local-only-updates/LO2_REVIEW.md)。
+
 2026-11-01：阶段136，LO-2同一第2轮修复链的闭包receiver补充完成，最终741 passed/27 skipped/1 deselected/127.03秒。6 root上下文+5开发控制11 passed/3.88秒，较广82 passed/45.98秒；Source_method→closure/cell关系覆盖receiver=self、嵌套default和局部遮蔽，不误记staticmethod。待固定远端最终第3/3轮；尚未合并或LO3验收。 [补充报告](../local-only-updates/LO2_REVIEW2_CLOSURE_FIX.md)。
 
 2026-11-01：阶段135，LO-2第2轮修复本地冻结，待最终第3/3轮。开发者最终738 passed/27 skipped/1 deselected/105.28秒，较广79定向/31.52秒，纠正后的5个定义上下文与3开发反例均通过。新增typed class-receiver-context来源支持、正确header/free-use/nonlocal归属、组合值binding及按site替换来源/读取。 [修复报告](../local-only-updates/LO2_REVIEW2_FIX.md)。
@@ -1095,3 +1099,66 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 
 - 在候选固定前的同根因变体检查确认return lambda:self.handle仍漏更新，local[]/fresh Base.handle，原JSON保留。修复使真实lambda/nested执行owner可被调度，不仅选择外层method。此为尚未完成的第2轮修复延续；第3轮尚未开始，正式历史保持1/2轮，未重置或增加第4轮。
 - 原738通过作为前一修复状态保留，未倒写其已覆盖新增闭包反例。当前最终源码冻结后741完整指定快速套件通过，进入远端固定和主Agent独立最终审阅。
+
+## 阶段137：LO-2最终独立审阅
+
+## LO-2 formal review 3/3 — passed
+
+- Fixed remote `f13f934984f834ef957198c1782c36f85beda8de`, tree `c5ec6f28df739099c680eeb97d3e5545598469c0`, parent `ee19b841cc0012ddaeab2d22e83c81183b8d5d25`. 536 materialized files independently matched Git blob SHAs; 653 historical remote paths were not materialized and are preserved in the base tree. Frozen review directory `lo2-review3-fixed`; no production edits by reviewer.
+- Reviewed the entire LO2 production delta (storage routing, initial all-owner seeding, owner import-site records, namespace invalidation, positive partial flow witnesses, limited-graph subscriptions, selected-source replacement and class/closure receiver context) as well as the tests/contracts. Normal warm build calls only the owner path. Incompatible/corrupt cache raises a clear error preserving current. UNKNOWN and analysis_limited are retained.
+- Independent command: `.venv/bin/python -m pytest -q tests review/local-only-updates/test_semantic_contract_independent.py review/local-only-updates/test_local_only_flow_independent.py review/local-only-updates/test_namespace_granularity_independent.py review/local-only-updates/test_definition_context_independent.py --deselect tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short`. **741 passed, 27 skipped, 1 deselected, 108.51s; exit 0**. Raw `lo2-review3-root-suite.log`. This is an independent rerun, not additional 741 distinct cases.
+- LO2-OWNER-GRANULARITY, LO2-CLASS-RECEIVER and LO2-DEFINITION-PHASE resolved by their original and root-cause variants. Unrelated same-file functions/defaults stay unselected; missing base now updates inherited method and returned lambda to Base.handle; class default REFERENCES updates; local/nonlocal shadow stays separate. The invalid earlier default-body assertion remains corrected against fresh UNKNOWN; no diagnostic-to-CALLS conflation.
+- Required real83/end-to-end/scale validation is next LO3. This pass does not claim whole-project precision or all costs are local, and does not authorize merge. Reviews 1 and 2 and original logs remain unchanged.
+
+## 阶段138：LO-3开发冻结与完整输入阻塞
+
+# LO-3 developer evidence (2026-11-01)
+
+LO-2 production remains frozen at remote `f13f934984f834ef957198c1782c36f85beda8de` (tree `c5ec6f28df739099c680eeb97d3e5545598469c0`), after formal review 3/3 passed. This batch adds acceptance tests and measurement only. The parent runs the complete 83-file real-source build independently; no duplicate full cold build was run here.
+
+## Source and isolation
+
+The fixed full-source input is `/workspace/scratch/45363df3617b/task-evidence/sm-full-fixed`, pinned `agentic-trpg/trpg-state-machine` commit `a7b0804d5635e185a79ff3c1d1fa6241c2b858fe`; `SOURCE_PROVENANCE.json` records each Git blob, SHA256 and byte count (83 Python files, 1,207,159 bytes). The nine-file acceptance verifies exact individual provenance in the test. All commands use frozen Python 3.12/Jedi 0.20.1/Parso 0.8.7, offline lexical build and a provider-denial guard; the real USEARCH stage uses deterministic synthetic vectors, zero paid requests, and no captured business code execution.
+
+## Nine original bytes: limited precision
+
+Initial standalone command `.venv/bin/python -m pytest -q tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short` failed after 109.26s at the old raw 20-table equality assertion; log `lo3-nine-actual.log`. The 96 synthetic vectors were seeded in 0.0055s, requests stayed at zero, association budget was 20,000, and three real USEARCH partitions passed their direct assertions before the final oracle check.
+
+Raw comparison `lo3-nine-diff.json` identifies one newly observed local `REFERENCES` edge for `_WorldEffectOrigin.kind: _WorldEffectKind` at `_execution.py:25`, and one direct `unknown-container-universe` range subscription for `validate_noncombat_foundation` at `combat.py:76`, `value['xp']`. Fresh already has a propagated subscription with the **same read owner/site/location/reason** through `AvailabilityRuntime.query_action_availability`; local has that record plus the direct consumer. Both builds have 81 identical source supports, zero writes, the same 408 CALLS and identical 408 normalized sites by stable site ID, including target sets, UNKNOWN, completeness and distinct gap evidence. Their only site-row difference is physical ordinal 150/151. The nine scope input consumer keys match; the `_execution` module's observation count is 23 versus fresh 21. The other differing ledgers are the LO-1 auxiliary execution reads/events. The added edge is an actual eager source annotation, absent from the limited initial and limited fresh runs; the selected owner pass observed it. No missing semantic dependency was established. This is a limited fresh oracle precision issue, not an LO-2 production reopening.
+
+The dedicated `tests/limited_precision_comparison.py` compares every table and every site payload keyed by stable site ID. It allows only source-verified additional eager annotation edges with direct prior module class binding, matching versions/location, no deferred annotations or same-name redefinition; and direct open-input subscriptions with a matching fresh propagated read, actual AST subscript, canonical row digest, and persisted snapshot-derived read/consumer site digests. It rejects missing or changed CALLS, supports, subscriptions, UNKNOWN, arbitrary edges and fake source locations. The general `tests/semantic_comparison.py` remains strict. Developer negative tests and two independent root controls pass: `.venv/bin/python -m pytest -q tests/test_limited_precision_comparison.py review/local-only-updates/test_limited_precision_independent.py tests/test_lo3_public_lifecycle.py --tb=short` → **15 passed in 3.08s**, log `lo3-focused-final.log` (earlier red attempts retained). The revised nine test passed **1 in 106.28s**, log `lo3-nine-actual-refined.log`. Final standalone with a preserved temporary source snapshot passed **1 in 105.92s**: `.venv/bin/python -m pytest -q tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short --basetemp=/tmp/lct-lo3-nine-final` (`lo3-nine-final.log`). The final strengthened helper also passed against that persisted pair (`lo3-nine-final-helper-recheck.log`); the extra subscription's row, read and consumer digests were independently recomputed and matched.
+
+## Public warm locality and indexed reverse lookups
+
+`PYTHONPATH=. .venv/bin/python review/local-only-updates/lo3_locality.py --output review/local-only-updates/lo3-locality-result.json` succeeded; full JSON and stderr are `lo3-locality.json` / `lo3-locality.err`. It builds public cold and warm versions for N=0/20/100 active unrelated source files. The warm provider change is `registry['go']`: first→second. Wrappers count actual engine calls; Graph.build itself is not replaced. Its public warm route passes a selected owner set. The same run checks Query `get_nodes` and `get_relations` twice on the new version with identical bounded output, then reads the immutable old version.
+
+| N unrelated files | Selected owners | Reused owners | Jedi queries | Associations | Sites | Parsed Python | AST roots inventoried | Captured files, two fences | Artifact bytes | Reverse VM steps cold/repeat |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 10 | 0 | 6 | 8 | 3 | 1 | 2 | 4 | 446,853 | 65/61 |
+| 20 | 10 | 60 | 6 | 8 | 3 | 1 | 22 | 44 | 1,179,821 | 65/61 |
+| 100 | 10 | 300 | 6 | 8 | 3 | 1 | 102 | 204 | 4,046,157 | 65/61 |
+
+Actual three-query reverse lookup on fixed `first`, `Runner` and provider container origin returns one consumer each. `EXPLAIN QUERY PLAN` uses `unit_source_producer` twice and `unit_container_reader` once; no table scan. Query output and artifact hashing/serialization grow separately. Captured text bytes grow 496/3,516/15,836, compressed AST decode bytes 1,280/3,961/13,053, mounted UTF-8 bytes 248/1,758/7,918, artifact hash input bytes 1,213,583/3,072,519/10,442,727. These global costs are not described as constant or free. The measurement is a controlled synthetic locality control and does not establish cold 83-file latency.
+
+## Public lifecycle
+
+`tests/test_lo3_public_lifecycle.py` uses the actual public build/query APIs, real writer→provider.handlers→getter return→consumer `fn()` flow, and selected-owner Graph.build observation. It checks first→second, injected `before_publish` failure leaves the second version current, a new Python process retries second→first without full analysis, old version nodes/relations and semantic tables remain immutable, and final fresh semantic graph/source comparison agrees. It passed **1 in 2.04s** (`lo3-lifecycle-final2.log`). Intermediate red test attempts were harness expectation/freshness-metadata mistakes, retained as `lo3-lifecycle.log` and `lo3-lifecycle-final.log`.
+
+## Remaining gate and limitations
+
+The parent owns the actual full83 cold/warm run, review and cumulative stage report. Both commands below ran from `/workspace/scratch/45363df3617b/lo2-review3-fixed` using the unmodified public cold builder and exact 83 files. Both exited **124** without a completed first snapshot. The first 300s run logged only its start; its query count is unknown. The safe observer in the second run recorded analyzer init 9,614 sites in 7.11s, then 14,797,200 query attempts, 10,930 executed queries, association budget remaining 1,963 at 599.69s. Its repeated Python stack samples showed continuing candidate/parameter/container work. This is neither a full acceptance pass nor a confirmed correctness or external dependency defect. Without a cold snapshot, full83 warm/query acceptance could not run. Root's [status](LO3_FULL83_STATUS.json), [lossless observed log](lo3-root-full83-observed.log.xz), and [extracted progress](lo3-root-full83-progress.json) retain the disposition; no third run was attempted here.
+
+1. `PYTHONPATH=. timeout 300 .venv/bin/python ../local-only-work/review/local-only-updates/profile_sm_full.py --source /workspace/scratch/45363df3617b/task-evidence/sm-full-fixed --workspace /workspace/scratch/45363df3617b/task-evidence/sm-full-final-run > ../local-only-work/review/local-only-updates/lo3-root-full83-cold.log 2>&1`
+2. `PYTHONPATH=. timeout 600 .venv/bin/python ../local-only-work/review/local-only-updates/observe_sm_cold_root.py /workspace/scratch/45363df3617b/task-evidence/sm-full-final-run > ../local-only-work/review/local-only-updates/lo3-root-full83-observed.log 2>&1`
+
+No paid API, Neo4j, dependency swap, business execution, production repair, commit or push occurred.
+
+## Final test gates
+
+After freezing the helper and tests, the final command was:
+
+`.venv/bin/python -m pytest -q tests review/local-only-updates/test_semantic_contract_independent.py review/local-only-updates/test_local_only_flow_independent.py review/local-only-updates/test_namespace_granularity_independent.py review/local-only-updates/test_definition_context_independent.py review/local-only-updates/test_limited_precision_independent.py --deselect tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch --tb=short`
+
+It completed **758 passed, 27 skipped, 1 deselected in 117.46s**; raw log `lo3-fast-main-root-sourceproof-final.log`. The standalone nine original byte test passed separately as stated above. Earlier completed pre-hardening fast result (756 passed) and a partial interrupted run remain in `lo3-fast-main-root-final.log` and `lo3-fast-main-root-frozen.log`; they are not substituted for the final gate. Current focused class binding and source site proof controls passed **16 in 0.77s** (`lo3-source-owner-focused.log`), and the final helper passed on the saved nine public outputs (`lo3-nine-owner-recheck.log`).
+
+Changed developer files: `tests/limited_precision_comparison.py`, `tests/test_limited_precision_comparison.py`, `tests/test_lo3_public_lifecycle.py`, and the nine-test oracle call in `tests/test_batch3_actual_acceptance.py`; this report and `lo3_locality.py` plus raw logs are under this review directory. Root-owned independent files, full83 scripts/status, cumulative stage report and production files were not edited in LO-3. The **full-real-83 acceptance gate remains blocked** by incomplete bounded cold indexing; no merge or final product acceptance is claimed.

@@ -1,0 +1,91 @@
+{
+  "noise": 0,
+  "elapsed_seconds": 0.07976545199926477,
+  "capture": {
+    "inventory_calls": 2,
+    "captured_files": 4,
+    "captured_text_bytes": 496,
+    "parsed_python_files": 1,
+    "ast_decode_calls": 1,
+    "compressed_ast_bytes": 1280,
+    "decoded_module_roots": 2,
+    "module_inventory_calls": 2,
+    "mounted_files": 2,
+    "mounted_utf8_bytes": 248,
+    "artifact_hash_calls": 8,
+    "artifact_hash_bytes": 1213583,
+    "graph_selected_calls": 1
+  },
+  "solver": {
+    "selected_owner_count": 10,
+    "reused_owner_count": 0,
+    "owner_jedi_queries_executed": 6,
+    "owner_association_evaluations": 8,
+    "sites_analyzed": 3
+  },
+  "artifact_bytes": 446853,
+  "public_reads": [
+    {
+      "nodes": 1,
+      "edges": 1,
+      "node_bytes": 859,
+      "relation_bytes": 1066
+    },
+    {
+      "nodes": 1,
+      "edges": 1,
+      "node_bytes": 859,
+      "relation_bytes": 1066
+    }
+  ],
+  "old_view_bytes": 752,
+  "reverse": {
+    "origin": "synthetic-review:src/provider.py:module:provider#1:5:9",
+    "phases": [
+      {
+        "vm_steps": 65,
+        "sql_count": 3,
+        "rows": {
+          "call": 1,
+          "receiver": 1,
+          "container": 1
+        },
+        "plans": [
+          [
+            "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+            "USE TEMP B-TREE FOR DISTINCT"
+          ],
+          [
+            "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+            "USE TEMP B-TREE FOR DISTINCT"
+          ],
+          [
+            "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+          ]
+        ]
+      },
+      {
+        "vm_steps": 61,
+        "sql_count": 3,
+        "rows": {
+          "call": 1,
+          "receiver": 1,
+          "container": 1
+        },
+        "plans": [
+          [
+            "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+            "USE TEMP B-TREE FOR DISTINCT"
+          ],
+          [
+            "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+            "USE TEMP B-TREE FOR DISTINCT"
+          ],
+          [
+            "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+          ]
+        ]
+      }
+    ]
+  }
+}

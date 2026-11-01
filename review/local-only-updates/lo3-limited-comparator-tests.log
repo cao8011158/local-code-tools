@@ -1,0 +1,10 @@
+.F........                                                               [100%]
+=================================== FAILURES ===================================
+_________ test_limited_precision_rejects_semantic_mutation[lost-call] __________
+tests/test_limited_precision_comparison.py:94: in test_limited_precision_rejects_semantic_mutation
+    with pytest.raises(AssertionError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_limited_precision_comparison.py::test_limited_precision_rejects_semantic_mutation[lost-call]
+1 failed, 9 passed in 1.36s

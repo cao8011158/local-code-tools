@@ -1,0 +1,14 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_public_consecutive_container_callback_restart_and_failed_publish _____
+tests/test_lo3_public_lifecycle.py:94: in test_public_consecutive_container_callback_restart_and_failed_publish
+    assert query.get_nodes([run_id], version=old) == old_nodes
+E   AssertionError: assert {'version': '... 'run', ...}]} == {'version': '... 'run', ...}]}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'freshness': {'status': 'retained_snapshot_not_current', 'checked_at': None}} != {'freshness': {'status': 'matched_at_check', 'checked_at': '2026-11-01T12:43:03Z', 'meaning': 'Source bytes matched only at stated check time; use index_status(refresh=true) to recheck'}}
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/test_lo3_public_lifecycle.py::test_public_consecutive_container_callback_restart_and_failed_publish
+1 failed in 2.36s

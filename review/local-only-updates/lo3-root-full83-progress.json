@@ -1,0 +1,3284 @@
+[
+  {
+    "stage": "analyzer_init_start",
+    "seconds": 0.77
+  },
+  {
+    "stage": "analyzer_init_end",
+    "seconds": 7.11,
+    "sites": 9614,
+    "selected_mode": true
+  },
+  {
+    "stage": "query_start",
+    "seconds": 8.04,
+    "attempts": 1,
+    "executed": 0,
+    "owner": "trpg_state_machine._execution",
+    "expression": "dataclass",
+    "budget": 20000
+  },
+  {
+    "stage": "query_start",
+    "seconds": 8.32,
+    "attempts": 2,
+    "executed": 1,
+    "owner": "trpg_state_machine._execution",
+    "expression": "dataclass",
+    "budget": 19999
+  },
+  {
+    "stage": "query_start",
+    "seconds": 8.32,
+    "attempts": 3,
+    "executed": 2,
+    "owner": "trpg_state_machine._execution",
+    "expression": "dataclass(frozen=True, slots=True)",
+    "budget": 19999
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 20.01,
+    "innermost_first": [
+      {
+        "file": "weakref.py",
+        "function": "__getitem__",
+        "line": 414
+      },
+      {
+        "file": "filters.py",
+        "function": "_get_definition_names",
+        "line": 62
+      },
+      {
+        "file": "filters.py",
+        "function": "get",
+        "line": 109
+      },
+      {
+        "file": "finder.py",
+        "function": "filter_name",
+        "line": 35
+      },
+      {
+        "file": "context.py",
+        "function": "goto",
+        "line": 35
+      },
+      {
+        "file": "context.py",
+        "function": "py__getattribute__",
+        "line": 46
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "infer_atom",
+        "line": 309
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node",
+        "line": 187
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "wrapper",
+        "line": 85
+      },
+      {
+        "file": "debug.py",
+        "function": "wrapper",
+        "line": 81
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node_cached",
+        "line": 177
+      },
+      {
+        "file": "cache.py",
+        "function": "wrapper",
+        "line": 44
+      }
+    ]
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 40.02,
+    "innermost_first": [
+      {
+        "file": "_compatibility.py",
+        "function": "pickle_load",
+        "line": 25
+      },
+      {
+        "file": "__init__.py",
+        "function": "_send",
+        "line": 320
+      },
+      {
+        "file": "__init__.py",
+        "function": "run",
+        "line": 298
+      },
+      {
+        "file": "__init__.py",
+        "function": "wrapper",
+        "line": 190
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "infer_atom",
+        "line": 321
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node",
+        "line": 187
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "wrapper",
+        "line": 85
+      },
+      {
+        "file": "debug.py",
+        "function": "wrapper",
+        "line": 81
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node_cached",
+        "line": 177
+      },
+      {
+        "file": "cache.py",
+        "function": "wrapper",
+        "line": 44
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node_if_inferred",
+        "line": 172
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "infer_node",
+        "line": 159
+      }
+    ]
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 60.02,
+    "innermost_first": [
+      {
+        "file": "_compatibility.py",
+        "function": "pickle_load",
+        "line": 25
+      },
+      {
+        "file": "__init__.py",
+        "function": "_send",
+        "line": 320
+      },
+      {
+        "file": "__init__.py",
+        "function": "run",
+        "line": 298
+      },
+      {
+        "file": "__init__.py",
+        "function": "wrapper",
+        "line": 190
+      },
+      {
+        "file": "__init__.py",
+        "function": "_cached_results",
+        "line": 514
+      },
+      {
+        "file": "cache.py",
+        "function": "wrapper",
+        "line": 112
+      },
+      {
+        "file": "__init__.py",
+        "function": "_workaround",
+        "line": 510
+      },
+      {
+        "file": "value.py",
+        "function": "get_safe_value",
+        "line": 229
+      },
+      {
+        "file": "type_var.py",
+        "function": "_find_string_name",
+        "line": 41
+      },
+      {
+        "file": "type_var.py",
+        "function": "py__call__",
+        "line": 11
+      },
+      {
+        "file": "__init__.py",
+        "function": "execute",
+        "line": 124
+      },
+      {
+        "file": "pytest.py",
+        "function": "wrapper",
+        "line": 30
+      }
+    ]
+  },
+  {
+    "stage": "slow_query_end",
+    "seconds": 75.55,
+    "attempts": 6548,
+    "duration": 6.57,
+    "owner": "SessionMemory._light_profile",
+    "expression": "capabilities.get"
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 80.02,
+    "innermost_first": [
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "_path_stat",
+        "line": 147
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "find_spec",
+        "line": 1605
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "_get_spec",
+        "line": 1506
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "find_spec",
+        "line": 1532
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_spec",
+        "line": 1262
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load_unlocked",
+        "line": 1322
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load",
+        "line": 1360
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_call_with_frames_removed",
+        "line": 488
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load_unlocked",
+        "line": 1310
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load",
+        "line": 1360
+      },
+      {
+        "file": "docstrings.py",
+        "function": "_get_numpy_doc_string_cls",
+        "line": 51
+      },
+      {
+        "file": "docstrings.py",
+        "function": "_search_param_in_numpydocstr",
+        "line": 63
+      }
+    ]
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 104.1,
+    "innermost_first": [
+      {
+        "file": "_compatibility.py",
+        "function": "pickle_dump",
+        "line": 39
+      },
+      {
+        "file": "__init__.py",
+        "function": "_send",
+        "line": 313
+      },
+      {
+        "file": "__init__.py",
+        "function": "run",
+        "line": 298
+      },
+      {
+        "file": "__init__.py",
+        "function": "wrapper",
+        "line": 190
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "infer_atom",
+        "line": 321
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node",
+        "line": 187
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "wrapper",
+        "line": 85
+      },
+      {
+        "file": "debug.py",
+        "function": "wrapper",
+        "line": 81
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node_cached",
+        "line": 177
+      },
+      {
+        "file": "cache.py",
+        "function": "wrapper",
+        "line": 44
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "_infer_node_if_inferred",
+        "line": 172
+      },
+      {
+        "file": "syntax_tree.py",
+        "function": "infer_node",
+        "line": 159
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 113.63,
+    "attempts": 100000,
+    "executed": 9324,
+    "owner": "_validate",
+    "expression": "tuple",
+    "budget": 18061
+  },
+  {
+    "stage": "query_start",
+    "seconds": 116.5,
+    "attempts": 200000,
+    "executed": 9351,
+    "owner": "validate_noncombat_foundation",
+    "expression": "RNGState.model_validate_json",
+    "budget": 17813
+  },
+  {
+    "stage": "query_start",
+    "seconds": 119.49,
+    "attempts": 300000,
+    "executed": 9395,
+    "owner": "PerceptionRuntime._project_perception",
+    "expression": "self._conn.execute('SELECT 1 FROM npc_perception_queue WHERE session_id=? AND event_seq=? AND complete=0', (session_id, event_seq)).fetchone",
+    "budget": 17579
+  },
+  {
+    "stage": "query_start",
+    "seconds": 122.46,
+    "attempts": 400000,
+    "executed": 9412,
+    "owner": "CharacterFacts.sync_inventory_change",
+    "expression": "self.rule_actors(sid, owners).items",
+    "budget": 17414
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 124.12,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2207
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "call_field_effect",
+        "line": 1773
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "field_event",
+        "line": 2017
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 126.03,
+    "attempts": 500000,
+    "executed": 9470,
+    "owner": "scoped_read.read",
+    "expression": "memory.get",
+    "budget": 17064
+  },
+  {
+    "stage": "query_start",
+    "seconds": 129.35,
+    "attempts": 600000,
+    "executed": 9485,
+    "owner": "WorldFacts.initialize_mechanical_scene",
+    "expression": "self.store.memory.json",
+    "budget": 16885
+  },
+  {
+    "stage": "query_start",
+    "seconds": 132.3,
+    "attempts": 700000,
+    "executed": 9538,
+    "owner": "SessionAccess._npc_combat_location_guard",
+    "expression": "self._conn.execute('SELECT actor_id,current_scene_id FROM actors WHERE session_id=? AND actor_id IN (?,?)', (command.session_id, command.actor_id, command.payload.target_id)).fetchall",
+    "budget": 16625
+  },
+  {
+    "stage": "query_start",
+    "seconds": 135.56,
+    "attempts": 800000,
+    "executed": 9594,
+    "owner": "sync_npc_schedules",
+    "expression": "db.execute('SELECT game_tick FROM world_states WHERE session_id=?', (sid,)).fetchone",
+    "budget": 16355
+  },
+  {
+    "stage": "query_start",
+    "seconds": 138.26,
+    "attempts": 900000,
+    "executed": 9619,
+    "owner": "SessionMemory.select",
+    "expression": "tuple",
+    "budget": 16184
+  },
+  {
+    "stage": "query_start",
+    "seconds": 140.87,
+    "attempts": 1000000,
+    "executed": 9671,
+    "owner": "PreparedGrid.build",
+    "expression": "GridScene",
+    "budget": 15818
+  },
+  {
+    "stage": "query_start",
+    "seconds": 143.79,
+    "attempts": 1100000,
+    "executed": 9736,
+    "owner": "SessionMemory.select",
+    "expression": "tuple",
+    "budget": 15583
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 144.12,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2207
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "call_field_effect",
+        "line": 1773
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "field_event",
+        "line": 2017
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 146.48,
+    "attempts": 1200000,
+    "executed": 9743,
+    "owner": "validate_mechanism_result",
+    "expression": "result.rng_transition.verify_input",
+    "budget": 15483
+  },
+  {
+    "stage": "query_start",
+    "seconds": 149.93,
+    "attempts": 1300000,
+    "executed": 9832,
+    "owner": "SessionMemory.changed",
+    "expression": "self.projection_shapes.get",
+    "budget": 14869
+  },
+  {
+    "stage": "query_start",
+    "seconds": 162.14,
+    "attempts": 1400000,
+    "executed": 9997,
+    "owner": "WorldFacts.initialize_time_binding",
+    "expression": "self.store.require_write",
+    "budget": 13810
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 164.17,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2170
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 164.95,
+    "attempts": 1500000,
+    "executed": 9998,
+    "owner": "StateMachine._initialize_combat",
+    "expression": "self._combat._initialize_combat",
+    "budget": 13750
+  },
+  {
+    "stage": "query_start",
+    "seconds": 168.03,
+    "attempts": 1600000,
+    "executed": 10003,
+    "owner": "EventRuntime.read_events",
+    "expression": "seqs.fetchall",
+    "budget": 13552
+  },
+  {
+    "stage": "query_start",
+    "seconds": 170.8,
+    "attempts": 1700000,
+    "executed": 10003,
+    "owner": "SessionMemory.invalidate_table",
+    "expression": "name.startswith",
+    "budget": 13496
+  },
+  {
+    "stage": "query_start",
+    "seconds": 173.18,
+    "attempts": 1800000,
+    "executed": 10053,
+    "owner": "GridView.neighbors",
+    "expression": "self._base().within_range",
+    "budget": 13316
+  },
+  {
+    "stage": "query_start",
+    "seconds": 176.31,
+    "attempts": 1900000,
+    "executed": 10152,
+    "owner": "Record.__getitem__",
+    "expression": "self._names.index",
+    "budget": 12711
+  },
+  {
+    "stage": "query_start",
+    "seconds": 178.68,
+    "attempts": 2000000,
+    "executed": 10180,
+    "owner": "EventRuntime.delivery_cursor",
+    "expression": "self._conn.execute(\"SELECT event_seq FROM projection_cursors WHERE session_id=? AND consumer='delivery'\", (session_id,)).fetchone",
+    "budget": 12542
+  },
+  {
+    "stage": "query_start",
+    "seconds": 182.21,
+    "attempts": 2100000,
+    "executed": 10252,
+    "owner": "RulesAdapter._current_cells",
+    "expression": "self.characters.position",
+    "budget": 12208
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 184.22,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "_observe_analysis_input",
+        "line": 320
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2833
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2170
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "call_field_effect",
+        "line": 1773
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 185.65,
+    "attempts": 2200000,
+    "executed": 10258,
+    "owner": "WorldFacts.initialize_items",
+    "expression": "loader.get_item",
+    "budget": 12104
+  },
+  {
+    "stage": "query_start",
+    "seconds": 189.12,
+    "attempts": 2300000,
+    "executed": 10297,
+    "owner": "scoped_read.read",
+    "expression": "memory.guard",
+    "budget": 11969
+  },
+  {
+    "stage": "query_start",
+    "seconds": 193.95,
+    "attempts": 2400000,
+    "executed": 10353,
+    "owner": "NPCRuntime._npc_current_view",
+    "expression": "self._conn.execute('SELECT text,visibility FROM world_facts WHERE session_id=? AND fact_id=?', (session_id, fid)).fetchone",
+    "budget": 11752
+  },
+  {
+    "stage": "query_start",
+    "seconds": 197.33,
+    "attempts": 2500000,
+    "executed": 10392,
+    "owner": "ComponentInputs.select",
+    "expression": "by_id.get",
+    "budget": 11548
+  },
+  {
+    "stage": "query_start",
+    "seconds": 201.12,
+    "attempts": 2600000,
+    "executed": 10402,
+    "owner": "RuleExecution.submit",
+    "expression": "_WorldEffectOrigin",
+    "budget": 11385
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 204.23,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2170
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 204.89,
+    "attempts": 2700000,
+    "executed": 10421,
+    "owner": "WorldFacts.initialize_world",
+    "expression": "self.store.require_write",
+    "budget": 11203
+  },
+  {
+    "stage": "query_start",
+    "seconds": 208.36,
+    "attempts": 2800000,
+    "executed": 10463,
+    "owner": "StateMachine._snapshot",
+    "expression": "self._world_facts.instances.get",
+    "budget": 10967
+  },
+  {
+    "stage": "query_start",
+    "seconds": 213.13,
+    "attempts": 2900000,
+    "executed": 10508,
+    "owner": "EnvironmentVersions._bind",
+    "expression": "row[0].startswith",
+    "budget": 10744
+  },
+  {
+    "stage": "query_start",
+    "seconds": 216.82,
+    "attempts": 3000000,
+    "executed": 10572,
+    "owner": "SessionAccess._npc_handoff_command_guard",
+    "expression": "self._conn.execute('SELECT principal_id FROM npc_access WHERE session_id=? AND observer_id=?', (row['session_id'], row['npc_id'])).fetchone",
+    "budget": 10502
+  },
+  {
+    "stage": "query_start",
+    "seconds": 220.34,
+    "attempts": 3100000,
+    "executed": 10606,
+    "owner": "sync_npc_schedules",
+    "expression": "db.execute('SELECT game_tick FROM world_states WHERE session_id=?', (sid,)).fetchone",
+    "budget": 10333
+  },
+  {
+    "stage": "query_start",
+    "seconds": 223.91,
+    "attempts": 3200000,
+    "executed": 10609,
+    "owner": "SessionMemory.select",
+    "expression": "len",
+    "budget": 10267
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 224.27,
+    "innermost_first": [
+      {
+        "file": "analysis_inputs.py",
+        "function": "observe",
+        "line": 25
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_observe_analysis_input",
+        "line": 312
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1071
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2207
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 227.79,
+    "attempts": 3300000,
+    "executed": 10640,
+    "owner": "PreparedGrid.build",
+    "expression": "GridScene",
+    "budget": 10151
+  },
+  {
+    "stage": "query_start",
+    "seconds": 231.32,
+    "attempts": 3400000,
+    "executed": 10647,
+    "owner": "WorldHandler._validate_door_occupancy",
+    "expression": "self._conn.execute('SELECT 1 FROM actors WHERE session_id=? AND current_scene_id=? AND cell=? LIMIT 1', (sid, endpoint.scene_id, endpoint.threshold_cell)).fetchone",
+    "budget": 10031
+  },
+  {
+    "stage": "query_start",
+    "seconds": 234.09,
+    "attempts": 3500000,
+    "executed": 10668,
+    "owner": "NPCResultRuntime.submit_npc_evaluation_result",
+    "expression": "self._conn.execute",
+    "budget": 9920
+  },
+  {
+    "stage": "query_start",
+    "seconds": 236.79,
+    "attempts": 3600000,
+    "executed": 10704,
+    "owner": "MechanismService._activate",
+    "expression": "events.append",
+    "budget": 9751
+  },
+  {
+    "stage": "query_start",
+    "seconds": 239.22,
+    "attempts": 3700000,
+    "executed": 10740,
+    "owner": "_validate",
+    "expression": "tuple",
+    "budget": 9593
+  },
+  {
+    "stage": "query_start",
+    "seconds": 241.74,
+    "attempts": 3800000,
+    "executed": 10767,
+    "owner": "MechanismService.automatic",
+    "expression": "self.h.facts.placement",
+    "budget": 9500
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 244.28,
+    "innermost_first": [
+      {
+        "file": "ast.py",
+        "function": "iter_fields",
+        "line": 264
+      },
+      {
+        "file": "ast.py",
+        "function": "iter_child_nodes",
+        "line": 274
+      },
+      {
+        "file": "ast.py",
+        "function": "walk",
+        "line": 379
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 1029
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "scan",
+        "line": 1027
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "reaching",
+        "line": 1037
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1258
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 247.23,
+    "attempts": 3900000,
+    "executed": 10871,
+    "owner": "_output_data",
+    "expression": "output.payload.model_dump",
+    "budget": 8457
+  },
+  {
+    "stage": "query_start",
+    "seconds": 250.19,
+    "attempts": 4000000,
+    "executed": 10883,
+    "owner": "validate_mechanism_result",
+    "expression": "NonCombatSnapshot.model_validate_json",
+    "budget": 8342
+  },
+  {
+    "stage": "query_start",
+    "seconds": 252.43,
+    "attempts": 4100000,
+    "executed": 10883,
+    "owner": "WorldHandler._manual_object_target",
+    "expression": "self._conn.execute('SELECT scene_id,state,cell FROM objects WHERE session_id=? AND object_id=?', (sid, operation.object_id)).fetchone",
+    "budget": 8286
+  },
+  {
+    "stage": "query_start",
+    "seconds": 254.68,
+    "attempts": 4200000,
+    "executed": 10883,
+    "owner": "SqliteStore._transaction_scope",
+    "expression": "self.memory.publish",
+    "budget": 8225
+  },
+  {
+    "stage": "query_start",
+    "seconds": 256.97,
+    "attempts": 4300000,
+    "executed": 10883,
+    "owner": "MechanismEffectRunner.request",
+    "expression": "rules._rng_context",
+    "budget": 8164
+  },
+  {
+    "stage": "query_start",
+    "seconds": 259.72,
+    "attempts": 4400000,
+    "executed": 10883,
+    "owner": "MechanismService._scene_index",
+    "expression": "index.setdefault((kind, scene, target), []).append",
+    "budget": 8106
+  },
+  {
+    "stage": "query_start",
+    "seconds": 261.84,
+    "attempts": 4500000,
+    "executed": 10883,
+    "owner": "RulesAdapter.query_availability",
+    "expression": "ActionAvailabilityResult",
+    "budget": 8047
+  },
+  {
+    "stage": "query_start",
+    "seconds": 264.16,
+    "attempts": 4600000,
+    "executed": 10885,
+    "owner": "WorldFacts.initialize_time_binding",
+    "expression": "self.store.require_write",
+    "budget": 7988
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 264.35,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2207
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2650
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2650
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 267.25,
+    "attempts": 4700000,
+    "executed": 10885,
+    "owner": "NPCRuntime._npc_current_view",
+    "expression": "self._conn.execute",
+    "budget": 7930
+  },
+  {
+    "stage": "query_start",
+    "seconds": 269.89,
+    "attempts": 4800000,
+    "executed": 10885,
+    "owner": "MechanismService._activate",
+    "expression": "replace",
+    "budget": 7874
+  },
+  {
+    "stage": "query_start",
+    "seconds": 272.2,
+    "attempts": 4900000,
+    "executed": 10889,
+    "owner": "SessionMemory.select",
+    "expression": "tuple",
+    "budget": 7810
+  },
+  {
+    "stage": "query_start",
+    "seconds": 274.43,
+    "attempts": 5000000,
+    "executed": 10889,
+    "owner": "CharacterFacts._validated_rule_components",
+    "expression": "typed_inventory.model_dump",
+    "budget": 7737
+  },
+  {
+    "stage": "query_start",
+    "seconds": 276.54,
+    "attempts": 5100000,
+    "executed": 10889,
+    "owner": "SessionRuntime._rng_context",
+    "expression": "RNGContext",
+    "budget": 7682
+  },
+  {
+    "stage": "query_start",
+    "seconds": 278.73,
+    "attempts": 5200000,
+    "executed": 10889,
+    "owner": "closure_changes",
+    "expression": "r.model_dump",
+    "budget": 7622
+  },
+  {
+    "stage": "query_start",
+    "seconds": 281.74,
+    "attempts": 5300000,
+    "executed": 10889,
+    "owner": "RulesAdapter._verify_dnd_binding",
+    "expression": "RulesetBinding",
+    "budget": 7564
+  },
+  {
+    "stage": "query_start",
+    "seconds": 284.37,
+    "attempts": 5400000,
+    "executed": 10889,
+    "owner": "WorldFacts.initialize_items",
+    "expression": "loader.get_item",
+    "budget": 7507
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 284.41,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2172
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 287.32,
+    "attempts": 5500000,
+    "executed": 10889,
+    "owner": "NPCModeRuntime._work_occupied",
+    "expression": "self._conn.execute",
+    "budget": 7451
+  },
+  {
+    "stage": "query_start",
+    "seconds": 290.34,
+    "attempts": 5600000,
+    "executed": 10889,
+    "owner": "EventRuntime.delivery_cursor",
+    "expression": "self._conn.execute",
+    "budget": 7394
+  },
+  {
+    "stage": "query_start",
+    "seconds": 293.03,
+    "attempts": 5700000,
+    "executed": 10889,
+    "owner": "SessionMemory.select",
+    "expression": "range",
+    "budget": 7335
+  },
+  {
+    "stage": "query_start",
+    "seconds": 296.04,
+    "attempts": 5800000,
+    "executed": 10889,
+    "owner": "MechanismService.method_plan",
+    "expression": "c.operation",
+    "budget": 7279
+  },
+  {
+    "stage": "query_start",
+    "seconds": 298.34,
+    "attempts": 5900000,
+    "executed": 10889,
+    "owner": "CharacterFacts.position",
+    "expression": "self.world.carrier_position",
+    "budget": 7220
+  },
+  {
+    "stage": "query_start",
+    "seconds": 300.65,
+    "attempts": 6000000,
+    "executed": 10890,
+    "owner": "RulesAdapter.query_availability",
+    "expression": "ActionAvailabilityResult",
+    "budget": 7163
+  },
+  {
+    "stage": "query_start",
+    "seconds": 302.79,
+    "attempts": 6100000,
+    "executed": 10890,
+    "owner": "SqliteStore.begin_persistence",
+    "expression": "self._conn.execute",
+    "budget": 7106
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 304.54,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2236
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2172
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 304.85,
+    "attempts": 6200000,
+    "executed": 10890,
+    "owner": "CharacterFacts.validate_portable_inventory",
+    "expression": "by_owner.setdefault(e['owner_id'], set()).add",
+    "budget": 7049
+  },
+  {
+    "stage": "query_start",
+    "seconds": 307.69,
+    "attempts": 6300000,
+    "executed": 10890,
+    "owner": "sync_npc_schedules.record",
+    "expression": "db.execute",
+    "budget": 6993
+  },
+  {
+    "stage": "query_start",
+    "seconds": 310.71,
+    "attempts": 6400000,
+    "executed": 10890,
+    "owner": "_validate",
+    "expression": "_fail",
+    "budget": 6936
+  },
+  {
+    "stage": "query_start",
+    "seconds": 313.53,
+    "attempts": 6500000,
+    "executed": 10890,
+    "owner": "validate_world_objects",
+    "expression": "_fail",
+    "budget": 6880
+  },
+  {
+    "stage": "query_start",
+    "seconds": 315.93,
+    "attempts": 6600000,
+    "executed": 10890,
+    "owner": "WorldHandler._manual_object_target",
+    "expression": "topology.edge_distance",
+    "budget": 6824
+  },
+  {
+    "stage": "query_start",
+    "seconds": 318.56,
+    "attempts": 6700000,
+    "executed": 10890,
+    "owner": "WorldFacts._has_lights",
+    "expression": "self._conn.execute",
+    "budget": 6766
+  },
+  {
+    "stage": "query_start",
+    "seconds": 321.33,
+    "attempts": 6800000,
+    "executed": 10890,
+    "owner": "RulesAdapter._combat_snapshot",
+    "expression": "CombatSnapshot.model_validate_json",
+    "budget": 6710
+  },
+  {
+    "stage": "query_start",
+    "seconds": 323.98,
+    "attempts": 6900000,
+    "executed": 10890,
+    "owner": "NPCRuntime._npc_current_view",
+    "expression": "self._store.memory.json",
+    "budget": 6654
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 324.56,
+    "innermost_first": [
+      {
+        "file": "ast.py",
+        "function": "write",
+        "line": 770
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Name",
+        "line": 1314
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Attribute",
+        "line": 1551
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Call",
+        "line": 1562
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Attribute",
+        "line": 1551
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 326.63,
+    "attempts": 7000000,
+    "executed": 10890,
+    "owner": "_DriverLock.__init__",
+    "expression": "self.file.seek",
+    "budget": 6597
+  },
+  {
+    "stage": "query_start",
+    "seconds": 329.1,
+    "attempts": 7100000,
+    "executed": 10890,
+    "owner": "_validate",
+    "expression": "json.loads",
+    "budget": 6541
+  },
+  {
+    "stage": "query_start",
+    "seconds": 331.71,
+    "attempts": 7200000,
+    "executed": 10890,
+    "owner": "SessionMemory.select",
+    "expression": "self.guard",
+    "budget": 6484
+  },
+  {
+    "stage": "query_start",
+    "seconds": 334.04,
+    "attempts": 7300000,
+    "executed": 10890,
+    "owner": "PerceptionRuntime.get_scene_view",
+    "expression": "self._conn.execute",
+    "budget": 6428
+  },
+  {
+    "stage": "query_start",
+    "seconds": 336.37,
+    "attempts": 7400000,
+    "executed": 10890,
+    "owner": "CombatHandler._initialize_combat",
+    "expression": "rng.model_dump_json",
+    "budget": 6365
+  },
+  {
+    "stage": "query_start",
+    "seconds": 338.77,
+    "attempts": 7500000,
+    "executed": 10893,
+    "owner": "NPCModeRuntime._adopt_memory_gate",
+    "expression": "self._conn.execute",
+    "budget": 6306
+  },
+  {
+    "stage": "query_start",
+    "seconds": 341.05,
+    "attempts": 7600000,
+    "executed": 10893,
+    "owner": "WorldFacts._discover_capability_ids",
+    "expression": "self._conn.execute",
+    "budget": 6250
+  },
+  {
+    "stage": "query_start",
+    "seconds": 343.38,
+    "attempts": 7700000,
+    "executed": 10893,
+    "owner": "ComponentInputs.select",
+    "expression": "raw.items",
+    "budget": 6192
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 344.59,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2236
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2172
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 345.7,
+    "attempts": 7800000,
+    "executed": 10893,
+    "owner": "EventRuntime.deliver_event",
+    "expression": "self._conn.execute",
+    "budget": 6136
+  },
+  {
+    "stage": "query_start",
+    "seconds": 348.49,
+    "attempts": 7900000,
+    "executed": 10893,
+    "owner": "_validate",
+    "expression": "next",
+    "budget": 6079
+  },
+  {
+    "stage": "query_start",
+    "seconds": 350.93,
+    "attempts": 8000000,
+    "executed": 10893,
+    "owner": "validate_world_objects",
+    "expression": "_fail",
+    "budget": 6023
+  },
+  {
+    "stage": "query_start",
+    "seconds": 353.21,
+    "attempts": 8100000,
+    "executed": 10893,
+    "owner": "SessionRuntime.guard_time_owner",
+    "expression": "self._conn.execute('PRAGMA database_list').fetchone",
+    "budget": 5966
+  },
+  {
+    "stage": "query_start",
+    "seconds": 355.54,
+    "attempts": 8200000,
+    "executed": 10893,
+    "owner": "WorldFacts.environment",
+    "expression": "self._conn.execute",
+    "budget": 5909
+  },
+  {
+    "stage": "query_start",
+    "seconds": 358.0,
+    "attempts": 8300000,
+    "executed": 10893,
+    "owner": "migrate_package_16",
+    "expression": "migrate_snapshot_16",
+    "budget": 5853
+  },
+  {
+    "stage": "query_start",
+    "seconds": 360.54,
+    "attempts": 8400000,
+    "executed": 10893,
+    "owner": "_validate",
+    "expression": "next",
+    "budget": 5797
+  },
+  {
+    "stage": "query_start",
+    "seconds": 362.95,
+    "attempts": 8500000,
+    "executed": 10894,
+    "owner": "Range.read",
+    "expression": "self.indices[name].get",
+    "budget": 5739
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 364.71,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "unknown",
+        "line": 88
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1086
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2650
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 365.15,
+    "attempts": 8600000,
+    "executed": 10894,
+    "owner": "GridView.__post_init__",
+    "expression": "cells.setdefault(cell, set()).add",
+    "budget": 5680
+  },
+  {
+    "stage": "query_start",
+    "seconds": 367.36,
+    "attempts": 8700000,
+    "executed": 10894,
+    "owner": "CombatHandler._initialize_combat",
+    "expression": "snapshot.model_dump",
+    "budget": 5624
+  },
+  {
+    "stage": "query_start",
+    "seconds": 369.63,
+    "attempts": 8800000,
+    "executed": 10894,
+    "owner": "NPCRuntime._initialize_npc",
+    "expression": "self._npc_bootstrap.initialize",
+    "budget": 5565
+  },
+  {
+    "stage": "query_start",
+    "seconds": 371.8,
+    "attempts": 8900000,
+    "executed": 10894,
+    "owner": "WorldHandler._validate_door_occupancy",
+    "expression": "self._conn.execute",
+    "budget": 5509
+  },
+  {
+    "stage": "query_start",
+    "seconds": 374.54,
+    "attempts": 9000000,
+    "executed": 10894,
+    "owner": "NPCModeRuntime._switch_mode",
+    "expression": "self._conn.execute",
+    "budget": 5451
+  },
+  {
+    "stage": "query_start",
+    "seconds": 377.03,
+    "attempts": 9100000,
+    "executed": 10894,
+    "owner": "MechanismService._build_index",
+    "expression": "index.setdefault(key, []).append",
+    "budget": 5393
+  },
+  {
+    "stage": "query_start",
+    "seconds": 380.8,
+    "attempts": 9200000,
+    "executed": 10894,
+    "owner": "CharacterFacts.validate_portable_inventory",
+    "expression": "self.world.portable_inventory",
+    "budget": 5336
+  },
+  {
+    "stage": "query_start",
+    "seconds": 384.52,
+    "attempts": 9300000,
+    "executed": 10894,
+    "owner": "MechanismService.method_plan",
+    "expression": "c.operation",
+    "budget": 5280
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 384.86,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1083
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2327
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1134
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2327
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1134
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2754
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 387.02,
+    "attempts": 9400000,
+    "executed": 10894,
+    "owner": "SessionMemory.range_dependency",
+    "expression": "self.dependency_shapes.setdefault(table, set()).add",
+    "budget": 5223
+  },
+  {
+    "stage": "query_start",
+    "seconds": 389.67,
+    "attempts": 9500000,
+    "executed": 10894,
+    "owner": "StateMachine.upgrade_instance_configs",
+    "expression": "self._conn.execute",
+    "budget": 5167
+  },
+  {
+    "stage": "query_start",
+    "seconds": 392.52,
+    "attempts": 9600000,
+    "executed": 10894,
+    "owner": "WorldHandler._manual_object_target",
+    "expression": "self._conn.execute",
+    "budget": 5106
+  },
+  {
+    "stage": "query_start",
+    "seconds": 394.92,
+    "attempts": 9700000,
+    "executed": 10894,
+    "owner": "NPCModeRuntime.route_npc_observations",
+    "expression": "self._transaction",
+    "budget": 5049
+  },
+  {
+    "stage": "query_start",
+    "seconds": 397.3,
+    "attempts": 9800000,
+    "executed": 10894,
+    "owner": "MechanicalRuntime._submit_mechanical",
+    "expression": "self._session_runtime.finish",
+    "budget": 4992
+  },
+  {
+    "stage": "query_start",
+    "seconds": 399.47,
+    "attempts": 9900000,
+    "executed": 10894,
+    "owner": "_plain",
+    "expression": "value.items",
+    "budget": 4936
+  },
+  {
+    "stage": "query_start",
+    "seconds": 401.51,
+    "attempts": 10000000,
+    "executed": 10894,
+    "owner": "_simple",
+    "expression": "projection.split",
+    "budget": 4879
+  },
+  {
+    "stage": "query_start",
+    "seconds": 403.67,
+    "attempts": 10100000,
+    "executed": 10903,
+    "owner": "NPCModeRuntime._adopt_memory_gate",
+    "expression": "self._conn.execute",
+    "budget": 4771
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 404.95,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2236
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2650
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2650
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 405.69,
+    "attempts": 10200000,
+    "executed": 10903,
+    "owner": "MechanismService.automatic",
+    "expression": "payload.get",
+    "budget": 4715
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 424.96,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "call_field_effect",
+        "line": 1773
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "field_event",
+        "line": 2017
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "field_scope",
+        "line": 2041
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "instance_field",
+        "line": 2107
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "attribute",
+        "line": 1375
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1155
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 432.49,
+    "attempts": 10300000,
+    "executed": 10905,
+    "owner": "NPCModeRuntime.get_npc_memory_gate_input",
+    "expression": "self._observation_rows",
+    "budget": 4614
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 444.99,
+    "innermost_first": [
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "_path_stat",
+        "line": 147
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "find_spec",
+        "line": 1605
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "_get_spec",
+        "line": 1506
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "find_spec",
+        "line": 1532
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_spec",
+        "line": 1262
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load_unlocked",
+        "line": 1322
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load",
+        "line": 1360
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_call_with_frames_removed",
+        "line": 488
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load_unlocked",
+        "line": 1310
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_find_and_load",
+        "line": 1360
+      },
+      {
+        "file": "docstrings.py",
+        "function": "_get_numpy_doc_string_cls",
+        "line": 51
+      },
+      {
+        "file": "docstrings.py",
+        "function": "_search_param_in_numpydocstr",
+        "line": 63
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 456.76,
+    "attempts": 10400000,
+    "executed": 10922,
+    "owner": "CharacterFacts._validated_rule_components",
+    "expression": "ResourceState.model_validate({**resources, 'pools': tuple(resources['pools'])} if isinstance(resources['pools'], list) else resources).model_dump",
+    "budget": 4505
+  },
+  {
+    "stage": "query_start",
+    "seconds": 459.74,
+    "attempts": 10500000,
+    "executed": 10922,
+    "owner": "NPCModeRuntime.route_npc_observations",
+    "expression": "self._transaction",
+    "budget": 4448
+  },
+  {
+    "stage": "query_start",
+    "seconds": 462.36,
+    "attempts": 10600000,
+    "executed": 10922,
+    "owner": "judge_visual",
+    "expression": "MechanicalGrid.model_validate_json",
+    "budget": 4380
+  },
+  {
+    "stage": "query_start",
+    "seconds": 465.08,
+    "attempts": 10700000,
+    "executed": 10922,
+    "owner": "WorldFacts.initialize_scene",
+    "expression": "self._conn.execute",
+    "budget": 4322
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 465.13,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2170
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2508
+      },
+      {
+        "file": "python_access.py",
+        "function": "values",
+        "line": 354
+      },
+      {
+        "file": "python_access.py",
+        "function": "reachable",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 470.93,
+    "attempts": 10800000,
+    "executed": 10922,
+    "owner": "EventRuntime.deliver_event",
+    "expression": "self._transaction",
+    "budget": 4265
+  },
+  {
+    "stage": "query_start",
+    "seconds": 473.25,
+    "attempts": 10900000,
+    "executed": 10922,
+    "owner": "RuleExecution.submit",
+    "expression": "self.world.objects.openable.apply_check",
+    "budget": 4209
+  },
+  {
+    "stage": "query_start",
+    "seconds": 476.04,
+    "attempts": 11000000,
+    "executed": 10922,
+    "owner": "WorldFacts.place",
+    "expression": "self.store.require_write",
+    "budget": 4152
+  },
+  {
+    "stage": "query_start",
+    "seconds": 480.48,
+    "attempts": 11100000,
+    "executed": 10922,
+    "owner": "RuleExecution.submit",
+    "expression": "self._conn.execute",
+    "budget": 4096
+  },
+  {
+    "stage": "query_start",
+    "seconds": 484.26,
+    "attempts": 11200000,
+    "executed": 10922,
+    "owner": "WorldFacts.initialize_locks",
+    "expression": "self._conn.execute",
+    "budget": 4039
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 485.14,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "_unit_subscribe",
+        "line": 424
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1082
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2264
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2512
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 488.38,
+    "attempts": 11300000,
+    "executed": 10922,
+    "owner": "StateMachine.upgrade_instance_configs",
+    "expression": "self._world_facts.maps.release",
+    "budget": 3983
+  },
+  {
+    "stage": "query_start",
+    "seconds": 490.88,
+    "attempts": 11400000,
+    "executed": 10922,
+    "owner": "EventRuntime._complete_work",
+    "expression": "self._conn.execute",
+    "budget": 3926
+  },
+  {
+    "stage": "query_start",
+    "seconds": 493.04,
+    "attempts": 11500000,
+    "executed": 10922,
+    "owner": "validate_world_objects",
+    "expression": "_fail",
+    "budget": 3871
+  },
+  {
+    "stage": "query_start",
+    "seconds": 495.79,
+    "attempts": 11600000,
+    "executed": 10922,
+    "owner": "PerceptionRuntime.grant_npc_access",
+    "expression": "self._sessions.require_legacy_npc_time",
+    "budget": 3813
+  },
+  {
+    "stage": "query_start",
+    "seconds": 498.31,
+    "attempts": 11700000,
+    "executed": 10922,
+    "owner": "SqliteStore.begin_persistence",
+    "expression": "self._conn.execute('PRAGMA schema_version').fetchone",
+    "budget": 3757
+  },
+  {
+    "stage": "query_start",
+    "seconds": 500.69,
+    "attempts": 11800000,
+    "executed": 10922,
+    "owner": "NPCModeRuntime.get_npc_mode",
+    "expression": "self._npc_authorized",
+    "budget": 3700
+  },
+  {
+    "stage": "query_start",
+    "seconds": 503.79,
+    "attempts": 11900000,
+    "executed": 10922,
+    "owner": "SqliteStore.release_memory",
+    "expression": "self._grid_maps.clear",
+    "budget": 3644
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 505.15,
+    "innermost_first": [
+      {
+        "file": "encoder.py",
+        "function": "iterencode",
+        "line": 258
+      },
+      {
+        "file": "encoder.py",
+        "function": "encode",
+        "line": 200
+      },
+      {
+        "file": "__init__.py",
+        "function": "dumps",
+        "line": 238
+      },
+      {
+        "file": "common.py",
+        "function": "canonical",
+        "line": 50
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_unit_record",
+        "line": 365
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_unit_subscribe",
+        "line": 446
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1082
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2264
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 507.12,
+    "attempts": 12000000,
+    "executed": 10922,
+    "owner": "_simple",
+    "expression": "sorted",
+    "budget": 3588
+  },
+  {
+    "stage": "query_start",
+    "seconds": 511.82,
+    "attempts": 12100000,
+    "executed": 10922,
+    "owner": "ReadOnlyTopology.has_line_of_sight",
+    "expression": "self._in_bounds",
+    "budget": 3531
+  },
+  {
+    "stage": "query_start",
+    "seconds": 516.01,
+    "attempts": 12200000,
+    "executed": 10922,
+    "owner": "SessionRuntime.prepare_timed_command",
+    "expression": "self.time.drivers.get",
+    "budget": 3475
+  },
+  {
+    "stage": "query_start",
+    "seconds": 521.34,
+    "attempts": 12300000,
+    "executed": 10922,
+    "owner": "WorldFacts.scene_flags",
+    "expression": "self._conn.execute",
+    "budget": 3416
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 525.16,
+    "innermost_first": [
+      {
+        "file": "contextlib.py",
+        "function": "__exit__",
+        "line": 141
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Subscript",
+        "line": 1587
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      },
+      {
+        "file": "ast.py",
+        "function": "interleave",
+        "line": 741
+      },
+      {
+        "file": "ast.py",
+        "function": "items_view",
+        "line": 757
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Tuple",
+        "line": 1439
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      },
+      {
+        "file": "ast.py",
+        "function": "visit_Call",
+        "line": 1570
+      },
+      {
+        "file": "ast.py",
+        "function": "visit",
+        "line": 407
+      },
+      {
+        "file": "ast.py",
+        "function": "traverse",
+        "line": 850
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 527.05,
+    "attempts": 12400000,
+    "executed": 10922,
+    "owner": "MechanicalRuntime._submit_mechanical",
+    "expression": "self._capture_event",
+    "budget": 3360
+  },
+  {
+    "stage": "query_start",
+    "seconds": 532.12,
+    "attempts": 12500000,
+    "executed": 10922,
+    "owner": "GridService.prepared_package_topology",
+    "expression": "package.scene",
+    "budget": 3295
+  },
+  {
+    "stage": "query_start",
+    "seconds": 536.36,
+    "attempts": 12600000,
+    "executed": 10922,
+    "owner": "ContainerService.audit",
+    "expression": "StateMachineError",
+    "budget": 3235
+  },
+  {
+    "stage": "query_start",
+    "seconds": 540.02,
+    "attempts": 12700000,
+    "executed": 10922,
+    "owner": "_validate",
+    "expression": "set",
+    "budget": 3177
+  },
+  {
+    "stage": "query_start",
+    "seconds": 543.94,
+    "attempts": 12800000,
+    "executed": 10926,
+    "owner": "CommandRuntime.submit_command",
+    "expression": "self._activities.operate",
+    "budget": 3117
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 545.18,
+    "innermost_first": [
+      {
+        "file": "encoder.py",
+        "function": "iterencode",
+        "line": 258
+      },
+      {
+        "file": "encoder.py",
+        "function": "encode",
+        "line": 200
+      },
+      {
+        "file": "__init__.py",
+        "function": "dumps",
+        "line": 231
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2236
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2172
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 548.29,
+    "attempts": 12900000,
+    "executed": 10926,
+    "owner": "NPCEvaluationRuntime._create_evaluation",
+    "expression": "self._evaluation_mode_check",
+    "budget": 3060
+  },
+  {
+    "stage": "query_start",
+    "seconds": 552.13,
+    "attempts": 13000000,
+    "executed": 10926,
+    "owner": "_evidence_v4",
+    "expression": "evidence['objects'].values",
+    "budget": 3004
+  },
+  {
+    "stage": "query_start",
+    "seconds": 556.08,
+    "attempts": 13100000,
+    "executed": 10926,
+    "owner": "StateMachine._snapshot",
+    "expression": "self._conn.execute",
+    "budget": 2948
+  },
+  {
+    "stage": "query_start",
+    "seconds": 559.62,
+    "attempts": 13200000,
+    "executed": 10926,
+    "owner": "validate_world_objects",
+    "expression": "definitions[component].capability",
+    "budget": 2891
+  },
+  {
+    "stage": "query_start",
+    "seconds": 562.37,
+    "attempts": 13300000,
+    "executed": 10928,
+    "owner": "_validate",
+    "expression": "isinstance",
+    "budget": 2832
+  },
+  {
+    "stage": "query_start",
+    "seconds": 565.03,
+    "attempts": 13400000,
+    "executed": 10928,
+    "owner": "OpenableService.check_availability",
+    "expression": "rules._noncombat_snapshot",
+    "budget": 2776
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 565.23,
+    "innermost_first": [
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "emit",
+        "line": 23
+      },
+      {
+        "file": "observe_sm_cold_root.py",
+        "function": "query",
+        "line": 54
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "may_call",
+        "line": 2846
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2236
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 567.46,
+    "attempts": 13500000,
+    "executed": 10928,
+    "owner": "PerceptionRuntime._project_perception",
+    "expression": "self._conn.execute",
+    "budget": 2719
+  },
+  {
+    "stage": "query_start",
+    "seconds": 569.79,
+    "attempts": 13600000,
+    "executed": 10928,
+    "owner": "NPCEvaluationRuntime.list_npc_evaluation_tasks",
+    "expression": "self._transaction",
+    "budget": 2663
+  },
+  {
+    "stage": "query_start",
+    "seconds": 572.31,
+    "attempts": 13700000,
+    "executed": 10928,
+    "owner": "StateMachine.resume_session",
+    "expression": "driver.close",
+    "budget": 2605
+  },
+  {
+    "stage": "query_start",
+    "seconds": 575.04,
+    "attempts": 13800000,
+    "executed": 10928,
+    "owner": "WorldFacts.light_state",
+    "expression": "self._conn.execute",
+    "budget": 2548
+  },
+  {
+    "stage": "query_start",
+    "seconds": 578.41,
+    "attempts": 13900000,
+    "executed": 10928,
+    "owner": "TimeWaits.authorize",
+    "expression": "self._consumer(wait['consumer']).authorize_time_wait_command",
+    "budget": 2493
+  },
+  {
+    "stage": "query_start",
+    "seconds": 581.18,
+    "attempts": 14000000,
+    "executed": 10928,
+    "owner": "_validate",
+    "expression": "zip",
+    "budget": 2436
+  },
+  {
+    "stage": "query_start",
+    "seconds": 584.04,
+    "attempts": 14100000,
+    "executed": 10928,
+    "owner": "SessionMemory._inventory_changes",
+    "expression": "r['state_json'].lstrip().startswith",
+    "budget": 2379
+  },
+  {
+    "stage": "current_python_stack",
+    "seconds": 585.26,
+    "innermost_first": [
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1081
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2238
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "parameter",
+        "line": 2207
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "name",
+        "line": 1265
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "_resolve",
+        "line": 1145
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "resolve",
+        "line": 1095
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_reachable",
+        "line": 2744
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "<genexpr>",
+        "line": 2650
+      },
+      {
+        "file": "python_analysis.py",
+        "function": "container_slots",
+        "line": 2650
+      }
+    ]
+  },
+  {
+    "stage": "query_start",
+    "seconds": 586.43,
+    "attempts": 14200000,
+    "executed": 10928,
+    "owner": "_validate",
+    "expression": "_fail",
+    "budget": 2322
+  },
+  {
+    "stage": "query_start",
+    "seconds": 588.75,
+    "attempts": 14300000,
+    "executed": 10928,
+    "owner": "WorldHandler._validate_item_transfer",
+    "expression": "self._conn.execute('SELECT 1 FROM actors WHERE session_id=? AND current_scene_id=? AND cell=? AND actor_id<>? LIMIT 1', (sid, position.scene_id, target, actor_id)).fetchone",
+    "budget": 2257
+  },
+  {
+    "stage": "query_start",
+    "seconds": 590.86,
+    "attempts": 14400000,
+    "executed": 10929,
+    "owner": "NPCEvaluationRuntime.get_npc_evaluation_recovery_input",
+    "expression": "self._transaction",
+    "budget": 2192
+  },
+  {
+    "stage": "query_start",
+    "seconds": 593.35,
+    "attempts": 14500000,
+    "executed": 10930,
+    "owner": "WorldHandler._assert_spatial_consistency",
+    "expression": "self.facts.instances.scenes",
+    "budget": 2134
+  },
+  {
+    "stage": "query_start",
+    "seconds": 595.33,
+    "attempts": 14600000,
+    "executed": 10930,
+    "owner": "NPCResultRuntime.submit_npc_evaluation_result",
+    "expression": "self._conn.execute",
+    "budget": 2077
+  },
+  {
+    "stage": "query_start",
+    "seconds": 597.31,
+    "attempts": 14700000,
+    "executed": 10930,
+    "owner": "EventRuntime.delivery_cursor",
+    "expression": "self._session",
+    "budget": 2021
+  }
+]

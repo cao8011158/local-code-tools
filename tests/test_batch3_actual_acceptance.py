@@ -16,6 +16,7 @@ from lct.query import Query
 from lct.storage import attach_dense, build, current, manifest, recover
 from tests.synthetic_support import deterministic_vector, forbid_provider, initialize
 from tests.semantic_comparison import assert_semantic_equal
+from tests.limited_precision_comparison import assert_limited_refinement
 
 FIXTURES = Path(__file__).resolve().parents[1] / "review/batch4-incremental/fixtures"
 SOURCE_COMMIT = "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe"
@@ -86,12 +87,19 @@ def semantic(c, version):
     return results
 
 
-def full_equal(tmp_path, c, result, name, *, traversal_independent=False):
+def full_equal(tmp_path, c, result, name, *, traversal_independent=False,
+               limited_refinement=False):
     oracle_config = dict(c, data=str(tmp_path / ("fresh-" + name)))
     with forbid_provider():
         fresh = build(oracle_config, offline=True, lexical_only=True)
     actual, expected = semantic(c, result["version"]), semantic(oracle_config, fresh["version"])
-    if traversal_independent:
+    if limited_refinement:
+        folder, _ = manifest(c, result["version"])
+        with sqlite3.connect(folder / "catalog.sqlite") as db:
+            sources = {(repository, path): text for repository, path, text in
+                       db.execute("select repository,path,text from files")}
+        assert_limited_refinement(actual, expected, sources)
+    elif traversal_independent:
         assert_semantic_equal(actual, expected)
     else:
         assert actual == expected
@@ -176,7 +184,10 @@ def test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch(tmp_pa
     assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
     assert updated["graph"]["analysis_limited"]
     assert semantic(c, old_version) == old_semantic
-    full_equal(tmp_path, c, updated, "nine-edited")
+    # A limited cold pass can omit proven source facts that a local owner pass
+    # later discovers. Require all fresh facts plus direct source evidence for
+    # each permitted additional annotation reference/container subscription.
+    full_equal(tmp_path, c, updated, "nine-edited", limited_refinement=True)
 
 
 def test_three_actual_sources_owner_lifecycle_and_membership(tmp_path):

@@ -1,0 +1,13 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_public_consecutive_container_callback_restart_and_failed_publish _____
+tests/test_lo3_public_lifecycle.py:71: in test_public_consecutive_container_callback_restart_and_failed_publish
+    assert _targets(config, second_version) == {"second"}
+E   AssertionError: assert {'first', 'second'} == {'second'}
+E     
+E     Extra items in the left set:
+E     'first'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/test_lo3_public_lifecycle.py::test_public_consecutive_container_callback_restart_and_failed_publish
+1 failed in 0.96s

@@ -1,0 +1,12 @@
+{"stage": "start", "files": 83, "source_commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe"}
+Timeout (0:00:15)!
+Thread 0x00007f11d50656c0 (most recent call first):
+  File "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/inference/compiled/subprocess/__init__.py", line 70 in _enqueue_output
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py", line 1012 in run
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py", line 1075 in _bootstrap_inner
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/threading.py", line 1032 in _bootstrap
+
+Thread 0x00007f11f3582740 (most recent call first):
+  File "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/parser_utils.py", line 248 in get_parent_scope
+  File "/workspace/scratch/45363df3617b/local-only-work/.venv/lib/python3.12/site-packages/jedi/inference/flow_analysis.py", line 111 in reachability_check
+  File 

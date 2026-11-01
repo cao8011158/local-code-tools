@@ -1,0 +1,16 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_deferred_annotation_cannot_justify_a_new_eager_reference _________
+review/local-only-updates/test_limited_precision_independent.py:30: in test_deferred_annotation_cannot_justify_a_new_eager_reference
+    with pytest.raises(AssertionError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE AssertionError
+_______ test_later_same_name_class_cannot_replace_the_annotation_binding _______
+review/local-only-updates/test_limited_precision_independent.py:53: in test_later_same_name_class_cannot_replace_the_annotation_binding
+    with pytest.raises(AssertionError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE AssertionError
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_limited_precision_independent.py::test_deferred_annotation_cannot_justify_a_new_eager_reference
+FAILED review/local-only-updates/test_limited_precision_independent.py::test_later_same_name_class_cannot_replace_the_annotation_binding
+2 failed in 0.07s

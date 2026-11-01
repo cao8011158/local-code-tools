@@ -1,0 +1,421 @@
+{
+  "repository": "agentic-trpg/trpg-state-machine",
+  "commit": "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe",
+  "files": {
+    "src/trpg_state_machine/activity_handler.py": {
+      "git_blob": "c384f868a403a4ce3bfbc005680a7060bf4b5c58",
+      "sha256": "7963b7fe985fff73abbf9bfba2b5ceb9ebaae5a4913df306a8cd793bdbcf069b",
+      "bytes": 10713
+    },
+    "src/trpg_state_machine/_execution.py": {
+      "git_blob": "4ca859828a8a49c7a87ac89349c76956280dbe43",
+      "sha256": "c48a9e63f3af9f4c2f06bc818047bd8583485e6659d182352148ec04fcb504bf",
+      "bytes": 1619
+    },
+    "src/trpg_state_machine/_operations.py": {
+      "git_blob": "1583de42c4c2a03bb1b2abe3684d59839226135e",
+      "sha256": "736fac19a60c8d3cfaa91bfbcec0b9b6d14a06923bcadea1a11156057f74dfea",
+      "bytes": 3536
+    },
+    "src/trpg_state_machine/__init__.py": {
+      "git_blob": "cab3a652a050523ddcf210befa8268bdaaa1c1f1",
+      "sha256": "960a795db5cf9d6e615a0efd1080402bea4ef87d23123db486b8c9c26b1f5b30",
+      "bytes": 3966
+    },
+    "src/trpg_state_machine/activity_records.py": {
+      "git_blob": "2be42dcd43b6a673a39a758926e8e1bb2931335e",
+      "sha256": "3992855e04f30da00a98f3f70f592ccc384a514875db63b4c508ffc7158062a8",
+      "bytes": 8072
+    },
+    "src/trpg_state_machine/availability.py": {
+      "git_blob": "c142c6079bd5565c67aff30f9cc3a40ba49e02a7",
+      "sha256": "d10b37c8fa8b140dabf48ab4726c2f9522e8c015c18b23785df15685ed6a3b05",
+      "bytes": 490
+    },
+    "src/trpg_state_machine/combat_handler.py": {
+      "git_blob": "6f524c6a74f56a75e2ea5be17520158f5bb2fcf6",
+      "sha256": "3adab0091ef36a6ffe2877ee86d9a3b46a90a551e0288803701b24cb6958ae97",
+      "bytes": 10003
+    },
+    "src/trpg_state_machine/component_reads.py": {
+      "git_blob": "063e2589cd0d1fe9e1b910dcdaab45812f094f8a",
+      "sha256": "40cea4eeffef41c1bb11944bbed3ec32e1876d65890cdb1f173324d9f4efdf97",
+      "bytes": 4190
+    },
+    "src/trpg_state_machine/commands.py": {
+      "git_blob": "4cdf3b34a5d8d4fe71f2be1c131ee1ccd77c1729",
+      "sha256": "dc747503a58729cb52dca1db4f299c3213c91034f4b4bc6cdd253eacbba1ab57",
+      "bytes": 23693
+    },
+    "src/trpg_state_machine/derived_cache.py": {
+      "git_blob": "9270c5e82628316f74793e787f33e918b37e46a1",
+      "sha256": "eeeb4cd578b17c4016a61833f49634cc4cf09b3bb5429af1acd159995d63dfaf",
+      "bytes": 3039
+    },
+    "src/trpg_state_machine/dnd_checks.py": {
+      "git_blob": "765c7ca92a0edbf8095d7fa8cfd0d05977329609",
+      "sha256": "d1f68253ce25687d69966838c53c6b350b008ac7fd989225694033088e59b37c",
+      "bytes": 3762
+    },
+    "src/trpg_state_machine/combat.py": {
+      "git_blob": "6d2b9a9606a0092d0042788ee6e62af47f0145ba",
+      "sha256": "10241eee2dfcb12a057240e3cf216e356dd9b1ec35c3adcf63730ea919ea026b",
+      "bytes": 4256
+    },
+    "src/trpg_state_machine/dnd_closure.py": {
+      "git_blob": "8bf5660a462b77f427eecf43411b880dc4697bcc",
+      "sha256": "0a1d71dbe92d7f97b85a157c2109dd76ea652ed37abb8faa370b7c8c388c1912",
+      "bytes": 2524
+    },
+    "src/trpg_state_machine/dnd_runtime.py": {
+      "git_blob": "eb88a00d8730704492b6f19775498a04f66cb027",
+      "sha256": "f0681d1caae8dc875a343c1a61ff7167f8e47cd602737a0488d74a2833ed214b",
+      "bytes": 197
+    },
+    "src/trpg_state_machine/domain_facts.py": {
+      "git_blob": "b0492b742067012f606e760f07d9057973ec16c9",
+      "sha256": "f25f7617eeace62f9df7887b190190610b82c9fa4b643d90e3f3dfb8b9904bec",
+      "bytes": 71519
+    },
+    "src/trpg_state_machine/environment.py": {
+      "git_blob": "ca121aeffc128424c24aa2584daf01d136b2a0a1",
+      "sha256": "4621bec70ed525e928fbcc3054568561c3d49bd3ab1af8d93559f5b7a30a5974",
+      "bytes": 37228
+    },
+    "src/trpg_state_machine/environment_commands.py": {
+      "git_blob": "9e4a52be102632b31a87907b44ca109067bea396",
+      "sha256": "e255ae1d0b5d37cbccde04fa3833fa897dbce0f9f4a82d9d811fb106e53b3770",
+      "bytes": 9043
+    },
+    "src/trpg_state_machine/environment_versions.py": {
+      "git_blob": "3687cf6ec16fe7c8060cb47b70cda35667fba55d",
+      "sha256": "c75f6e46bb279afbbf477e570ba3d2ca94169b9fef16c2c3ba398ecedbbedeb1",
+      "bytes": 19125
+    },
+    "src/trpg_state_machine/environment_models.py": {
+      "git_blob": "0016111e404c6c4df616129c3546847ebbb4799b",
+      "sha256": "12940892a29f1c5853180b108d3802685c2b5be012629f22078fbb996f220e13",
+      "bytes": 12230
+    },
+    "src/trpg_state_machine/errors.py": {
+      "git_blob": "861460f2eb37cb6d114b4326318003b9abd22ad2",
+      "sha256": "ba1bfb8988d9e29770093e2fdbad22245a1377beb78b82d6697ca1c9c5ddc8a6",
+      "bytes": 736
+    },
+    "src/trpg_state_machine/event_persistence.py": {
+      "git_blob": "3ce6efdc7a71dae6171df0632c93450dd5eae755",
+      "sha256": "f6333212eeecee9e7e5e29e42e844867dcff35f9fdea44e3772522b5e1f022ce",
+      "bytes": 9257
+    },
+    "src/trpg_state_machine/event_capture.py": {
+      "git_blob": "288d5dddf23c888f72eb217946b965a4d2a35dca",
+      "sha256": "b2ceedf21396f656aa171294888b8e4b4dd5bb805dc17a8024a94243816ef7a3",
+      "bytes": 13322
+    },
+    "src/trpg_state_machine/events.py": {
+      "git_blob": "832d36f084d8de526f55c18c22484c60d10341e0",
+      "sha256": "7800a4422d11ea558cac35c119117d7625d7520380cbb3abefa7a72692d67b9a",
+      "bytes": 6185
+    },
+    "src/trpg_state_machine/game_time.py": {
+      "git_blob": "f44dca78067629fd6fe5754e349cb07a20451119",
+      "sha256": "8a10a18e2f3f28bed255228bf78dbaaf71ade6477d148097073015cecaff89d6",
+      "bytes": 6034
+    },
+    "src/trpg_state_machine/grid.py": {
+      "git_blob": "3009b602410dd5eb2e569ddc05d298d5e99e9500",
+      "sha256": "497fc812291567d6f218df0069219cc6228a5fdc637be891b8e996ecd811477d",
+      "bytes": 27387
+    },
+    "src/trpg_state_machine/grid_maps.py": {
+      "git_blob": "0fa1530df420ac2b0c69125e6454a9a52e824f0d",
+      "sha256": "77ce65bf2f7a1854f21c9f747c363d6a1ff66e9f0472ffc7b287a355c9ad9c21",
+      "bytes": 15346
+    },
+    "src/trpg_state_machine/item_package.py": {
+      "git_blob": "913286604bb14395ddcb9e21858b59a870290385",
+      "sha256": "56adf2d36604d90f70c6d21a7373e246b7d5b7100510c9af9cab554f70a26f77",
+      "bytes": 3503
+    },
+    "src/trpg_state_machine/instance_data.py": {
+      "git_blob": "525eba7464ad17fd7f727b91248f0651d1867f50",
+      "sha256": "af607c08c1ab334a671c5557db914ef29a1de6d75931eaf6b8114a5f9f6666f9",
+      "bytes": 22580
+    },
+    "src/trpg_state_machine/item_units.py": {
+      "git_blob": "12e29805f2a96925fd55eb98455d6ef9bccea87a",
+      "sha256": "915c87ed12e82f686b5585be94af56353f02df75964e063cf4d0783ac5a477e4",
+      "bytes": 724
+    },
+    "src/trpg_state_machine/mechanical_runtime.py": {
+      "git_blob": "d4fcf07312d64f7004036a70a01143c606303524",
+      "sha256": "bc4187d3c564db982745ea51614ea6a5809bb5d6c963992c72f203a81279a091",
+      "bytes": 13873
+    },
+    "src/trpg_state_machine/mechanics.py": {
+      "git_blob": "306c167801ea53aebd422411735db4ea6eb8d965",
+      "sha256": "57315622141c1b2100c1361ad4905a0cba7907bc67ef0bdc5b6ce39cc8d7f8e2",
+      "bytes": 6751
+    },
+    "src/trpg_state_machine/lock_package.py": {
+      "git_blob": "66f1c25748954d17a37c7b337f65e3830657f1dd",
+      "sha256": "ec1dc1a3eae6a9170cef75baefceae55d225d3bb9a3b69dc433639486760fe2a",
+      "bytes": 2493
+    },
+    "src/trpg_state_machine/mechanism_effects.py": {
+      "git_blob": "3b4eaf877b2c8ea4c3638c1c1f4c1d9fb4a01f09",
+      "sha256": "53761290b9c5b961eda0785af4e0b5ec5feb25fec6dc2208bfed45542159e9df",
+      "bytes": 23567
+    },
+    "src/trpg_state_machine/mechanism_models.py": {
+      "git_blob": "b8b92be01450c04190bb6a233cd0ff66aae2871c",
+      "sha256": "128d1412cef0a51938a6d41f12688d0b46c705c9a0ed97b75f877ac21a415f93",
+      "bytes": 15117
+    },
+    "src/trpg_state_machine/models.py": {
+      "git_blob": "8776ed41e13eae6ac9665ffdd0246e3eadbc3e29",
+      "sha256": "4a2eee8d7737342379ca1d177bf364662cb3496f4a4c74fe2bf9475c6ba17fca",
+      "bytes": 3466
+    },
+    "src/trpg_state_machine/navigation_package.py": {
+      "git_blob": "62162468eb35e8ce810bf324308039f98ba33a4a",
+      "sha256": "e7f20e2df5af258b84688a87b1c5ad311782093ec6b69490736946526a6a47bf",
+      "bytes": 3043
+    },
+    "src/trpg_state_machine/navigation_models.py": {
+      "git_blob": "5c538b45485c5a9cee9c3e90d76cd5d2c8b9cbe5",
+      "sha256": "c21e48308ee5ba1c91aefaecbf90349b77fbf0d6f78feca00aa0b8355504f300",
+      "bytes": 2359
+    },
+    "src/trpg_state_machine/navigation_driver.py": {
+      "git_blob": "f16483a8260e37a6ea7ebd6cc28c64cce4f5b404",
+      "sha256": "ba6eac6b395d4718892de49348646ec1516ed57020fa38b67ced4e8eccbeb685",
+      "bytes": 3083
+    },
+    "src/trpg_state_machine/npc_evaluation.py": {
+      "git_blob": "f432ff5cb0be34e483a7e419e222dc8aa8c27eae",
+      "sha256": "8d426ff0751593795bed196d42bb4a421575cfb4cb020c0d3de41809c55e969e",
+      "bytes": 15193
+    },
+    "src/trpg_state_machine/navigation_plan.py": {
+      "git_blob": "ec6da7913a1f70272dcd081e5ce896013dadded3",
+      "sha256": "7568d8473abba2f0450566da1e9ef94a64954a5ad47af17ccaf9284cd2fa8b38",
+      "bytes": 5020
+    },
+    "src/trpg_state_machine/npc_modes.py": {
+      "git_blob": "6e80f7877abea93a619e99f748fb1e05e50a5baf",
+      "sha256": "711c64e98016dc716ef6acdafe72c346f3da1ac01b42a3af37a92d4de24694ee",
+      "bytes": 29013
+    },
+    "src/trpg_state_machine/npc_bootstrap.py": {
+      "git_blob": "035142cb248b278c7f011c7484540d6e579dbd91",
+      "sha256": "f46f02e934e917e57796a0b03dbeaa0f2792819568834dc0da660a57bf266657",
+      "bytes": 4108
+    },
+    "src/trpg_state_machine/npc_outputs.py": {
+      "git_blob": "0a0452a8752fb54fc1a0135d3de18760d7f4224e",
+      "sha256": "13ccc8f03fb90c5665d413e251c3547461b3f5a031b7602fdaedbb56eecccd6d",
+      "bytes": 13664
+    },
+    "src/trpg_state_machine/npc_schema.py": {
+      "git_blob": "c05aecbb4cdde97446276ce930d074ab21f12134",
+      "sha256": "a61eaea0e6bb7f760d443de1511a81f2cce810fcfae26580dee5548f2bc572d0",
+      "bytes": 10666
+    },
+    "src/trpg_state_machine/npc_state.py": {
+      "git_blob": "05b1f57efee4d59169a6a0917888bed861a881d6",
+      "sha256": "444ef2aae3bf7edbbc3a2bb6105be186eae322c059702fd44efd0d7a65fda01d",
+      "bytes": 10293
+    },
+    "src/trpg_state_machine/object_durability.py": {
+      "git_blob": "db26b4c3b7bb114359d757669faf7d0b9f9ed01b",
+      "sha256": "e80ecef2c28b972c00e5d28674bd41d0e737bc42f10e46088d0c895b96cadfc2",
+      "bytes": 5270
+    },
+    "src/trpg_state_machine/object_protection.py": {
+      "git_blob": "efa71c2a8f08e6f495daf6853f9f6eb42664e8d3",
+      "sha256": "5bdfa8b4b2be03b83449dbba25511950efcefeecb93241a51bbb3de831db6fd3",
+      "bytes": 13307
+    },
+    "src/trpg_state_machine/observation_lifecycle.py": {
+      "git_blob": "ed8e8b9a0a219b74047dae4649f1ddcf39bce667",
+      "sha256": "9136d0c6f7c3fbc1ca61503d856654799e7375dbdd7a9a9b8a7b1fbfe1885814",
+      "bytes": 7729
+    },
+    "src/trpg_state_machine/npc_results.py": {
+      "git_blob": "448e9e71679efa7ab8ae450b8c257a2e9f8e6ff8",
+      "sha256": "b5511dd4ae04b7bcfa5eb2045a848464d405eb7f2cc898dff20a67e349b92af1",
+      "bytes": 26231
+    },
+    "src/trpg_state_machine/package.py": {
+      "git_blob": "f74790c3a0c874bbaac6074505dc698d717752a7",
+      "sha256": "dd77a83d829ae3b2b021786d683ed53027a6892ebe0915d06d063469f5c3a35a",
+      "bytes": 53331
+    },
+    "src/trpg_state_machine/package_effects.py": {
+      "git_blob": "381e3f3d8ab23bdbb964e5c000da2921804eb5c1",
+      "sha256": "3de648117d11e02e9cfa1048069d760355bd496de952e97d978e0cee4f5e7064",
+      "bytes": 4573
+    },
+    "src/trpg_state_machine/perception_conditions.py": {
+      "git_blob": "cbbfd8bdb66551439f2fab81e692aabbd335b6e8",
+      "sha256": "7fc0199eb1ff6c3a0362cf9e3bc77aa3b1d3d0b070c92c8860e205c15dd903d0",
+      "bytes": 11129
+    },
+    "src/trpg_state_machine/perception_queue.py": {
+      "git_blob": "703962ff35c27c277284c49b8d1f4e5fe6017c0e",
+      "sha256": "b019a95bbec20e8b496ddf0edf96bb804a287d1a663f638fabfe467b8062eae8",
+      "bytes": 4249
+    },
+    "src/trpg_state_machine/perception.py": {
+      "git_blob": "451a00817100c26deb538cfaf82f64482121ed6e",
+      "sha256": "764982b90e76fc185986ab92374fc72cb56e5a28ca4436f19059e988d4fbddb4",
+      "bytes": 33950
+    },
+    "src/trpg_state_machine/rule_execution.py": {
+      "git_blob": "d609fbaad6d82233db8598aec970133649ed445b",
+      "sha256": "9666e35dd09f5ebad1f31380819cf7abb9d8db6d545daf99989278cb5fa5973f",
+      "bytes": 19168
+    },
+    "src/trpg_state_machine/rules_adapter.py": {
+      "git_blob": "8b704a87298c3a62b6a9c90bd9e67dcfe6f7f784",
+      "sha256": "33b7c448c86c1eff90fc4983de43939f3e2de4897dad6dabb268879bc376538c",
+      "bytes": 31387
+    },
+    "src/trpg_state_machine/rules_migration.py": {
+      "git_blob": "107a4232d8422bb76df6ae3b0fa287252afec454",
+      "sha256": "eebf45b26ed9f259aae2c805b0fc58930030b0f3f2b9c8034de7ca45463fbbba",
+      "bytes": 1932
+    },
+    "src/trpg_state_machine/runtime_instances.py": {
+      "git_blob": "555ea28c76c08800efa406b296f1b58fa945c63f",
+      "sha256": "0390f964e17584ab5ce754b187886d2f3f6da6191324325b1dfe26441b1f496f",
+      "bytes": 16999
+    },
+    "src/trpg_state_machine/runtime_integrity.py": {
+      "git_blob": "039a25728bbc9a84baab5d7b246de663d17fe755",
+      "sha256": "8218e81bffb1ac26f37beb2c1a4a353db82c75621602a6e8c6c7e51b26902ae2",
+      "bytes": 5118
+    },
+    "src/trpg_state_machine/scene_lifecycle.py": {
+      "git_blob": "233878884c6368a631ff0d440f4f9411997cb671",
+      "sha256": "c78761291e627db3ad0db80ec439b999238040adff0efeb82f551da2465ad470",
+      "bytes": 11038
+    },
+    "src/trpg_state_machine/scoped_reads.py": {
+      "git_blob": "619e902ce6db926484cb1f7738153959afa6ef15",
+      "sha256": "3c2b4f779b673d0177c798d69179462ee7c9d615616b9ed382c1fca4b771380f",
+      "bytes": 4441
+    },
+    "src/trpg_state_machine/session_creation.py": {
+      "git_blob": "193c02f3cbcab24c6b87de1ba2aab1ee356a983a",
+      "sha256": "d4740ddfca42c9819eefa647ec49b46a1ff11771c842a89c248c24f77f404663",
+      "bytes": 10621
+    },
+    "src/trpg_state_machine/session_access.py": {
+      "git_blob": "6c439f952964499b1ce21742d3d2072f14808326",
+      "sha256": "74defcd8c7d9f2f66f9dd8b2626593f8489ba0ee05d746b26ded10326b5a749a",
+      "bytes": 13413
+    },
+    "src/trpg_state_machine/service.py": {
+      "git_blob": "adbab6f5bec6c5abd1767cec96bb2fb59515439e",
+      "sha256": "90fa0247fdd0a7619dff01295659eb8a8dd70abdd6745f9c4b87b6fc9a96dbbb",
+      "bytes": 23698
+    },
+    "src/trpg_state_machine/session_memory.py": {
+      "git_blob": "3bbaca30967ed92626edc4a2b74e99db204aaa76",
+      "sha256": "ebdfdb03d17ac235bb17242830607b1325004a83086599030c07067ae7460167",
+      "bytes": 71313
+    },
+    "src/trpg_state_machine/session_runtime.py": {
+      "git_blob": "c76b5c2d9d5c55a7836fb707c07895c81219d4cb",
+      "sha256": "a4bb2185772d15ab60e2c281226d7a31d485f0d95a37e1b3eb48a09f7d1ec9ea",
+      "bytes": 24076
+    },
+    "src/trpg_state_machine/spatial.py": {
+      "git_blob": "51e73b998371028b20c0d2194d7d996f7c5e6f9e",
+      "sha256": "333286ff01554c6b0db5741947f4f3fd100110b7d846cc52e5f97f0d1fb9a13f",
+      "bytes": 51142
+    },
+    "src/trpg_state_machine/storage_migrations.py": {
+      "git_blob": "37c7bf72958a37d325eaadbbb99386fecb587178",
+      "sha256": "7978a4751c4201efdae30f838beefd3a94bf2925fcd599317a0c5603ae22577a",
+      "bytes": 7974
+    },
+    "src/trpg_state_machine/time_binding.py": {
+      "git_blob": "c62ac5b9b4c1bc724ee1dc411090f5911e94ae97",
+      "sha256": "14aea05263606e478653dfb0eaffc14a3bb3ed5d0b62250f0bcdd9ce8c91189c",
+      "bytes": 3114
+    },
+    "src/trpg_state_machine/time_driver.py": {
+      "git_blob": "f42b6c47c95c8633b49a6a28c41c6a63ec17e052",
+      "sha256": "8f71678c96ea0c89ab673728958bf82ef08947d42885b0c9bfb1215b2d0f760a",
+      "bytes": 10565
+    },
+    "src/trpg_state_machine/time_coordination.py": {
+      "git_blob": "2f90e7cd713634612b891ffe53e4c5f9fbcf09cd",
+      "sha256": "596115a99c32a46f89849b366c41135c1d174440b8f0cdf2d426e0f784d90aab",
+      "bytes": 18944
+    },
+    "src/trpg_state_machine/world_commands.py": {
+      "git_blob": "b41312cb2e44746a69efff751c60ef353f12fda7",
+      "sha256": "786c67725fd1cb9dd296e431a5d0a1842b26c05ac6487263ace8f14d55e121a2",
+      "bytes": 4353
+    },
+    "src/trpg_state_machine/world_containers.py": {
+      "git_blob": "3c16ea9f9988f67981585b1880406c5e85164ac9",
+      "sha256": "43f3dd292c755e7b9c7e5ec0634a13c4e1baa87ca266d71918a5a1af7c8e8917",
+      "bytes": 20642
+    },
+    "src/trpg_state_machine/version_map.py": {
+      "git_blob": "b7e96e89b3dab9737835219372cfad8b174ff829",
+      "sha256": "611dd966100cdeead690a5040cf58b087b2780c51b36584267b24f72e499e43a",
+      "bytes": 5271
+    },
+    "src/trpg_state_machine/world_lights.py": {
+      "git_blob": "d966a963edc16dfe6e46a62615b22372724f1af6",
+      "sha256": "568c176560e430a6d456a1dc9acc015483ff82f33054df67a1257f4855ef3323",
+      "bytes": 13866
+    },
+    "src/trpg_state_machine/time_waits.py": {
+      "git_blob": "a78343edf95f9a0554ab2380ac08fe6bf16e0c72",
+      "sha256": "2d07476742274d877c58e99c706fd3c2c23ebc6c34625af8772a8e45a1cdef89",
+      "bytes": 10619
+    },
+    "src/trpg_state_machine/world_mechanisms.py": {
+      "git_blob": "df1a400be2f4caa75c0f784ac83bebb1f2b35723",
+      "sha256": "bcbf76311f16a380e7fda7507ba8712a36763a3719ec35e5a0f1d217b946586a",
+      "bytes": 36243
+    },
+    "src/trpg_state_machine/world_objects.py": {
+      "git_blob": "9ca0efb7fa2c01c9931b56236d78d3f7d474b283",
+      "sha256": "2e4485ba2922502f67ca4d3f9fcd85051c96620177a899e4e771d4ec1e22b497",
+      "bytes": 12308
+    },
+    "src/trpg_state_machine/world_openable.py": {
+      "git_blob": "6fbc20be3d4bd1068c27608cb274adeff62fbd79",
+      "sha256": "3818301b248ad150175defc3cdbb91af751785fe03cecf8113cdf62ddad1fb54",
+      "bytes": 25635
+    },
+    "src/trpg_state_machine/world_package.py": {
+      "git_blob": "8937b6bac4c959065f554cbb7916fb1622b33df5",
+      "sha256": "4297c042053096d3e3c216dbf662fa177978c456c270962efef2adc6242f31c5",
+      "bytes": 31512
+    },
+    "src/trpg_state_machine/world_spatial.py": {
+      "git_blob": "708b530d11bea92528b99850c6cea9d60041e748",
+      "sha256": "35d38debc13d34f3c71bf67f5c239e2c0c2d4212adde0ba42ae3915d6fde7dc5",
+      "bytes": 30944
+    },
+    "src/trpg_state_machine/world_time.py": {
+      "git_blob": "2cc0d488d64be018b7fe47d18e6d3a7c052c46f5",
+      "sha256": "d1955d86c6f633c6b19de3f6cea4bf73401460f82417163c8903e6e7b2df1b3e",
+      "bytes": 9391
+    },
+    "src/trpg_state_machine/storage.py": {
+      "git_blob": "cd42fd53a412388ccee3f1c997de7856270490fe",
+      "sha256": "d276e2ae9fc90bbacd131b56a524cfdbca8e007c12f39fc3ceb338d65796062a",
+      "bytes": 25675
+    }
+  }
+}

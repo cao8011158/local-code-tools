@@ -1,0 +1,20 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch _____
+tests/test_batch3_actual_acceptance.py:179: in test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch
+    full_equal(tmp_path, c, updated, "nine-edited")
+tests/test_batch3_actual_acceptance.py:97: in full_equal
+    assert actual == expected
+E   AssertionError: assert {'nodes': [('...4717d')], ...} == {'nodes': [('...4717d')], ...}
+E     
+E     Omitting 14 identical items, use -vv to show
+E     Differing items:
+E     {'unit_input_events': [('synthetic-review:src/trpg_state_machine/_execution.py:class:_WorldEffectOrigin#1.1', 'synthet...tic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', '[]', 'lexical-lookup'), ...]} != {'unit_input_events': [('synthetic-review:src/trpg_state_machine/_execution.py:class:_WorldEffectOrigin#1.1', 'synthet...tic-review:src/trpg_state_machine/_execution.py:module:trpg_state_machine._execution#1', '[]', 'lexical-lookup'), ...]}
+E     {'unit_container_subscriptions':...
+E     
+E     ...Full output truncated (6 lines hidden), use '-vv' to show
+----------------------------- Captured stdout call -----------------------------
+{"group": "nine", "files": 9, "vector_chunks": 96, "seed_seconds": 0.0055, "association": 20000, "jedi": 517, "sites": 408, "dense_partitions": 3}
+=========================== short test summary info ============================
+FAILED tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch
+1 failed in 109.26s (0:01:49)
