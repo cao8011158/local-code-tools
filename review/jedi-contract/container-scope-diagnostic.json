@@ -1,0 +1,57 @@
+{
+  "program_hash": "c2cffb2bb8bb639a4ee74c6bf32ef657594dd7981bb6006d04cd8cf41297368b",
+  "measurements": [
+    {
+      "unrelated_fresh_local_writers": 0,
+      "targets": [
+        "first"
+      ],
+      "complete": true,
+      "unknown_reasons": [],
+      "metrics": {
+        "slot_scope_index_build_scopes": 0,
+        "slot_scope_fallback_scopes": 0,
+        "slot_scope_candidates_checked": 2,
+        "slot_events_checked": 3,
+        "candidate_visits": 0,
+        "jedi_query_entries": 2,
+        "jedi_queries_executed": 1
+      }
+    },
+    {
+      "unrelated_fresh_local_writers": 20,
+      "targets": [
+        "first"
+      ],
+      "complete": true,
+      "unknown_reasons": [],
+      "metrics": {
+        "slot_scope_index_build_scopes": 20,
+        "slot_scope_fallback_scopes": 20,
+        "slot_scope_candidates_checked": 22,
+        "slot_events_checked": 63,
+        "candidate_visits": 0,
+        "jedi_query_entries": 2,
+        "jedi_queries_executed": 1
+      }
+    },
+    {
+      "unrelated_fresh_local_writers": 100,
+      "targets": [
+        "first"
+      ],
+      "complete": true,
+      "unknown_reasons": [],
+      "metrics": {
+        "slot_scope_index_build_scopes": 100,
+        "slot_scope_fallback_scopes": 100,
+        "slot_scope_candidates_checked": 102,
+        "slot_events_checked": 303,
+        "candidate_visits": 0,
+        "jedi_query_entries": 2,
+        "jedi_queries_executed": 1
+      }
+    }
+  ],
+  "scope": "read-only investigation of pre-existing container writer localization; no production changes"
+}

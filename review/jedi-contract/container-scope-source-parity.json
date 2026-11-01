@@ -1,0 +1,11 @@
+{
+  "base": "aa95ca6968812fdd357d5fe5b91740dc0ba0d371",
+  "head": "e625662dc68a825382fb88865cff3ee066a80244",
+  "unchanged_method_ast": {
+    "_index_local_slot_scopes": true,
+    "container_slots": true,
+    "container_reachable": true,
+    "call_field_effect": true,
+    "field_event": true
+  }
+}

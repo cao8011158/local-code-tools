@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "batch_id": "JD-1",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/local-only-updates",
+  "base_sha": "aa95ca6968812fdd357d5fe5b91740dc0ba0d371",
+  "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "implementation_actor": "/root/jedi_contract_developer:gpt-6-sol/medium",
+  "merge_authorized": false,
+  "authorization_reference": "User approved Jedi-output authority and no per-function unknown-call scans, then 好的 开始工作; implementation and necessary branch publication authorized. Merge not assumed.",
+  "scope": [
+    "Jedi caller-result consumption, reverse caller index, no unresolved/spelling universal admission, source support integration and tests"
+  ],
+  "acceptance_criteria": [
+    "Unknown call inventory preserved without per-function global enumeration",
+    "Mapped Jedi targets survive unproved custom UNKNOWN and feed explicit argument source joins",
+    "Callback/container/local update and immutable views remain valid",
+    "Fixed target under unrelated unknown/method growth has bounded actual candidates"
+  ],
+  "feature_complete": false,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_call_candidate_index.py",
+        "tests/test_python_pipeline.py",
+        "tests/test_python_call_access.py",
+        "tests/test_python_review_round3.py",
+        "tests/test_python_effect_coverage.py",
+        "tests/test_python_review_round4.py",
+        "tests/test_python_review_regressions.py",
+        "tests/test_core.py::test_registry_via_method",
+        "tests/test_common_python_certificate.py::test_component_candidates_read_only_indexed_sites",
+        "tests/test_general_passive_incremental.py::test_real_execution_and_errors_reuse_only_passive_noise",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "--tb=short"
+      ],
+      "log": "developer-targeted-2.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "ce12dcc14996e36be6fdabf0f16d4111e3c440a5d08af6c72622f7e8831c5695",
+      "passed": 343,
+      "seconds": 15.02,
+      "executed_before_publication": true,
+      "source_verified": "REVIEW1_SOURCE_VERIFICATION.json"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "log": "developer-fast-frozen.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "c4493b01a0fcf638936aa1f83bd4f218390ba8a79664af5c65e944d64bfefdb1",
+      "passed": 774,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 112.83,
+      "executed_before_publication": true,
+      "source_verified": "REVIEW1_SOURCE_VERIFICATION.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "log": "review1-root-suite.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "40b43c48608124e78b183f8dbb4b08be82f7647d2884a61cb39bd5e0c78f5b23",
+      "passed": 774,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 107.05
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        "PYTHONPATH=.",
+        ".venv/bin/python",
+        "review/jedi-contract/measure_candidate_work.py",
+        "--output",
+        "review/jedi-contract/root-candidate-work.json"
+      ],
+      "log": "root-candidate-work.log",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "ce97fbfc883a16c047f02393120dce6322453a58dc9a20ba4b196ee12400a5ad",
+      "source_verified": "REVIEW1_SOURCE_VERIFICATION.json",
+      "note": "Program hash c2cffb2... matches fixed runtime; exact candidate generator returns counted, no replacing engine"
+    },
+    {
+      "role": "reviewer",
+      "kind": "public_checkpoints",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        ".venv/bin/python",
+        "-"
+      ],
+      "log": "review1-nine-checkpoints.json",
+      "exit_code": 0,
+      "result": "pass",
+      "log_sha256": "81e2ee39698d36b80a869205879a5b513bb4888a6d59838d45a76f4234164ae9",
+      "note": "Retained public9 dense/BM25/detail/old-view/local update checkpoints; edge difference isolated only for diagnosis, not accepted oracle"
+    },
+    {
+      "role": "reviewer",
+      "kind": "oracle_comparison",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        "timeout",
+        "180",
+        ".venv/bin/python",
+        "-"
+      ],
+      "log": "review1-nine-oracle-completion.log",
+      "exit_code": 1,
+      "result": "fail",
+      "log_sha256": "63874be9fc868604fdb72fca0fef040fd5e7bf306052dda94b4da66cffaaeb84",
+      "note": "Fresh build completed; two valid extra local REFERENCES, body global class reference not supported by narrow checker yet"
+    },
+    {
+      "role": "reviewer",
+      "kind": "full_source",
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "command": [
+        "timeout",
+        "180",
+        ".venv/bin/python",
+        "review/jedi-contract/observe_fixed_build.py",
+        "/workspace/scratch/45363df3617b/task-evidence/jd1-full83-run"
+      ],
+      "log": "review1-full83-observed.log",
+      "exit_code": 124,
+      "result": "fail",
+      "log_sha256": "31f3f33262fa230f27ffff84d5b5101405516b30e0cf5ad2544951c733e27150",
+      "note": "Bounded diagnostic, not wrong graph or upstream defect proof; no initial snapshot"
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "remote_head_sha": "e625662dc68a825382fb88865cff3ee066a80244",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "Frozen603 materialized blobs; independent774pass27skip1deselect107.05s and actual unknown visitation0 atN0/20/100. Public9 local update and query stages succeed. Fresh comparison differs only2 valid additional REFERENCES; same408 callsites modulo order, all source/subscription/write evidence agree. Narrow oracle accepts eager annotation but rejects direct global class body reference; add source-binding proof and negatives. Full83 blocked in unchanged container writer analysis, no production fix inferred."
+    }
+  ],
+  "findings": [
+    {
+      "id": "JD1-UNKNOWN-UNIVERSE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "pre-existing",
+      "owner_batch": "JD-1",
+      "evidence": "root-baseline-contract.log;review1-root-suite.log;root-candidate-work.json"
+    },
+    {
+      "id": "JD1-JEDI-KNOWN-DROP",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "pre-existing",
+      "owner_batch": "JD-1",
+      "evidence": "root-baseline-contract.log;review1-root-suite.log"
+    },
+    {
+      "id": "JD1-SPELLING-ADMISSION",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "current",
+      "owner_batch": "JD-1",
+      "evidence": "root-spelling-preflight.log;review1-root-suite.log"
+    },
+    {
+      "id": "JD1-KNOWN-CALLER-SUPPORT",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "current",
+      "owner_batch": "JD-1",
+      "evidence": "root-known-caller-preflight.log;review1-root-suite.log"
+    },
+    {
+      "id": "JD1-LIMITED-REFERENCE-ORACLE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "origin": "current",
+      "owner_batch": "JD-1",
+      "location": "tests/limited_precision_comparison.py::_eager_annotation",
+      "evidence": "review1-nine-edge-diff.json;review1-nine-all-table-diff.json;review1-nine-oracle-completion.log",
+      "note": "Warm642/fresh640 edges. Extras _WorldEffectOrigin->_WorldEffectKind annotation25 and _execution_data->_WorldEffectKind body38. Both source-true; reject none of these facts, extend only verified static global class references."
+    },
+    {
+      "id": "CW-01-UNRELATED-WRITER-SCOPE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "origin": "pre-existing",
+      "owner_step": "pre-existing container source/effect analysis outside JD-1 caller index",
+      "route": "user scope decision; read-only diagnosis and concrete proposal, no production changes",
+      "evidence": "container-scope-diagnostic.json;container-scope-source-parity.json;REMAINING_CONTAINER_SCOPE.md",
+      "note": "N0/20/100 fresh private dictionaries written with functionName make scope checks2/22/102, event checks3/63/303 despite same first target; actual83 has110 writer scopes, all fallback,0 indexed origins; whole83 acceptance still incomplete"
+    }
+  ]
+}

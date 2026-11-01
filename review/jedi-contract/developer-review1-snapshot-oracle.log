@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+  File "/workspace/scratch/45363df3617b/local-only-work/tests/test_batch3_actual_acceptance.py", line 78, in semantic
+    folder, _ = manifest(c, version)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/45363df3617b/local-only-work/lct/storage.py", line 97, in manifest
+    raise ToolError("Index incompatible with program/config; rebuild before querying")
+lct.common.ToolError: Index incompatible with program/config; rebuild before querying

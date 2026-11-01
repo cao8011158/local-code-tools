@@ -1,0 +1,7 @@
+{"stage": "fresh-start", "files": 9, "source_version": "20261101T191734-c79b5f11f2"}
+Traceback (most recent call last):
+  File "<stdin>", line 15, in <module>
+  File "/workspace/scratch/45363df3617b/jd1-review1-fixed/tests/limited_precision_comparison.py", line 157, in assert_limited_refinement
+    assert b <= a and all(_eager_annotation(row, nodes, sources) for row in a - b), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: edges

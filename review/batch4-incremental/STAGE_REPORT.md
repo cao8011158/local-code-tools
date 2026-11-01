@@ -1,6 +1,8 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-02：阶段143，JD-1固定e625662dc68a825382fb88865cff3ee066a80244第1/3轮需要补验收比较器。独立774/27/1/107.05秒通过；实际候选与warm索引计数通过。真实九文件warm及查询成功，fresh对照仅多2条真实REFERENCES，函数体直接类型引用超出旧注解比较器证明范围；不能据此认定漏更新或删边求绿。完整83仍未取得首次图，另已只读定位110个全fallback容器writer及无关scope检查增长，未改这部分。下一轮2/3，不合并。 [审阅](../jedi-contract/REVIEW.md)。
+
 2026-11-02：阶段142，JD-1本地开发冻结、尚未新提交。开发侧343定向通过；最终774 passed/27 skipped/1 deselected/112.83秒，生产前后hash一致。取消未知/未查/同名全域候选，按工具已定位目标与明确来源建立反向索引；保留Jedi目标、原始infer/goto/unknown以及参数/容器支持。root独立0/20/100同名方法+未知调用实测候选返回恒1、未知返回0、全部unknown保留。完整83新逻辑cold预检进行中，待固定远端独立review；LO3整体未验收，不合并。 [开发报告](../jedi-contract/DEVELOPER.md)。
 
 2026-11-02：阶段141，用户批准JD-1新语义实施：保留未知，禁止逐函数扫描未知/未查调用集合，Jedi明确输出优先。远端aa95ca6968812fdd357d5fe5b91740dc0ba0d371/目标e3db45fc核验；开发已派发只读诊断，root建立独立反例。LO2历史三轮保留，LO3完整83待补验；新生产尚未修改、未正式review、不合并。 [本次计划](../jedi-contract/PLAN.md)。
@@ -1271,3 +1273,27 @@ The frozen fast command was `.venv/bin/python -m pytest -q tests review/local-on
 
 
 Root独立枚举计数见[jedi-contract/root-candidate-work.json](../jedi-contract/root-candidate-work.json)，不把首次一次准备N个调用点说成warm恒定开销。
+
+## 阶段143：JD-1独立第1轮与剩余容器范围诊断
+
+# JD-1 independent review
+
+## Review1/3 — changes required in acceptance oracle
+
+Fixed remote e625662dc68a825382fb88865cff3ee066a80244, tree1c6f05941b5ce90b2ebef6993b6d608c67796a03, parentaa95ca6968812fdd357d5fe5b91740dc0ba0d371.603 materialized files match Git blobs;653 remote historical paths preserved unmaterialized. Reviewed whole runtime delta (graph.py/python_analysis.py), test/contract changes; root did not modify production.
+
+Independent fast774 passed/27 skipped/1 deselected107.05s exit0. Candidate generator actual-return measurement with0/20/100 same-name methods and unknowncalls: total1/1/1, unknown0/0/0, preserved unknownsites0/20/100; one-time frontend2/22/102, queryentries6/66/306. Warm public0/20/100 remains10 selected owners/6Jedi/8associations/3sites; three indexed reverse queries65VM first/61 repeated. Counters separate inventory/mount/hash/full snapshot serialization. All original root invalidation/namespace/class-context and new12 source/caller cases pass.
+
+Public nine initial lexical graph, deterministic-vector realUSEARCH3partitions, BM25/dense ANN/exact, old-view nodes/relations and normal owner update reached their completed immutable checkpoints. Original entire pytest timedout180s during fresh oracle, not at an assertion. Updated versionc79b5f11f2 uses incremental-owners, parses1 file,23 actualJedi/37 entries. Root independently queried retained outputs and completed a separate fresh public build with same source and c2cffb2 runtime hash.
+
+Fresh comparison has640edges, warm642. No missing edge. Two warm-only REFERENCES are real source facts: _WorldEffectOrigin.kind annotation to _WorldEffectKind line25; _execution_data type(origin.kind) is _WorldEffectKind bodyName line38. All408 callsite payloads match existing normalization (physical ordinal differences); all support/subscription/write/value/import tables match; auxiliary counts differ as already allowed. Diagnostic isolation of edges is explicitly not an accepted oracle. Existing budgetlimited checker only proves additional eager annotations, so legitimately discovered bodyName ref fails. JD1-LIMITED-REFERENCE-ORACLE P2: extend the narrow test-only source proof for an unshadowed direct global class Name in its actual top-level function owner; reject parameter/local/global rebinding, deferred/header/nested-owner misattribution and fabricated locations. Do not delete realextra edges, normalize all REFERENCES away, or change production to mimic a limited cold run. General semantic comparator remains strict. Formal1needs changes; nextreview2/3.
+
+Whole83 initial new-policybuild240s timedout; passive fixed-source180s diagnostic also timedout. At165.78s9226prepared calls,12451queryentries/10050actualJedi,1180candidatevisits/unknownbucket0, budget14993. No initial published graph;83warmunrun. This is not a correctness failure, deadlineSLA, or Jedi defect proof. AST-only inventory83 files/1513owners/9614sites found110writer scopes, all110fallback,0indexed origins. Read-only localwriter experiment shows remaining globalcontainer scope cost, with unchanged method ASTs vsaa95. CW-01 belongs to pre-existing container source/effect analysis; root saved a bounded follow-up proposal, made no code changes, and will request scope decision before implementation. Current pipeline remains unmerged.
+
+Developer earlier17fail/230pass stdout was overwritten and is only a session observation. The 8-failure nonfrozenfast and root redcounterexample logs remain; program-hash drift during that nonfrozenrun is a harness timing issue. The frozen774pass evidence supersedes it without rewriting history.
+
+## 阶段144：JD-1第1轮修复开发交付（尚未独立复审）
+
+开发者仅修改 tests/limited_precision_comparison.py 及其测试：允许额外的真实函数体类名 REFERENCES，但必须验证同模块唯一较早的类定义、真实函数所属范围、精确源码位置及无重绑定；参数/局部遮蔽、嵌套范围、局部注解、全局写入与定义头重绑定均拒绝。生产文件 SHA 与 e625662dc68a825382fb88865cff3ee066a80244 一致，未修改图输出以迎合测试。
+
+开发定向25 passed；冻结快速回归783 passed/27 skipped/1 deselected，124.82s，exit0。恢复原构建时内存配置后，普通 semantic() 使用 compatible=True 读取同一对已保存九文件 warm/fresh，完整20表比较通过，642/640 edges、408 sites。早先配置读取失败是重建测试脚本漏掉 retained_versions=8 与三项零 embedding 限额；program hash始终一致，不是生产缓存损坏。原失败日志保留。以上是开发自测，下一步固定远端并进行独立第2/3轮复审；完整83文件验收仍受 CW-01 阻塞。

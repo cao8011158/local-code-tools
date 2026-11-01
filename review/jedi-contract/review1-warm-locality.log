@@ -1,0 +1,283 @@
+{
+  "program_hash": "c2cffb2bb8bb639a4ee74c6bf32ef657594dd7981bb6006d04cd8cf41297368b",
+  "rows": [
+    {
+      "noise": 0,
+      "elapsed_seconds": 0.0832700519968057,
+      "capture": {
+        "inventory_calls": 2,
+        "captured_files": 4,
+        "captured_text_bytes": 496,
+        "parsed_python_files": 1,
+        "ast_decode_calls": 1,
+        "compressed_ast_bytes": 1280,
+        "decoded_module_roots": 2,
+        "module_inventory_calls": 2,
+        "mounted_files": 2,
+        "mounted_utf8_bytes": 248,
+        "artifact_hash_calls": 8,
+        "artifact_hash_bytes": 1213583,
+        "graph_selected_calls": 1
+      },
+      "solver": {
+        "selected_owner_count": 10,
+        "reused_owner_count": 0,
+        "owner_jedi_queries_executed": 6,
+        "owner_association_evaluations": 8,
+        "sites_analyzed": 3
+      },
+      "artifact_bytes": 446853,
+      "public_reads": [
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        },
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        }
+      ],
+      "old_view_bytes": 752,
+      "reverse": {
+        "origin": "synthetic-review:src/provider.py:module:provider#1:5:9",
+        "phases": [
+          {
+            "vm_steps": 65,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          },
+          {
+            "vm_steps": 61,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "noise": 20,
+      "elapsed_seconds": 0.15968297899962636,
+      "capture": {
+        "inventory_calls": 2,
+        "captured_files": 44,
+        "captured_text_bytes": 3516,
+        "parsed_python_files": 1,
+        "ast_decode_calls": 1,
+        "compressed_ast_bytes": 3961,
+        "decoded_module_roots": 22,
+        "module_inventory_calls": 22,
+        "mounted_files": 22,
+        "mounted_utf8_bytes": 1758,
+        "artifact_hash_calls": 8,
+        "artifact_hash_bytes": 3072519,
+        "graph_selected_calls": 1
+      },
+      "solver": {
+        "selected_owner_count": 10,
+        "reused_owner_count": 60,
+        "owner_jedi_queries_executed": 6,
+        "owner_association_evaluations": 8,
+        "sites_analyzed": 3
+      },
+      "artifact_bytes": 1179821,
+      "public_reads": [
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        },
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        }
+      ],
+      "old_view_bytes": 752,
+      "reverse": {
+        "origin": "synthetic-review:src/provider.py:module:provider#1:5:9",
+        "phases": [
+          {
+            "vm_steps": 65,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          },
+          {
+            "vm_steps": 61,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "noise": 100,
+      "elapsed_seconds": 0.400922990993422,
+      "capture": {
+        "inventory_calls": 2,
+        "captured_files": 204,
+        "captured_text_bytes": 15836,
+        "parsed_python_files": 1,
+        "ast_decode_calls": 1,
+        "compressed_ast_bytes": 13053,
+        "decoded_module_roots": 102,
+        "module_inventory_calls": 102,
+        "mounted_files": 102,
+        "mounted_utf8_bytes": 7918,
+        "artifact_hash_calls": 8,
+        "artifact_hash_bytes": 10442727,
+        "graph_selected_calls": 1
+      },
+      "solver": {
+        "selected_owner_count": 10,
+        "reused_owner_count": 300,
+        "owner_jedi_queries_executed": 6,
+        "owner_association_evaluations": 8,
+        "sites_analyzed": 3
+      },
+      "artifact_bytes": 4046157,
+      "public_reads": [
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        },
+        {
+          "nodes": 1,
+          "edges": 1,
+          "node_bytes": 859,
+          "relation_bytes": 1066
+        }
+      ],
+      "old_view_bytes": 752,
+      "reverse": {
+        "origin": "synthetic-review:src/provider.py:module:provider#1:5:9",
+        "phases": [
+          {
+            "vm_steps": 65,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          },
+          {
+            "vm_steps": 61,
+            "sql_count": 3,
+            "rows": {
+              "call": 1,
+              "receiver": 1,
+              "container": 1
+            },
+            "plans": [
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)",
+                "USE TEMP B-TREE FOR DISTINCT"
+              ],
+              [
+                "SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "Capture, hash, AST decode, effect index, mounting and artifact writes grow with all input; solver counters stay local.",
+    "SQLite VM steps count actual selected reverse queries, not entire publication or query serialization.",
+    "Timing includes measurement wrappers; no wall-time threshold or claim about 83-file full acceptance."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "source_files": 83,
+  "owners": 1513,
+  "sites": 9614,
+  "slot_writer_scopes": 110,
+  "fallback_writer_scopes": 110,
+  "indexed_origins": 0,
+  "jedi_queries_executed": 0,
+  "seconds": 5.183,
+  "scope": "constructor and AST inventory only; no Graph.build or inference call"
+}

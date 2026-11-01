@@ -1,0 +1,53 @@
+{
+  "warm": "/tmp/jd1-review1-nine/test_nine_original_bytes_limit0/actual-fixture/data/versions/20261101T191734-c79b5f11f2",
+  "fresh": "/tmp/jd1-review1-nine/test_nine_original_bytes_limit0/reviewer-fresh-complete/versions/20261101T193005-0dce4313f9",
+  "warm_count": 642,
+  "fresh_count": 640,
+  "warm_only": [
+    {
+      "source": "_execution_data",
+      "target": "_WorldEffectKind",
+      "kind": "REFERENCES",
+      "line": 38,
+      "column": 33,
+      "site_id": null,
+      "raw": {
+        "basis": "AST value reference; never implies invocation",
+        "column": 33,
+        "edge_id": "4f5b374906e36cac75ce67bd65c347ed36690fd93c70b9f32afc54a33c478f8a",
+        "expression": "_WorldEffectKind",
+        "kind": "REFERENCES",
+        "line": 38,
+        "phase": "body",
+        "source": "synthetic-review:src/trpg_state_machine/_execution.py:function:_execution_data#1.1",
+        "source_version_id": "059453233828f195ce6483faf24b12d3e99c0706953461b2005c294f6738eccf",
+        "status": "resolved",
+        "target": "synthetic-review:src/trpg_state_machine/_execution.py:class:_WorldEffectKind#1.1",
+        "target_version_id": "1364e3f0d84f3e8b46590081fa9fa96bd324919ba7543147eb168c5868f01ecf"
+      }
+    },
+    {
+      "source": "_WorldEffectOrigin",
+      "target": "_WorldEffectKind",
+      "kind": "REFERENCES",
+      "line": 25,
+      "column": 10,
+      "site_id": null,
+      "raw": {
+        "basis": "AST value reference; never implies invocation",
+        "column": 10,
+        "edge_id": "a36e7475a77926e3b1e488419509b662e0270b3815997ecb06bc7ce1d92ca3da",
+        "expression": "_WorldEffectKind",
+        "kind": "REFERENCES",
+        "line": 25,
+        "phase": "annotation",
+        "source": "synthetic-review:src/trpg_state_machine/_execution.py:class:_WorldEffectOrigin#1.1",
+        "source_version_id": "3db990642e773d5e521cfe54c7365f70463c71038a90533f32bb151bfbabb782",
+        "status": "resolved",
+        "target": "synthetic-review:src/trpg_state_machine/_execution.py:class:_WorldEffectKind#1.1",
+        "target_version_id": "1364e3f0d84f3e8b46590081fa9fa96bd324919ba7543147eb168c5868f01ecf"
+      }
+    }
+  ],
+  "fresh_only": []
+}

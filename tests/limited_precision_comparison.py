@@ -83,6 +83,122 @@ def _eager_annotation(edge, nodes, sources):
     return False
 
 
+def _direct_body_reference(edge, nodes, sources):
+    """Prove one extra body Name reads an immutable direct module class binding."""
+    if edge[3:5] != ("REFERENCES", "resolved"):
+        return False
+    fact = json.loads(edge[-1])
+    source, target = nodes.get(edge[1]), nodes.get(edge[2])
+    if (not source or not target or fact.get("basis") != "AST value reference; never implies invocation"
+            or fact.get("phase") != "body" or fact.get("expression") != target.get("name")
+            or fact.get("source") != edge[1] or fact.get("target") != edge[2]
+            or fact.get("kind") != "REFERENCES" or fact.get("status") != "resolved"
+            or fact.get("source_version_id") != source.get("version_id")
+            or fact.get("target_version_id") != target.get("version_id")
+            or source.get("kind") != "function" or target.get("kind") != "class"
+            or source.get("parent") != target.get("parent")
+            or source.get("repository") != target.get("repository")
+            or source.get("path") != target.get("path")
+            or target.get("definition_line", 10**9) >= source.get("definition_line", 0)):
+        return False
+    module = nodes.get(source.get("parent"))
+    if not module or module.get("kind") != "module" or target.get("parent") != module.get("node_id"):
+        return False
+    content = sources.get((source["repository"], source["path"]))
+    if content is None:
+        return False
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return False
+    classes = [stmt for stmt in tree.body if isinstance(stmt, ast.ClassDef)
+               and stmt.name == target["name"]]
+    owners = [stmt for stmt in tree.body if isinstance(stmt, ast.FunctionDef)
+              and stmt.name == source["name"] and stmt.lineno == source["definition_line"]]
+    if (len(classes) != 1 or classes[0].lineno != target["definition_line"]
+            or len(owners) != 1 or owners[0].lineno != source["definition_line"]):
+        return False
+    owner = owners[0]
+    name = target["name"]
+
+    def direct_nodes(node):
+        """Visit this execution body, not nested definitions, lambda or comprehensions."""
+        yield node
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef,
+                             ast.Lambda, ast.ListComp, ast.SetComp, ast.DictComp,
+                             ast.GeneratorExp)):
+            return
+        if isinstance(node, ast.AnnAssign):
+            yield from direct_nodes(node.target)
+            if node.value is not None:
+                yield from direct_nodes(node.value)
+            return
+        for child in ast.iter_child_nodes(node):
+            yield from direct_nodes(child)
+
+    args = owner.args
+    parameters = (args.posonlyargs + args.args + args.kwonlyargs +
+                  [arg for arg in (args.vararg, args.kwarg) if arg])
+    if any(arg.arg == name for arg in parameters):
+        return False
+
+    def binds(node):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            return node.id == name
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            return node.name == name
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            return any(alias.name == "*" or
+                       (alias.asname or alias.name.split(".")[0]) == name
+                       for alias in node.names)
+        if isinstance(node, ast.ExceptHandler):
+            return node.name == name
+        if isinstance(node, (ast.MatchAs, ast.MatchStar)):
+            return node.name == name
+        if isinstance(node, ast.MatchMapping):
+            return node.rest == name
+        return isinstance(node, (ast.Global, ast.Nonlocal)) and name in node.names
+
+    def module_nodes(node):
+        # Definition headers execute at module scope. Their decorators,
+        # defaults and class bases can rebind a name even though their bodies
+        # are separate execution scopes.
+        yield node
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            headers = (node.decorator_list + node.args.defaults +
+                       [d for d in node.args.kw_defaults if d is not None])
+            for header in headers:
+                yield from direct_nodes(header)
+            return
+        if isinstance(node, ast.ClassDef):
+            for header in node.decorator_list + node.bases + [k.value for k in node.keywords]:
+                yield from direct_nodes(header)
+            return
+        for child in ast.iter_child_nodes(node):
+            yield from module_nodes(child)
+
+    for statement in owner.body:
+        if any(binds(node) for node in direct_nodes(statement)):
+            return False
+    # Reject uncertain explicit writes from any nested scope, even after the
+    # owner declaration. They can alter a global before this body executes.
+    if any(isinstance(node, (ast.Global, ast.Nonlocal)) and name in node.names
+           for node in ast.walk(tree)):
+        return False
+    for statement in tree.body:
+        if statement is classes[0]:
+            # Its header can still mutate the binding before its declaration.
+            if any(binds(node) for node in list(module_nodes(statement))[1:]):
+                return False
+            continue
+        if any(binds(node) for node in module_nodes(statement)):
+            return False
+    return any(isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load)
+               and node.id == name and node.lineno == fact.get("line")
+               and node.col_offset == fact.get("column")
+               for statement in owner.body for node in direct_nodes(statement))
+
+
 def _direct_open_input(subscription, existing, nodes, sources):
     fact = json.loads(subscription[-1])
     if (fact.get("origin") != "unknown-container-universe"
@@ -154,7 +270,9 @@ def assert_limited_refinement(actual, fresh, sources):
             assert a.keys() == b.keys() and all(a[key] > 0 and b[key] > 0 for key in a), table
         elif table == "edges":
             a, b = set(actual[table]), set(fresh[table])
-            assert b <= a and all(_eager_annotation(row, nodes, sources) for row in a - b), table
+            assert b <= a and all(_eager_annotation(row, nodes, sources) or
+                                  _direct_body_reference(row, nodes, sources)
+                                  for row in a - b), table
         elif table == "unit_container_subscriptions":
             a, b = set(actual[table]), set(fresh[table])
             existing = [json.loads(row[-1]) for row in b]

@@ -1,0 +1,12 @@
+F......                                                                  [100%]
+=================================== FAILURES ===================================
+________ test_source_true_body_reference_is_valid_additional_precision _________
+../local-only-work/review/jedi-contract/test_body_reference_oracle_independent.py:55: in test_source_true_body_reference_is_valid_additional_precision
+    assert_limited_refinement(*fixture("valid"))
+tests/limited_precision_comparison.py:157: in assert_limited_refinement
+    assert b <= a and all(_eager_annotation(row, nodes, sources) for row in a - b), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: edges
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/jedi-contract/test_body_reference_oracle_independent.py::test_source_true_body_reference_is_valid_additional_precision
+1 failed, 6 passed in 0.12s

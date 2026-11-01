@@ -1,0 +1,15 @@
+{
+  "status": "public checkpoints pass; complete oracle requires source-reference proof extension",
+  "warm": "20261101T191734-c79b5f11f2",
+  "fresh": "20261101T193005-0dce4313f9",
+  "warm_mode": "incremental-owners",
+  "parsed": 1,
+  "jedi_executed": 23,
+  "jedi_entries": 37,
+  "bm25_results": 10,
+  "dense_ann_target_found": true,
+  "dense_exact_target_found": true,
+  "node_detail_and_old_relations": true,
+  "all_other_tables_pass_after_isolating_edge_difference": true,
+  "edge_comparison_bypassed_only_for_this_diagnostic": true
+}

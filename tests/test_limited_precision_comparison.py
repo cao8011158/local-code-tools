@@ -1,6 +1,7 @@
 """Reject semantic losses and fabricated gains in the limited-budget oracle."""
 
 import copy
+import ast
 import json
 
 import pytest
@@ -142,3 +143,34 @@ def test_function_body_annotation_is_not_eager_class_reference():
         snapshot["nodes"] = rows
     with pytest.raises(AssertionError):
         assert_limited_refinement(actual, fresh, sources)
+
+
+@pytest.mark.parametrize("later", [
+    "def mutate():\n    global Kind\n    Kind=1\n",
+    "@(Kind := lambda f: f)\ndef decorated(): pass\n",
+])
+def test_later_global_or_definition_header_rebind_rejects_body_gain(later):
+    content = "class Kind: pass\ndef use():\n    Kind\n" + later
+    module = f"{REPO}:{PATH}:module:sample#1"
+    kind = f"{REPO}:{PATH}:class:Kind#1"
+    owner = f"{REPO}:{PATH}:function:use#1"
+    def row(identifier, name, kind_name, line, parent):
+        data = dict(node_id=identifier, name=name, kind=kind_name,
+                    repository=REPO, path=PATH, parent=parent,
+                    version_id="v-" + name, definition_line=line)
+        return (identifier, REPO, PATH, kind_name, canonical(data), "hash")
+    nodes = sorted([row(module, "sample", "module", 1, ""),
+                    row(kind, "Kind", "class", 1, module),
+                    row(owner, "use", "function", 2, module)])
+    token = next(n for n in ast.walk(ast.parse(content)) if isinstance(n, ast.Name)
+                 and isinstance(n.ctx, ast.Load) and n.id == "Kind")
+    fact = dict(source=owner, target=kind, kind="REFERENCES", status="resolved",
+                source_version_id="v-use", target_version_id="v-Kind",
+                basis="AST value reference; never implies invocation", phase="body",
+                expression="Kind", line=token.lineno, column=token.col_offset)
+    fact["edge_id"] = digest(canonical(fact))
+    actual = dict(nodes=nodes, edges=[(fact["edge_id"], owner, kind,
+                                      "REFERENCES", "resolved", canonical(fact))])
+    fresh = dict(nodes=nodes, edges=[])
+    with pytest.raises(AssertionError):
+        assert_limited_refinement(actual, fresh, {(REPO, PATH): content})
