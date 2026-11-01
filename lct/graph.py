@@ -413,7 +413,7 @@ class Graph:
             for scope, stmt in analyzer.import_sites:
                 if not chosen(scope):
                     continue
-                for alias in stmt.names:
+                for alias_index, alias in enumerate(stmt.names):
                     result = analyzer.binding(scope, "import", (stmt, alias))
                     namespace = self.named_import_namespace(scope, stmt, alias)
                     source = self.nodes[scope]
@@ -421,6 +421,10 @@ class Graph:
                     targets = sorted(a.target for a in result.atoms if a.target in self.nodes)
                     import_requests.append(dict(
                         source_module=source["module"],
+                        source_owner=scope, source_line=stmt.lineno,
+                        source_column=stmt.col_offset, alias_index=alias_index,
+                        bound_name=alias.asname or (alias.name if isinstance(stmt, ast.ImportFrom)
+                                                    else alias.name.split(".")[0]),
                         source_repository=source["repository"],
                         requested_module=requested_module,
                         requested_name=alias.name if isinstance(stmt, ast.ImportFrom) else None,
@@ -434,6 +438,8 @@ class Graph:
                     if namespace:
                         import_dependencies.append(dict(
                             source_module=source["module"], namespace_module=namespace[0],
+                            source_owner=scope, source_line=stmt.lineno,
+                            source_column=stmt.col_offset, alias_index=alias_index,
                             requested_name=namespace[1]["name"],
                             target_modules=sorted({self.nodes[target]["module"] for target in targets}),
                             target_ids=targets, resolved=bool(targets),

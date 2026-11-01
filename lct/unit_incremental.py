@@ -85,7 +85,7 @@ def _unbounded_changed_effect(tree):
                                           "insert", "remove", "add", "discard"}):
                 # EffectCatalog may recognize a concrete origin during analysis,
                 # but an old missing writer has no reverse link. Until the
-                # origin/range subscription is persisted, recompute the capture.
+                # origin/range subscription is persisted, widen via recorded watches.
                 uncertain = True
             visit(child)
     visit(tree)
@@ -119,6 +119,43 @@ def _changed_calls_have_unbound_effect(old_tree, new_tree, old_sites, owner):
         if site is None or not site["targets"]:
             return True
     return False
+
+
+def _loaded_names(tree):
+    """Names read by one execution owner, excluding nested execution bodies."""
+    names = set()
+    def visit(obj):
+        for child in ast.iter_child_nodes(obj):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef,
+                                  ast.ClassDef, ast.Lambda)):
+                continue
+            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load):
+                names.add(child.id)
+            visit(child)
+    visit(tree)
+    return names
+
+
+def _module_aliases(tree, source):
+    """Straight-line module name assignments extending one imported binding."""
+    names = {source}
+    if not isinstance(tree, ast.Module):
+        return names
+    changed = True
+    while changed:
+        changed = False
+        for stmt in tree.body:
+            if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Name) and stmt.value.id in names:
+                targets = stmt.targets
+            elif isinstance(stmt, ast.AnnAssign) and isinstance(stmt.value, ast.Name) and stmt.value.id in names:
+                targets = [stmt.target]
+            else:
+                continue
+            for target in targets:
+                if isinstance(target, ast.Name) and target.id not in names:
+                    names.add(target.id)
+                    changed = True
+    return names
 
 
 def _project_observations(ledger, nodes):
@@ -396,8 +433,49 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 n["node_id"] for n in nodes if n["kind"] in {"module", "class", "function"}}:
             return None, "new-owner-catalog-unavailable"
         graph = Graph(nodes, new_trees, repos)
+        owners_by_file = defaultdict(set)
+        module_by_file = {}
+        for ident in new_trees:
+            n = byid[ident]
+            key = n["repository"], n["path"]
+            owners_by_file[key].add(ident)
+            if n["kind"] == "module":
+                module_by_file[key] = ident
+        loaded_names = {}
+        binding_aliases = {}
+        def owners_for_request(request):
+            """Follow a request site and uses of its module-level binding."""
+            owner = request.get("source_owner")
+            if owner not in new_trees:
+                return set()
+            consumers = {owner}
+            if byid[owner]["kind"] == "module":
+                name = request.get("bound_name")
+                key = byid[owner]["repository"], byid[owner]["path"]
+                if name:
+                    aliases = binding_aliases.get((owner, name))
+                    if aliases is None:
+                        aliases = binding_aliases[owner, name] = _module_aliases(
+                            new_trees[owner], name)
+                    for sibling in owners_by_file[key]:
+                        if sibling == owner:
+                            continue
+                        if aliases & loaded_names.setdefault(
+                                sibling, _loaded_names(new_trees[sibling])):
+                            consumers.add(sibling)
+            return consumers
+        def namespace_requests(repository, module, *, source=False, descendants=False):
+            """Indexed request rows preserve owner/site even for failed imports."""
+            field = "source_repository" if source else "lookup_repository"
+            predicate = ("k.module>=? and k.module<?" if descendants else "k.module=?")
+            args = ((repository, module + ".", module + "/") if descendants
+                    else (repository, module))
+            return [json.loads(raw) for (raw,) in evidence.execute(
+                "select distinct r.data from import_lookup_keys k "
+                "join import_requests r on r.ordinal=k.ordinal "
+                f"where k.{field}=? and {predicate}", args)]
         old_bindings = prior["graph"].get("dependency_bindings", {})
-        binding_requesters = set()
+        binding_requests = []
         binding_prefixes = {"dnd5e-engine": "dnd5e_engine",
                             "dnd5e-srd-data": "dnd5e_srd_data"}
         for repository in set(old_bindings) | set(graph.cross_bindings):
@@ -412,10 +490,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 # Source-repository/module is the indexed negative as well as
                 # positive import request. A dirty/clean pin transition can
                 # change the target even without source-byte changes.
-                binding_requesters.update(evidence.execute(
-                    "select distinct source_repository,source_path "
-                    "from import_lookup_keys where source_repository=? "
-                    "and module>=? and module<?",
+                binding_requests.extend(json.loads(raw) for (raw,) in evidence.execute(
+                    "select distinct r.data from import_lookup_keys k "
+                    "join import_requests r on r.ordinal=k.ordinal "
+                    "where k.source_repository=? and k.module>=? and k.module<?",
                     (repository, prefix, prefix + "/")))
         changed_owners = {ident for ident in set(old_trees) | set(new_trees)
                           if ident not in old_trees or ident not in new_trees or
@@ -423,10 +501,12 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                             old_nodes[ident]["path"]) in changed)}
         # A changed file is parsed in full. Its execution owners are a safe
         # initial seed; only downstream consumers are selected by provenance.
-        selected = {ident for ident in new_trees if (byid[ident]["repository"],
-                    byid[ident]["path"]) in changed}
-        selected.update(ident for ident in new_trees if
-                        (byid[ident]["repository"], byid[ident]["path"]) in binding_requesters)
+        selected = set().union(*(owners_by_file[key] for key in changed)) if changed else set()
+        namespace_pending = deque()
+        for request in binding_requests:
+            selected.update(owners_for_request(request))
+            if request["source_owner"] in new_trees and byid[request["source_owner"]]["kind"] == "module":
+                namespace_pending.append(request["source_owner"])
         for ident in changed_owners:
             selected.update(consumer for consumer, _ in dependencies.unit_readers(ident)
                             if consumer in new_trees)
@@ -445,7 +525,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             # requesters and old producer edges are added below.
         # A new writer has no old support edge. Resolve its receiver against
         # captured literal/import bindings and ask the old origin subscriber
-        # index; an unsupported receiver deliberately falls back to full.
+        # index; an unsupported receiver expands through recorded watches.
         for ident in selected.copy():
             old_tree, new_tree = old_trees.get(ident), new_trees.get(ident)
             if old_tree is None or new_tree is None or _signature(old_tree) == _signature(new_tree):
@@ -474,7 +554,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                             n["repository"], request["requested_module"]))
                         if request.get("namespace_module"):
                             candidates.add(request["namespace_module"])
-                        selected.update(module for module in candidates if module in new_trees)
+                        for module in candidates:
+                            if module in new_trees:
+                                selected.add(module)
+                                namespace_pending.append(module)
                 continue
             for origin in origins:
                 selected.update(row["consumer_owner"] for row in
@@ -490,6 +573,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     if providing_scope in old_nodes:
                         if providing_scope in new_trees:
                             selected.add(providing_scope)
+                            namespace_pending.append(providing_scope)
                         selected.update(owner for (owner,) in evidence.execute(
                             "select owner from unit_analysis_reads where producer=?",
                             (providing_scope,)) if owner in new_trees)
@@ -517,37 +601,53 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 if site is not None and site["execution_owner"] in new_trees:
                     selected.add(site["execution_owner"])
         for key in changed:
-            # A previously absent module/definition can satisfy a negative
-            # import request. Old request keys are indexed even on failures.
-            module = next((n for n in nodes if n["kind"] == "module" and
-                           (n["repository"], n["path"]) == key), None)
-            if module is None and key in old_module_by_file:
-                module = old_nodes[old_module_by_file[key]]
-            if module is not None:
-                affected = dependencies.requesters(module["repository"], module["qualname"])
-                if module["node_id"] not in old_nodes or module["node_id"] not in byid:
-                    # A newly created package initializer or ancestor module
-                    # can shadow imports of its descendants even when the
-                    # ancestor itself had no old request key.
-                    affected.update(evidence.execute(
-                        "select distinct source_repository,source_path "
-                        "from import_lookup_keys where source_repository=? "
-                        "and module>=? and module<?",
-                        (module["repository"], module["qualname"] + ".",
-                         module["qualname"] + "/")))
-                selected.update(i for i in new_trees if (byid[i]["repository"],
-                                                          byid[i]["path"]) in affected)
+            module = (byid[module_by_file[key]] if key in module_by_file else
+                      old_nodes.get(old_module_by_file.get(key)))
+            if module is None:
+                continue
+            if (module["node_id"] not in old_nodes or module["node_id"] not in byid or
+                    _owner_changed(old_nodes.get(module["node_id"]),
+                                   byid.get(module["node_id"]),
+                                   old_trees.get(module["node_id"]),
+                                   new_trees.get(module["node_id"]))):
+                namespace_pending.append(module["node_id"])
         for ident in changed_owners:
             n = byid.get(ident, old_nodes.get(ident))
             if (n and n["kind"] == "module" and
                     _owner_changed(old_nodes.get(ident), byid.get(ident),
                                    old_trees.get(ident), new_trees.get(ident))):
                 key = n["repository"], n["path"]
-                affected = (dependencies.importers(n["repository"], n["qualname"])
-                            | dependencies.analysis_readers(*key)
-                            | dependencies.input_scope_readers(*key))
-                selected.update(i for i in new_trees if (byid[i]["repository"],
-                                                      byid[i]["path"]) in affected)
+                # Module-level output changes can affect owner-specific reads.
+                # The import namespace closure below handles request sites.
+                selected.update(owner for (owner,) in evidence.execute(
+                    "select owner from unit_analysis_reads where producer=?", (ident,))
+                    if owner in new_trees)
+        # Module namespace membership changes, including new/deleted modules,
+        # reexports and pin transitions, follow only actual import request
+        # sites. A selected module from a mere body edit is not a namespace
+        # invalidation and never expands its importing file wholesale.
+        seen_namespaces = set()
+        while namespace_pending:
+            producer = namespace_pending.popleft()
+            if producer in seen_namespaces:
+                continue
+            seen_namespaces.add(producer)
+            n = byid.get(producer, old_nodes.get(producer))
+            if n is None or n["kind"] != "module":
+                continue
+            matching_requests = (namespace_requests(n["repository"], n["qualname"]) +
+                                 namespace_requests(n["repository"], n["qualname"], source=True))
+            if producer not in old_nodes or producer not in byid:
+                matching_requests.extend(namespace_requests(n["repository"], n["qualname"],
+                                                            source=True, descendants=True))
+            unique_requests = {(r["source_owner"], r["source_line"],
+                                r["source_column"], r["alias_index"]): r
+                               for r in matching_requests}
+            for request in unique_requests.values():
+                selected.update(owners_for_request(request))
+                owner = request.get("source_owner")
+                if owner in new_trees and byid[owner]["kind"] == "module":
+                    namespace_pending.append(owner)
         # Retained edges into removed/changed definitions need their source
         # owners reanalyzed before any edge is merged from the old snapshot.
         selected.update(e["source"] for e in old_edges if e["target"] in changed_owners
@@ -560,14 +660,6 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             while pending:
                 producer = pending.popleft()
                 consumers = {consumer for consumer, _ in dependencies.unit_readers(producer)}
-                n = byid.get(producer)
-                if n is not None and n["kind"] == "module":
-                    # Reexports are namespaces too: a selected intermediary
-                    # module can turn an old failed import into a new target.
-                    affected = (dependencies.importers(n["repository"], n["qualname"])
-                                | dependencies.requesters(n["repository"], n["qualname"]))
-                    consumers.update(ident for ident in new_trees if
-                                     (byid[ident]["repository"], byid[ident]["path"]) in affected)
                 for consumer in consumers:
                     if consumer in new_trees and consumer not in current:
                         current.add(consumer)
@@ -581,7 +673,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         total_queries = total_associations = total_reused_queries = 0
         iterations = 0
         shared_analyzer = None
-        changed_scope_owners = None
+        current_components = None
         previous_work = (0, 0, 0)
         try:
             for _ in range(len(new_trees) + 1):
@@ -591,6 +683,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                         candidate_site_evidence=old_sites, analyzer=shared_analyzer,
                         retain_analyzer=True)
                     shared_analyzer = fresh_info.pop("_analyzer")
+                    current_components = shared_analyzer.candidate_components
                 except RequiredAnalysisContext:
                     return None, "required-analysis-context-unavailable"
                 iterations += 1
@@ -610,19 +703,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     attempts["owner_association_evaluations"] = (
                         attempts.get("owner_association_evaluations", 0) + delta[1])
                 expanded = set(selected)
-                # Component policy is computed from the entire new capture.
-                # A retained owner's old query scope is invalid when that
-                # policy changes, even if no CALLS target changed. Reobserve
-                # its actual inputs rather than relabeling the old scope.
-                if changed_scope_owners is None:
-                    components = shared_analyzer.candidate_components or {}
-                    current_members = {consumer: tuple(sorted(component))
-                                       for consumer, component in components.items()}
-                    changed_scope_owners = {
-                        owner for owner, consumer, members, _ in old_ledger[2]
-                        if owner in new_trees and
-                        members != current_members.get(consumer, ())}
-                expanded.update(changed_scope_owners)
+                # Candidate-component membership can change merely because a
+                # sibling imported a newly added name. It describes candidate
+                # traversal, not an owner dependency. Import request sites and
+                # actual source/read supports above select affected owners.
                 new_calls = {e["target"] for e in fresh_edges if e["kind"] == "CALLS"
                              and e["source"] in selected and e["target"] in new_trees and
                              byid[e["target"]]["kind"] == "function" and
@@ -709,10 +793,10 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             retained_queries = [rebinder.rebind(r, owner_id=r["execution_owner"])
                                 for r in observations if r["execution_owner"] not in selected
                                 and r["execution_owner"] in byid]
-            retained_imports = [r for r in imports if r["source_module"] not in selected
-                                and r["source_module"] in byid]
-            retained_requests = [r for r in requests if r["source_module"] not in selected
-                                 and r["source_module"] in byid]
+            retained_imports = [r for r in imports if r["source_owner"] not in selected
+                                and r["source_owner"] in byid]
+            retained_requests = [r for r in requests if r["source_owner"] not in selected
+                                 and r["source_owner"] in byid]
             retained_origin = []
             for table, records in enumerate(old_origin):
                 kept = []
@@ -765,18 +849,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             canonical(r["key"]): r for r in
             retained_queries + fresh_info["_query_observations"]}.values())
         fresh_info["_import_dependencies"] = retained_imports + fresh_info["_import_dependencies"]
-        request_order = {n["node_id"]: pos for pos, n in enumerate(nodes)
-                         if n["kind"] == "module"}
-        fresh_requests = fresh_info["_import_requests"]
-        if {r["source_module"] for r in retained_requests} & {
-                r["source_module"] for r in fresh_requests}:
-            # Requests do not persist their source site. An interleaving of
-            # retained and recomputed owners within one module has no proven
-            # ordinal reconstruction; compute it afresh in a full build.
-            return None, "mixed-import-request-order-unavailable"
-        fresh_info["_import_requests"] = sorted(
-            retained_requests + fresh_requests,
-            key=lambda r: request_order[r["source_module"]])
+        fresh_info["_import_requests"] = retained_requests + fresh_info["_import_requests"]
         for key, retained in zip(("_unit_supports", "_unit_subscriptions", "_unit_writes"),
                                  retained_origin):
             fresh_info[key] = list({canonical(r): r for r in
@@ -789,9 +862,18 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         if any(owner not in selected for collection in fresh_ledger
                for owner, *_ in collection):
             return None, "selected-owner-observation-boundary-unavailable"
-        ledger = tuple({record for record in previous if record[0] not in selected
-                        and record[0] in byid} | current
-                       for previous, current in zip(old_ledger, fresh_ledger))
+        retained_events = set()
+        for owner, consumer, component, purpose in old_ledger[2]:
+            if owner in selected or owner not in byid:
+                continue
+            members = (tuple(sorted(current_components.get(consumer, ())))
+                       if current_components is not None else ())
+            retained_events.add((owner, consumer, members, purpose))
+        ledger = (set(record for record in old_ledger[0]
+                      if record[0] not in selected and record[0] in byid) | fresh_ledger[0],
+                  set(record for record in old_ledger[1]
+                      if record[0] not in selected and record[0] in byid) | fresh_ledger[1],
+                  retained_events | fresh_ledger[2])
         projected = _project_observations(ledger, nodes)
         if projected is None:
             return None, "new-owner-observation-ledger-incomplete"

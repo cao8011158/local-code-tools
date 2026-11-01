@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-01：阶段133，LO-2第1轮修复本地冻结，尚未推送/正式复审。新增import owner/位置/alias，按词法绑定和别名消费选择函数，移除selected-module文件级传播，保存未选函数请求并统一冷/热物理排序。开发者最终730 passed/27 skipped/1 deselected/94.93秒；最终24定向/6.79秒，较广116 passed/1 skipped/49.53秒。 [修复报告](../local-only-updates/LO2_REVIEW1_FIX.md)。
+
+2026-11-01：阶段132，LO-2固定40a53497ee93ec265887c2b9d1b8347f921cf5f5第1/3轮需修改。独立724 passed/2 failed/27 skipped/1 deselected/100.98秒；另namespace两反例均失败。调用目标正确，但导入文件无关函数被误选，LO2-OWNER-GRANULARITY为P2阻塞；修复后第2轮，暂停LO-3/合并。 [审阅](../local-only-updates/LO2_REVIEW.md)。
+
 2026-11-01：阶段131，LO-2本地开发冻结，尚未推送/正式review。开发者最终254定向通过/16.73秒；699 passed/27 skipped/1 deselected/100.69秒主快速回归。正常warm只走owner路径，初始cold选择全部新owner；有效partial/预算截断通过导入/来源链补选，缓存不兼容明确失败保留旧current。 [开发报告](../local-only-updates/LO2_DEVELOPER.md)。
 
 2026-11-01：阶段130，LO-2实施/预检进行中，尚未冻结或正式审阅。普通未知回调、文件/定义增删、包导出、容器getter/末端消费、损坏/不兼容缓存与同文件无关函数控制已进入独立测试。新增预算耗尽反例确认漏选末端消费，正在修复其分离存储来源/参数写入变体；不恢复全量回退。
@@ -1051,3 +1055,16 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - 原预算变体（分离存储模块/函数模块、参数写入）已由开发者修正，17项root行为控制含于254定向；保留analysis_limited并遵循读取/命名空间实际关系，不恢复全量。原始失败和修复日志保留。
 - 生产变更4文件（storage/unit_incremental/graph/python_analysis）；历史mode/parse/raw-trace断言按新契约迁移，来源/UNKNOWN/完整性检查继续。完整83与规模未完成。
 - root下一轮独立审阅补测普通callee函数体变化时，同一个导入文件中的无关函数是否被误选；正式轮次尚未消耗。
+
+## 阶段132：LO-2第1轮审阅发现函数粒度扩大
+
+2026-11-01：阶段132，LO-2固定40a53497ee93ec265887c2b9d1b8347f921cf5f5第1/3轮需修改。独立724 passed/2 failed/27 skipped/1 deselected/100.98秒；另namespace两反例均失败。调用目标正确，但导入文件无关函数被误选，LO2-OWNER-GRANULARITY为P2阻塞；修复后第2轮，暂停LO-3/合并。 [审阅](../local-only-updates/LO2_REVIEW.md)。
+
+- 486文件远端blob一致。新namespace harness为root外部审阅反例，不修改被测生产源码。普通callee body和新增/缺失namespace共四变体均误选同文件unrelated，图目标本身没有错误。
+- 根因与具体修法写入LO2_REVIEW.md；不能用把全部相关文件函数重算包装为函数级完成。原未知/预算/容器支持控制通过继续保留。正式1/3，不因修复新增问题/编号变化重置轮次。
+
+## 阶段133：LO-2第1轮修复开发完成，待第2轮
+
+2026-11-01：阶段133，LO-2第1轮修复本地冻结，尚未推送/正式复审。新增import owner/位置/alias，按词法绑定和别名消费选择函数，移除selected-module文件级传播，保存未选函数请求并统一冷/热物理排序。开发者最终730 passed/27 skipped/1 deselected/94.93秒；最终24定向/6.79秒，较广116 passed/1 skipped/49.53秒。 [修复报告](../local-only-updates/LO2_REVIEW1_FIX.md)。
+
+- 保留第1轮全部红例；4项namespace/别名/默认回调、2项callee body以及原component-scope控制开发者已通过。root下一轮另检类默认值的定义时引用、基类新绑定后的方法receiver以及局部变量遮蔽，避免按名称相同误判来源。正式已用1/3，下一轮2/3。

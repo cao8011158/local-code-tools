@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "batch_id": "LO-2",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/local-only-updates",
+  "base_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
+  "head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "implementation_actor": "/root/local_only_developer:gpt-6-sol/medium",
+  "merge_authorized": false,
+  "authorization_reference": "User approved LOCAL-ONLY-UPDATES three batches; implementation and feature-branch publication. Merge permission evaluated at final gate.",
+  "scope": [
+    "Only-local warm update routing and dependency/namespace/budget maintenance; initial all-new owner scheduling"
+  ],
+  "acceptance_criteria": [
+    "No automatic full analysis on warm updates",
+    "Actual callback/container/import consumers update and retain UNKNOWN/source facts",
+    "Unrelated sibling functions must not be selected or queried"
+  ],
+  "feature_complete": false,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "lo2-review1-root-suite.log",
+      "log_sha256": "8f7dc01046212e0db446c1aa9a73f408bfa6446b9260ff0a6d7c9f5eb71714ac",
+      "passed": 724,
+      "failed": 2
+    },
+    {
+      "role": "reviewer",
+      "kind": "targeted",
+      "head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "--tb=short"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "lo2-review1-namespace-granularity.log",
+      "log_sha256": "9596455071be4325e233ffe5981ca2f9b7174fae2aaf5ccb11644937f4ec42fa",
+      "passed": 0,
+      "failed": 2
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+      "remote_head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "724passed2failed27skipped1deselected100.98s, plus2namespace sibling failures. Both graph targets correct, but unrelated same-file function selected. Import request expansion is file-wide, not consuming-owner precise."
+    }
+  ],
+  "findings": [
+    {
+      "id": "LO2-OWNER-GRANULARITY",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "discovered_in_batch": "LO-2",
+      "owner_step": "LOCAL-ONLY-UPDATES",
+      "owner_batch": "LO-2",
+      "origin": "current",
+      "dependency_core": false,
+      "route": "repair current LO-2 then formal review2/3",
+      "location": "lct/unit_incremental.py:expand_dependencies and import requester seeding",
+      "evidence": "lo2-review1-root-suite.log;lo2-review1-namespace-granularity.log"
+    }
+  ],
+  "developer_prepublication": {
+    "main": {
+      "passed": 699,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 100.69,
+      "log": "lo2-fast-main-final.log"
+    },
+    "focused": {
+      "passed": 254,
+      "seconds": 16.73,
+      "log": "lo2-cold-frontend-final2.log"
+    },
+    "note": "Source frozen before root added two extra sibling counterexamples. These numbers are self-test evidence, not a claim those new reviewer tests passed."
+  }
+}

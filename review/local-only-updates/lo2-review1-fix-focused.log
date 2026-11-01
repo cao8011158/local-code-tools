@@ -1,0 +1,34 @@
+...............FF....................s...F...............F.............. [ 72%]
+...........................                                              [100%]
+=================================== FAILURES ===================================
+____ test_limited_container_origin_separate_from_callback_definition[False] ____
+review/local-only-updates/test_local_only_flow_independent.py:232: in test_limited_container_origin_separate_from_callback_definition
+    assert "second" in call_targets(c, updated, "run", "fn")
+E   AssertionError: assert 'second' in set()
+E    +  where set() = call_targets({'data': '/tmp/pytest-of-root/pytest-63/test_limited_container_origin_0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': '988767a4d2e13a4ad91d24f8ba07789a8817fa546e6f4c48867f23aa41bd788d', 'schema': 1, 'format': 1, ...}, 'run', 'fn')
+____ test_limited_container_origin_separate_from_callback_definition[True] _____
+review/local-only-updates/test_local_only_flow_independent.py:232: in test_limited_container_origin_separate_from_callback_definition
+    assert "second" in call_targets(c, updated, "run", "fn")
+E   AssertionError: assert 'second' in set()
+E    +  where set() = call_targets({'data': '/tmp/pytest-of-root/pytest-63/test_limited_container_origin_1/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': '988767a4d2e13a4ad91d24f8ba07789a8817fa546e6f4c48867f23aa41bd788d', 'schema': 1, 'format': 1, ...}, 'run', 'fn')
+_ test_changed_mutation_never_uses_unobserved_old_dependency_as_proof[del worker.unrelated] _
+tests/test_owner_incremental.py:81: in test_changed_mutation_never_uses_unobserved_old_dependency_as_proof
+    updated = build(config, offline=True, lexical_only=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lct/storage.py:1101: in build
+    raise ToolError(f"Local update requires compatible evidence: {compatibility}")
+E   lct.common.ToolError: Local update requires compatible evidence: program-or-config-or-cache-changed
+__ test_candidate_scope_changes_reobserve_retained_owners_in_both_directions ___
+tests/test_owner_incremental.py:307: in test_candidate_scope_changes_reobserve_retained_owners_in_both_directions
+    assert records(config, updated["version"]) == records(
+E   AssertionError: analysis_input_scopes
+E   assert [('capture:al... 'component')] == [('capture:al...', 'capture')]
+E     
+E     Left contains 2 more items, first extra item: ('component:85258b5bfa043bb0d21b8d9f4c0b26de374958962ca3744945be957767bf3956', 'component')
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_limited_container_origin_separate_from_callback_definition[False]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_limited_container_origin_separate_from_callback_definition[True]
+FAILED tests/test_owner_incremental.py::test_changed_mutation_never_uses_unobserved_old_dependency_as_proof[del worker.unrelated]
+FAILED tests/test_owner_incremental.py::test_candidate_scope_changes_reobserve_retained_owners_in_both_directions
+4 failed, 94 passed, 1 skipped in 36.70s

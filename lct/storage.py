@@ -276,7 +276,12 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         db.execute("create index import_dependency_namespace on import_dependencies(namespace_module)")
         db.execute("create table import_dependency_targets(ordinal integer not null, target_module text not null, primary key(ordinal,target_module))")
         db.execute("create index import_dependency_target on import_dependency_targets(target_module)")
-        for ordinal, dependency in enumerate(import_dependencies):
+        def import_order(record):
+            # Physical ordinal is stable across a cold traversal and a warm
+            # mix of retained and selected owner request sites.
+            return (record["source_module"], record["source_line"],
+                    record["source_column"], record["alias_index"])
+        for ordinal, dependency in enumerate(sorted(import_dependencies, key=import_order)):
             db.execute("insert into import_dependencies values(?,?,?,?,?)", (
                 ordinal, dependency["source_module"], dependency["namespace_module"],
                 dependency["requested_name"], canonical(dependency)))
@@ -347,7 +352,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
                 raise ToolError("Analysis watch module ownership unavailable")
             db.execute("insert into analysis_watches values(?,?,?,?,?)", (
                 consumer, *modules[consumer], kind, universe))
-        for ordinal, request in enumerate(import_requests or ()):
+        for ordinal, request in enumerate(sorted(import_requests or (), key=import_order)):
             owner = owners.get(request["source_module"])
             if owner is None or not owner[1] or owner[0] != request["source_repository"]:
                 raise ToolError("Import request source ownership unavailable")

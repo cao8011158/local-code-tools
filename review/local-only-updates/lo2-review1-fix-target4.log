@@ -1,0 +1,14 @@
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+__ test_candidate_scope_changes_reobserve_retained_owners_in_both_directions ___
+tests/test_owner_incremental.py:307: in test_candidate_scope_changes_reobserve_retained_owners_in_both_directions
+    assert records(config, updated["version"]) == records(
+E   AssertionError: import_requests
+E   assert [(0, 'synthet...odules":[]}')] == [(0, 'synthet...odules":[]}')]
+E     
+E     At index 0 diff: (0, 'synthetic-review', 'src/c.py', 'synthetic-review', 'missing_provider', '{"alias_index":0,"bound_name":"run","lookup_repository":"synthetic-review","namespace_module":null,"request_kind":"from","requested_module":"missing_provider","requested_name":"run","source_column":0,"source_line":1,"source_module":"synthetic-review:src/c.py:module:c#1","source_owner":"synthetic-review:src/c.py:module:c#1","source_repository":"synthetic-review","status":"unresolved","target_ids":[],"target_modules":[]}') != (0, 'synthetic-review', 'src/b.py', 'synthetic-review'...
+E     
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+=========================== short test summary info ============================
+FAILED tests/test_owner_incremental.py::test_candidate_scope_changes_reobserve_retained_owners_in_both_directions
+1 failed, 2 passed in 1.36s

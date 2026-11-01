@@ -1,0 +1,16 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__ test_new_import_target_keeps_unrelated_sibling_function_unselected[False] ___
+review/local-only-updates/test_namespace_granularity_independent.py:22: in test_new_import_target_keeps_unrelated_sibling_function_unselected
+    assert not any(":function:unrelated#" in name
+E   assert not True
+E    +  where True = any(<generator object test_new_import_target_keeps_unrelated_sibling_function_unselected.<locals>.<genexpr> at 0x7f86672f4380>)
+___ test_new_import_target_keeps_unrelated_sibling_function_unselected[True] ___
+review/local-only-updates/test_namespace_granularity_independent.py:22: in test_new_import_target_keeps_unrelated_sibling_function_unselected
+    assert not any(":function:unrelated#" in name
+E   assert not True
+E    +  where True = any(<generator object test_new_import_target_keeps_unrelated_sibling_function_unselected.<locals>.<genexpr> at 0x7f864dca7370>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_namespace_granularity_independent.py::test_new_import_target_keeps_unrelated_sibling_function_unselected[False]
+FAILED review/local-only-updates/test_namespace_granularity_independent.py::test_new_import_target_keeps_unrelated_sibling_function_unselected[True]
+2 failed in 0.99s

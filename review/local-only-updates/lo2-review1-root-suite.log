@@ -1,0 +1,26 @@
+........................................................................ [  9%]
+.........................................s.............................. [ 19%]
+.......................................s................................ [ 28%]
+..ss..........sss.......s.....s...sss.s.sssssssssss...sss............... [ 38%]
+........................................................................ [ 47%]
+........................................................................ [ 57%]
+........................................................................ [ 66%]
+........................................................................ [ 76%]
+........................................................................ [ 86%]
+........................................................................ [ 95%]
+...............................FF                                        [100%]
+=================================== FAILURES ===================================
+_ test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function[False] _
+review/local-only-updates/test_local_only_flow_independent.py:256: in test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function
+    assert not any(":function:unrelated#" in name for name in selected)
+E   assert not True
+E    +  where True = any(<generator object test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function.<locals>.<genexpr> at 0x7fc5cde871d0>)
+_ test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function[True] _
+review/local-only-updates/test_local_only_flow_independent.py:256: in test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function
+    assert not any(":function:unrelated#" in name for name in selected)
+E   assert not True
+E    +  where True = any(<generator object test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function.<locals>.<genexpr> at 0x7fc5d15a81e0>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function[False]
+FAILED review/local-only-updates/test_local_only_flow_independent.py::test_callee_body_change_does_not_reanalyze_unrelated_importing_file_function[True]
+2 failed, 724 passed, 27 skipped, 1 deselected in 100.98s (0:01:40)
