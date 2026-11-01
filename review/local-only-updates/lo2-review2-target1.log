@@ -1,0 +1,10 @@
+...F                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_new_import_flows_through_function_container_without_other_default_consumer _
+review/local-only-updates/test_definition_context_independent.py:74: in test_new_import_flows_through_function_container_without_other_default_consumer
+    assert not any(":function:unrelated#" in owner
+E   assert not True
+E    +  where True = any(<generator object test_new_import_flows_through_function_container_without_other_default_consumer.<locals>.<genexpr> at 0x7f7859c485f0>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_definition_context_independent.py::test_new_import_flows_through_function_container_without_other_default_consumer
+1 failed, 3 passed in 1.90s

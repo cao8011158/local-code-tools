@@ -4,7 +4,7 @@
   "repository": "agentic-trpg/local-code-tools",
   "branch": "feat/local-only-updates",
   "base_sha": "8fef684ac0491e2be34601ed2979a2edccacfa9b",
-  "head_sha": "40a53497ee93ec265887c2b9d1b8347f921cf5f5",
+  "head_sha": "ee19b841cc0012ddaeab2d22e83c81183b8d5d25",
   "target_branch": "feat/local-code-tools-import",
   "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
   "implementation_actor": "/root/local_only_developer:gpt-6-sol/medium",
@@ -62,6 +62,50 @@
       "log_sha256": "9596455071be4325e233ffe5981ca2f9b7174fae2aaf5ccb11644937f4ec42fa",
       "passed": 0,
       "failed": 2
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "ee19b841cc0012ddaeab2d22e83c81183b8d5d25",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "lo2-review2-root-suite.log",
+      "log_sha256": "17f66dd878c119d722945a8dd1e55ee933bfcc9dcc74269f0cf009b8b668a803",
+      "passed": 730,
+      "failed": 3
+    },
+    {
+      "role": "reviewer",
+      "kind": "targeted",
+      "head_sha": "ee19b841cc0012ddaeab2d22e83c81183b8d5d25",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "--tb=short"
+      ],
+      "result": "fail",
+      "exit_code": 1,
+      "log": "lo2-review2-definition-context-corrected.log",
+      "log_sha256": "0511f4fefa4328f724b6d5ef26ed24cc1d67dab7c5f42ebdb01c4546ed105a50",
+      "passed": 0,
+      "failed": 4
     }
   ],
   "reviews": [
@@ -72,6 +116,14 @@
       "actor": "root-reviewer",
       "verdict": "changes_required",
       "counterexample_note": "724passed2failed27skipped1deselected100.98s, plus2namespace sibling failures. Both graph targets correct, but unrelated same-file function selected. Import request expansion is file-wide, not consuming-owner precise."
+    },
+    {
+      "round": 2,
+      "head_sha": "ee19b841cc0012ddaeab2d22e83c81183b8d5d25",
+      "remote_head_sha": "ee19b841cc0012ddaeab2d22e83c81183b8d5d25",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "730passed3failed27skipped1deselected114.41s; corrected 4 reviewer context cases fail1.89s. Imported base binding does not reach existing method; class default reference missing; local shadow and namespace default support still overselect. Default callback first assertion corrected against fresh which also keeps UNKNOWN; actual class reference diff independently verified."
     }
   ],
   "findings": [
@@ -88,7 +140,38 @@
       "dependency_core": false,
       "route": "repair current LO-2 then formal review2/3",
       "location": "lct/unit_incremental.py:expand_dependencies and import requester seeding",
-      "evidence": "lo2-review1-root-suite.log;lo2-review1-namespace-granularity.log"
+      "evidence": "lo2-review1-root-suite.log;lo2-review1-namespace-granularity.log;lo2-review2-definition-context-corrected.log",
+      "note": "Original body/import cases now pass. Remaining local-shadow and unrelated default source variants are same owner-granularity chain."
+    },
+    {
+      "id": "LO2-CLASS-RECEIVER",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "discovered_in_batch": "LO-2",
+      "owner_step": "LOCAL-ONLY-UPDATES",
+      "owner_batch": "LO-2",
+      "origin": "current",
+      "dependency_core": false,
+      "route": "repair same LO2 then final review3/3",
+      "location": "class namespace output to inherited method analysis context",
+      "evidence": "lo2-review2-definition-context-corrected.log"
+    },
+    {
+      "id": "LO2-DEFINITION-PHASE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "discovered_in_batch": "LO-2",
+      "owner_step": "LOCAL-ONLY-UPDATES",
+      "owner_batch": "LO-2",
+      "origin": "current",
+      "dependency_core": false,
+      "route": "repair same LO2 then final review3/3",
+      "location": "class execution owner of nested method default reference",
+      "evidence": "lo2-review2-definition-context-corrected.log"
     }
   ],
   "developer_prepublication": {

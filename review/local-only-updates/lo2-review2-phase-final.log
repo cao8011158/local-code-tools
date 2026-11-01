@@ -1,0 +1,18 @@
+F....F..                                                                 [100%]
+=================================== FAILURES ===================================
+____________ test_import_appearing_updates_class_default_reference _____________
+review/local-only-updates/test_definition_context_independent.py:27: in test_import_appearing_updates_class_default_reference
+    assert any(e["kind"] == "REFERENCES" and names.get(e["source"]) == "Runner"
+E   assert False
+E    +  where False = any(<generator object test_import_appearing_updates_class_default_reference.<locals>.<genexpr> at 0x7efc2423b680>)
+___ test_import_use_ownership_includes_headers_and_composites_but_not_locals ___
+tests/test_definition_context_dependencies.py:23: in test_import_use_ownership_includes_headers_and_composites_but_not_locals
+    assert {"Base", "later"} <= _loaded_names(runner)
+E   AssertionError: assert {'Base', 'later'} <= {'Base'}
+E     
+E     Extra items in the left set:
+E     'later'
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_definition_context_independent.py::test_import_appearing_updates_class_default_reference
+FAILED tests/test_definition_context_dependencies.py::test_import_use_ownership_includes_headers_and_composites_but_not_locals
+2 failed, 6 passed in 1.90s

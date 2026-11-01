@@ -121,23 +121,87 @@ def _changed_calls_have_unbound_effect(old_tree, new_tree, old_sites, owner):
     return False
 
 
-def _loaded_names(tree):
-    """Names read by one execution owner, excluding nested execution bodies."""
-    names = set()
+def _loaded_names(tree, *, deferred=False):
+    """Free body reads plus definition headers evaluated in an enclosing scope.
+
+    Nested bodies have their own execution owner. Their decorators, bases,
+    defaults and eager annotations execute in this owner, matching inventory().
+    Python function locals shadow module bindings throughout the function body.
+    """
+    def headers(obj):
+        if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            values = list(obj.decorator_list) + list(obj.args.defaults)
+            values.extend(d for d in obj.args.kw_defaults if d is not None)
+            if not deferred:
+                values.extend(a.annotation for a in (obj.args.posonlyargs + obj.args.args +
+                              obj.args.kwonlyargs + [a for a in (obj.args.vararg, obj.args.kwarg) if a])
+                              if a.annotation is not None)
+                if obj.returns is not None:
+                    values.append(obj.returns)
+            return values
+        if isinstance(obj, ast.ClassDef):
+            return [*obj.decorator_list, *obj.bases,
+                    *(kw.value for kw in obj.keywords)]
+        if isinstance(obj, ast.Lambda):
+            return [*obj.args.defaults, *(d for d in obj.args.kw_defaults if d is not None)]
+        return []
+    names, local, declared_global = set(), set(), set()
+    function = isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda))
+    if function:
+        args = tree.args
+        local.update(a.arg for a in (args.posonlyargs + args.args + args.kwonlyargs))
+        local.update(a.arg for a in (args.vararg, args.kwarg) if a)
     def visit(obj):
+        if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef,
+                            ast.ClassDef, ast.Lambda)):
+            if function and isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef,
+                                             ast.ClassDef)):
+                local.add(obj.name)
+            for header in headers(obj):
+                names.update(node.id for node in ast.walk(header)
+                             if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load))
+            return
+        if isinstance(obj, ast.AnnAssign):
+            visit(obj.target)
+            if obj.value is not None:
+                visit(obj.value)
+            if not deferred and not function:
+                visit(obj.annotation)
+            return
+        if isinstance(obj, ast.Name):
+            if isinstance(obj.ctx, ast.Load):
+                names.add(obj.id)
+            elif function and isinstance(obj.ctx, (ast.Store, ast.Del)):
+                local.add(obj.id)
+        elif function and isinstance(obj, (ast.Import, ast.ImportFrom)):
+            local.update(alias.asname or (alias.name if isinstance(obj, ast.ImportFrom)
+                                           else alias.name.split(".")[0]) for alias in obj.names)
+        elif function and isinstance(obj, ast.Global):
+            declared_global.update(obj.names)
+        elif function and isinstance(obj, ast.Nonlocal):
+            local.update(obj.names)
         for child in ast.iter_child_nodes(obj):
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef,
-                                  ast.ClassDef, ast.Lambda)):
-                continue
-            if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load):
-                names.add(child.id)
             visit(child)
-    visit(tree)
+    if isinstance(tree, ast.ClassDef):
+        statements = [*headers(tree), *tree.body]
+    elif isinstance(tree, ast.Lambda):
+        statements = [tree.body]
+    elif function:
+        statements = tree.body
+    else:
+        statements = [tree]
+    for statement in statements:
+        visit(statement)
+    if function:
+        body_names = names - (local - declared_global)
+        header_names = {node.id for header in headers(tree) for node in ast.walk(header)
+                        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load)}
+        return body_names | header_names
     return names
 
 
 def _module_aliases(tree, source):
-    """Straight-line module name assignments extending one imported binding."""
+    """Module assignments whose value depends on an imported binding."""
     names = {source}
     if not isinstance(tree, ast.Module):
         return names
@@ -145,9 +209,13 @@ def _module_aliases(tree, source):
     while changed:
         changed = False
         for stmt in tree.body:
-            if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Name) and stmt.value.id in names:
+            if isinstance(stmt, ast.Assign) and any(
+                    isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in names
+                    for n in ast.walk(stmt.value)):
                 targets = stmt.targets
-            elif isinstance(stmt, ast.AnnAssign) and isinstance(stmt.value, ast.Name) and stmt.value.id in names:
+            elif isinstance(stmt, ast.AnnAssign) and stmt.value is not None and any(
+                    isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in names
+                    for n in ast.walk(stmt.value)):
                 targets = [stmt.target]
             else:
                 continue
@@ -441,8 +509,14 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             owners_by_file[key].add(ident)
             if n["kind"] == "module":
                 module_by_file[key] = ident
+        deferred_by_file = {key: any(
+            isinstance(stmt, ast.ImportFrom) and stmt.module == "__future__" and
+            any(alias.name == "annotations" for alias in stmt.names)
+            for stmt in new_trees[module].body)
+            for key, module in module_by_file.items()}
         loaded_names = {}
         binding_aliases = {}
+        namespace_metadata_modules = set()
         def owners_for_request(request):
             """Follow a request site and uses of its module-level binding."""
             owner = request.get("source_owner")
@@ -450,6 +524,7 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                 return set()
             consumers = {owner}
             if byid[owner]["kind"] == "module":
+                namespace_metadata_modules.add(owner)
                 name = request.get("bound_name")
                 key = byid[owner]["repository"], byid[owner]["path"]
                 if name:
@@ -460,8 +535,11 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     for sibling in owners_by_file[key]:
                         if sibling == owner:
                             continue
-                        if aliases & loaded_names.setdefault(
-                                sibling, _loaded_names(new_trees[sibling])):
+                        reads = loaded_names.get(sibling)
+                        if reads is None:
+                            reads = loaded_names[sibling] = _loaded_names(
+                                new_trees[sibling], deferred=deferred_by_file[key])
+                        if aliases & reads:
                             consumers.add(sibling)
             return consumers
         def namespace_requests(repository, module, *, source=False, descendants=False):
@@ -659,7 +737,15 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
             pending = deque(current)
             while pending:
                 producer = pending.popleft()
-                consumers = {consumer for consumer, _ in dependencies.unit_readers(producer)}
+                if producer in namespace_metadata_modules and (
+                        byid[producer]["repository"], byid[producer]["path"]) not in changed:
+                    # An import binding changed, but other source sites in
+                    # this unchanged module (such as another function's
+                    # default) did not. Its use owners were selected from
+                    # the exact imported binding and module assignment chain.
+                    consumers = set()
+                else:
+                    consumers = {consumer for consumer, _ in dependencies.unit_readers(producer)}
                 for consumer in consumers:
                     if consumer in new_trees and consumer not in current:
                         current.add(consumer)
@@ -804,10 +890,19 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     owner = record["consumer_owner"] if table != 2 else record["producer_owner"]
                     if owner in selected or owner not in byid:
                         continue
+                    if table == 1 and record["read_owner"] in selected:
+                        # A selected read's new origin/range observations
+                        # replace all of its old candidate consumers.
+                        continue
                     row = copy.deepcopy(record)
                     if table == 0:
                         if row["producer_owner"] in selected or row["producer_owner"] not in byid:
-                            return None, "unselected-source-depends-on-selected-producer"
+                            # The producer was reanalyzed: its fresh supports
+                            # replace even candidate contributions to a
+                            # retained consumer. An old candidate can vanish
+                            # without that consumer's site changing (e.g. an
+                            # unrelated default beside a changed registry).
+                            continue
                         role = "write" if row["kind"] == "container-writer" else (
                             "call" if row["kind"] == "actual-parameter" else "source")
                         row["producer_site"] = rebind_origin_site(

@@ -1,0 +1,13 @@
+{
+  "local": [],
+  "fresh": [
+    "Base.handle"
+  ],
+  "selected": [
+    "synthetic-review:src/consumer.py:class:Runner#1.1",
+    "synthetic-review:src/consumer.py:module:consumer#1",
+    "synthetic-review:src/provider.py:class:Base#1.1",
+    "synthetic-review:src/provider.py:function:Base.handle#1.1.1",
+    "synthetic-review:src/provider.py:module:provider#1"
+  ]
+}

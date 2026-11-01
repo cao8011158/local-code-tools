@@ -1,0 +1,28 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_import_appearing_updates_class_default_reference _____________
+review/local-only-updates/test_definition_context_independent.py:27: in test_import_appearing_updates_class_default_reference
+    assert any(e["kind"] == "REFERENCES" and names.get(e["source"]) == "Runner"
+E   assert False
+E    +  where False = any(<generator object test_import_appearing_updates_class_default_reference.<locals>.<genexpr> at 0x7f4b45bdb060>)
+________ test_imported_base_appearing_updates_existing_method_receiver _________
+review/local-only-updates/test_definition_context_independent.py:43: in test_imported_base_appearing_updates_existing_method_receiver
+    assert "Base.handle" in flows["call_targets"](c, updated, "Runner.run", "self.handle")
+E   AssertionError: assert 'Base.handle' in set()
+E    +  where set() = <function call_targets at 0x7f4b46569260>({'data': '/tmp/pytest-of-root/pytest-73/test_imported_base_appearing_u0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': 'f268ef575367a70505d5586d7d3a35a58e43bcb14a3912eece61ce654717ff3b', 'schema': 1, 'format': 1, ...}, 'Runner.run', 'self.handle')
+_______ test_new_global_import_does_not_affect_a_shadowing_local_binding _______
+review/local-only-updates/test_definition_context_independent.py:59: in test_new_global_import_does_not_affect_a_shadowing_local_binding
+    assert not any(":function:unrelated#" in owner
+E   assert not True
+E    +  where True = any(<generator object test_new_global_import_does_not_affect_a_shadowing_local_binding.<locals>.<genexpr> at 0x7f4b45c14fb0>)
+_ test_new_import_flows_through_function_container_without_other_default_consumer _
+review/local-only-updates/test_definition_context_independent.py:74: in test_new_import_flows_through_function_container_without_other_default_consumer
+    assert not any(":function:unrelated#" in owner
+E   assert not True
+E    +  where True = any(<generator object test_new_import_flows_through_function_container_without_other_default_consumer.<locals>.<genexpr> at 0x7f4b44fbb850>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_definition_context_independent.py::test_import_appearing_updates_class_default_reference
+FAILED review/local-only-updates/test_definition_context_independent.py::test_imported_base_appearing_updates_existing_method_receiver
+FAILED review/local-only-updates/test_definition_context_independent.py::test_new_global_import_does_not_affect_a_shadowing_local_binding
+FAILED review/local-only-updates/test_definition_context_independent.py::test_new_import_flows_through_function_container_without_other_default_consumer
+4 failed in 1.98s

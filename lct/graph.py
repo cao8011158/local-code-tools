@@ -10,6 +10,139 @@ from .python_analysis import CALLABLE_KINDS, Analyzer
 from .value_flow import evidence as value_flow_evidence
 
 
+def _receiver_context(ident, nodes, trees):
+    """Declaring-class source of a method or a closure's free receiver read."""
+    lineage = []
+    parent = nodes[ident]["parent"]
+    while parent in trees and nodes[parent]["kind"] != "class":
+        lineage.append(parent)
+        parent = nodes[parent]["parent"]
+    if parent not in trees or nodes[parent]["kind"] != "class":
+        return None
+    method = ident if not lineage else lineage[-1]
+    if nodes[method]["parent"] != parent or nodes[method]["kind"] != "function":
+        return None
+    method_tree = trees[method]
+    if not isinstance(method_tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return None
+    params = method_tree.args.posonlyargs + method_tree.args.args
+    static = any(isinstance(d, ast.Name) and d.id == "staticmethod"
+                 for d in method_tree.decorator_list)
+    receiver = params[0].arg if params and not static else None
+
+    def body_nodes(tree):
+        return [tree.body] if isinstance(tree, ast.Lambda) else tree.body
+
+    def active(tree):
+        def walk(obj):
+            for child in ast.iter_child_nodes(obj):
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef,
+                                      ast.ClassDef, ast.Lambda)):
+                    yield child
+                    if isinstance(child, ast.ClassDef):
+                        headers = [*child.decorator_list, *child.bases,
+                                   *(kw.value for kw in child.keywords)]
+                    else:
+                        headers = list(getattr(child, "decorator_list", ()))
+                        headers += list(child.args.defaults)
+                        headers += [d for d in child.args.kw_defaults if d is not None]
+                    for header in headers:
+                        yield header
+                        yield from walk(header)
+                    continue
+                yield child
+                yield from walk(child)
+        for stmt in body_nodes(tree):
+            yield stmt
+            yield from walk(stmt)
+
+    def shadowed(tree, name):
+        if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            return True
+        args = tree.args
+        parameters = args.posonlyargs + args.args + args.kwonlyargs
+        parameters += [a for a in (args.vararg, args.kwarg) if a]
+        declarations = {n for obj in active(tree) if isinstance(obj, ast.Global)
+                        for n in obj.names}
+        if name in declarations:
+            return True
+        if any(arg.arg == name for arg in parameters):
+            return True
+        if any(isinstance(obj, ast.Name) and obj.id == name and
+               isinstance(obj.ctx, (ast.Store, ast.Del)) for obj in active(tree)):
+            return True
+        if any(isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+               and obj.name == name for obj in active(tree)):
+            return True
+        if any(isinstance(obj, (ast.Import, ast.ImportFrom)) and any(
+                (alias.asname or (alias.name if isinstance(obj, ast.ImportFrom)
+                                  else alias.name.split(".")[0])) == name for alias in obj.names)
+               for obj in active(tree)):
+            return True
+        return False
+
+    def aliases(tree, inherited):
+        """Follow simple local cell copies without entering nested bodies."""
+        names = set(inherited)
+        changed = True
+        while changed:
+            changed = False
+            for obj in active(tree):
+                if isinstance(obj, ast.Assign) and isinstance(obj.value, ast.Name):
+                    targets, source = obj.targets, obj.value.id
+                elif isinstance(obj, ast.AnnAssign) and isinstance(obj.value, ast.Name):
+                    targets, source = [obj.target], obj.value.id
+                else:
+                    continue
+                if source not in names:
+                    continue
+                for target in targets:
+                    if isinstance(target, ast.Name) and target.id not in names:
+                        names.add(target.id)
+                        changed = True
+        return names
+
+    def defaults(tree, inherited):
+        """Definition-time receiver values bound to nested parameters."""
+        args = tree.args
+        positional = args.posonlyargs + args.args
+        pairs = list(zip(positional[-len(args.defaults):], args.defaults)) if args.defaults else []
+        pairs += [(arg, value) for arg, value in zip(args.kwonlyargs, args.kw_defaults)
+                  if value is not None]
+        return {arg.arg for arg, value in pairs
+                if isinstance(value, ast.Name) and value.id in inherited}
+
+    tree = trees[ident]
+    if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+        return None
+    reads = {obj.id for obj in active(tree)
+             if isinstance(obj, ast.Name) and isinstance(obj.ctx, ast.Load)}
+    for name in (receiver, "__class__", "super"):
+        if name is None:
+            continue
+        if ident == method:
+            if name != receiver and shadowed(tree, name):
+                continue
+            available = aliases(tree, {name})
+        else:
+            available = aliases(method_tree, {name})
+            for ancestor in reversed(lineage[:-1]):
+                inherited = available
+                available = {value for value in available
+                             if not shadowed(trees[ancestor], value)}
+                available.update(defaults(trees[ancestor], inherited))
+                available = aliases(trees[ancestor], available)
+            inherited = available
+            available = {value for value in available if not shadowed(tree, value)}
+            available.update(defaults(tree, inherited))
+            available = aliases(tree, available)
+        captured = sorted(reads & available)
+        if not captured:
+            continue
+        return parent, method, captured[0]
+    return None
+
+
 class Graph:
     """Compatibility facade; site completeness is explicit, never fixed-point cardinality."""
 
@@ -185,6 +318,20 @@ class Graph:
             selected = None if selected_owners is None else frozenset(selected_owners)
             def chosen(owner):
                 return selected is None or owner in selected
+            # This relation exists even when a base or receiver is unresolved:
+            # changing the declaring class can alter a method's MRO lookup.
+            # It is a source dependency, not an invocation edge.
+            for ident, tree in self.asts.items():
+                if not chosen(ident):
+                    continue
+                context = _receiver_context(ident, self.nodes, self.asts)
+                if context is not None:
+                    declaring, method, receiver = context
+                    analyzer._unit_support(
+                        declaring, self.asts[declaring], ident, tree,
+                        "class-receiver-context",
+                        dict(receiver=receiver, via_method=method),
+                        status="observed")
             sites = []
             import_dependencies = []
             import_requests = []

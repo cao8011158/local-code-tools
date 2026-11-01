@@ -1,0 +1,32 @@
+........................................................................ [  9%]
+.........................................s.............................. [ 18%]
+.......................................s................................ [ 28%]
+..ss..........sss.......s.....s...sss.s.sssssssssss...sss............... [ 37%]
+........................................................................ [ 47%]
+........................................................................ [ 56%]
+........................................................................ [ 66%]
+........................................................................ [ 75%]
+........................................................................ [ 85%]
+........................................................................ [ 94%]
+.....................................FFF                                 [100%]
+=================================== FAILURES ===================================
+____________ test_import_appearing_updates_class_default_reference _____________
+review/local-only-updates/test_definition_context_independent.py:20: in test_import_appearing_updates_class_default_reference
+    assert "first" in flows["call_targets"](c, updated, "Runner.run", "cb")
+E   AssertionError: assert 'first' in set()
+E    +  where set() = <function call_targets at 0x7f4fa4f77b00>({'data': '/tmp/pytest-of-root/pytest-70/test_import_appearing_updates_0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': 'f268ef575367a70505d5586d7d3a35a58e43bcb14a3912eece61ce654717ff3b', 'schema': 1, 'format': 1, ...}, 'Runner.run', 'cb')
+________ test_imported_base_appearing_updates_existing_method_receiver _________
+review/local-only-updates/test_definition_context_independent.py:43: in test_imported_base_appearing_updates_existing_method_receiver
+    assert "Base.handle" in flows["call_targets"](c, updated, "Runner.run", "self.handle")
+E   AssertionError: assert 'Base.handle' in set()
+E    +  where set() = <function call_targets at 0x7f4fa4f77b00>({'data': '/tmp/pytest-of-root/pytest-70/test_imported_base_appearing_u0/fixture/data', 'embedding': {'batch_bytes': 70...st check time, never assumes fresh'}, 'hnsw': {'connectivity': 32, 'expansion_add': 128, 'expansion_search': 128}, ...}, {'toolkit_version': '1.0.0', 'program_hash': 'f268ef575367a70505d5586d7d3a35a58e43bcb14a3912eece61ce654717ff3b', 'schema': 1, 'format': 1, ...}, 'Runner.run', 'self.handle')
+_______ test_new_global_import_does_not_affect_a_shadowing_local_binding _______
+review/local-only-updates/test_definition_context_independent.py:59: in test_new_global_import_does_not_affect_a_shadowing_local_binding
+    assert not any(":function:unrelated#" in owner
+E   assert not True
+E    +  where True = any(<generator object test_new_global_import_does_not_affect_a_shadowing_local_binding.<locals>.<genexpr> at 0x7f4f99382cf0>)
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_definition_context_independent.py::test_import_appearing_updates_class_default_reference
+FAILED review/local-only-updates/test_definition_context_independent.py::test_imported_base_appearing_updates_existing_method_receiver
+FAILED review/local-only-updates/test_definition_context_independent.py::test_new_global_import_does_not_affect_a_shadowing_local_binding
+3 failed, 730 passed, 27 skipped, 1 deselected in 114.41s (0:01:54)

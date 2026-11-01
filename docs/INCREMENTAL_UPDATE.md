@@ -32,6 +32,22 @@ observations are replaced for selected owners; unchanged owners retain their
 observations. Partial value-flow records remain partial, while existing
 positive read witnesses are revalidated and used for invalidation.
 
+Import requests retain their execution owner, source location and bound name.
+Module-level binding changes select free-use owners through assignment value
+dependencies, including dictionary values; function locals and nonlocal cells
+do not become consumers of a same-spelled global import. Definition headers
+are attributed to their enclosing execution owner. A private
+`class-receiver-context` source support connects a declaring class to methods
+and nested function/lambda owners whose bodies freely capture the method's
+receiver, `super` or `__class__`, including when the base was unresolved.
+Compiler-local shadowing and direct `@staticmethod` receiver parameters do not
+create that class support. The record names its enclosing method and uses the
+existing bounded source-site expression (definition name or 240-character
+expression); it is not a `CALLS` edge or a claim that receiver resolution is
+complete. Selected source/read
+owners replace their previous candidate supports and subscriptions, while
+unaffected source sites in an unchanged importing module retain their facts.
+
 The AST effect catalog still prepares a writer-scope index from all cached AST
 scopes at analyzer creation. This metadata preparation is measured separately
 from selected owner query/association work and remains a locality/performance

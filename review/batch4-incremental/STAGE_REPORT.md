@@ -1,6 +1,12 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-01：阶段136，LO-2同一第2轮修复链的闭包receiver补充完成，最终741 passed/27 skipped/1 deselected/127.03秒。6 root上下文+5开发控制11 passed/3.88秒，较广82 passed/45.98秒；Source_method→closure/cell关系覆盖receiver=self、嵌套default和局部遮蔽，不误记staticmethod。待固定远端最终第3/3轮；尚未合并或LO3验收。 [补充报告](../local-only-updates/LO2_REVIEW2_CLOSURE_FIX.md)。
+
+2026-11-01：阶段135，LO-2第2轮修复本地冻结，待最终第3/3轮。开发者最终738 passed/27 skipped/1 deselected/105.28秒，较广79定向/31.52秒，纠正后的5个定义上下文与3开发反例均通过。新增typed class-receiver-context来源支持、正确header/free-use/nonlocal归属、组合值binding及按site替换来源/读取。 [修复报告](../local-only-updates/LO2_REVIEW2_FIX.md)。
+
+2026-11-01：阶段134，LO-2固定ee19b841cc0012ddaeab2d22e83c81183b8d5d25第2/3轮需修改。730 passed/3 failed/27 skipped/1 deselected/114.41秒；fresh核对后四定义上下文反例仍失败。基类新绑定未更新方法调用、类定义时引用缺失已确认；局部遮蔽与无关default支持仍误选。下一轮3/3，LO3/合并暂停。 [累计审阅](../local-only-updates/LO2_REVIEW.md)。
+
 2026-11-01：阶段133，LO-2第1轮修复本地冻结，尚未推送/正式复审。新增import owner/位置/alias，按词法绑定和别名消费选择函数，移除selected-module文件级传播，保存未选函数请求并统一冷/热物理排序。开发者最终730 passed/27 skipped/1 deselected/94.93秒；最终24定向/6.79秒，较广116 passed/1 skipped/49.53秒。 [修复报告](../local-only-updates/LO2_REVIEW1_FIX.md)。
 
 2026-11-01：阶段132，LO-2固定40a53497ee93ec265887c2b9d1b8347f921cf5f5第1/3轮需修改。独立724 passed/2 failed/27 skipped/1 deselected/100.98秒；另namespace两反例均失败。调用目标正确，但导入文件无关函数被误选，LO2-OWNER-GRANULARITY为P2阻塞；修复后第2轮，暂停LO-3/合并。 [审阅](../local-only-updates/LO2_REVIEW.md)。
@@ -1068,3 +1074,24 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 2026-11-01：阶段133，LO-2第1轮修复本地冻结，尚未推送/正式复审。新增import owner/位置/alias，按词法绑定和别名消费选择函数，移除selected-module文件级传播，保存未选函数请求并统一冷/热物理排序。开发者最终730 passed/27 skipped/1 deselected/94.93秒；最终24定向/6.79秒，较广116 passed/1 skipped/49.53秒。 [修复报告](../local-only-updates/LO2_REVIEW1_FIX.md)。
 
 - 保留第1轮全部红例；4项namespace/别名/默认回调、2项callee body以及原component-scope控制开发者已通过。root下一轮另检类默认值的定义时引用、基类新绑定后的方法receiver以及局部变量遮蔽，避免按名称相同误判来源。正式已用1/3，下一轮2/3。
+
+## 阶段134：LO-2第2轮发现类上下文遗漏与词法遮蔽
+
+2026-11-01：阶段134，LO-2固定ee19b841cc0012ddaeab2d22e83c81183b8d5d25第2/3轮需修改。730 passed/3 failed/27 skipped/1 deselected/114.41秒；fresh核对后四定义上下文反例仍失败。基类新绑定未更新方法调用、类定义时引用缺失已确认；局部遮蔽与无关default支持仍误选。下一轮3/3，LO3/合并暂停。 [累计审阅](../local-only-updates/LO2_REVIEW.md)。
+
+- 默认cb()必须first的原测试先验经fresh否定（两者均UNKNOWN），已纠正为真正缺失的Runner REFERENCES first，原错误与修正日志都保留。Base.handle的CALLS差异由fresh明确支持，不属于共同UNKNOWN误判。
+- 原第1轮六个主要反例已关闭该触发形式，但OWNER-GRANULARITY同一链保留开放；新增CLASS-RECEIVER与DEFINITION-PHASE均为当前LO2内P2，允许修复后第3/3轮，不重置审阅计数。
+
+## 阶段135：LO-2第2轮修复完成，待最终审阅
+
+2026-11-01：阶段135，LO-2第2轮修复本地冻结，待最终第3/3轮。开发者最终738 passed/27 skipped/1 deselected/105.28秒，较广79定向/31.52秒，纠正后的5个定义上下文与3开发反例均通过。新增typed class-receiver-context来源支持、正确header/free-use/nonlocal归属、组合值binding及按site替换来源/读取。 [修复报告](../local-only-updates/LO2_REVIEW2_FIX.md)。
+
+- 不升级前端能力、不强行将未观测方法的默认cb绑定为first；默认值例子的真实Class REFERENCES与基类receiver CALLS均按fresh验证。ROOT-owned全部反例保持，未修改预期以掩盖生产问题。
+- 第1/2轮正式历史与原始失败保留；下一轮3/3，LO3仍待通过后推进，无合并。
+
+## 阶段136：第2轮修复链补齐接收者闭包，待最终审阅
+
+2026-11-01：阶段136，LO-2同一第2轮修复链的闭包receiver补充完成，最终741 passed/27 skipped/1 deselected/127.03秒。6 root上下文+5开发控制11 passed/3.88秒，较广82 passed/45.98秒；Source_method→closure/cell关系覆盖receiver=self、嵌套default和局部遮蔽，不误记staticmethod。待固定远端最终第3/3轮；尚未合并或LO3验收。 [补充报告](../local-only-updates/LO2_REVIEW2_CLOSURE_FIX.md)。
+
+- 在候选固定前的同根因变体检查确认return lambda:self.handle仍漏更新，local[]/fresh Base.handle，原JSON保留。修复使真实lambda/nested执行owner可被调度，不仅选择外层method。此为尚未完成的第2轮修复延续；第3轮尚未开始，正式历史保持1/2轮，未重置或增加第4轮。
+- 原738通过作为前一修复状态保留，未倒写其已覆盖新增闭包反例。当前最终源码冻结后741完整指定快速套件通过，进入远端固定和主Agent独立最终审阅。

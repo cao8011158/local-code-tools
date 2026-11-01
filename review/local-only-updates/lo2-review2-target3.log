@@ -1,0 +1,14 @@
+...F                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_new_import_flows_through_function_container_without_other_default_consumer _
+review/local-only-updates/test_definition_context_independent.py:76: in test_new_import_flows_through_function_container_without_other_default_consumer
+    flows["compare_fresh"](c, updated, tmp_path, "fresh-container-import")
+review/local-only-updates/test_local_only_flow_independent.py:47: in compare_fresh
+    assert_semantic_equal(semantic(c, result["version"]), semantic(other, fresh["version"]))
+tests/semantic_comparison.py:64: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: unit_container_subscriptions
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_definition_context_independent.py::test_new_import_flows_through_function_container_without_other_default_consumer
+1 failed, 3 passed in 2.20s

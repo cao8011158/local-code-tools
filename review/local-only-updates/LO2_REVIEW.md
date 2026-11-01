@@ -21,3 +21,22 @@ provider.work函数体修改；consumer.run调用work，consumer.unrelated只调
 源码docstring/注释仍有“ordinary full build runs / falls back to full”旧描述，应随修复改为当前局部策略，避免误导后续维护；不改写旧审计历史。
 
 当前无已确认P0/P1或外部核心故障。LO-2正式用1/3轮，修复后进入第2/3轮；暂停依赖本批的LO-3验收和合并。已有LO-1审阅保持通过，其历史不重置。
+
+
+# 第2/3轮：需要修改
+
+固定远端 `ee19b841cc0012ddaeab2d22e83c81183b8d5d25`，tree `005826290e0c445ea5bf327f33f9703fb6c381e8`；父提交为第1轮候选。508物化文件初始blob核验，生产源码随后保持不变；root定义上下文harness补充一例并修正一个不成立的预期，作为外部审阅测试执行。
+
+主快速+root已有控制 **730 passed /3 failed /27 skipped /1 deselected /114.41秒，exit1**。随后fresh核对并纠正默认参数断言后，四个定义上下文变体 **4 failed /1.89秒**。原始错误断言/失败日志与更正均保留，不能把不支持的前端精度当成局部问题。
+
+已确认第1轮普通函数体、顶层/函数内导入、负查找、简单别名和原无关默认回调反例通过；owner/site/绑定/ordinal处理有效，原先文件级fanout已移除。
+
+## 仍阻塞：两项实际漏更新和两项过度选择
+
+- **LO2-DEFINITION-PHASE**：缺失provider出现后，类体方法默认值`cb=first`的`Runner REFERENCES first`在局部结果缺失，fresh存在。该方法`cb()`在局部和fresh均UNKNOWN，最初要求其必须CALL first的断言无效；已删除这个错误先验，保留真实引用边检查，fresh JSON证明local无Class reference而fresh有。原因是_loaded_names跳过整个嵌套FunctionDef，把应在class中执行的默认值/装饰器等header也跳过；方法被选中但class执行owner未选中。
+- **LO2-CLASS-RECEIVER**：`Runner(Base).run -> self.handle()`初始Base缺失，新增provider.Base.handle后，namespace选择Runner类，但既有Runner.run不选。fresh调用目标为Base.handle，局部仍空。缺少“方法的隐式receiver/MRO依赖声明类上下文”的实际调度消费；仅按函数体出现Base这个名字无法发现。必须记录/消费类→方法分析上下文依赖（可用既有结构/来源机制，不是伪造CALLS），包括未知/预算截断时的前瞻覆盖。
+- **LO2-OWNER-GRANULARITY继续开放**：全局import later出现时，函数内`later=other.leaf; later()`因同名被误当全局绑定消费者；名称筛选未处理Python函数局部参数/赋值/导入遮蔽。另`registry={'go':later}; run()->registry['go']()`旁边的`unrelated(fn=other.leaf):fn()`仍因ModuleC默认来源支持而被选择；模块某个binding变化不等于所有default/source site变化。容器消费者应更新，但其他来源的支持需保留。
+
+明确修法：按现有Analyzer.inventory/header的执行阶段收集嵌套def的header到正确owner，独立处理函数body自由变量与编译期局部绑定；namespace消费者不要按单纯同名/整module支持选择。类解析上下文变化要沿显式上下文关系影响实例/类方法的receiver解析，保留open receiver UNKNOWN，不升级Jedi或强行给未观测方法默认调用添加target。Source支持按具体producer_site/表达式绑定证明是否受影响，既保留其他来源，又不把registry等组合值的依赖截断为只支持Name直接别名。
+
+当前无P0/P1或外部核心缺陷确认。LO2正式已用2/3轮，下一轮为第3/3轮；依赖本批的LO3与合并继续暂停。各编号不重置轮次，原红例/错误测试预期/前序通过全部保留。
