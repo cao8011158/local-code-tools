@@ -137,3 +137,15 @@ def test_warm_update_reuses_unrelated_call_targets(tmp_path):
     assert all(g['jedi_queries_executed']<=rows[0][0]['jedi_queries_executed'] for g,_ in rows[1:])
     assert all(g['jedi_query_entries']<=rows[0][0]['jedi_query_entries'] for g,_ in rows[1:])
     assert all(s['selected_owner_count']==rows[0][1]['selected_owner_count'] for _,s in rows[1:])
+
+
+def test_definition_default_rebinding_does_not_mutate_earlier_alias(tmp_path):
+    from tests.test_python_pipeline import analyze, site
+    source=('def first():pass\ndef second():pass\ndef third():pass\n'
+            'handlers={"go":first}\nold=handlers\n'
+            'def sentinel(x=(handlers:={"go":second})):pass\n'
+            'handlers["go"]=third\ndef run():old["go"]()\n')
+    result=analyze(tmp_path,{'src/example.py':source},closed=False)
+    s=site(result,"old['go']",'run')
+    assert s['names']=={'first'}
+    assert not s['resolution_decision']['excluded_jedi_targets']

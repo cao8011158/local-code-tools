@@ -1,0 +1,5 @@
+# PR-2 independent review
+
+Formalround1/3 changes_required at1e265a9a6e087b87299940c6815f9957b8ceac37. Wholebatchbasef617682cf8d7046421fccd4884ebeed3a38e40f2;733verifiedlocalblobs,653preservedhistoricalpaths. Independent810passed/27skip/1deselected154.11s exit0. RawAPIreuse, coldmodule/localdictionary/function/modulecallgrowth, warmunrelatedcalls, new/changed/deletedwriterandoldviews pass. See stage152 in cumulativeSTAGE_REPORT for fullfinding/evidence andsourcefixinstruction.
+
+BlockingPR2-DEFINITION-HEADER-ORIGIN: defaultargumentwalruschangeshandlers tosecondnewdict; oldaliaskeepsfirstdict; laterhandlers[go]=third cannotchangeoldalias. RawJedi correctlyfindsfirst; incompletecustomsourceprooflabelscompleteandselectsthird/excludesfirst. Bothbaselineandcandidatewrong;newindexalsoomitsdefaultheaderstores. Fixusingexistingexecutionownership/definitionevents inlexicalbindinganduniqueoriginindex, preservedeferred/bodyboundaries. Nextreview2/3; no resetorfullfallback. Original9/full83acceptancepending.

@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "batch_id": "PR-2",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/local-only-updates",
+  "base_sha": "f617682cf8d7046421fccd4884ebeed3a38e40f2",
+  "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "implementation_actor": "/root/parser_capability_audit:gpt-6-sol/medium",
+  "merge_authorized": false,
+  "authorization_reference": "Userauthorizedwholeparserauditandrefactor inclcontainer/source/incrementalintegration; necessarybranchpublicationauthorized,notmerge.",
+  "scope": [
+    "Containerorigin/writer/calleffectindex, exactJeditargetconsumption, rawobservationreuse, newwriternegativeinvalidation"
+  ],
+  "acceptance_criteria": [
+    "No per-read unrelatedwriter/callevent scans",
+    "Preserve actualwriter/reader/parameter/return/source identities",
+    "No repeat actualJedi query forsameobservation andunrelatedwarmsites",
+    "Newwriter/deletion/missing-key invalidation andoldviews",
+    "Do notexclude correctJeditarget throughfalsecompleteoriginproof"
+  ],
+  "feature_complete": false,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_jedi_tool_first_container.py",
+        "tests/test_container_slot_scope_index.py",
+        "tests/test_analysis_dependency_sidecar.py",
+        "tests/test_dictionary_value_flow.py",
+        "tests/test_analysis_inputs.py",
+        "tests/test_actual_item_unit_incremental.py",
+        "tests/test_owner_incremental.py",
+        "tests/test_cross_repository_python_incremental.py",
+        "review/parser-refactor/test_container_sources_independent.py",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log": "pr2-warm-fixed-focused.stdout",
+      "log_sha256": "c03a2208b15d6142cb7cb8aa00eb15dec58737608ff2b84620215b3d73521de3",
+      "executed_before_publication": true,
+      "source_verified": "PR2_REVIEW1_SOURCE.json"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/parser-refactor/test_container_sources_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log": "pr2-warm-fixed-fast.stdout",
+      "log_sha256": "477cdf227491d0ed255be08f22db6966089948bca4d7e429665cd1f6d6708a11",
+      "executed_before_publication": true,
+      "source_verified": "PR2_REVIEW1_SOURCE.json"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests",
+        "review/parser-refactor/test_tool_first_independent.py",
+        "review/parser-refactor/test_container_sources_independent.py",
+        "review/local-only-updates/test_semantic_contract_independent.py",
+        "review/local-only-updates/test_local_only_flow_independent.py",
+        "review/local-only-updates/test_namespace_granularity_independent.py",
+        "review/local-only-updates/test_definition_context_independent.py",
+        "review/local-only-updates/test_limited_precision_independent.py",
+        "review/jedi-contract/test_jedi_contract_independent.py",
+        "review/jedi-contract/test_body_reference_oracle_independent.py",
+        "--deselect",
+        "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+        "--tb=short"
+      ],
+      "exit_code": 0,
+      "result": "pass",
+      "log": "pr2-review1-root-fast.log",
+      "log_sha256": "3b92032970f7b8e79720b436c2bf6fda043ed8a77c7bcef750bddd5d32137352",
+      "passed": 810,
+      "skipped": 27,
+      "deselected": 1,
+      "seconds": 154.11
+    },
+    {
+      "role": "reviewer",
+      "kind": "targeted",
+      "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "review/parser-refactor/test_container_sources_independent.py::test_definition_default_rebinding_does_not_mutate_earlier_alias",
+        "--tb=short"
+      ],
+      "exit_code": 1,
+      "result": "fail",
+      "log": "pr2-header-origin-root-control-corrected.log",
+      "log_sha256": "0aa1b470fde928f730985f25243112c8b4966fe10d600c21f6afe81f382b54c4",
+      "note": "Rootnewexternalcontrol against fixedcandidate; existingf617alsofails; rawJedi correctlyfirst, falsecustomproof chooses third."
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "remote_head_sha": "1e265a9a6e087b87299940c6815f9957b8ceac37",
+      "actor": "root-reviewer",
+      "verdict": "changes_required",
+      "counterexample_note": "733blobsverified653historypreserved. Wholef617..headcode/testdelta reviewed; independent810pass27skip1deselect154.11s. Source/effect/cold/warm/API/newwritercontrols pass. Newheader-walrus originproofcase sourceallprovided; oldaliasmustfirst, rawJedi first, customcompletechoosesthird andexcludesfirst. named_bindings skipsheaderexecutedassignments; moduleuniqueindexalsoomitsdefaults. Pre-existingsemanticbug plusnewindexassumption; reuseexecutionownershiptofix, nextreview2/3."
+    }
+  ],
+  "findings": [
+    {
+      "id": "PR2-DEFINITION-HEADER-ORIGIN",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "open",
+      "origin": "pre-existing source rule; current index inherits incomplete uniqueness assumption",
+      "discovered_in_batch": "PR-2",
+      "owner_batch": "PR-2",
+      "original_owner_batch": "unknown",
+      "owner_step": "whole-parser-refactor",
+      "dependency_core": false,
+      "location": "lct/python_analysis.py::named_bindings and _index_module_literal_bindings",
+      "route": "repair source-origin handling in currentauthorizedstep; nextformal2/3; preserveoldhistories",
+      "evidence": "pr2-header-origin-alias-baseline.log;pr2-header-origin-alias-candidate.log;pr2-header-origin-root-control-corrected.log",
+      "note": "Jedi first correct; newdictdefaultrebindmeanslaterthirdwritecannotmutateoldalias. False source proof overrode correct maturetool."
+    },
+    {
+      "id": "PR2-NEW-FILE-WRITER-INVALIDATION",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "pre-existing",
+      "discovered_in_batch": "PR-2",
+      "owner_batch": "PR-2 integration scope",
+      "original_owner_batch": "unknown",
+      "dependency_core": false,
+      "route": "minimalnew-ownerprospectiveoriginfix underwhole-refactorauthorization",
+      "evidence": "pr2-negative-writer-baseline-diagnosis.jsonl;pr2-review1-root-fast.log",
+      "note": "Baselineincrementalnewwriterempty vsfreshfirst; allowold_tree=None toqueryoldnegativeoriginreaderindex; add/modify/delete/oldviewpass."
+    },
+    {
+      "id": "PR2-WARM-UNRELATED-JEDI-REQUERY",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": false,
+      "state": "resolved",
+      "origin": "current intermediate",
+      "owner_batch": "PR-2",
+      "dependency_core": false,
+      "evidence": "pr2-warm-unrelated-calls-preflight.log;pr2-warm-unrelated-calls-baseline.log;pr2-warm-calls-afterfix.log;pr2-review1-root-fast.log",
+      "note": "Intermediatewarm1/21/101Jedi atN0/20/100; fixed1/1/1,owners4,entries2, one-timeASTpreparationseparate."
+    }
+  ]
+}

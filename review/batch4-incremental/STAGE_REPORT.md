@@ -1380,3 +1380,15 @@ Root在开发期发现并要求修复三类具体问题：全局字典读仍检�
 开发冻结定向98passed/35.04s；快速810passed/27skipped/1deselected114.96s，exit0，九个受控源／测试文件前后SHA一致。原始stdout/stderr/status保存pr2-warm-fixed-{focused,fast}.*。中间fast第一次797pass+1旧全候选断言fail，第二次802pass+1旧人工替换provider缓存断言fail，以及808pass但不满足热更新局部性，均保留并不作为最终验收。显式旧契约测试改为真实writer(registry)关系、相关写入的覆盖注入以及清理raw cache后模拟provider替换，原目标/UNKNOWN/覆盖断言未削弱。详见PR2_DEVELOPER.md。
 
 本批生产仅python_analysis.py、graph.py、storage.py及具体新writer接线所需unit_incremental.py；当前尚未推送、PR-2正式review0/3。完整九文件和83首次／连续更新验收仍待全部迁移稳定后开展；不将810通过等同整个建图完成。
+
+## 阶段152：PR-2独立第1轮要求修复定义头绑定来源错误
+
+固定远端1e265a9a6e087b87299940c6815f9957b8ceac37，treeb550b2a5cf0785c3a28fc956b9220e1f56657a05，基线f617682cf8d7046421fccd4884ebeed3a38e40f2；733物化blob逐项一致，653历史文件未物化但保留。Root独立冻结快速810passed/27skipped/1deselected154.11s exit0。源头/事件/冷与热增长、新增修改删除writer和实际Jedi API复用控制均通过。Root无生产修改。
+
+新增独立反例确认PR2-DEFINITION-HEADER-ORIGIN P2：`handlers={'go':first}; old=handlers; def sentinel(x=(handlers:={'go':second})):pass; handlers['go']=third; def run():old['go']()`。old仍指向第一个字典，调用应为first。Jedi实际返回且精确映射first，但自研来源处理遗漏函数默认参数中的立即执行赋值，把对新字典的third写入错误归到旧字典，宣称complete并以tested-semantic-rule排除first、选择third。旧f617也错误，说明这是原有来源规则缺陷，不是Jedi无能力或缺源码；新模块绑定索引同样漏计header存储，不能继承这个假设。
+
+根因：Analyzer.named_bindings碰到FunctionDef/AsyncFunctionDef/ClassDef/Lambda立即return，忽略已经由header/inventory正确标注的执行阶段；新的_index_module_literal_bindings.stores也只看定义名和装饰器，未计默认参数及其他实际执行头表达式。修复应复用现有execution_nodes/定义期事件及执行所有权：记录真正执行的头部绑定，排除未执行嵌套体、局部注解和延期注解，统一普通解析与唯一绑定索引。保留字典副本、删除和序列边界等已有真实反例；不能直接放弃所有语义或全量回退。新增控制同时验证Jedi正确目标不再被无根据覆盖、旧字典隔离、真实新字典third写入及增量/新鲜构建一致。
+
+独立反例原始候选/基线和原始Jedi/decision日志已存pr2-header-origin-alias-{candidate,baseline}.log，新控制修正后真实断言失败。初始测试脚本写入了错误目录且未找到测试exit4，随即还原固定树测试文件并逐blob验证一致后执行独立外部控制；这个设置错误不是产品证据。快速回归在添加此控制前已完成，810不包含这个新失败。
+
+本轮正式结论changes_required，PR-2第1/3轮，下一轮2/3。PR-3回调组合的独立预检也确认原有缺口：注册字典能找到execute，但execute(callback)未利用这个已证明调用事实找到传入first；留在已计划的callback迁移，不与本轮header修复混合。完整九文件/83验收仍未完成，不据810快速通过宣称完整建图完成。

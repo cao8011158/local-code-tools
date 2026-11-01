@@ -1,0 +1,73 @@
+--- a/lct/python_analysis.py
++++ b/lct/python_analysis.py
+@@ -550,18 +550,26 @@
+             if record.get("target") in self.module_for and record.get("mapping") == "exact-captured-definition":
+                 self._record_scope_read(record["target"], "jedi-target", scope)
+ 
++    def _executed_binding_node(self, scope, obj):
++        """Use inventory's execution ownership for source-binding walks.
++
++        ``arguments`` and ``arg`` are AST wrappers not inventoried as executed
++        expressions. Their recorded expression descendants still determine which
++        defaults and annotations ran at definition time.
++        """
++        if isinstance(obj, (ast.expr, ast.stmt)):
++            return self.execution_nodes.get(id(obj), (None,))[0] == scope
++        return True
++
+     def _index_module_literal_bindings(self):
+         """Index unique direct module allocations/aliases once, with rebound names out."""
+         indexed = {}
+ 
+-        def stores(obj):
++        def stores(scope, obj):
++            if not self._executed_binding_node(scope, obj):
++                return
+             if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                 yield obj.name
+-                for part in getattr(obj, "decorator_list", ()):
+-                    yield from stores(part)
+-                return
+-            if isinstance(obj, ast.Lambda):
+-                return
+             if isinstance(obj, (ast.Import, ast.ImportFrom)):
+                 for alias in obj.names:
+                     yield alias.asname or (alias.name.split(".")[0]
+@@ -570,12 +578,12 @@
+             if isinstance(obj, ast.Name) and isinstance(obj.ctx, (ast.Store, ast.Del)):
+                 yield obj.id
+             for child in ast.iter_child_nodes(obj):
+-                yield from stores(child)
++                yield from stores(scope, child)
+ 
+         for module, tree in self.modules.items():
+             counts, candidates = defaultdict(int), {}
+             for stmt in tree.body:
+-                for name in stores(stmt):
++                for name in stores(module, stmt):
+                     counts[name] += 1
+                 if (isinstance(stmt, ast.Assign) and len(stmt.targets) == 1
+                         and isinstance(stmt.targets[0], ast.Name)
+@@ -1356,7 +1364,7 @@
+                         for t in ast.walk(s)
+                     ):
+                         result = result + [("unknown", s)]
+-                for conditional, value in self.named_bindings(s, name, before):
++                for conditional, value in self.named_bindings(s, name, before, scope):
+                     entry = ("conditional-value" if conditional else "value", value)
+                     result = result + [entry] if conditional else [entry]
+             return result
+@@ -3467,11 +3475,11 @@
+             pending.extend(reversed(sorted(self.dependencies.get(key, []), key=source_order)))
+         return dict(steps=steps, truncated=bool(pending))
+ 
+-    def named_bindings(self, statement, name, before):
++    def named_bindings(self, statement, name, before, scope):
+         """Select ordered walrus stores; short-circuit/conditional stores stay open."""
+ 
+         def visit(obj, conditional=False):
+-            if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
++            if not self._executed_binding_node(scope, obj):
+                 return
+             if isinstance(obj, ast.NamedExpr):
+                 yield from visit(obj.value, conditional)

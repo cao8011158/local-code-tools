@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_definition_default_rebinding_does_not_mutate_earlier_alias ________
+../local-only-work/review/parser-refactor/test_container_sources_independent.py:150: in test_definition_default_rebinding_does_not_mutate_earlier_alias
+    assert s['names']=={'first'}
+E   AssertionError: assert {'third'} == {'first'}
+E     
+E     Extra items in the left set:
+E     'third'
+E     Extra items in the right set:
+E     'first'
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/parser-refactor/test_container_sources_independent.py::test_definition_default_rebinding_does_not_mutate_earlier_alias
+1 failed in 1.24s
