@@ -1,0 +1,38 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests",
+    "review/parser-refactor/test_tool_first_independent.py",
+    "review/local-only-updates/test_semantic_contract_independent.py",
+    "review/local-only-updates/test_local_only_flow_independent.py",
+    "review/local-only-updates/test_namespace_granularity_independent.py",
+    "review/local-only-updates/test_definition_context_independent.py",
+    "review/local-only-updates/test_limited_precision_independent.py",
+    "review/jedi-contract/test_jedi_contract_independent.py",
+    "review/jedi-contract/test_body_reference_oracle_independent.py",
+    "--deselect",
+    "tests/test_batch3_actual_acceptance.py::test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch",
+    "--tb=short"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 128.332,
+  "sha256_before": {
+    "lct/python_analysis.py": "24df5747eb654370b00d5a855f737262584917d9000530f27195f1778c4c4f13",
+    "lct/graph.py": "dedf1ff6f15858508f9a056a0061f3979fd3870637c8d0010e04a9264052a2c9",
+    "lct/storage.py": "08bd55976581da5362f4b070f3ba952634bdd88d256cbca70d829d19d37b81e1",
+    "tests/test_jedi_tool_first_lexical.py": "ed68c1909b43e35f84ea7c56eb52f25b36f2d4a9da8ca87a4609f7265d98359b",
+    "tests/test_python_review_regressions.py": "e44e0c30b9b24189fc2c7e8d4f930d2b44063745a4824fb938f5e891d07c3dda",
+    "tests/test_changed_python_gate.py": "933410074954ff16c2f80919a3c7b64bd208c39f497a7ee7cda306e6cc4ebf98"
+  },
+  "sha256_after": {
+    "lct/python_analysis.py": "24df5747eb654370b00d5a855f737262584917d9000530f27195f1778c4c4f13",
+    "lct/graph.py": "dedf1ff6f15858508f9a056a0061f3979fd3870637c8d0010e04a9264052a2c9",
+    "lct/storage.py": "08bd55976581da5362f4b070f3ba952634bdd88d256cbca70d829d19d37b81e1",
+    "tests/test_jedi_tool_first_lexical.py": "ed68c1909b43e35f84ea7c56eb52f25b36f2d4a9da8ca87a4609f7265d98359b",
+    "tests/test_python_review_regressions.py": "e44e0c30b9b24189fc2c7e8d4f930d2b44063745a4824fb938f5e891d07c3dda",
+    "tests/test_changed_python_gate.py": "933410074954ff16c2f80919a3c7b64bd208c39f497a7ee7cda306e6cc4ebf98"
+  }
+}

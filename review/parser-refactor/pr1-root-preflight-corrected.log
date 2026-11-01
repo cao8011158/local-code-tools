@@ -1,0 +1,10 @@
+F...                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_plain_alias_callee_is_not_reinferred_by_name_resolver __________
+review/parser-refactor/test_tool_first_independent.py:19: in test_plain_alias_callee_is_not_reinferred_by_name_resolver
+    assert not calls, 'Jedi-covered callee re-entered custom name target inference'
+E   AssertionError: Jedi-covered callee re-entered custom name target inference
+E   assert not [('fixture:src/demo.py:function:run#1.1', 'alias')]
+=========================== short test summary info ============================
+FAILED review/parser-refactor/test_tool_first_independent.py::test_plain_alias_callee_is_not_reinferred_by_name_resolver
+1 failed, 3 passed in 1.75s

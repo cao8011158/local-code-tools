@@ -400,13 +400,16 @@ def test_empty_adapter_answer_is_not_a_proof(tmp_path, monkeypatch):
     original = Analyzer._resolve
 
     def missing(self, scope, expr, before):
-        if isinstance(expr, ast.Name) and expr.id == "a":
+        if isinstance(expr, ast.Name) and expr.id == "alias":
             return Result()
         return original(self, scope, expr, before)
 
     monkeypatch.setattr(Analyzer, "_resolve", missing)
-    r = analyze(tmp_path, {"demo.py": "def a(): pass\ndef caller(): a()\n"}, closed=False)
-    s = expect(r, "a", "caller", {"a"}, unknown=True, complete=False)
+    # Both branches bind the same target, so Jedi can answer precisely while
+    # the source-only single-binding path correctly leaves the site to the
+    # association adapter. Its empty answer is still not a proof.
+    r = analyze(tmp_path, {"demo.py": "def a(): pass\ndef caller(flag):\n if flag: alias=a\n else: alias=a\n alias()\n"}, closed=False)
+    s = expect(r, "alias", "caller", {"a"}, unknown=True, complete=False)
     assert s["resolution_decision"]["conflict"]
     assert s["resolution_decision"]["jedi_targets"]
     assert s["resolution_decision"]["reason"] == "jedi-target-with-unproved-association"

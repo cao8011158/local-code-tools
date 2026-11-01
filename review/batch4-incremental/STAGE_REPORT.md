@@ -1297,3 +1297,37 @@ Developer earlier17fail/230pass stdout was overwritten and is only a session obs
 开发者仅修改 tests/limited_precision_comparison.py 及其测试：允许额外的真实函数体类名 REFERENCES，但必须验证同模块唯一较早的类定义、真实函数所属范围、精确源码位置及无重绑定；参数/局部遮蔽、嵌套范围、局部注解、全局写入与定义头重绑定均拒绝。生产文件 SHA 与 e625662dc68a825382fb88865cff3ee066a80244 一致，未修改图输出以迎合测试。
 
 开发定向25 passed；冻结快速回归783 passed/27 skipped/1 deselected，124.82s，exit0。恢复原构建时内存配置后，普通 semantic() 使用 compatible=True 读取同一对已保存九文件 warm/fresh，完整20表比较通过，642/640 edges、408 sites。早先配置读取失败是重建测试脚本漏掉 retained_versions=8 与三项零 embedding 限额；program hash始终一致，不是生产缓存损坏。原失败日志保留。以上是开发自测，下一步固定远端并进行独立第2/3轮复审；完整83文件验收仍受 CW-01 阻塞。
+
+
+## 阶段145：JD-1独立第2轮通过，整体验收仍阻塞
+
+
+## Review2/3 — JD-1 passes; overall feature acceptance remains blocked
+
+Fixed remote `60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b`, tree `070e3f3c7cd3956aca575d7753d42083803c2440`, parent `e625662dc68a825382fb88865cff3ee066a80244`.629 materialized blobs verified;653 unmaterialized historical files preserved. Target remains `e3db45fcf1362f0a26e0ab7760b12b4fd408ce64`. Complete batch baseline remains aa95ca6968812fdd357d5fe5b91740dc0ba0d371; second commit changes only the comparison helper/tests and reports, not production. Runtime hashes match review1.
+
+Independent fixed-source fast regression: **783 passed,27 skipped,1 deselected in146.27s**, exit0 (`review2-root-suite.log`). The deselected expensive nine-file test previously timed out during its fresh comparison; its completed immutable public checkpoints and separately completed fresh output are rechecked here, not silently reported as a successful uninterrupted pytest invocation. Root seven body-reference cases and developer two global/header-rebinding negatives reject fabricated/incorrect extra facts. CALLS, source supports, container subscriptions and writes retain their existing checks. The narrow added rule admits only actual unshadowed direct body class-name references in the same module; no production edge removal or general REFERENCES exclusion.
+
+Read-only saved-pair recheck through ordinary compatible=True manifest: **20-table comparator passes**, warm642/fresh640 edges,408 sites,nine sources (`review2-nine-oracle-reproducible.log`, reproducible command in EVIDENCE). Existing diagnostic-ledger/count/order normalization remains unchanged. The two actual references are now validated from captured source. JD1-LIMITED-REFERENCE-ORACLE resolved. The earlier failed compatible-read came from reconstructing config without the fixture's four in-memory settings; program hash matched throughout, and restored settings succeed. No cache corruption established.
+
+Independent candidate generator rerun on this fixed runtime: N0/20/100 unrelated unknown calls and same-name methods yields1/1/1 actual candidate,0/0/0 unknown candidates; preserves0/20/100 unknown sites. Initial queries2/22/102 are separately counted, not claimed constant. Original review1 warm public and indexed reverse query evidence is retained; no runtime change since that measurement. No expensive full83 retry was justified by a test-only comparator repair.
+
+**Verdict: pass for JD-1**, completing formal round2/3 without resetting history. Full code-graph functionality is **not fully accepted**: complete83 initial snapshot and ensuing warm workflow remain uncompleted; CW-01 unrelated container writer scope cost remains open in unchanged legacy source/effect analysis. Concrete bounded follow-up scope is in REMAINING_CONTAINER_SCOPE.md. No merge or production changes in that additional subsystem. The gate must remain BLOCKED while the scope/acceptance blocker and missing merge authorization persist.
+
+## 阶段146：整体解析审计完成，开始按证据分批重构
+
+用户已授权整体审计与重构，范围包含之前CW-01。固定基线60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b，目标e3db45fcf1362f0a26e0ab7760b12b4fd408ce64未变；旧JD1第2轮通过与LO2第3轮通过记录保持。Root全面梳理Jedi输入/API/映射、调用/引用/导入、参数/返回/容器/字段/装饰器、来源依赖、增量与存储职责；开发Agent实际gpt-6-sol/medium独立13个直接Jedi对照。完整分类见review/parser-refactor/AUDIT.md。
+
+Root对真实Graph.build观察现有测试语料，343passed/1skipped/22.03s/exit0，802次site观察中581次已知双信号相同、51次有测试证明的差异规则、39次自研补上无映射Jedi目标。不是实际83项目的耗时比例。已确认通用query->resolve->adjudicate导致重复；也证明不能直接删除所有自研：注册函数写全局字典、实例隔离、覆盖/删除、未绑定局部等有真实反例。目标是直接消费工具结果，单独记录来源，并保留有证据的局部扩展。原始矩阵与日志已保存；生产未改。
+
+开始PR-1工具目标与来源记录分离，之后容器和字段等迁移。任何替换须保留callback/container订阅、写入支持、未知、新旧快照和增量依赖。不会以增大20k预算或同样长测重试代替根因调查。完整83仍未验收，不宣称重构完成。
+
+## 阶段147：PR-1开发交付（待固定远端独立审阅）
+
+开发者实现直接名称/简单别名的Jedi目标消费路径，来源走有界词法绑定记录，不再调用旧名称目标解析；结果与trace进入同一memo，引用/调用者阶段复用。显式target_provider区分Jedi选择与旧关联路径。参数遮蔽、未绑定/删除、分支、闭包/装饰器/接收者与容器等未迁移路径保留原行为；没有以Jedi返回目标就自动声明全部完整。新增三类工作计数在相同捕获复用时清零。生产修改仅python_analysis.py、graph.py、storage.py，当前尚未提交。
+
+原空adapter测试的目标/未知/冲突断言未削弱：将fixture改为双分支同目标别名，使其确实进入需验证的旧adapter路径。Root原先测试脚本有错误cwd和误写unit_supports导出键，已修正并保留日志，不据此判产品缺陷。修正后固定60085dc基线2failed3passed；当前候选Root5cases通过，包括直接/别名零旧name推导、callback传参支持、未绑定规则和注册容器补充。Root另从真实publicbuild验证alias first->second->first均owner局部更新，旧快照不变。
+
+开发冻结定向10passed/1.18s；快速全回归（main+旧5root+JD1两份+新root5）791passed/27skipped/1deselected125.28s，exit0；六个受控文件前后SHA一致。原未保存日志的整套tests尝试中断exit130，不算通过；冻结原始stdout/stderr/status已保存。开发交付完整报告review/parser-refactor/PR1_DEVELOPER.md。接下来固定远端并独立第1轮，不能将开发自评当成独立通过。
+
+另Root固定旧60085dc进行90秒cProfile诊断（显著测量开销，非验收）：只准备456sites/457真实Jedi、slotchecks0、budget仍20000，不能将该段或整体超时归因于容器；自耗时/包含耗时分开记录且不得把嵌套累计相加。完整83与新runtime九文件验收仍未完成。PR-2容器来源与writer索引设计已提出，尚未实施。

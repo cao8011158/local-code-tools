@@ -1,0 +1,4 @@
+{"callee": "first", "mode": "full-graph", "targets": ["synthetic-review:src/demo.py:function:first#1.1"], "provider": "jedi-exact-captured-definition"}
+{"callee": "second", "mode": "incremental-owners", "targets": ["synthetic-review:src/demo.py:function:second#1.1"], "provider": "jedi-exact-captured-definition"}
+{"callee": "first", "mode": "incremental-owners", "targets": ["synthetic-review:src/demo.py:function:first#1.1"], "provider": "jedi-exact-captured-definition"}
+PASS current/old local alias first-second-first

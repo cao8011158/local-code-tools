@@ -135,6 +135,9 @@ class Analyzer:
         self.candidate_unknown_bucket_visits = 0
         self.preparation_candidate_reentries = 0
         self.raw_query_counts = defaultdict(int)
+        self.tool_first_sites = 0
+        self.source_only_lexical_visits = 0
+        self.legacy_target_sites = 0
         self._query_inflight = 0
         self.active = set()
         self.stack, self.traces, self.dependencies = [], {}, {}
@@ -1203,6 +1206,88 @@ class Analyzer:
         # Never memoize an answer computed under a cut recursive dependency.
         if self.recursions == recursion_before:
             self.memo[key] = result
+        return result
+
+    def tool_first_lexical(self, scope, expr, signal):
+        """Use an exact Jedi definition after recording a simple lexical source chain.
+
+        This source walk locates bindings and checks local shadowing; it does not
+        infer their values.  Parameters, closures, decorators and compound values
+        retain the full association path and its source evidence.
+        """
+        if (not isinstance(expr, ast.Name) or
+                signal.reasons != frozenset({"jedi-inference-not-exhaustive"})):
+            return None
+        targets = {a.target for a in signal.atoms if a.kind == "callable"}
+        if len(targets) != 1 or len(signal.atoms) != 1:
+            return None
+        target = next(iter(targets))
+        raw = self.queries.get((self.module_for[scope], expr.end_lineno,
+                                expr.end_col_offset, False), (None, ()))[1]
+        if len(raw) != 1 or raw[0].get("mapping") != "exact-captured-definition" or raw[0].get("target") != target:
+            return None
+        chain = []
+        visited = set()
+        current_scope, current_expr = scope, expr
+        while True:
+            marker = (current_scope, current_expr.id, current_expr.lineno, current_expr.col_offset)
+            if marker in visited or len(chain) >= 40:
+                return None
+            visited.add(marker)
+            lookup_scope = current_scope
+            before = (current_expr.lineno, current_expr.col_offset)
+            while True:
+                tree = self.trees[lookup_scope]
+                # No method/class namespace, closure cell, or callback parameter
+                # is certified by this source-only path.
+                if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
+                    return None
+                if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    parameters = tree.args.posonlyargs + tree.args.args + tree.args.kwonlyargs
+                    parameters += [a for a in (tree.args.vararg, tree.args.kwarg) if a]
+                    if any(a.arg == current_expr.id for a in parameters):
+                        return None
+                items = self.reaching(lookup_scope, current_expr.id, before)
+                if items:
+                    break
+                if self.local_bound(lookup_scope, current_expr.id):
+                    return None
+                parent = self.nodes[lookup_scope]["parent"]
+                if parent not in self.trees or not isinstance(self.trees[parent], ast.Module):
+                    return None
+                lookup_scope, before = parent, 10**9
+            if len(items) != 1:
+                return None
+            kind, source = items[0]
+            chain.append((current_scope, current_expr, lookup_scope, kind, source))
+            if kind == "definition":
+                if (not isinstance(source, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        or source.decorator_list or self.owner.get(id(source)) != target):
+                    return None
+                break
+            if kind != "value" or not isinstance(source, ast.Name):
+                return None
+            current_scope, current_expr = lookup_scope, source
+        result = certified(known("callable", target), "reaching-lexical-binding")
+        for index, (owner, name, producer_scope, _, _) in enumerate(chain):
+            self._observe_analysis_input(owner, "resolve-input")
+            self._observe_analysis_input(owner, "lexical-lookup")
+            self._observe_analysis_input(producer_scope, "lexical-lookup")
+            key = (owner, id(name), (name.lineno, name.col_offset))
+            if index + 1 < len(chain):
+                next_owner, next_name = chain[index + 1][:2]
+                child = (next_owner, id(next_name), (next_name.lineno, next_name.col_offset))
+                self.dependencies.setdefault(key, []).append(child)
+            self.traces[key] = dict(
+                scope=owner, path=self.nodes[owner]["path"], line=name.lineno,
+                column=name.col_offset, expression=ast.unparse(name), rule="Name",
+                alternatives=[dict(kind="callable", target=target, bound=False,
+                                   receiver="", allocation="")],
+                unknown_reasons=[], proofs=sorted(result.proofs),
+            )
+            self.memo[key] = result
+            self.source_only_lexical_visits += 1
+        self.tool_first_sites += 1
         return result
 
     def _resolve(self, scope, expr, before):

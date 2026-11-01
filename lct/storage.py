@@ -974,6 +974,8 @@ def _reuse_python_graph(folder, prior, files, repos, c):
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
     info["association_evaluations"] = 0
+    for key in ("tool_first_sites", "source_only_lexical_visits", "legacy_target_sites"):
+        info[key] = 0
     for key in ("slot_scope_index_build_scopes", "slot_scope_fallback_scopes",
                 "slot_scope_candidates_checked", "slot_events_checked"):
         info[key] = 0

@@ -345,11 +345,20 @@ class Graph:
                     continue
                 # Always retain the actual Jedi observation, including rejected descriptors.
                 signal = analyzer.query(scope, expr)
-                result = analyzer.resolve(scope, expr)
+                result = analyzer.tool_first_lexical(scope, expr, signal)
+                tool_first = result is not None
+                if result is None:
+                    analyzer.legacy_target_sites += 1
+                    result = analyzer.resolve(scope, expr)
                 if item["kind"] == "implicit_decorator" and isinstance(expr, ast.Call):
                     # Factory application calls its returned decorator, not the factory again.
                     result = analyzer.resolve(scope, expr)
                 result, decision = analyzer.adjudicate(scope, expr, result, signal)
+                if tool_first:
+                    decision["target_provider"] = "jedi-exact-captured-definition"
+                    decision["reason"] = "jedi-target-with-lexical-source"
+                else:
+                    decision["target_provider"] = "finite-association-with-jedi-signal"
                 targets = sorted({a.target for a in result.atoms if a.kind in CALLABLE_KINDS})
                 boundaries = sorted({a.target for a in result.atoms if a.kind == "boundary"})
                 reasons = sorted(result.reasons)
@@ -395,7 +404,8 @@ class Graph:
                         ),
                         dict(
                             tool="lct",
-                            role="validated binding/argument/container association",
+                            role=("lexical source evidence for Jedi target" if tool_first
+                                  else "validated binding/argument/container association"),
                             association_trace=analyzer.explain(scope, expr),
                             decision=decision,
                             signal_agrees=targets
@@ -679,6 +689,9 @@ class Graph:
                 jedi_query_entries=analyzer.query_entries,
                 jedi_query_cache_hits=analyzer.query_cache_hits,
                 jedi_raw_result_counts=dict(analyzer.raw_query_counts),
+                tool_first_sites=analyzer.tool_first_sites,
+                source_only_lexical_visits=analyzer.source_only_lexical_visits,
+                legacy_target_sites=analyzer.legacy_target_sites,
                 candidate_site_queries_prepared=analyzer.site_queries_prepared,
                 classmethod_source_sites=analyzer.classmethod_source_sites,
                 candidate_calls=analyzer.candidate_calls,

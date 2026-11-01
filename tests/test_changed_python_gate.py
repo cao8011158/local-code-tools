@@ -67,6 +67,9 @@ def test_association_bound_survives_local_and_exact_capture_generations(tmp_path
     identical = build(c, offline=True, lexical_only=True)
     assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
     assert identical["graph"]["association_evaluations"] == 0
+    assert identical["graph"]["tool_first_sites"] == 0
+    assert identical["graph"]["source_only_lexical_visits"] == 0
+    assert identical["graph"]["legacy_target_sites"] == 0
     assert identical["graph"]["association_bound"] == local["graph"]["association_bound"]
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): two()\n")
     second = build(c, offline=True, lexical_only=True)
