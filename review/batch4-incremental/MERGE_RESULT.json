@@ -1,0 +1,18 @@
+{
+  "repository": "agentic-trpg/local-code-tools",
+  "pr_number": 1,
+  "url": "https://github.com/agentic-trpg/local-code-tools/pull/1",
+  "merged": true,
+  "merge_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "merge_tree": "303b53c85330c98897d7fc46ea02731b373f81fa",
+  "parents": [
+    "fc857f395a381e5dfec9941d60ca685bcbe0b3fd",
+    "6a16154b7b12787696f9b334ef93342741235d73"
+  ],
+  "tested_head": "6a16154b7b12787696f9b334ef93342741235d73",
+  "tested_tree": "303b53c85330c98897d7fc46ea02731b373f81fa",
+  "target_branch": "feat/local-code-tools-import",
+  "target_head": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+  "tested_tree_matches_merged_tree": true,
+  "evidence_premerge_commit": "f35006ba7b6e8089ccc00afc01e07d9304b603f0"
+}

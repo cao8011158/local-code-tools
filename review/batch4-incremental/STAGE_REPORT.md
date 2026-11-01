@@ -1,6 +1,10 @@
 # Batch 4：代码变化后的增量更新
 
 ## 当前状态
+2026-11-01：阶段128，LO-1本地开发完成、文件冻结，尚未推送/正式审阅。仅改比较器、验收测试与适用契约；生产调度/分析器未改。最终定向29 passed/22.57秒；最终主快速回归697 passed/27 skipped/1 deselected/118.03秒；未修改原始UNKNOWN或来源表来求通过。 [开发报告](../local-only-updates/LO1_DEVELOPER.md)。
+
+2026-11-01：阶段127，用户批准后续更新只用局部的新三批工作（LO-1测试语义、LO-2取消自动全量回退、LO-3完整项目验收）。远端基线/目标 e3db45fcf1362f0a26e0ab7760b12b4fd408ce64，工作分支 feat/local-only-updates。开发已派发，未提交新生产代码、未正式审阅。完整83文件SM原字节已校验。 [本轮计划](../local-only-updates/PLAN.md)。
+
 2026-10-31：阶段108，继续4B的真实源码与Jedi读取诊断完成：83真实文件无首切片可复用对象；Jedi参数推断可观察到按函数名的负查找，热命中隐藏冷输入。已确认下一机制应区分内容读/名称与目录范围/缓存输入继承，尚未做成新准入，不能宣称真实业务局部更新完成。远端生产仍f902b2a9第2轮通过，4C未开始。
 
 2026-10-31：阶段106，4B首切片第2/3轮通过，固定f902b2a93081483ec1edb531157ebb0448d9c7fe，753 passed/32 skipped/65.28秒；645文件Git blob相符。B4-GEN-01-CERT已关闭。4A完成，4B整体仍进行中（复杂结果复用/六文件必要捕获未验收），4C未开始，整体不合并。 [首切片审阅](4B_PILOT_INDEPENDENT_REVIEW.md)。
@@ -987,3 +991,35 @@ GPT-6 SOL medium已冻结，尚未推送/未合并。生产仅修改simple_pytho
 - root另补实际公开build的透明计数preflight，0/20/100无关活跃文件下solver固定7owners/10Jedi/12association/3sites、只parse1；AST decode1次、模块inventory/源码挂载均N一次。捕获实际2次为开始捕获和发布前围栏，最初测量脚本误断言一次的红日志保留并纠正，没有删除必要围栏。
 - 明确全量成本：storage.hash_artifact实际流式校验均8次、读取1,225,862/2,666,916/8,140,436字节；新snapshot工件450,946/1,040,524/3,284,188字节。公开单节点回复882字节、单关系1059字节，首次/重复相同；小回复不被当成内部IO局部的证明。源码文本观察/哈希函数/AST/挂载/写盘分列，JSON与可复现脚本保存，不声称全流程O(K)，不虚构未独立计时阶段。
 - 下一步固定B3远端候选，独立完整回归+真实/发布/恢复/规模检查；B1通过、B2第2轮通过状态保留，B3正式0/3。满足所有门槛与既有合并授权后才合并，当前尚未合并。
+
+## 阶段125：Batch 3第1/3轮独立验收通过，三个batch门槛完成
+
+- 固定6a16154b7b12787696f9b334ef93342741235d73/tree303b53c85330c98897d7fc46ea02731b373f81fa，B3 base4eb5060...；目标仍fc857f395a381e5dfec9941d60ca685bcbe0b3fd，compare ahead75/behind0且merge base为目标。408份已物化文件Git blob测试前后0差/0orphan，653未恢复均历史review；生产与B2已审7f一致，无夹带源码改动。
+- root当前头完整project+适用review集合876 passed/32 skipped/226.71秒，包含九文件长测一次及真实3/6组、独立dense发布/恢复/便携还原后继续owner。主回归与feature acceptance为同一次执行，不重复加数。开发预推678/27含九文件；postpush固定头targeted3/1deselected、fast677/27/1deselected仅避免重复昂贵nine，未称该fast是完整678，root当前头全跑包含nine。原六项历史诊断/服务排除规则与32可选skip如实保留。
+- 独立核验固定SM a7b0804...九份55,865原字节、Git blob及SHA全一致。三文件actor实际变化owner并与fresh20表一致；六文件实际值变化按opaque缺证据full；九文件20k/limited明确full、源编辑与fresh UNKNOWN/来源一致。96 synthetic chunks/3真实USearch分区/0provider，BM25/近似/精确/RRF/节点/图版本一致，未声称九文件owner或完整83/三库业务图。
+- 公开callback first→second的root独立COW工件hash/失败旧指针、显式旧新视图、recover、便携backup/restore后继续owner及fresh均通过。跨库pin/旧schema/源围栏及协调流程由当前完整回归覆盖，不把合成pin/模拟graph factory称真实外部库/Neo4j运行。B3发现的04已按B2原轮次重开、第2轮关闭，当前回归所有变体继续通过，无未解决blocking。
+- 当前头透明实际计数再次证明0/20/100无关活跃文件solver7/10/12/3不变、parse1；capture起止围栏2次、AST decode1、模块inventory/挂载N一次，8次storage.hash_artifact读取1.23/2.67/8.14MB，新工件0.45/1.04/3.28MB。节点882/关系1059字节首次/重复一致；内部源码/工件/AST/挂载/输出成本分列，小回复不冒充IO局部，不称全流程O(K)。源码逆索引实际SEARCH/冷重复/无关扩容证据随完整回归保留。
+- BATCH3_ACCEPTANCE_REVIEW.md、EVIDENCE、当前head原始日志/源码/工作量JSON已保存；刚核对C3与fc857f3时gate READY，B3正式1轮，B1第2轮/B2重开后第2轮均通过，三个批准batch完成。报告/门槛提交先构造而不推进待合并work ref，保证实际合并仍为受验C3；按既有授权合并后核对目标tree/parents，再保存最终merge记录，不以“只是文档”跳过严格head门槛。未启动付费API/业务执行/外部服务。
+
+## 阶段126：按已有授权合并并核对远端，任务完成
+
+- PR#1：https://github.com/agentic-trpg/local-code-tools/pull/1；从feat/incremental-index-updates的精确受验6a16154b7b12787696f9b334ef93342741235d73合入实际目标feat/local-code-tools-import。合并前再次确认目标fc857f3、source C3、mergeable true；使用expected_head保护且未force/绕保护。
+- GitHub返回merged=true，merge commit e3db45fcf1362f0a26e0ab7760b12b4fd408ce64。独立再查目标头即该commit，parents精确fc857f395a381e5dfec9941d60ca685bcbe0b3fd与6a16154b7b12787696f9b334ef93342741235d73，tree303b53c85330c98897d7fc46ea02731b373f81fa与受验tree完全相同。无新生产变化需要扩大/重复全套测试。
+- 正式验收报告f35006ba7b6e8089ccc00afc01e07d9304b603f0先构造成可打开Git对象但不推进待合并work ref，确保合并严格对应C3/READY门槛。现在才将仅review报告与MERGE_RESULT保存到工作分支；这不是拿更新报告头冒充受验头，目标生产代码仍为已验证merge tree。没有自动删除分支。
+- 三个批准batch均完成，所有本step阻塞finding已关闭，历史开发/修复/轮次/错误假设与原红日志保留。最终独立876 passed/32 skipped；现实边界仍为捕获/整工件/完整快照成本、opaque来源不足与20k分析预算回退，九文件不等于完整83/三库或运行顺序精确建模。未启动Neo4j/业务执行/付费Embedding或额外部署。
+
+## 阶段127：后续更新只使用局部，新三批启动
+
+2026-11-01：阶段127，用户批准后续更新只用局部的新三批工作（LO-1测试语义、LO-2取消自动全量回退、LO-3完整项目验收）。远端基线/目标 e3db45fcf1362f0a26e0ab7760b12b4fd408ce64，工作分支 feat/local-only-updates。开发已派发，未提交新生产代码、未正式审阅。完整83文件SM原字节已校验。 [本轮计划](../local-only-updates/PLAN.md)。
+
+- 用户最新设计覆盖旧契约中自动全量回退要求，保留旧历史作为当时证据。LO-1不将必要来源记录等同于遍历日志；LO-2每类触发条件须明确处理；LO-3不再把六/九文件当完整实际项目。
+- 角色：GPT-6 SOL medium独立上下文实施；主Agent独立审阅。当前未确认P0/P1，未进行业务执行、付费API或服务启动。
+- 原始基线快速回归运行中，结果待回收；不将旧876通过挪用于本轮。远端树1107项完整保留，本地Git身份不冒充远端。
+
+## 阶段128：LO-1测试语义基线开发完成，待独立审阅
+
+2026-11-01：阶段128，LO-1本地开发完成、文件冻结，尚未推送/正式审阅。仅改比较器、验收测试与适用契约；生产调度/分析器未改。最终定向29 passed/22.57秒；最终主快速回归697 passed/27 skipped/1 deselected/118.03秒；未修改原始UNKNOWN或来源表来求通过。 [开发报告](../local-only-updates/LO1_DEVELOPER.md)。
+
+- 开发者/root预检曾发现LCT嵌套decision与transitive dependencies中的重复原因未被规范化；原始1失败日志保留，按实际相同原因去重，distinct位置/原因仍必须不同。两项开发预检不冒充正式review轮次。
+- 未提交基线快速回归为677 passed/27 skipped/1 deselected/117.13秒；最终代码新增20项主测试。原始review单文件pytest入口缺sys.path导致collection error，改用python -m pytest后实际断言执行，环境错误与逻辑失败分列。
+- 完整83文件原字节冷建图180秒上限内未完成，exit124，无新版本成功发布；仅记耗时验证阻塞，尚不据此认定正确性/外部核心缺陷。日志full-sm-baseline.log。该诊断不作为LO-1通过证据。

@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "batch_id": "B4-ACCEPTANCE",
+  "repository": "agentic-trpg/local-code-tools",
+  "branch": "feat/incremental-index-updates",
+  "base_sha": "4eb5060b724aa71ccac1dc0dd695d9abdae9fbd0",
+  "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+  "target_branch": "feat/local-code-tools-import",
+  "target_sha": "fc857f395a381e5dfec9941d60ca685bcbe0b3fd",
+  "implementation_actor": "/root/incremental_developer:gpt-6-sol/medium",
+  "merge_authorized": true,
+  "authorization_reference": "User approved the three-batch plan and existing conditional merge authorization. All prerequisite batches are closed; preserve full fallback/declared precision, no paid API or business execution.",
+  "scope": [
+    "Bounded fixed-source acceptance, public graph/search/dense publication and recovery, and actual locality work accounting"
+  ],
+  "acceptance_criteria": [
+    "Nine original source byte sequences verify against fixed commit and per-file Git blobs/SHA256",
+    "Actual source updates match fresh public/private semantics; opaque/budget cases explicitly rebuild",
+    "BM25, actual offline synthetic USearch, graph and snapshot versions remain consistent on failure/recovery/portable restore",
+    "Known-identity indexed readers and solver work are stable with unrelated inputs; global capture/hash/mount/output costs explicitly measured",
+    "No unresolved blocking prior batch; current tested/reviewed head and actual merge target agree"
+  ],
+  "feature_complete": true,
+  "scale_required": true,
+  "tests": [
+    {
+      "role": "developer",
+      "kind": "targeted",
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_batch3_actual_acceptance.py",
+        "review/batch4-incremental/test_owner_publication_independent.py",
+        "-k",
+        "not nine_original_bytes",
+        "-s"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b3-review1-developer-fixed-targeted.log",
+      "log_sha256": "078d19f5b1a6dbdd9289483803089ad63910ee2e046dbe67a88d99613a3529dd",
+      "cwd": "/workspace/scratch/45363df3617b/b3-review1-fixed"
+    },
+    {
+      "role": "developer",
+      "kind": "fast_regression",
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests",
+        "-k",
+        "not nine_original_bytes"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b3-review1-developer-fixed-fast.log",
+      "log_sha256": "8e60eba0f8a5347882c866f9a810f7b40d8922626fedc491f15b2bdb8609ee33",
+      "cwd": "/workspace/scratch/45363df3617b/b3-review1-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "fast_regression",
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "command": [
+        "bash",
+        "-lc",
+        "mapfile -t final_review_tests < <(rg --files review/batch4-incremental | rg '/test_.*\\.py$' | rg -v 'test_actual_source_controls_independent|test_actual_source_current_diagnostic|test_actual_source_subset_diagnostic|test_module_lookup_keys_independent|test_lookup_neo4j_independent')\n.venv/bin/python -m pytest -q -s tests \"${final_review_tests[@]}\" --tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b3-review1-root-suite.log",
+      "log_sha256": "470e1cb574523900177ce9f5831a82ac88476eef3ba3cbb4105525f1f36e519c",
+      "cwd": "/workspace/scratch/45363df3617b/b3-review1-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "feature_acceptance",
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "command": [
+        "bash",
+        "-lc",
+        "mapfile -t final_review_tests < <(rg --files review/batch4-incremental | rg '/test_.*\\.py$' | rg -v 'test_actual_source_controls_independent|test_actual_source_current_diagnostic|test_actual_source_subset_diagnostic|test_module_lookup_keys_independent|test_lookup_neo4j_independent')\n.venv/bin/python -m pytest -q -s tests \"${final_review_tests[@]}\" --tb=short"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b3-review1-root-suite.log",
+      "log_sha256": "470e1cb574523900177ce9f5831a82ac88476eef3ba3cbb4105525f1f36e519c",
+      "cwd": "/workspace/scratch/45363df3617b/b3-review1-fixed"
+    },
+    {
+      "role": "reviewer",
+      "kind": "scale",
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "command": [
+        ".venv/bin/python",
+        "review/batch4-incremental/check_batch3_work_independent.py",
+        "--output",
+        "/workspace/scratch/45363df3617b/task-evidence/b3-review1-work.json"
+      ],
+      "result": "pass",
+      "exit_code": 0,
+      "log": "b3-review1-work.log",
+      "log_sha256": "c0d1867247b7451a701068b9115886bbe90906c3c846edd3b5e54543215161df",
+      "cwd": "/workspace/scratch/45363df3617b/b3-review1-fixed"
+    }
+  ],
+  "reviews": [
+    {
+      "round": 1,
+      "head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "remote_head_sha": "6a16154b7b12787696f9b334ef93342741235d73",
+      "actor": "/root",
+      "verdict": "pass",
+      "counterexample_note": "876 passed/32 skipped at408 matching remote blobs before/after. Real3/6/9 mutations preserve full semantics and explicit fallback. Actual synthetic USearch/BM25/graph failure/recovery/portable next-update control passes. Nine55865 source bytes verified, 0/20/100 solver constant, capture/hash/mount/output costs measured."
+    }
+  ],
+  "findings": [
+    {
+      "id": "B4-OWN-04-OPEN-RECEIVER-COVERAGE",
+      "severity": "P2",
+      "confirmed": true,
+      "blocking": true,
+      "state": "resolved",
+      "discovered_in_batch": "B4-ACCEPTANCE",
+      "owner_step": "Batch4 incremental update",
+      "owner_batch": "B4-OWNER-UPDATE",
+      "origin": "prior-batch-selected-owner-explanation",
+      "dependency_core": false,
+      "route": "prior-batch-reopened-and-round2-accepted",
+      "fix_commit": "7f1d86e0b136a6df11cc981da053aa3c584b5f61",
+      "cross_batch_reference": true
+    }
+  ],
+  "prerequisite_batches": [
+    {
+      "batch_id": "B4-SOURCES",
+      "state": "accepted",
+      "review_round": 2,
+      "code_sha": "d2ac250bd4f6563415a7a77a6645d47e7154a7e9"
+    },
+    {
+      "batch_id": "B4-OWNER-UPDATE",
+      "state": "accepted-after-reopen",
+      "review_round": 2,
+      "code_sha": "7f1d86e0b136a6df11cc981da053aa3c584b5f61"
+    }
+  ],
+  "step_complete": true,
+  "note": "Pre-merge point-in-time gate for this exact branch head/target. Developer fast excludes only the expensive nine-file case already passed pre-push; independent full suite includes it on this head. Fast and feature reviewer entries reference the same executions; counts are not added. Closing evidence commit is prepared without advancing this tested branch head until after merge. Merge completed as PR1/e3db45f; actual merge parents are the tested head and original target, and merged tree equals tested tree. The report-only ref advances after merge; its newer report head is not falsely presented as the tested source head.",
+  "merge_result": {
+    "repository": "agentic-trpg/local-code-tools",
+    "pr_number": 1,
+    "url": "https://github.com/agentic-trpg/local-code-tools/pull/1",
+    "merged": true,
+    "merge_sha": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+    "merge_tree": "303b53c85330c98897d7fc46ea02731b373f81fa",
+    "parents": [
+      "fc857f395a381e5dfec9941d60ca685bcbe0b3fd",
+      "6a16154b7b12787696f9b334ef93342741235d73"
+    ],
+    "tested_head": "6a16154b7b12787696f9b334ef93342741235d73",
+    "tested_tree": "303b53c85330c98897d7fc46ea02731b373f81fa",
+    "target_branch": "feat/local-code-tools-import",
+    "target_head": "e3db45fcf1362f0a26e0ab7760b12b4fd408ce64",
+    "tested_tree_matches_merged_tree": true,
+    "evidence_premerge_commit": "f35006ba7b6e8089ccc00afc01e07d9304b603f0"
+  }
+}

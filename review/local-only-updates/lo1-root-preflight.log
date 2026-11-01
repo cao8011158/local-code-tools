@@ -1,0 +1,12 @@
+F......                                                                  [100%]
+=================================== FAILURES ===================================
+_ test_rejected_candidate_trace_and_repeated_receipt_do_not_make_new_dependency _
+review/local-only-updates/test_semantic_contract_independent.py:35: in test_rejected_candidate_trace_and_repeated_receipt_do_not_make_new_dependency
+    assert_semantic_equal(local, fresh)
+tests/semantic_comparison.py:51: in assert_semantic_equal
+    assert a.get(table) == b.get(table), table
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: sites
+=========================== short test summary info ============================
+FAILED review/local-only-updates/test_semantic_contract_independent.py::test_rejected_candidate_trace_and_repeated_receipt_do_not_make_new_dependency
+1 failed, 6 passed in 0.05s

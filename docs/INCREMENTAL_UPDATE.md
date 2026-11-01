@@ -1,5 +1,21 @@
 # Incremental update planner contract (Batch 4, first layer)
 
+The owner-update and full-fallback behavior documented below is the current
+implementation through Batch 3. The user-authorized LOCAL-ONLY-UPDATES policy
+for subsequent normal updates requires function-level local scheduling from
+explicit source supports, subscriptions and reads, without automatic full
+rebuild or hidden all-owner analysis. `UNKNOWN` alone is not grounds for
+rejection. A corrupt or incompatible cache may fail explicitly while keeping
+the previous current version. LO-1 defines the semantic oracle comparison;
+the planner changes are pending LO-2. Full fresh builds remain test oracles.
+
+Oracle comparison preserves graph identities, targets, `UNKNOWN`, completeness,
+provenance, source supports, subscriptions and writes. Candidate traversal
+traces and repetition of identical diagnostic gaps can differ. Auxiliary
+owner execution-read/input ledgers need independent functional invalidation
+tests, since a full traversal may inspect rejected candidates that a selected
+owner update need not visit.
+
 ## Owner updates for changed Python sources (Batch 2)
 
 `storage.build` first checks the immutable prior catalog and graph-site artifacts,

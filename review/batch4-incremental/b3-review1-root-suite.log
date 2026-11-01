@@ -1,0 +1,122 @@
+.............................................{"group": "nine", "files": 9, "vector_chunks": 96, "seed_seconds": 0.0044, "association": 20000, "jedi": 517, "sites": 408, "dense_partitions": 3}
+.{"group": "three", "owner_mode": "incremental-owners", "parsed": 1, "membership_add": "python-membership-changed", "membership_delete": "python-membership-changed"}
+.{"group": "six", "mode": "incremental-owners", "reason": "incremental-owners", "value_mode": "full-graph", "value_reason": "open-receiver-source-coverage-unavailable", "value_owner_association": 0, "association": 12807, "jedi": 174}
+...................................................................s.....................................................................s................................ss..........sss.......s.....s...sss.s.sssssssssss...sss.................................................................................................................................................................................................................................................................................................................................................................................................................................................{"noise": 0, "parsed_update": ["src/a.py"], "queries": [{"plans": ["SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"], "queries": 1, "rows": 1, "vm": 23}]}
+.{"noise": 20, "parsed_update": ["src/a.py"], "queries": [{"plans": ["SEARCH unit_container_subscriptions USING INDEX unit_container_reader (origin=?)"], "queries": 1, "rows": 1, "vm": 23}]}
+.....{'dense_reused': 3, 'dense_rebuilt': 0, 'jedi_reused': 1, 'provider_requests': 0}
+.{'corrupt_cache': 'full inference fallback', 'reused': 0}
+.reused [('selected', 'synthetic-review:src/external_user.py:function:second#1.1', 'possible', False), ('choose', 'boundary:external-or-excluded:external_choice.choose', 'boundary', True)]
+full [('selected', 'synthetic-review:src/external_user.py:function:second#1.1', 'possible', False), ('choose', 'boundary:external-or-excluded:external_choice.choose', 'boundary', True)]
+..[{'noise': 0, 'scopes': 2, 'events': 3, 'visits': {'fixture:src/b.py:function:run#1.1': 1, 'fixture:src/b.py:module:b#1': 1}}, {'noise': 30, 'scopes': 2, 'events': 3, 'visits': {'fixture:src/b.py:function:run#1.1': 1, 'fixture:src/b.py:module:b#1': 1}}]
+.................[{"noise": 0, "parsed": [["synthetic-review", "src/caller.py"], ["synthetic-review", "src/dnd5e_engine/evaluation.py"], ["trpg-rules-engine", "src/dnd5e_engine/evaluation.py"], ["trpg-rules-engine", "src/dnd5e_engine/unrelated.py"]], "queries": []}, {"noise": 20, "parsed": [["synthetic-review", "src/caller.py"], ["synthetic-review", "src/caller_0.py"], ["synthetic-review", "src/caller_1.py"], ["synthetic-review", "src/caller_10.py"], ["synthetic-review", "src/caller_11.py"], ["synthetic-review", "src/caller_12.py"], ["synthetic-review", "src/caller_13.py"], ["synthetic-review", "src/caller_14.py"], ["synthetic-review", "src/caller_15.py"], ["synthetic-review", "src/caller_16.py"], ["synthetic-review", "src/caller_17.py"], ["synthetic-review", "src/caller_18.py"], ["synthetic-review", "src/caller_19.py"], ["synthetic-review", "src/caller_2.py"], ["synthetic-review", "src/caller_3.py"], ["synthetic-review", "src/caller_4.py"], ["synthetic-review", "src/caller_5.py"], ["synthetic-review", "src/caller_6.py"], ["synthetic-review", "src/caller_7.py"], ["synthetic-review", "src/caller_8.py"], ["synthetic-review", "src/caller_9.py"], ["synthetic-review", "src/dnd5e_engine/evaluation.py"], ["synthetic-review", "src/leaf_0.py"], ["synthetic-review", "src/leaf_1.py"], ["synthetic-review", "src/leaf_10.py"], ["synthetic-review", "src/leaf_11.py"], ["synthetic-review", "src/leaf_12.py"], ["synthetic-review", "src/leaf_13.py"], ["synthetic-review", "src/leaf_14.py"], ["synthetic-review", "src/leaf_15.py"], ["synthetic-review", "src/leaf_16.py"], ["synthetic-review", "src/leaf_17.py"], ["synthetic-review", "src/leaf_18.py"], ["synthetic-review", "src/leaf_19.py"], ["synthetic-review", "src/leaf_2.py"], ["synthetic-review", "src/leaf_3.py"], ["synthetic-review", "src/leaf_4.py"], ["synthetic-review", "src/leaf_5.py"], ["synthetic-review", "src/leaf_6.py"], ["synthetic-review", "src/leaf_7.py"], ["synthetic-review", "src/leaf_8.py"], ["synthetic-review", "src/leaf_9.py"], ["trpg-rules-engine", "src/dnd5e_engine/evaluation.py"], ["trpg-rules-engine", "src/dnd5e_engine/unrelated.py"]], "queries": []}]
+................................{'unrelated_files': 0, 'actual_parse_calls': 1, 'scope': {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, 'reused_python_nodes': 0, 'document_files_parsed': 0, 'reused_graph_sites': 0, 'context_source_files': 1, 'context_source_bytes': 724, 'sites_analyzed': 6, 'jedi_queries_executed': 11, 'reused_graph_edges': 0, 'output_nodes': 3, 'output_edges': 9, 'changed_files': 1, 'selected_files': 1, 'parsed_python_files': 1, 'reused_python_files': 0, 'selected_owner_count': 2, 'reused_owner_count': 0, 'selected_owner_ids': ['synthetic-review:src/trpg_state_machine/item_units.py:function:valid_item_unit#1.1', 'synthetic-review:src/trpg_state_machine/item_units.py:module:trpg_state_machine.item_units#1'], 'selected_keys': [('synthetic-review', 'src/trpg_state_machine/item_units.py')], 'owner_analysis_iterations': 1, 'owner_jedi_queries_executed': 11, 'owner_association_evaluations': 20, 'reused_sites': 0, 'reused_edges': 0, 'total_python_files_parsed': 1}}
+.{'unrelated_files': 20, 'actual_parse_calls': 1, 'scope': {'mode': 'incremental-owners', 'reason': 'incremental-owners', 'python_files_parsed': 1, 'python_ast_context_files': 1, 'reused_python_nodes': 40, 'document_files_parsed': 0, 'reused_graph_sites': 0, 'context_source_files': 21, 'context_source_bytes': 1384, 'sites_analyzed': 6, 'jedi_queries_executed': 11, 'reused_graph_edges': 0, 'output_nodes': 43, 'output_edges': 49, 'changed_files': 1, 'selected_files': 1, 'parsed_python_files': 1, 'reused_python_files': 20, 'selected_owner_count': 2, 'reused_owner_count': 40, 'selected_owner_ids': ['synthetic-review:src/trpg_state_machine/item_units.py:function:valid_item_unit#1.1', 'synthetic-review:src/trpg_state_machine/item_units.py:module:trpg_state_machine.item_units#1'], 'selected_keys': [('synthetic-review', 'src/trpg_state_machine/item_units.py')], 'owner_analysis_iterations': 1, 'owner_jedi_queries_executed': 11, 'owner_association_evaluations': 20, 'reused_sites': 0, 'reused_edges': 0, 'total_python_files_parsed': 1}}
+.....ss{"noise": 0, "parsed_update": ["src/a.py"], "unrelated_sources": 1}
+.{"noise": 20, "parsed_update": ["src/a.py"], "unrelated_sources": 21}
+................{'origin_lookup_measurements': [[{'vm_steps': 161, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 157, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}], [{'vm_steps': 162, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 158, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}], [{'vm_steps': 162, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}, {'vm_steps': 158, 'sql_count': 4, 'supports': 2, 'readers': 1, 'subscriptions': 1}]]}
+..........................................................sss[
+  {
+    "unrelated_files": 0,
+    "calls": [
+      {
+        "operation": "reverse",
+        "temperature": "cold",
+        "vm_steps": 53,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "reverse",
+        "temperature": "repeat",
+        "vm_steps": 39,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "cold",
+        "vm_steps": 21,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "repeat",
+        "vm_steps": 16,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+        ]
+      }
+    ]
+  },
+  {
+    "unrelated_files": 100,
+    "calls": [
+      {
+        "operation": "reverse",
+        "temperature": "cold",
+        "vm_steps": 53,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "reverse",
+        "temperature": "repeat",
+        "vm_steps": 39,
+        "returned": 1,
+        "plan": [
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH file_adjacency USING COVERING INDEX sqlite_autoindex_file_adjacency_1 (source_repository=? AND source_path=?)",
+          "RIGHT",
+          "SEARCH file_adjacency USING COVERING INDEX file_adjacency_target (target_repository=? AND target_path=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "cold",
+        "vm_steps": 21,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+        ]
+      },
+      {
+        "operation": "importers",
+        "temperature": "repeat",
+        "vm_steps": 16,
+        "returned": 1,
+        "plan": [
+          "SEARCH import_lookup_keys USING COVERING INDEX import_lookup_namespace (lookup_repository=? AND module=?)"
+        ]
+      }
+    ]
+  }
+]
+..........[{"noise": 0, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)", "SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)"], "queries": 2, "result_rows": 1, "vm_steps": 37}, {"noise": 40, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)", "SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)"], "queries": 2, "result_rows": 1, "vm_steps": 37}]
+.......PARAMETER_ORIGIN_INDEX=[{"matching_records": 2, "noise_pairs": 0, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)"], "result_rows": 1, "statements": 1, "total_records": 3, "vm_steps": 26}, {"matching_records": 2, "noise_pairs": 15, "plans": ["SEARCH analysis_reads USING COVERING INDEX analysis_read_producer (producer_repository=? AND producer_path=?)"], "result_rows": 1, "statements": 1, "total_records": 18, "vm_steps": 26}]
+..............[{"parsed": ["src/a.py"], "queries": [{"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 23}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/b.py:function:execute#1.1"], "vm_steps": 19}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/b.py:function:execute#1.1"], "vm_steps": 19}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 11}], "unrelated_pairs": 0}, {"parsed": ["src/a.py"], "queries": [{"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 14}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/b.py:function:execute#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:function:second#1.1"], "vm_steps": 11}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:run#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/b.py:function:execute#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 1, "target": ["synthetic-review:src/a.py:function:first#1.1"], "vm_steps": 20}, {"method": "unit_readers", "plans": ["SEARCH unit_source_supports USING INDEX unit_source_producer (producer_owner=?)", "USE TEMP B-TREE FOR DISTINCT"], "rows": 0, "target": ["synthetic-review:src/a.py:module:a#1"], "vm_steps": 11}], "unrelated_pairs": 20}]
+......................{'owner_update_work': [{'selected_owner_count': 7, 'owner_jedi_queries_executed': 10, 'owner_association_evaluations': 12, 'sites_analyzed': 3}, {'selected_owner_count': 7, 'owner_jedi_queries_executed': 10, 'owner_association_evaluations': 12, 'sites_analyzed': 3}, {'selected_owner_count': 7, 'owner_jedi_queries_executed': 10, 'owner_association_evaluations': 12, 'sites_analyzed': 3}]}
+.....
+876 passed, 32 skipped in 226.71s (0:03:46)

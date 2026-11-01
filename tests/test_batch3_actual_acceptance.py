@@ -15,6 +15,7 @@ from lct.extract import embedding_texts
 from lct.query import Query
 from lct.storage import attach_dense, build, current, manifest, recover
 from tests.synthetic_support import deterministic_vector, forbid_provider, initialize
+from tests.semantic_comparison import assert_semantic_equal
 
 FIXTURES = Path(__file__).resolve().parents[1] / "review/batch4-incremental/fixtures"
 SOURCE_COMMIT = "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe"
@@ -85,11 +86,15 @@ def semantic(c, version):
     return results
 
 
-def full_equal(tmp_path, c, result, name):
+def full_equal(tmp_path, c, result, name, *, traversal_independent=False):
     oracle_config = dict(c, data=str(tmp_path / ("fresh-" + name)))
     with forbid_provider():
         fresh = build(oracle_config, offline=True, lexical_only=True)
-    assert semantic(c, result["version"]) == semantic(oracle_config, fresh["version"])
+    actual, expected = semantic(c, result["version"]), semantic(oracle_config, fresh["version"])
+    if traversal_independent:
+        assert_semantic_equal(actual, expected)
+    else:
+        assert actual == expected
     return fresh
 
 
@@ -238,7 +243,7 @@ def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
     with forbid_provider():
         updated = build(c, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["python_files_parsed"] >= 1
-    full_equal(tmp_path, c, updated, "six-comment")
+    full_equal(tmp_path, c, updated, "six-comment", traversal_independent=True)
     assert semantic(c, first["version"])["sites"] == sites
     unit = repo / "src/trpg_state_machine/item_units.py"
     original_bytes = unit.read_bytes()
@@ -249,7 +254,16 @@ def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
     assert changed_value["incremental"]["analysis_scope"]["mode"] == "full-graph"
     assert changed_value["incremental"]["analysis_scope"]["reason"] == (
         "open-receiver-source-coverage-unavailable")
-    full_equal(tmp_path, c, changed_value, "six-value")
+    fresh = full_equal(tmp_path, c, changed_value, "six-value", traversal_independent=True)
+    # These are actual semantic producer/consumer evidence, not rejected
+    # candidate traversal. The oracle compares the rows exactly above.
+    source_tables = ("unit_source_supports", "unit_container_subscriptions",
+                     "unit_container_writes")
+    got = semantic(c, changed_value["version"])
+    oracle_config = dict(c, data=str(tmp_path / "fresh-six-value"))
+    expected = semantic(oracle_config, fresh["version"])
+    assert all(got[table] == expected[table] for table in source_tables)
+    assert got["unit_source_supports"]
     print(json.dumps(dict(group="six", mode=updated["incremental"]["analysis_scope"]["mode"],
                           reason=updated["incremental"]["analysis_scope"]["reason"],
                           value_mode=changed_value["incremental"]["analysis_scope"]["mode"],
