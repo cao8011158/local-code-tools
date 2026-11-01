@@ -1,0 +1,16 @@
+FF..                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_plain_alias_callee_is_not_reinferred_by_name_resolver __________
+../local-only-work/review/parser-refactor/test_tool_first_independent.py:19: in test_plain_alias_callee_is_not_reinferred_by_name_resolver
+    assert not calls, 'Jedi-covered callee re-entered custom name target inference'
+E   AssertionError: Jedi-covered callee re-entered custom name target inference
+E   assert not [('fixture:src/demo.py:function:run#1.1', 'alias')]
+___________ test_callback_same_name_as_global_keeps_argument_support ___________
+../local-only-work/review/parser-refactor/test_tool_first_independent.py:28: in test_callback_same_name_as_global_keeps_argument_support
+    assert any(s['kind'] == 'actual-parameter'
+E   assert False
+E    +  where False = any(<generator object test_callback_same_name_as_global_keeps_argument_support.<locals>.<genexpr> at 0x7fcac6fbc580>)
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/parser-refactor/test_tool_first_independent.py::test_plain_alias_callee_is_not_reinferred_by_name_resolver
+FAILED ../local-only-work/review/parser-refactor/test_tool_first_independent.py::test_callback_same_name_as_global_keeps_argument_support
+2 failed, 2 passed in 1.53s

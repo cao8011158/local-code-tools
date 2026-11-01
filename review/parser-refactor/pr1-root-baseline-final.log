@@ -1,0 +1,16 @@
+FF...                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_plain_alias_callee_is_not_reinferred_by_name_resolver[def first(): pass\ndef run():\n first()\n-first-3] _
+../local-only-work/review/parser-refactor/test_tool_first_independent.py:24: in test_plain_alias_callee_is_not_reinferred_by_name_resolver
+    assert not calls, 'Jedi-covered callee re-entered custom name target inference'
+E   AssertionError: Jedi-covered callee re-entered custom name target inference
+E   assert not [('fixture:src/demo.py:function:run#1.1', 'first')]
+_ test_plain_alias_callee_is_not_reinferred_by_name_resolver[def first(): pass\nalias=first\ndef run():\n alias()\n-alias-4] _
+../local-only-work/review/parser-refactor/test_tool_first_independent.py:24: in test_plain_alias_callee_is_not_reinferred_by_name_resolver
+    assert not calls, 'Jedi-covered callee re-entered custom name target inference'
+E   AssertionError: Jedi-covered callee re-entered custom name target inference
+E   assert not [('fixture:src/demo.py:function:run#1.1', 'alias')]
+=========================== short test summary info ============================
+FAILED ../local-only-work/review/parser-refactor/test_tool_first_independent.py::test_plain_alias_callee_is_not_reinferred_by_name_resolver[def first(): pass\ndef run():\n first()\n-first-3]
+FAILED ../local-only-work/review/parser-refactor/test_tool_first_independent.py::test_plain_alias_callee_is_not_reinferred_by_name_resolver[def first(): pass\nalias=first\ndef run():\n alias()\n-alias-4]
+2 failed, 3 passed in 0.99s

@@ -1,0 +1,1 @@
+{"status": "bounded-profile-stopped", "seconds": 90.04216190100124, "program_hash": "c2cffb2bb8bb639a4ee74c6bf32ef657594dd7981bb6006d04cd8cf41297368b", "counters": {"prepared": 456, "jedi_queries": 457, "query_entries": 457, "slot_scope_checks": 0, "slot_events": 0, "budget": 20000, "limited": false, "preparing": false}}

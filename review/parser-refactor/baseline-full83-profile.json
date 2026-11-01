@@ -1,0 +1,741 @@
+{
+  "status": "bounded-profile-stopped",
+  "version": null,
+  "seconds": 90.04216190100124,
+  "program_hash": "c2cffb2bb8bb639a4ee74c6bf32ef657594dd7981bb6006d04cd8cf41297368b",
+  "counters": {
+    "prepared": 456,
+    "jedi_queries": 457,
+    "query_entries": 457,
+    "slot_scope_checks": 0,
+    "slot_events": 0,
+    "budget": 20000,
+    "limited": false,
+    "preparing": false
+  },
+  "self_top": [
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 167,
+      "function": "_add_token",
+      "primitive": 228208,
+      "calls": 228209,
+      "self_seconds": 8.953709962000001,
+      "cumulative_seconds": 25.078512587000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/parser.py",
+      "line": 101,
+      "function": "convert_leaf",
+      "primitive": 228208,
+      "calls": 228208,
+      "self_seconds": 4.3153344240000004,
+      "cumulative_seconds": 6.574790257
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_analysis.py",
+      "line": 732,
+      "function": "inventory",
+      "primitive": 83,
+      "calls": 162191,
+      "self_seconds": 3.7651725170000003,
+      "cumulative_seconds": 7.5119643400000005
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/tokenize.py",
+      "line": 363,
+      "function": "tokenize_lines",
+      "primitive": 231334,
+      "calls": 231334,
+      "self_seconds": 3.7327303840000003,
+      "cumulative_seconds": 6.901079804
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "primitive": 7664696,
+      "calls": 7664696,
+      "self_seconds": 3.560591586,
+      "cumulative_seconds": 3.5625863570000003
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 199,
+      "function": "_pop",
+      "primitive": 1144749,
+      "calls": 1144749,
+      "self_seconds": 2.848762648,
+      "cumulative_seconds": 6.743437997
+    },
+    {
+      "file": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/ast.py",
+      "line": 269,
+      "function": "iter_child_nodes",
+      "primitive": 1283340,
+      "calls": 1283340,
+      "self_seconds": 2.701655311,
+      "cumulative_seconds": 5.7263260780000005
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/filters.py",
+      "line": 129,
+      "function": "__init__",
+      "primitive": 44388,
+      "calls": 44388,
+      "self_seconds": 2.495201719,
+      "cumulative_seconds": 4.846139063
+    },
+    {
+      "file": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py",
+      "line": 358,
+      "function": "__init__",
+      "primitive": 11174,
+      "calls": 11174,
+      "self_seconds": 2.3341866650000003,
+      "cumulative_seconds": 2.396901041
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_effects.py",
+      "line": 105,
+      "function": "visit",
+      "primitive": 9065,
+      "calls": 153542,
+      "self_seconds": 2.269505525,
+      "cumulative_seconds": 4.510443329
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/tree.py",
+      "line": 419,
+      "function": "recurse",
+      "primitive": 112,
+      "calls": 431164,
+      "self_seconds": 2.084430508,
+      "cumulative_seconds": 2.150280902
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'load' of '_pickle.Unpickler' objects>",
+      "primitive": 2324,
+      "calls": 2324,
+      "self_seconds": 2.043816423,
+      "cumulative_seconds": 2.0758629600000003
+    },
+    {
+      "file": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/ast.py",
+      "line": 257,
+      "function": "iter_fields",
+      "primitive": 1675237,
+      "calls": 1675237,
+      "self_seconds": 1.635769193,
+      "cumulative_seconds": 2.242864951
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'append' of 'list' objects>",
+      "primitive": 2859585,
+      "calls": 2859585,
+      "self_seconds": 1.549724891,
+      "cumulative_seconds": 1.549724891
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'match' of 're.Pattern' objects>",
+      "primitive": 245192,
+      "calls": 245192,
+      "self_seconds": 1.4345474420000002,
+      "cumulative_seconds": 1.4345474420000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/tree.py",
+      "line": 451,
+      "function": "__init__",
+      "primitive": 90860,
+      "calls": 90860,
+      "self_seconds": 1.4026346630000002,
+      "cumulative_seconds": 1.5673801090000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'get' of 'dict' objects>",
+      "primitive": 483467,
+      "calls": 483467,
+      "self_seconds": 1.1795643070000001,
+      "cumulative_seconds": 1.542275912
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _pickle.load>",
+      "primitive": 60,
+      "calls": 60,
+      "self_seconds": 1.1375002300000001,
+      "cumulative_seconds": 1.1375002300000001
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_analysis.py",
+      "line": 653,
+      "function": "_build_query_certificates",
+      "primitive": 1,
+      "calls": 1,
+      "self_seconds": 1.0909094700000002,
+      "cumulative_seconds": 4.350136269
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _pickle.dump>",
+      "primitive": 2353,
+      "calls": 2353,
+      "self_seconds": 1.0888806610000001,
+      "cumulative_seconds": 1.090699715
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.getattr>",
+      "primitive": 1316961,
+      "calls": 1337277,
+      "self_seconds": 0.846886565,
+      "cumulative_seconds": 0.938275312
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/extract.py",
+      "line": 110,
+      "function": "walk",
+      "primitive": 83,
+      "calls": 166780,
+      "self_seconds": 0.8332014980000001,
+      "cumulative_seconds": 3.016551062
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.compile>",
+      "primitive": 3251,
+      "calls": 3251,
+      "self_seconds": 0.6826905080000001,
+      "cumulative_seconds": 0.6826905080000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'search' of 're.Pattern' objects>",
+      "primitive": 6346,
+      "calls": 6346,
+      "self_seconds": 0.67448723,
+      "cumulative_seconds": 0.67448723
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 89,
+      "function": "_token_to_transition",
+      "primitive": 228209,
+      "calls": 228209,
+      "self_seconds": 0.6378660890000001,
+      "cumulative_seconds": 1.066122351
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/cache.py",
+      "line": 104,
+      "function": "wrapper",
+      "primitive": 113764,
+      "calls": 178596,
+      "self_seconds": 0.630686516,
+      "cumulative_seconds": 8.262344564000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'pop' of 'list' objects>",
+      "primitive": 1163071,
+      "calls": 1163071,
+      "self_seconds": 0.630118732,
+      "cumulative_seconds": 0.630118732
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/tree.py",
+      "line": 106,
+      "function": "get_name_of_position",
+      "primitive": 457,
+      "calls": 238738,
+      "self_seconds": 0.624151176,
+      "cumulative_seconds": 1.0900913460000001
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 124,
+      "function": "parse",
+      "primitive": 112,
+      "calls": 112,
+      "self_seconds": 0.6076154490000001,
+      "cumulative_seconds": 32.835171575000004
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.len>",
+      "primitive": 1590675,
+      "calls": 1605940,
+      "self_seconds": 0.5865438500000001,
+      "cumulative_seconds": 0.6034436630000001
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/tree.py",
+      "line": 311,
+      "function": "start_pos",
+      "primitive": 228208,
+      "calls": 228208,
+      "self_seconds": 0.576653799,
+      "cumulative_seconds": 0.576653799
+    },
+    {
+      "file": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/enum.py",
+      "line": 1266,
+      "function": "__hash__",
+      "primitive": 496140,
+      "calls": 496140,
+      "self_seconds": 0.571864463,
+      "cumulative_seconds": 0.8402866760000001
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/cache.py",
+      "line": 24,
+      "function": "wrapper",
+      "primitive": 5047,
+      "calls": 95942,
+      "self_seconds": 0.543230618,
+      "cumulative_seconds": 33.493082662
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'span' of 're.Match' objects>",
+      "primitive": 238699,
+      "calls": 238699,
+      "self_seconds": 0.5020628220000001,
+      "cumulative_seconds": 0.5020628220000001
+    },
+    {
+      "file": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/ast.py",
+      "line": 369,
+      "function": "walk",
+      "primitive": 224036,
+      "calls": 224036,
+      "self_seconds": 0.49813525700000005,
+      "cumulative_seconds": 3.000727366
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 77,
+      "function": "__init__",
+      "primitive": 1144863,
+      "calls": 1144863,
+      "self_seconds": 0.49045764100000006,
+      "cumulative_seconds": 0.49045764100000006
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/parser.py",
+      "line": 81,
+      "function": "convert_node",
+      "primitive": 105783,
+      "calls": 105783,
+      "self_seconds": 0.41048961,
+      "cumulative_seconds": 2.3309221420000004
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'group' of 're.Match' objects>",
+      "primitive": 719713,
+      "calls": 719713,
+      "self_seconds": 0.40550841400000004,
+      "cumulative_seconds": 0.40550841400000004
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/filters.py",
+      "line": 79,
+      "function": "__init__",
+      "primitive": 56012,
+      "calls": 56012,
+      "self_seconds": 0.40408060100000004,
+      "cumulative_seconds": 2.6153787150000003
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/tree.py",
+      "line": 291,
+      "function": "__init__",
+      "primitive": 228208,
+      "calls": 228208,
+      "self_seconds": 0.39567829400000004,
+      "cumulative_seconds": 0.972332093
+    }
+  ],
+  "cumulative_top": [
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/storage.py",
+      "line": 1063,
+      "function": "build",
+      "primitive": 1,
+      "calls": 2,
+      "self_seconds": 0.001488352,
+      "cumulative_seconds": 85.026327271
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/graph.py",
+      "line": 291,
+      "function": "build",
+      "primitive": 1,
+      "calls": 2,
+      "self_seconds": 0.001624126,
+      "cumulative_seconds": 85.026151415
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/api/helpers.py",
+      "line": 46,
+      "function": "wrapper",
+      "primitive": 540,
+      "calls": 540,
+      "self_seconds": 0.007455440000000001,
+      "cumulative_seconds": 67.210329599
+    },
+    {
+      "file": "/tmp/parser_baseline_profile.py",
+      "line": 13,
+      "function": "init",
+      "primitive": 1,
+      "calls": 2,
+      "self_seconds": 6.5527e-05,
+      "cumulative_seconds": 48.861279826
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_analysis.py",
+      "line": 108,
+      "function": "__init__",
+      "primitive": 1,
+      "calls": 2,
+      "self_seconds": 0.288178944,
+      "cumulative_seconds": 48.861164121
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_analysis.py",
+      "line": 581,
+      "function": "prepare_site_queries",
+      "primitive": 1,
+      "calls": 1,
+      "self_seconds": 0.0055302680000000005,
+      "cumulative_seconds": 36.160568327
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/lct/python_analysis.py",
+      "line": 959,
+      "function": "query",
+      "primitive": 457,
+      "calls": 457,
+      "self_seconds": 0.021718835000000002,
+      "cumulative_seconds": 36.146203232000005
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/api/helpers.py",
+      "line": 513,
+      "function": "wrapper",
+      "primitive": 457,
+      "calls": 457,
+      "self_seconds": 0.007962708,
+      "cumulative_seconds": 35.712396087
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/api/__init__.py",
+      "line": 214,
+      "function": "infer",
+      "primitive": 457,
+      "calls": 457,
+      "self_seconds": 0.014252388000000001,
+      "cumulative_seconds": 35.703892568
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/__init__.py",
+      "line": 201,
+      "function": "parse_and_get_code",
+      "primitive": 1359,
+      "calls": 1359,
+      "self_seconds": 0.013098085,
+      "cumulative_seconds": 35.579031445000005
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/grammar.py",
+      "line": 49,
+      "function": "parse",
+      "primitive": 489,
+      "calls": 489,
+      "self_seconds": 0.014354257,
+      "cumulative_seconds": 35.455963083
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/api/helpers.py",
+      "line": 209,
+      "function": "infer",
+      "primitive": 457,
+      "calls": 457,
+      "self_seconds": 0.000651711,
+      "cumulative_seconds": 34.127499679
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/helpers.py",
+      "line": 45,
+      "function": "infer_call_of_leaf",
+      "primitive": 457,
+      "calls": 537,
+      "self_seconds": 0.00392013,
+      "cumulative_seconds": 34.117157340000006
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/cache.py",
+      "line": 24,
+      "function": "wrapper",
+      "primitive": 5047,
+      "calls": 95942,
+      "self_seconds": 0.543230618,
+      "cumulative_seconds": 33.493082662
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/python/parser.py",
+      "line": 72,
+      "function": "parse",
+      "primitive": 112,
+      "calls": 112,
+      "self_seconds": 0.000328583,
+      "cumulative_seconds": 32.835500158
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 124,
+      "function": "parse",
+      "primitive": 112,
+      "calls": 112,
+      "self_seconds": 0.6076154490000001,
+      "cumulative_seconds": 32.835171575000004
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/base_value.py",
+      "line": 443,
+      "function": "from_sets",
+      "primitive": 1317,
+      "calls": 29852,
+      "self_seconds": 0.18598124600000002,
+      "cumulative_seconds": 31.4899628
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/api/__init__.py",
+      "line": 95,
+      "function": "__init__",
+      "primitive": 83,
+      "calls": 83,
+      "self_seconds": 0.00248357,
+      "cumulative_seconds": 31.475891574000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/context.py",
+      "line": 230,
+      "function": "infer_node",
+      "primitive": 2068,
+      "calls": 20121,
+      "self_seconds": 0.076240134,
+      "cumulative_seconds": 31.077400468
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 90,
+      "function": "infer_node",
+      "primitive": 2068,
+      "calls": 20127,
+      "self_seconds": 0.196969107,
+      "cumulative_seconds": 31.068890842000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/debug.py",
+      "line": 79,
+      "function": "wrapper",
+      "primitive": 1251,
+      "calls": 15495,
+      "self_seconds": 0.089346144,
+      "cumulative_seconds": 31.061447266000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 162,
+      "function": "_infer_node_if_inferred",
+      "primitive": 2150,
+      "calls": 19808,
+      "self_seconds": 0.292313188,
+      "cumulative_seconds": 30.982287703
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/__init__.py",
+      "line": 164,
+      "function": "infer",
+      "primitive": 456,
+      "calls": 503,
+      "self_seconds": 0.002458598,
+      "cumulative_seconds": 30.888080217000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 66,
+      "function": "wrapper",
+      "primitive": 1369,
+      "calls": 15305,
+      "self_seconds": 0.10106364300000001,
+      "cumulative_seconds": 30.847305862000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 180,
+      "function": "_infer_node",
+      "primitive": 1245,
+      "calls": 12399,
+      "self_seconds": 0.09673835600000001,
+      "cumulative_seconds": 30.811828906000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 175,
+      "function": "_infer_node_cached",
+      "primitive": 1383,
+      "calls": 12399,
+      "self_seconds": 0.022888064000000003,
+      "cumulative_seconds": 30.809442565
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 262,
+      "function": "infer_trailer",
+      "primitive": 465,
+      "calls": 4460,
+      "self_seconds": 0.036240266,
+      "cumulative_seconds": 30.387930963000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 286,
+      "function": "infer_atom",
+      "primitive": 1654,
+      "calls": 8665,
+      "self_seconds": 0.127549154,
+      "cumulative_seconds": 30.269965860000003
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/context.py",
+      "line": 39,
+      "function": "py__getattribute__",
+      "primitive": 1568,
+      "calls": 7209,
+      "self_seconds": 0.13036022900000002,
+      "cumulative_seconds": 30.144490041
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/plugins/__init__.py",
+      "line": 19,
+      "function": "wrapper",
+      "primitive": 2213,
+      "calls": 17728,
+      "self_seconds": 0.05653944,
+      "cumulative_seconds": 29.792234702000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/plugins/stdlib.py",
+      "line": 931,
+      "function": "wrapper",
+      "primitive": 2743,
+      "calls": 12330,
+      "self_seconds": 0.039424133,
+      "cumulative_seconds": 27.107925669
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/plugins/django.py",
+      "line": 177,
+      "function": "wrapper",
+      "primitive": 2743,
+      "calls": 12330,
+      "self_seconds": 0.033416333,
+      "cumulative_seconds": 27.090061845
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 693,
+      "function": "tree_name_to_values",
+      "primitive": 2743,
+      "calls": 12330,
+      "self_seconds": 0.338977152,
+      "cumulative_seconds": 27.085476500000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/context.py",
+      "line": 78,
+      "function": "<genexpr>",
+      "primitive": 3304,
+      "calls": 14403,
+      "self_seconds": 0.013367517,
+      "cumulative_seconds": 26.980271300000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/names.py",
+      "line": 281,
+      "function": "infer",
+      "primitive": 1929,
+      "calls": 8974,
+      "self_seconds": 0.046527864,
+      "cumulative_seconds": 26.913971003
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/parso/parser.py",
+      "line": 167,
+      "function": "_add_token",
+      "primitive": 228208,
+      "calls": 228209,
+      "self_seconds": 8.953709962000001,
+      "cumulative_seconds": 25.078512587000002
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 371,
+      "function": "infer_expr_stmt",
+      "primitive": 590,
+      "calls": 2566,
+      "self_seconds": 0.025652139,
+      "cumulative_seconds": 24.595926079
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py",
+      "line": 385,
+      "function": "_infer_expr_stmt",
+      "primitive": 590,
+      "calls": 2566,
+      "self_seconds": 0.044267844,
+      "cumulative_seconds": 24.557223672000003
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/base_value.py",
+      "line": 90,
+      "function": "py__getattribute__",
+      "primitive": 2346,
+      "calls": 6067,
+      "self_seconds": 0.12033413300000001,
+      "cumulative_seconds": 21.876801228
+    },
+    {
+      "file": "/workspace/scratch/45363df3617b/jd1-review2-fixed/.venv/lib/python3.12/site-packages/jedi/inference/finder.py",
+      "line": 27,
+      "function": "filter_name",
+      "primitive": 6525,
+      "calls": 14311,
+      "self_seconds": 0.13846982200000002,
+      "cumulative_seconds": 20.953059738
+    }
+  ],
+  "note": "cProfile overhead changes timing; cumulative rows overlap, do not sum. Diagnostic partial build, not accepted full graph."
+}

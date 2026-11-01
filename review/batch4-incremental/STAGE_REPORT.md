@@ -1313,3 +1313,11 @@ Read-only saved-pair recheck through ordinary compatible=True manifest: **20-tab
 Independent candidate generator rerun on this fixed runtime: N0/20/100 unrelated unknown calls and same-name methods yields1/1/1 actual candidate,0/0/0 unknown candidates; preserves0/20/100 unknown sites. Initial queries2/22/102 are separately counted, not claimed constant. Original review1 warm public and indexed reverse query evidence is retained; no runtime change since that measurement. No expensive full83 retry was justified by a test-only comparator repair.
 
 **Verdict: pass for JD-1**, completing formal round2/3 without resetting history. Full code-graph functionality is **not fully accepted**: complete83 initial snapshot and ensuing warm workflow remain uncompleted; CW-01 unrelated container writer scope cost remains open in unchanged legacy source/effect analysis. Concrete bounded follow-up scope is in REMAINING_CONTAINER_SCOPE.md. No merge or production changes in that additional subsystem. The gate must remain BLOCKED while the scope/acceptance blocker and missing merge authorization persist.
+
+## 阶段146：整体解析审计完成，开始按证据分批重构
+
+用户已授权整体审计与重构，范围包含之前CW-01。固定基线60085dc0158d6ae26b21dfabddafa0d6b5ef9a3b，目标e3db45fcf1362f0a26e0ab7760b12b4fd408ce64未变；旧JD1第2轮通过与LO2第3轮通过记录保持。Root全面梳理Jedi输入/API/映射、调用/引用/导入、参数/返回/容器/字段/装饰器、来源依赖、增量与存储职责；开发Agent实际gpt-6-sol/medium独立13个直接Jedi对照。完整分类见review/parser-refactor/AUDIT.md。
+
+Root对真实Graph.build观察现有测试语料，343passed/1skipped/22.03s/exit0，802次site观察中581次已知双信号相同、51次有测试证明的差异规则、39次自研补上无映射Jedi目标。不是实际83项目的耗时比例。已确认通用query->resolve->adjudicate导致重复；也证明不能直接删除所有自研：注册函数写全局字典、实例隔离、覆盖/删除、未绑定局部等有真实反例。目标是直接消费工具结果，单独记录来源，并保留有证据的局部扩展。原始矩阵与日志已保存；生产未改。
+
+开始PR-1工具目标与来源记录分离，之后容器和字段等迁移。任何替换须保留callback/container订阅、写入支持、未知、新旧快照和增量依赖。不会以增大20k预算或同样长测重试代替根因调查。完整83仍未验收，不宣称重构完成。

@@ -1,0 +1,7 @@
+........................................................................ [ 20%]
+........................................................................ [ 41%]
+........................................................................ [ 62%]
+........................................................................ [ 83%]
+......................................................s.                 [100%]
+343 passed, 1 skipped in 22.03s
+MATRIX {"exit_code": 0, "sites": 802, "groups": [{"jedi": true, "custom": true, "reason": "matching-signals", "count": 581}, {"jedi": true, "custom": false, "reason": "tested-semantic-rule", "count": 4}, {"jedi": false, "custom": false, "reason": "matching-signals", "count": 102}, {"jedi": false, "custom": true, "reason": "finite-association-with-missing-jedi-signal", "count": 39}, {"jedi": true, "custom": true, "reason": "tested-semantic-rule", "count": 47}, {"jedi": true, "custom": false, "reason": "partial-association-conflict-retained", "count": 15}, {"jedi": true, "custom": true, "reason": "partial-association-conflict-retained", "count": 11}, {"jedi": true, "custom": true, "reason": "jedi-target-with-unproved-association", "count": 1}, {"jedi": true, "custom": false, "reason": "jedi-target-with-unproved-association", "count": 2}]}
