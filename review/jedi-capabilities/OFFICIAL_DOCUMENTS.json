@@ -1,0 +1,54 @@
+{
+  "checked_on": "2026-11-02",
+  "timezone": "Asia/Shanghai",
+  "version_policy": "Installed Jedi is 0.20.1. The retrieved latest Jedi documentation identifies itself as 0.20.1. The version-tagged v0.20.1 features URL could not be retrieved; do not describe latest as an immutable version pin. Parso usage documentation identifies itself as 0.8.4, whereas the installed Parso is 0.8.7.",
+  "sources": {
+    "features": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/features.html",
+      "title": "Features and Limitations — Jedi 0.20.1 documentation",
+      "sections": ["Supported Python Features", "Limitations", "Security"],
+      "comparison": "官方列出字典索引、参数、返回、闭包、装饰器、描述符、容器添加等能力；这不能扩张为所有副作用及运行顺序都精确建模。限制清单点名任意元类、setattr、__import__、写globals/locals/object.__dict__和一些外部实例修改。"
+    },
+    "api": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/api.html",
+      "title": "API Overview — Jedi 0.20.1 documentation",
+      "sections": ["Script", "infer", "goto", "get_signatures", "get_references"],
+      "comparison": "infer查询表达式定义；goto定位绑定；get_signatures查询当前调用上下文。光标在右括号后返回空是文档示例中的正常行为。get_references可能在复杂搜索时停止。Script提供code/path/project，fast_parser存在可变树和并发警告。"
+    },
+    "classes": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/api-classes.html",
+      "title": "API Return Classes — Jedi 0.20.1 documentation",
+      "sections": ["BaseName.type", "BaseSignature.params"],
+      "comparison": "结果类型需按原义保留；instance不能自动改称class或具体__call__定义。params说明返回参数定义列表，没有针对此处递归转发异常的专门解释。"
+    },
+    "settings": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/settings.html",
+      "title": "Settings — Jedi 0.20.1 documentation",
+      "sections": ["Parser", "Dynamic stuff"],
+      "comparison": "fast_parser及动态参数、跨模块参数、容器添加有明确配置。关闭动态能力的对照结果不能当默认能力缺失；本实验不修改生产设置。"
+    },
+    "dynamic": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/development.html",
+      "title": "Jedi Development — Jedi 0.20.1 documentation",
+      "sections": ["Type inference of python code", "Dynamic Parameters", "Caching & Recursions"],
+      "comparison": "开发说明讨论副作用追踪和递归取舍，但页面自己声明内容较旧、部分可能不再适用。它提供背景，不足以证明某个精确案例是官方确认的缺陷。"
+    },
+    "typing": {
+      "url": "https://jedi.readthedocs.io/en/latest/docs/usage.html#type-hinting",
+      "title": "Using Jedi — Jedi 0.20.1 documentation",
+      "sections": ["Type Hinting"],
+      "comparison": "官方建议类型注解和stub帮助推断；能提供类型/抽象Callable，并不等于总能给出某次传入函数的唯一源码定义。"
+    },
+    "parso_cache": {
+      "url": "https://parso.readthedocs.io/en/latest/docs/usage.html",
+      "title": "Usage — parso 0.8.4 documentation",
+      "sections": ["Grammar.parse"],
+      "comparison": "仅作cache/diff_cache含义的背景对照，版本不匹配，不能当作对Parso 0.8.7中KeyError的官方解释。"
+    }
+  },
+  "not_confirmed_upstream": [
+    "No retrieved official issue or document specifically confirms these recursive Signature.params reproducers.",
+    "No retrieved official issue or document specifically confirms the fast_parser=False plus path-bearing Script KeyError reproducer.",
+    "General supported-feature or side-effect statements are not exact confirmation of each empty result in the matrix."
+  ]
+}

@@ -1,0 +1,620 @@
+{
+  "cases": 96,
+  "baseline_runs": 192,
+  "additional_controls": 17,
+  "all_runs": 209,
+  "core_experiment_seconds": 124.9424,
+  "run_status": {
+    "observed": 209
+  },
+  "query_count": 969,
+  "api_counts": {
+    "infer": 374,
+    "goto": 374,
+    "get_signatures": 219,
+    "get_references": 2
+  },
+  "baseline_call_queries": 99,
+  "baseline_call_nonempty": 71,
+  "baseline_call_empty": 28,
+  "baseline_call_api_errors": 0,
+  "baseline_repeat_differences": [],
+  "api_errors": [
+    {
+      "case": "classmethod",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "classmethod",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "classmethod",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_cross_module_write",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_cross_module_write",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_cross_module_write",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_cross_module_write",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_cross_module_write",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "read",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "read",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_getter_cross_writer",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "argument",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "argument",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "dict_register",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "list_cross_module_append",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "list_cross_module_append",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "list_cross_module_append",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "list_cross_module_append",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "list_cross_module_append",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "recursive_parameters",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "recursive_parameters",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "callback_value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "callback_value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call_callback",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "source",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "argument",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "argument",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "value",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "callback_argument",
+      "api": "infer",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    },
+    {
+      "case": "registered_callback_composition",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "marker": "callback_argument",
+      "api": "goto",
+      "error": {
+        "type": "KeyError",
+        "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+      }
+    }
+  ],
+  "metadata_errors": [
+    {
+      "case": "mutual_recursive_parameters",
+      "config": {},
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "target": "demo.first",
+      "error": {
+        "type": "RecursionError",
+        "message": "maximum recursion depth exceeded"
+      }
+    },
+    {
+      "case": "mutual_recursive_parameters",
+      "config": {},
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "target": "demo.first",
+      "error": {
+        "type": "RecursionError",
+        "message": "maximum recursion depth exceeded"
+      }
+    },
+    {
+      "case": "recursive_parameters",
+      "config": {},
+      "order": "calls_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "target": "demo.forward",
+      "error": {
+        "type": "RecursionError",
+        "message": "maximum recursion depth exceeded"
+      }
+    },
+    {
+      "case": "recursive_parameters",
+      "config": {},
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "target": "demo.forward",
+      "error": {
+        "type": "RecursionError",
+        "message": "maximum recursion depth exceeded"
+      }
+    },
+    {
+      "case": "recursive_parameters",
+      "config": {},
+      "order": "source_first",
+      "marker": "call",
+      "api": "get_signatures",
+      "target": "demo.forward",
+      "error": {
+        "type": "RecursionError",
+        "message": "maximum recursion depth exceeded"
+      }
+    }
+  ],
+  "qualification": "Observed API output, not a completeness, accuracy or runtime-execution guarantee."
+}

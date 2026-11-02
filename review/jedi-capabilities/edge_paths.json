@@ -1,0 +1,1961 @@
+{
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+    "jedi": "0.20.1",
+    "parso": "0.8.7",
+    "settings": {
+      "fast_parser": true,
+      "dynamic_array_additions": true,
+      "dynamic_params": true,
+      "dynamic_params_for_other_modules": true
+    },
+    "platform": "linux",
+    "code_execution": "Script only; unsafe extensions disabled"
+  },
+  "runs": [
+    {
+      "case": "inheritance_direct",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "class Base:pass\nclass Child(Base):pass\nChild()\n",
+          "markers": {
+            "base": [
+              2,
+              16
+            ],
+            "value": [
+              3,
+              5
+            ],
+            "call": [
+              3,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "771dd26b54aae8693643c9774cbeb530da6c8ffa6be538660bb038bac694c439"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "base",
+          "api": "infer",
+          "line": 2,
+          "column": 16,
+          "source_line": "class Child(Base):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "demo.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000991
+        },
+        {
+          "path": "demo.py",
+          "marker": "base",
+          "api": "goto",
+          "line": 2,
+          "column": 16,
+          "source_line": "class Child(Base):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "demo.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000379
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.61274
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000125
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 6,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6,
+              "parameters": [],
+              "metadata_seconds": 0.000458
+            }
+          ],
+          "api_seconds": 0.013606
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "inheritance_direct",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "class Base:pass\nclass Child(Base):pass\nChild()\n",
+          "markers": {
+            "base": [
+              2,
+              16
+            ],
+            "value": [
+              3,
+              5
+            ],
+            "call": [
+              3,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "771dd26b54aae8693643c9774cbeb530da6c8ffa6be538660bb038bac694c439"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "base",
+          "api": "infer",
+          "line": 2,
+          "column": 16,
+          "source_line": "class Child(Base):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "demo.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.002485
+        },
+        {
+          "path": "demo.py",
+          "marker": "base",
+          "api": "goto",
+          "line": 2,
+          "column": 16,
+          "source_line": "class Child(Base):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "demo.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000115
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.324574
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000114
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 6,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "demo.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 6,
+              "parameters": [],
+              "metadata_seconds": 0.00042
+            }
+          ],
+          "api_seconds": 0.012917
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "inheritance_imported",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "provider.py": {
+          "code": "class Base:pass\n",
+          "markers": {},
+          "captured": true,
+          "sha256": "acaeb54676b17a00ad33f04f1483a57e4cc9a568b477cb9d8f2eec56639cc86d"
+        },
+        "client.py": {
+          "code": "from provider import Base as Alias\nclass Child(Alias):pass\nChild()\n",
+          "markers": {
+            "base": [
+              2,
+              17
+            ],
+            "value": [
+              3,
+              5
+            ],
+            "call": [
+              3,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "f7a6c4abac04f994d7fea69c19da83abfae04cf02622718206b3fd3b9e3f76d5"
+        }
+      },
+      "queries": [
+        {
+          "path": "client.py",
+          "marker": "base",
+          "api": "infer",
+          "line": 2,
+          "column": 17,
+          "source_line": "class Child(Alias):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "provider.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.045597
+        },
+        {
+          "path": "client.py",
+          "marker": "base",
+          "api": "goto",
+          "line": 2,
+          "column": 17,
+          "source_line": "class Child(Alias):pass",
+          "results": [
+            {
+              "name": "Alias",
+              "full_name": "provider.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 1,
+              "column": 29
+            }
+          ],
+          "api_seconds": 0.000129
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.378634
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000117
+        },
+        {
+          "path": "client.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 6,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6,
+              "parameters": [],
+              "metadata_seconds": 0.000639
+            }
+          ],
+          "api_seconds": 0.024766
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "inheritance_imported",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "provider.py": {
+          "code": "class Base:pass\n",
+          "markers": {},
+          "captured": true,
+          "sha256": "acaeb54676b17a00ad33f04f1483a57e4cc9a568b477cb9d8f2eec56639cc86d"
+        },
+        "client.py": {
+          "code": "from provider import Base as Alias\nclass Child(Alias):pass\nChild()\n",
+          "markers": {
+            "base": [
+              2,
+              17
+            ],
+            "value": [
+              3,
+              5
+            ],
+            "call": [
+              3,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "f7a6c4abac04f994d7fea69c19da83abfae04cf02622718206b3fd3b9e3f76d5"
+        }
+      },
+      "queries": [
+        {
+          "path": "client.py",
+          "marker": "base",
+          "api": "infer",
+          "line": 2,
+          "column": 17,
+          "source_line": "class Child(Alias):pass",
+          "results": [
+            {
+              "name": "Base",
+              "full_name": "provider.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.039972
+        },
+        {
+          "path": "client.py",
+          "marker": "base",
+          "api": "goto",
+          "line": 2,
+          "column": 17,
+          "source_line": "class Child(Alias):pass",
+          "results": [
+            {
+              "name": "Alias",
+              "full_name": "provider.Base",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 1,
+              "column": 29
+            }
+          ],
+          "api_seconds": 0.000123
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.291848
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 3,
+          "column": 5,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6
+            }
+          ],
+          "api_seconds": 0.000125
+        },
+        {
+          "path": "client.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 6,
+          "source_line": "Child()",
+          "results": [
+            {
+              "name": "Child",
+              "full_name": "client.Child",
+              "type": "class",
+              "module_path": "$CAPTURE/client.py",
+              "line": 2,
+              "column": 6,
+              "parameters": [],
+              "metadata_seconds": 0.000415
+            }
+          ],
+          "api_seconds": 0.017226
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "import_binding",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "provider.py": {
+          "code": "def first():pass\n",
+          "markers": {},
+          "captured": true,
+          "sha256": "df7c8a8955113058f294d583cc60c3a9f32d14f4675eb20216a6ca55f1d44746"
+        },
+        "client.py": {
+          "code": "from provider import first as alias\nalias()\n",
+          "markers": {
+            "binding": [
+              1,
+              35
+            ],
+            "value": [
+              2,
+              5
+            ],
+            "call": [
+              2,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "722e656644b351040067c92517ef4e96344244509e000acc99a9134cf8c7288f"
+        }
+      },
+      "queries": [
+        {
+          "path": "client.py",
+          "marker": "binding",
+          "api": "infer",
+          "line": 1,
+          "column": 35,
+          "source_line": "from provider import first as alias",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.037316
+        },
+        {
+          "path": "client.py",
+          "marker": "binding",
+          "api": "goto",
+          "line": 1,
+          "column": 35,
+          "source_line": "from provider import first as alias",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.000277
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 5,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.000183
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 5,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "alias",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/client.py",
+              "line": 1,
+              "column": 30
+            }
+          ],
+          "api_seconds": 8.2e-05
+        },
+        {
+          "path": "client.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 6,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4,
+              "parameters": [],
+              "metadata_seconds": 0.00028
+            }
+          ],
+          "api_seconds": 0.000236
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "import_binding",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "provider.py": {
+          "code": "def first():pass\n",
+          "markers": {},
+          "captured": true,
+          "sha256": "df7c8a8955113058f294d583cc60c3a9f32d14f4675eb20216a6ca55f1d44746"
+        },
+        "client.py": {
+          "code": "from provider import first as alias\nalias()\n",
+          "markers": {
+            "binding": [
+              1,
+              35
+            ],
+            "value": [
+              2,
+              5
+            ],
+            "call": [
+              2,
+              6
+            ]
+          },
+          "captured": true,
+          "sha256": "722e656644b351040067c92517ef4e96344244509e000acc99a9134cf8c7288f"
+        }
+      },
+      "queries": [
+        {
+          "path": "client.py",
+          "marker": "binding",
+          "api": "infer",
+          "line": 1,
+          "column": 35,
+          "source_line": "from provider import first as alias",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.049422
+        },
+        {
+          "path": "client.py",
+          "marker": "binding",
+          "api": "goto",
+          "line": 1,
+          "column": 35,
+          "source_line": "from provider import first as alias",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.000221
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 5,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.003325
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 5,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "alias",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/client.py",
+              "line": 1,
+              "column": 30
+            }
+          ],
+          "api_seconds": 0.000109
+        },
+        {
+          "path": "client.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 6,
+          "source_line": "alias()",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "provider.first",
+              "type": "function",
+              "module_path": "$CAPTURE/provider.py",
+              "line": 1,
+              "column": 4,
+              "parameters": [],
+              "metadata_seconds": 0.002077
+            }
+          ],
+          "api_seconds": 0.000252
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "lambda_target",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "fn=lambda:None\nfn()\n",
+          "markers": {
+            "value": [
+              2,
+              2
+            ],
+            "call": [
+              2,
+              3
+            ]
+          },
+          "captured": true,
+          "sha256": "50b6b30378e1d2f47522532df54418316213536847cd3ed1950deee89013633e"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "<lambda>",
+              "full_name": null,
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 3
+            }
+          ],
+          "api_seconds": 0.337068
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "fn",
+              "full_name": "demo.fn",
+              "type": "statement",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 0
+            }
+          ],
+          "api_seconds": 0.000165
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 3,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "<lambda>",
+              "full_name": null,
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 3,
+              "parameters": [],
+              "metadata_seconds": 0.000361
+            }
+          ],
+          "api_seconds": 0.000235
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "lambda_target",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "fn=lambda:None\nfn()\n",
+          "markers": {
+            "value": [
+              2,
+              2
+            ],
+            "call": [
+              2,
+              3
+            ]
+          },
+          "captured": true,
+          "sha256": "50b6b30378e1d2f47522532df54418316213536847cd3ed1950deee89013633e"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "<lambda>",
+              "full_name": null,
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 3
+            }
+          ],
+          "api_seconds": 0.59318
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "fn",
+              "full_name": "demo.fn",
+              "type": "statement",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 0
+            }
+          ],
+          "api_seconds": 0.000513
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 3,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "<lambda>",
+              "full_name": null,
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 3,
+              "parameters": [],
+              "metadata_seconds": 0.000966
+            }
+          ],
+          "api_seconds": 0.00093
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "external_call",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "from math import sqrt\nsqrt(4)\n",
+          "markers": {
+            "value": [
+              2,
+              4
+            ],
+            "call": [
+              2,
+              5
+            ]
+          },
+          "captured": true,
+          "sha256": "08fbcc7aeb5a346247e3c67547692bfbd6c31b6399a699c3813699279b9d7ac3"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 4,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+              "line": 127,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.063636
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 4,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 17
+            }
+          ],
+          "api_seconds": 0.000131
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 5,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+              "line": 127,
+              "column": 4,
+              "parameters": [
+                {
+                  "name": "x",
+                  "full_name": null,
+                  "type": "param",
+                  "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+                  "line": 127,
+                  "column": 9,
+                  "kind": "POSITIONAL_ONLY"
+                }
+              ],
+              "metadata_seconds": 0.000437
+            }
+          ],
+          "api_seconds": 0.000256
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "external_call",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "from math import sqrt\nsqrt(4)\n",
+          "markers": {
+            "value": [
+              2,
+              4
+            ],
+            "call": [
+              2,
+              5
+            ]
+          },
+          "captured": true,
+          "sha256": "08fbcc7aeb5a346247e3c67547692bfbd6c31b6399a699c3813699279b9d7ac3"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 4,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+              "line": 127,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.070584
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 4,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 1,
+              "column": 17
+            }
+          ],
+          "api_seconds": 0.000244
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 5,
+          "source_line": "sqrt(4)",
+          "results": [
+            {
+              "name": "sqrt",
+              "full_name": "math.sqrt",
+              "type": "function",
+              "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+              "line": 127,
+              "column": 4,
+              "parameters": [
+                {
+                  "name": "x",
+                  "full_name": null,
+                  "type": "param",
+                  "module_path": "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/third_party/typeshed/stdlib/math.pyi",
+                  "line": 127,
+                  "column": 9,
+                  "kind": "POSITIONAL_ONLY"
+                }
+              ],
+              "metadata_seconds": 0.000623
+            }
+          ],
+          "api_seconds": 0.000259
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "partial_call",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "from functools import partial\ndef first():pass\ndef execute(cb):cb()\nfn=partial(execute,first)\nfn()\n",
+          "markers": {
+            "callback_value": [
+              3,
+              18
+            ],
+            "call_callback": [
+              3,
+              19
+            ],
+            "source": [
+              4,
+              24
+            ],
+            "value": [
+              5,
+              2
+            ],
+            "call": [
+              5,
+              3
+            ]
+          },
+          "captured": true,
+          "sha256": "afa794c5ded5da95a6e6a2ee3d5ea6c95b26b139842371e2cacec549e1b76fdb"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "callback_value",
+          "api": "infer",
+          "line": 3,
+          "column": 18,
+          "source_line": "def execute(cb):cb()",
+          "results": [],
+          "api_seconds": 0.002309
+        },
+        {
+          "path": "demo.py",
+          "marker": "callback_value",
+          "api": "goto",
+          "line": 3,
+          "column": 18,
+          "source_line": "def execute(cb):cb()",
+          "results": [
+            {
+              "name": "cb",
+              "full_name": null,
+              "type": "param",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 3,
+              "column": 12
+            }
+          ],
+          "api_seconds": 0.000167
+        },
+        {
+          "path": "demo.py",
+          "marker": "call_callback",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 19,
+          "source_line": "def execute(cb):cb()",
+          "results": [],
+          "api_seconds": 0.000207
+        },
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "infer",
+          "line": 4,
+          "column": 24,
+          "source_line": "fn=partial(execute,first)",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "demo.first",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.000194
+        },
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "goto",
+          "line": 4,
+          "column": 24,
+          "source_line": "fn=partial(execute,first)",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "demo.first",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 4
+            }
+          ],
+          "api_seconds": 9.8e-05
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 5,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "partial",
+              "full_name": "functools.partial",
+              "type": "instance",
+              "module_path": null,
+              "line": null,
+              "column": null
+            },
+            {
+              "name": "partial",
+              "full_name": "functools.partial",
+              "type": "instance",
+              "module_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/functools.py",
+              "line": 278,
+              "column": 6
+            }
+          ],
+          "api_seconds": 1.153543
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 5,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "fn",
+              "full_name": "demo.fn",
+              "type": "statement",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 4,
+              "column": 0
+            }
+          ],
+          "api_seconds": 0.000131
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 5,
+          "column": 3,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "execute",
+              "full_name": "demo.execute",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 3,
+              "column": 4,
+              "parameters": [],
+              "metadata_seconds": 2.4e-05
+            }
+          ],
+          "api_seconds": 0.000627
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 1,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "case": "partial_call",
+      "family": "graph-exit",
+      "note": "Public API result only; path/type identity is not an LCT mapping claim.",
+      "config": {},
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": true,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "features"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "from functools import partial\ndef first():pass\ndef execute(cb):cb()\nfn=partial(execute,first)\nfn()\n",
+          "markers": {
+            "callback_value": [
+              3,
+              18
+            ],
+            "call_callback": [
+              3,
+              19
+            ],
+            "source": [
+              4,
+              24
+            ],
+            "value": [
+              5,
+              2
+            ],
+            "call": [
+              5,
+              3
+            ]
+          },
+          "captured": true,
+          "sha256": "afa794c5ded5da95a6e6a2ee3d5ea6c95b26b139842371e2cacec549e1b76fdb"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "callback_value",
+          "api": "infer",
+          "line": 3,
+          "column": 18,
+          "source_line": "def execute(cb):cb()",
+          "results": [],
+          "api_seconds": 0.001616
+        },
+        {
+          "path": "demo.py",
+          "marker": "callback_value",
+          "api": "goto",
+          "line": 3,
+          "column": 18,
+          "source_line": "def execute(cb):cb()",
+          "results": [
+            {
+              "name": "cb",
+              "full_name": null,
+              "type": "param",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 3,
+              "column": 12
+            }
+          ],
+          "api_seconds": 0.000152
+        },
+        {
+          "path": "demo.py",
+          "marker": "call_callback",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 19,
+          "source_line": "def execute(cb):cb()",
+          "results": [],
+          "api_seconds": 0.000198
+        },
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "infer",
+          "line": 4,
+          "column": 24,
+          "source_line": "fn=partial(execute,first)",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "demo.first",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 4
+            }
+          ],
+          "api_seconds": 0.000226
+        },
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "goto",
+          "line": 4,
+          "column": 24,
+          "source_line": "fn=partial(execute,first)",
+          "results": [
+            {
+              "name": "first",
+              "full_name": "demo.first",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 2,
+              "column": 4
+            }
+          ],
+          "api_seconds": 9.6e-05
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 5,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "partial",
+              "full_name": "functools.partial",
+              "type": "instance",
+              "module_path": null,
+              "line": null,
+              "column": null
+            },
+            {
+              "name": "partial",
+              "full_name": "functools.partial",
+              "type": "instance",
+              "module_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/functools.py",
+              "line": 278,
+              "column": 6
+            }
+          ],
+          "api_seconds": 1.121239
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 5,
+          "column": 2,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "fn",
+              "full_name": "demo.fn",
+              "type": "statement",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 4,
+              "column": 0
+            }
+          ],
+          "api_seconds": 0.000125
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 5,
+          "column": 3,
+          "source_line": "fn()",
+          "results": [
+            {
+              "name": "execute",
+              "full_name": "demo.execute",
+              "type": "function",
+              "module_path": "$CAPTURE/demo.py",
+              "line": 3,
+              "column": 4,
+              "parameters": [],
+              "metadata_seconds": 1.8e-05
+            }
+          ],
+          "api_seconds": 0.000221
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "repeat": 2,
+      "status": "observed",
+      "exit_code": 0,
+      "stderr": ""
+    }
+  ],
+  "source_sha256": "620dcbfbf5788095dc30e822921b8199a899de54b1c1f0558816d263c8cc5997"
+}

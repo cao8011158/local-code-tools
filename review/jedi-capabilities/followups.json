@@ -1,0 +1,1007 @@
+{
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+    "jedi": "0.20.1",
+    "parso": "0.8.7",
+    "settings": {
+      "fast_parser": true,
+      "dynamic_array_additions": true,
+      "dynamic_params": true,
+      "dynamic_params_for_other_modules": true
+    },
+    "platform": "linux",
+    "code_execution": "Script only; unsafe extensions disabled"
+  },
+  "runs": [
+    {
+      "case": "direct",
+      "family": "binding",
+      "note": "",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "features",
+        "api"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "def first(): pass\ndef second(): pass\ndef run(): first()\n",
+          "markers": {
+            "value": [
+              3,
+              16
+            ],
+            "call": [
+              3,
+              17
+            ]
+          },
+          "captured": true,
+          "sha256": "2aa2b99583fd1de9adaaf05c6f688667f4a093c342b67b96c59c37fd688cf1a5"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 3,
+          "column": 16,
+          "source_line": "def run(): first()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001488
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 3,
+          "column": 16,
+          "source_line": "def run(): first()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000533
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 3,
+          "column": 17,
+          "source_line": "def run(): first()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000599
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": false
+    },
+    {
+      "case": "classmethod",
+      "family": "object",
+      "note": "",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "features",
+        "api"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "def first(): pass\ndef second(): pass\nclass C:\n @classmethod\n def build(cls):pass\ndef run():C.build()\n",
+          "markers": {
+            "value": [
+              6,
+              17
+            ],
+            "call": [
+              6,
+              18
+            ]
+          },
+          "captured": true,
+          "sha256": "a3806abb5c753d7162cf65ddaa607ea325752dfea30aed657a3b3677cb939b05"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 6,
+          "column": 17,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001536
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 6,
+          "column": 17,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000886
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 6,
+          "column": 18,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001065
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": false
+    },
+    {
+      "case": "classmethod",
+      "family": "object",
+      "note": "",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "features",
+        "api"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "def first(): pass\ndef second(): pass\nclass C:\n @classmethod\n def build(cls):pass\ndef run():C.build()\n",
+          "markers": {
+            "value": [
+              6,
+              17
+            ],
+            "call": [
+              6,
+              18
+            ]
+          },
+          "captured": true,
+          "sha256": "a3806abb5c753d7162cf65ddaa607ea325752dfea30aed657a3b3677cb939b05"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 6,
+          "column": 17,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001605
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 6,
+          "column": 17,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000502
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 6,
+          "column": 18,
+          "source_line": "def run():C.build()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.00049
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": true
+    },
+    {
+      "case": "dict_register",
+      "family": "dictionary",
+      "note": "",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "features",
+        "api",
+        "dynamic"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "def first(): pass\ndef second(): pass\nregistry={}\ndef register(key,fn):registry[key]=fn\nregister('go',first)\ndef run():registry['go']()\n",
+          "markers": {
+            "source": [
+              4,
+              37
+            ],
+            "argument": [
+              5,
+              19
+            ],
+            "value": [
+              6,
+              24
+            ],
+            "call": [
+              6,
+              25
+            ]
+          },
+          "captured": true,
+          "sha256": "bd922e56a03def4b6bc508f4c5e8f2b5723abd70b1e711d013ed56b96c30fb45"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "infer",
+          "line": 4,
+          "column": 37,
+          "source_line": "def register(key,fn):registry[key]=fn",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001427
+        },
+        {
+          "path": "demo.py",
+          "marker": "source",
+          "api": "goto",
+          "line": 4,
+          "column": 37,
+          "source_line": "def register(key,fn):registry[key]=fn",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000466
+        },
+        {
+          "path": "demo.py",
+          "marker": "argument",
+          "api": "infer",
+          "line": 5,
+          "column": 19,
+          "source_line": "register('go',first)",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001738
+        },
+        {
+          "path": "demo.py",
+          "marker": "argument",
+          "api": "goto",
+          "line": 5,
+          "column": 19,
+          "source_line": "register('go',first)",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000729
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 6,
+          "column": 24,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000527
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 6,
+          "column": 24,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001255
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 6,
+          "column": 25,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000442
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 247, in infer\n    values = helpers.infer(self._inference_state, context, leaf)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 211, in infer\n    return inference_state.infer(context, leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/__init__.py\", line 199, in infer\n    return helpers.infer_call_of_leaf(context, name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/helpers.py\", line 79, in infer_call_of_leaf\n    return context.infer_node(leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 232, in infer_node\n    return infer_node(self, node)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 159, in infer_node\n    return _infer_node_if_inferred(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 172, in _infer_node_if_inferred\n    return _infer_node_cached(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/cache.py\", line 44, in wrapper\n    rv = function(obj, *args, **kwargs)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 177, in _infer_node_cached\n    return _infer_node(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/debug.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 85, in wrapper\n    return func(context, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 187, in _infer_node\n    return infer_atom(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 309, in infer_atom\n    return context.py__getattribute__(atom, position=position)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 46, in py__getattribute__\n    names = self.goto(name_or_str, position)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 299, in goto\n    names = list(name.goto())\n                 ^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/names.py\", line 213, in goto\n    return context.goto(name, position=stmt.start_pos)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 282, in goto\n    return self.infer(line, column, only_stubs=only_stubs, prefer_stubs=prefer_stubs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": true
+    },
+    {
+      "case": "dict_cross_module_write",
+      "family": "dictionary",
+      "note": "",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "features",
+        "api",
+        "dynamic"
+      ],
+      "sources": {
+        "provider.py": {
+          "code": "def first(): pass\ndef second(): pass\nregistry={}\n",
+          "markers": {},
+          "captured": true,
+          "sha256": "355c4648f7fbe62b73a58546563b121663bbd94087b262f98268f917fac65f62"
+        },
+        "writer.py": {
+          "code": "from provider import registry,first\nregistry['go']=first\n",
+          "markers": {
+            "source": [
+              2,
+              20
+            ]
+          },
+          "captured": true,
+          "sha256": "21f8935d18e186073d28f5833762bb796005a87cb3d3edb0ae7afe28edad2739"
+        },
+        "client.py": {
+          "code": "from provider import registry\ndef run():registry['go']()\n",
+          "markers": {
+            "value": [
+              2,
+              24
+            ],
+            "call": [
+              2,
+              25
+            ]
+          },
+          "captured": true,
+          "sha256": "5454d824bf5cf7fe0c8eb51a9716e4bd518a52aac299ac0f56b289e371f61fd1"
+        }
+      },
+      "queries": [
+        {
+          "path": "writer.py",
+          "marker": "source",
+          "api": "infer",
+          "line": 2,
+          "column": 20,
+          "source_line": "registry['go']=first",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.002155
+        },
+        {
+          "path": "writer.py",
+          "marker": "source",
+          "api": "goto",
+          "line": 2,
+          "column": 20,
+          "source_line": "registry['go']=first",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.00061
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 24,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000727
+        },
+        {
+          "path": "client.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 24,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.001363
+        },
+        {
+          "path": "client.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 25,
+          "source_line": "def run():registry['go']()",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000538
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 247, in infer\n    values = helpers.infer(self._inference_state, context, leaf)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 211, in infer\n    return inference_state.infer(context, leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/__init__.py\", line 199, in infer\n    return helpers.infer_call_of_leaf(context, name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/helpers.py\", line 79, in infer_call_of_leaf\n    return context.infer_node(leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 232, in infer_node\n    return infer_node(self, node)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 159, in infer_node\n    return _infer_node_if_inferred(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 172, in _infer_node_if_inferred\n    return _infer_node_cached(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/cache.py\", line 44, in wrapper\n    rv = function(obj, *args, **kwargs)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 177, in _infer_node_cached\n    return _infer_node(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/debug.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 85, in wrapper\n    return func(context, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 187, in _infer_node\n    return infer_atom(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 309, in infer_atom\n    return context.py__getattribute__(atom, position=position)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 46, in py__getattribute__\n    names = self.goto(name_or_str, position)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 299, in goto\n    names = list(name.goto())\n                 ^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/names.py\", line 213, in goto\n    return context.goto(name, position=stmt.start_pos)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 282, in goto\n    return self.infer(line, column, only_stubs=only_stubs, prefer_stubs=prefer_stubs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": true
+    },
+    {
+      "case": "recursive_parameters",
+      "family": "metadata",
+      "note": "Read Signature.params separately after retaining signature identity.",
+      "config": {
+        "fast_parser": false
+      },
+      "order": "source_first",
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "executable": "/workspace/scratch/00c15d914241/local-code-tools/.venv/bin/python",
+        "jedi": "0.20.1",
+        "parso": "0.8.7",
+        "settings": {
+          "fast_parser": false,
+          "dynamic_array_additions": true,
+          "dynamic_params": true,
+          "dynamic_params_for_other_modules": true
+        },
+        "platform": "linux",
+        "code_execution": "Script only; unsafe extensions disabled"
+      },
+      "docs": [
+        "api",
+        "dynamic"
+      ],
+      "sources": {
+        "demo.py": {
+          "code": "def forward(*args,**kwargs):return forward(*args,**kwargs)\nforward(1)\n",
+          "markers": {
+            "value": [
+              2,
+              7
+            ],
+            "call": [
+              2,
+              8
+            ]
+          },
+          "captured": true,
+          "sha256": "c302bd673d5d415dd8a1d779c2de98d6b3b1ee94888e7cfec9700a360a8173a7"
+        }
+      },
+      "queries": [
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "infer",
+          "line": 2,
+          "column": 7,
+          "source_line": "forward(1)",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.002267
+        },
+        {
+          "path": "demo.py",
+          "marker": "value",
+          "api": "goto",
+          "line": 2,
+          "column": 7,
+          "source_line": "forward(1)",
+          "results": [],
+          "api_error": {
+            "type": "KeyError",
+            "message": "'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'"
+          },
+          "api_seconds": 0.000648
+        },
+        {
+          "path": "demo.py",
+          "marker": "call",
+          "api": "get_signatures",
+          "line": 2,
+          "column": 8,
+          "source_line": "forward(1)",
+          "results": [],
+          "api_seconds": 0.000236
+        }
+      ],
+      "syntax_errors": [],
+      "project": {
+        "sys_path": [
+          "$CAPTURE",
+          "$CAPTURE/src",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages"
+        ],
+        "smart_sys_path": false,
+        "load_unsafe_extensions": false,
+        "cache_directory_isolated": true
+      },
+      "tracebacks": [
+        {
+          "api": "infer",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 247, in infer\n    values = helpers.infer(self._inference_state, context, leaf)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 211, in infer\n    return inference_state.infer(context, leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/__init__.py\", line 199, in infer\n    return helpers.infer_call_of_leaf(context, name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/helpers.py\", line 79, in infer_call_of_leaf\n    return context.infer_node(leaf)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 232, in infer_node\n    return infer_node(self, node)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 159, in infer_node\n    return _infer_node_if_inferred(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 172, in _infer_node_if_inferred\n    return _infer_node_cached(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/cache.py\", line 44, in wrapper\n    rv = function(obj, *args, **kwargs)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 177, in _infer_node_cached\n    return _infer_node(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/debug.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 85, in wrapper\n    return func(context, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 187, in _infer_node\n    return infer_atom(context, element)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/syntax_tree.py\", line 309, in infer_atom\n    return context.py__getattribute__(atom, position=position)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 46, in py__getattribute__\n    names = self.goto(name_or_str, position)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "traceback": "Traceback (most recent call last):\n  File \"/workspace/scratch/00c15d914241/local-code-tools/review/jedi-capabilities/followups.py\", line 35, in observed\n    return _original(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 299, in goto\n    names = list(name.goto())\n                 ^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/names.py\", line 213, in goto\n    return context.goto(name, position=stmt.start_pos)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 35, in goto\n    names = finder.filter_name(filters, name_or_str)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/finder.py\", line 34, in filter_name\n    for filter in filters:\n                  ^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 493, in get_global_filters\n    yield from context.get_filters(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 325, in get_filters\n    next(filters, None)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/module.py\", line 75, in get_filters\n    ParserTreeFilter(\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ],
+      "diagnostic_cache_usage_refresh": true
+    }
+  ],
+  "path_control_source": "\nimport jedi,tempfile,json,sys,traceback\nfrom pathlib import Path\njedi.settings.fast_parser=False\nsource='def f():pass\\ndef run():f()\\n'\nwith tempfile.TemporaryDirectory(prefix='jedi-path-control-') as directory:\n path=Path(directory)/'demo.py';path.write_text(source)\n mode,sequence=sys.argv[1:]\n if mode=='code_only':script=jedi.Script(code=source)\n elif mode=='path_only':script=jedi.Script(path=path)\n elif mode=='code_and_path':script=jedi.Script(code=source,path=path)\n else:script=jedi.Script(code=source,path=path,project=jedi.Project(directory))\n rows=[]\n for api in (['get_signatures'] if sequence=='signature_only' else\n             ['infer','goto','get_signatures']):\n  try:\n   column=12 if api=='get_signatures' else 11\n   names=getattr(script,api)(2,column)\n   rows.append(dict(api=api,results=[dict(name=n.name,type=n.type,line=n.line) for n in names]))\n  except Exception as error:\n   rows.append(dict(api=api,error=type(error).__name__,traceback=traceback.format_exc(limit=12)))\n print(json.dumps(dict(mode=mode,sequence=sequence,rows=rows)))\n",
+  "path_controls": [
+    {
+      "mode": "code_only",
+      "sequence": "signature_only",
+      "rows": [
+        {
+          "api": "get_signatures",
+          "results": [
+            {
+              "name": "f",
+              "type": "function",
+              "line": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "code_only",
+      "sequence": "source_first",
+      "rows": [
+        {
+          "api": "infer",
+          "results": [
+            {
+              "name": "f",
+              "type": "function",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "api": "goto",
+          "results": [
+            {
+              "name": "f",
+              "type": "function",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "api": "get_signatures",
+          "results": [
+            {
+              "name": "f",
+              "type": "function",
+              "line": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "path_only",
+      "sequence": "signature_only",
+      "rows": [
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    },
+    {
+      "mode": "path_only",
+      "sequence": "source_first",
+      "rows": [
+        {
+          "api": "infer",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    },
+    {
+      "mode": "code_and_path",
+      "sequence": "signature_only",
+      "rows": [
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    },
+    {
+      "mode": "code_and_path",
+      "sequence": "source_first",
+      "rows": [
+        {
+          "api": "infer",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    },
+    {
+      "mode": "explicit_project",
+      "sequence": "signature_only",
+      "rows": [
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    },
+    {
+      "mode": "explicit_project",
+      "sequence": "source_first",
+      "rows": [
+        {
+          "api": "infer",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 245, in infer\n    context = self._get_module_context().create_context(leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "goto",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 283, in goto\n    name = self._get_module_context().create_name(tree_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 305, in create_name\n    context = self.create_context(tree_name)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        },
+        {
+          "api": "get_signatures",
+          "error": "KeyError",
+          "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 18, in <module>\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 49, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/helpers.py\", line 531, in wrapper\n    return func(self, line, column, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/api/__init__.py\", line 457, in get_signatures\n    context = self._get_module_context().create_context(call_details.bracket_leaf)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 296, in create_context\n    return from_scope_node(scope_node, is_nested=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 266, in from_scope_node\n    return self.create_value(scope_node).as_context()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/context.py\", line 244, in create_value\n    func = value.FunctionValue.from_context(parent_context, node)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 149, in from_context\n    overloaded_funcs = list(_find_overload_functions(context, tree_node))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/value/function.py\", line 447, in _find_overload_functions\n    filter = ParserTreeFilter(\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 137, in __init__\n    super().__init__(parent_context, node_context)\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/inference/filters.py\", line 99, in __init__\n    self._parso_cache_node = get_parso_cache_node(\n                             ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/00c15d914241/local-code-tools/.venv/lib/python3.12/site-packages/jedi/parser_utils.py\", line 287, in get_parso_cache_node\n    return parser_cache[grammar._hashed][path]\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'b9d426090645a7a4430a433be347f0b2581ccac57981d20efb46a1baa55dda4a'\n"
+        }
+      ]
+    }
+  ],
+  "source_sha256": "9bc73aa95505a7a41b8759d156fdcc014d6ee3d974de4223c1880464f63a4a5d"
+}
