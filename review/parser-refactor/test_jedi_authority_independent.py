@@ -168,14 +168,17 @@ def test_real_jedi_lazy_parameter_error_keeps_correct_target(tmp_path, source, e
                for row in result[2].get('_unit_analysis_watches', []))
 
 
-def test_registered_callback_tool_gap_stays_unknown(tmp_path):
+def test_registered_callback_raw_gap_keeps_bounded_source_evidence(tmp_path):
     result = analyze(tmp_path, {'demo.py': 'def first():pass\n'
                      'def execute(callback):callback()\nR={}\n'
                      'def register(key,fn):R[key]=fn\nregister("go",execute)\n'
                      'def run():R["go"](first)\n'}, closed=False)
-    for expression, owner in (("R['go']", 'run'), ('callback', 'execute')):
+    for expression, owner, target in (("R['go']", 'run', 'execute'),
+                                      ('callback', 'execute', 'first')):
         observed = site(result, expression, owner)
-        assert observed['targets'] == []
+        assert observed['names'] == {target}
+        assert observed['evidence'][1]['raw'] == []
+        assert observed['evidence'][2]['tool'] == 'source-association'
         assert observed['unknown_origin'] and not observed['complete']
 
 

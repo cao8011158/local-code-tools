@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
 from .python_analysis import CALLABLE_KINDS, Analyzer
+from .supplemental_calls import SupplementalCalls
 
 
 def _receiver_context(ident, nodes, trees):
@@ -288,7 +289,8 @@ class Graph:
         self.edges.append(edge)
 
     def build(self, source_context=None, selected_owners=None,
-              candidate_site_evidence=None, analyzer=None, retain_analyzer=False):
+              candidate_site_evidence=None, analyzer=None, retain_analyzer=False,
+              prior_source_evidence=None):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
         self.edges = []
         for n in self.nodes.values():
@@ -330,35 +332,70 @@ class Graph:
             sites = []
             import_dependencies = []
             import_requests = []
+            observations = []
             for item in analyzer.sites:
                 expr, scope = item["_expr"], item["execution_owner"]
                 if not chosen(scope):
                     continue
-                # The tool observation is the sole target authority.
                 signal = (analyzer.query(scope, item["_call"], signature=True)
                           if item["kind"] == "call" else analyzer.query(scope, expr))
-                targets = sorted({a.target for a in signal.atoms if a.kind in CALLABLE_KINDS})
-                boundaries = sorted({a.target for a in signal.atoms if a.kind == "boundary"})
-                reasons = sorted(signal.reasons)
-                if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
-                    reasons.append("dependency-version-unmatched")
-                complete = not reasons
                 raw_key = ((analyzer.module_for[scope],
                             *analyzer.signature_position(item["_call"]), "signature")
                            if item["kind"] == "call" else
                            (analyzer.module_for[scope], expr.end_lineno,
                             expr.end_col_offset, False))
-                raw_observations = analyzer.queries.get(raw_key, (None, []))[1]
-                analyzer.recorder.call(scope, item["_call"], targets, raw_observations)
+                raw = analyzer.queries.get(raw_key, (None, []))[1]
+                primary = sorted(a.target for a in signal.atoms if a.kind in CALLABLE_KINDS)
+                analyzer.recorder.call(scope, item["_call"], primary, raw)
+                observations.append((item, signal, raw))
+            eligible = [(item, signal, raw) for item, signal, raw in observations
+                        if item["kind"] == "call" and not raw and
+                        signal.reasons == frozenset({"jedi-no-result"}) and
+                        isinstance(item["_expr"], (ast.Name, ast.Subscript))]
+            supplementer = (SupplementalCalls(analyzer, prior_source_evidence, selected)
+                            if eligible else None)
+            supplements = {}
+            for item, signal, raw in eligible:
+                found, sources = supplementer.container(item)
+                if not found:
+                    continue
+                supplements[item["site_id"]] = (found, sources, "container")
+                supplementer.support(item, sources, found)
+                target = next(iter(found))
+                parameters = (supplementer.definition_parameters(target, sources[0])
+                              if item["_call"].args or item["_call"].keywords else [])
+                if parameters:
+                    analyzer.recorder.call(item["execution_owner"], item["_call"],
+                                           found, [dict(target=target, parameters=parameters)])
+            for item, signal, raw in eligible:
+                if item["site_id"] in supplements:
+                    continue
+                found, sources = supplementer.callback(item)
+                if found:
+                    supplements[item["site_id"]] = (found, sources, "callback")
+                    supplementer.support(item, sources, found)
+            for item, signal, raw_observations in observations:
+                expr, scope = item["_expr"], item["execution_owner"]
+                targets = sorted({a.target for a in signal.atoms if a.kind in CALLABLE_KINDS})
+                supplement = supplements.get(item["site_id"])
+                if supplement:
+                    targets = sorted(supplement[0])
+                boundaries = sorted({a.target for a in signal.atoms if a.kind == "boundary"})
+                reasons = sorted(signal.reasons)
+                if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
+                    reasons.append("dependency-version-unmatched")
+                complete = not reasons
                 record = {k: v for k, v in item.items() if not k.startswith("_")}
                 record.update(
                     targets=targets,
                     unknown_origin=bool(reasons),
                     complete=complete,
                     completeness_basis="jedi-observation-mapped" if complete else None,
-                    resolution_kind=("mapped-observation" if targets or boundaries else
+                    resolution_kind=("supplemented-source" if supplement else
+                                     "mapped-observation" if targets or boundaries else
                                      "unsupported-or-unknown"),
-                    target_provider=("jedi-get-signatures" if item["kind"] == "call"
+                    target_provider=("jedi-source-supplement" if supplement else
+                                     "jedi-get-signatures" if item["kind"] == "call"
                                      else "jedi-infer"),
                     unresolved_reasons=reasons,
                     boundaries=[
@@ -385,6 +422,12 @@ class Graph:
                         ),
                     ],
                 )
+                if supplement:
+                    record["evidence"].append(dict(tool="source-association",
+                        kind=supplement[2], sources=[dict(owner=s[0],
+                            location=analyzer.recorder.location(s[0], s[1]))
+                            for s in supplement[1]],
+                        targets=targets, scope="exact-source-association"))
                 sites.append(record)
                 for target in targets:
                     if target in analyzer.trees:
@@ -403,7 +446,8 @@ class Graph:
                         target,
                         "CALLS",
                         status,
-                        "mapped AST/Jedi/LCT site",
+                        "bounded Jedi-empty source association" if supplement else
+                        "mapped AST/Jedi site",
                         item["line"],
                         item["column"],
                         item["expression"],
@@ -599,7 +643,12 @@ class Graph:
                 jedi_source_query_entries=recorder.goto_entries,
                 jedi_source_query_cache_hits=recorder.goto_cache_hits,
                 jedi_source_queries_executed=recorder.goto_executed,
-                jedi_total_queries_executed=analyzer.executed_queries + recorder.goto_executed,
+                jedi_total_queries_executed=(analyzer.executed_queries +
+                                             recorder.goto_executed +
+                                             (supplementer.metadata_queries if supplementer else 0)),
+                supplemental_calls=len(supplements),
+                supplemental_source_query_entries=(supplementer.source_queries if supplementer else 0),
+                supplemental_metadata_queries_executed=(supplementer.metadata_queries if supplementer else 0),
                 source_origin_index_entries=recorder.indexed_origin_entries,
                 source_owner_site_visits=recorder.owner_site_visits,
                 source_subscriptions=len(recorder.subscriptions),

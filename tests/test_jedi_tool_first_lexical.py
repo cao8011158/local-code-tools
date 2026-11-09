@@ -49,8 +49,12 @@ def caller():
 """
     graph = analyze(tmp_path, {"demo.py": source})
     registered = site(graph, "R['go']", "caller")
-    assert registered["names"] == set()
+    assert registered["names"] == {"target"}
     assert "jedi-no-result" in registered["unresolved_reasons"]
+    assert registered["evidence"][1]["raw"] == []
+    assert registered["target_provider"] == "jedi-source-supplement"
+    assert registered["evidence"][2]["kind"] == "container"
+    assert registered["unknown_origin"] and not registered["complete"]
     assert site(graph, "self.handler", "C.run")["names"] == {"target"}
     assert graph[2]["_unit_subscriptions"]
     assert graph[2]["_unit_writes"]

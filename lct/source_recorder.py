@@ -26,6 +26,7 @@ class SourceRecorder:
             self._sites_by_owner[site["execution_owner"]].append(site)
         self._binding_owners = defaultdict(set)
         self._parameter_nodes = defaultdict(list)
+        self.actual_values = defaultdict(list)
         self._module_by_stable_path = {
             n["repository"] + "/" + n["path"]: ident
             for ident, n in analyzer.nodes.items() if n["kind"] == "module"}
@@ -414,6 +415,7 @@ class SourceRecorder:
                     self.watches.add((target, module, "unresolved-argument-source",
                                       "all-captured-python"))
                 for name, source, candidate in supplied:
+                    candidate = candidate or len(targets) != 1 or len(observations) != 1
                     for p in parameters:
                         if p["name"] != name:
                             continue
@@ -429,6 +431,13 @@ class SourceRecorder:
                                               call_location=self.location(owner, expr.func),
                                               parameter=name, source_uncertain=candidate),
                                          status="candidate" if candidate else "observed")
+                            call_site = self.site(owner, expr.func, "call")
+                            values = self.actual_values[callee, name]
+                            if not any(existing_owner == owner and existing_site == call_site
+                                       and existing_source.lineno == source.lineno
+                                       and existing_source.col_offset == source.col_offset
+                                       for existing_owner, existing_source, existing_site, _ in values):
+                                values.append((owner, source, call_site, candidate))
             if not signatures and (expr.args or expr.keywords):
                 # A mapped function with absent signature detail cannot prove
                 # a parameter's precise source. Leave an owner-level watch.

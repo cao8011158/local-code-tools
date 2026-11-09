@@ -19,6 +19,7 @@ from .extract import definition_version, extract, module_name
 from . import extract as extraction
 from .graph import Graph
 from .python_analysis import RequiredAnalysisContext
+from .supplemental_calls import PriorSourceIndex
 
 
 def _signature(tree):
@@ -751,6 +752,13 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
         selected = expand_dependencies(selected)
         context = {n["node_id"]: python[n["repository"], n["path"]]["text"]
                    for n in nodes if n["kind"] == "module" and n["path"].endswith(".py")}
+        unchanged_source_owners = {
+            ident for ident, node in byid.items()
+            if (node["repository"], node["path"]) in old_python
+            and (node["repository"], node["path"]) in python
+            and old_python[node["repository"], node["path"]][0]
+            == python[node["repository"], node["path"]]["sha256"]}
+        prior_source_index = PriorSourceIndex(old_origin, unchanged_source_owners)
         # Iterate only when a newly produced call target or an affected owner's
         # output change exposes another actual owner dependency.
         total_queries = total_reused_queries = 0
@@ -763,7 +771,8 @@ def prepare(folder, prior, files, repos, *, dependencies, graph_sites, attempts=
                     fresh_edges, fresh_info = graph.build(
                         source_context=context, selected_owners=selected,
                         candidate_site_evidence=old_sites, analyzer=shared_analyzer,
-                        retain_analyzer=True)
+                        retain_analyzer=True,
+                        prior_source_evidence=prior_source_index)
                     shared_analyzer = fresh_info.pop("_analyzer")
                 except RequiredAnalysisContext:
                     return None, "required-analysis-context-unavailable"

@@ -142,7 +142,11 @@ def driver():
 """
         },
     )
-    expect(r, "cb", "C.invoke", set(), unknown=True, complete=False)
+    bound_callback = expect(r, "cb", "C.invoke", {"target"},
+                            unknown=True, complete=False)
+    assert bound_callback["evidence"][1]["raw"] == []
+    assert bound_callback["target_provider"] == "jedi-source-supplement"
+    assert bound_callback["evidence"][2]["kind"] == "callback"
     expect(r, "cb", "C.static", {"target"})
     expect(r, "callback", "driver", {"C.invoke"})
     expect(r, "C.construct", "driver", {"C.construct"})
@@ -177,7 +181,10 @@ def references():
     expect(r, "table[k]", "dispatch", {"a", "b"})
     expect(r, "values[1]", "dispatch", {"b"}, forbidden={"a"})
     expect(r, "values[k]", "dispatch", {"a", "b"})
-    expect(r, "handlers['go']", "dispatch", set(), unknown=True, complete=False)
+    registered = expect(r, "handlers['go']", "dispatch", {"a"},
+                        unknown=True, complete=False, forbidden={"b"})
+    assert registered["evidence"][1]["raw"] == []
+    assert registered["target_provider"] == "jedi-source-supplement"
     assert not any(s for s in r[2]["sites"] if s["expression"] in ("a", "b"))
     byid = {n["node_id"]: n["qualname"] for n in r[0]}
     assert {
@@ -327,12 +334,19 @@ def test_frozen_answer_semantics(frozen_result, expected):
     s = matches[0]
     actual = {label(t) for t in s["targets"] if t in byid}
     external = {e["full_name"].replace("json.loads", "json:loads") for e in s["boundaries"]}
-    assert actual | external == FROZEN_JEDI_TARGETS[expected["id"]], (expected["id"], s)
+    if expected["id"] == "registry":
+        assert FROZEN_JEDI_TARGETS["registry"] == set()
+        assert s["evidence"][1]["raw"] == []
+        assert actual == {"sample:target"} and not external
+        assert s["evidence"][2]["kind"] == "container"
+    else:
+        assert actual | external == FROZEN_JEDI_TARGETS[expected["id"]], (expected["id"], s)
     assert label(s["execution_owner"]) == expected["context"]
     assert s["phase"] == expected["phase"]
-    assert s["target_provider"] == ("jedi-infer" if expected["kind"] == "implicit_decorator"
+    assert s["target_provider"] == ("jedi-source-supplement" if expected["id"] == "registry"
+                                    else "jedi-infer" if expected["kind"] == "implicit_decorator"
                                     else "jedi-get-signatures")
-    assert s["complete"] is bool(actual or external), expected["id"]
+    assert s["complete"] is (bool(actual or external) and expected["id"] != "registry"), expected["id"]
     assert s["unknown_origin"] is (not s["complete"])
     if not actual and not external:
         assert "jedi-no-result" in s["unresolved_reasons"]
@@ -357,10 +371,14 @@ def caller():
 """
         },
     )
-    expect(r, "handlers['a']", "dispatch", set(), unknown=True, complete=False,
+    registered = expect(r, "handlers['a']", "dispatch", {"a"}, unknown=True, complete=False,
            forbidden={"b"})
-    expect(r, "cb", "C.invoke", set(), unknown=True, complete=False,
+    assert registered["evidence"][1]["raw"] == []
+    assert registered["target_provider"] == "jedi-source-supplement"
+    bound_callback = expect(r, "cb", "C.invoke", {"a"}, unknown=True, complete=False,
            forbidden={"C", "C.invoke", "b"})
+    assert bound_callback["evidence"][1]["raw"] == []
+    assert bound_callback["target_provider"] == "jedi-source-supplement"
 
 
 def test_same_line_and_nested_shadowing(tmp_path):
