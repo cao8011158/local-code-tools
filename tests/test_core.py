@@ -72,7 +72,7 @@ def test_registry_flow():
     calls, _, _ = graph(
         "handlers={}\ndef register(name,cb): handlers[name]=cb\ndef target(): pass\nregister('go',target)\ndef dispatch(k): handlers[k]()\n"
     )
-    assert ("dispatch", "target", "resolved", "handlers[k]") in calls
+    assert ("dispatch", None, "unresolved", "handlers[k]") in calls
 
 
 def test_unknown_is_retained_no_same_name_guess():
@@ -228,7 +228,7 @@ def test_registry_via_method():
     calls, _, _ = graph(
         "class Registry:\n def __init__(self): self.handlers={}\n def register(self,name,cb): self.handlers[name]=cb\n def dispatch(self,k): self.handlers[k]()\ndef target(): pass\nr=Registry()\nr.register('go',target)\n"
     )
-    assert any(c[0] == "Registry.dispatch" and c[1] == "target" for c in calls)
+    assert ("Registry.dispatch", None, "unresolved", "self.handlers[k]") in calls
 
 
 def test_real_compatible_cache_reuse_without_network(tmp_path):

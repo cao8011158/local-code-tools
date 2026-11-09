@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
 from .python_analysis import CALLABLE_KINDS, Analyzer
-from .value_flow import evidence as value_flow_evidence
 
 
 def _receiver_context(ident, nodes, trees):
@@ -246,9 +245,9 @@ class Graph:
             name = stmt.module or ""
         return name or None
 
-    def import_lookup(self, scope, stmt, alias):
+    def import_lookup(self, scope, stmt, alias, *, namespace=None):
         """Keep a named boundary for a unique namespace or scoped absent module."""
-        match = self.named_import_namespace(scope, stmt, alias)
+        match = namespace
         if match:
             module, identity = match
         else:
@@ -288,14 +287,9 @@ class Graph:
         edge["edge_id"] = digest(canonical(edge))
         self.edges.append(edge)
 
-    def build(self, query_reuse=None, source_context=None, selected_owners=None,
+    def build(self, source_context=None, selected_owners=None,
               candidate_site_evidence=None, analyzer=None, retain_analyzer=False):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
-        from .simple_python import component_policy
-        captured = [node for node in self.nodes.values()
-                    if node["kind"] == "module" and node["path"].endswith(".py")]
-        components = (component_policy(captured, self.asts, self)
-                      if analyzer is None else analyzer.candidate_components)
         self.edges = []
         for n in self.nodes.values():
             if n["parent"]:
@@ -309,19 +303,16 @@ class Graph:
                     n.get("column", 0),
                 )
         analyzer = analyzer or Analyzer(
-            self.nodes, self.asts, self.repos, self.imported, query_reuse,
-            candidate_components=components, source_context=source_context,
+            self.nodes, self.asts, self.repos, self.imported,
+            source_context=source_context,
             candidate_site_evidence=candidate_site_evidence,
             selected_owners=selected_owners)
         succeeded = False
         try:
             selected = None if selected_owners is None else frozenset(selected_owners)
+            analyzer.recorder.add_owners(selected)
             def chosen(owner):
                 return selected is None or owner in selected
-            # Build the reverse Jedi target index once for this capture's selected
-            # sites. Parameter and constructor queries then inspect only actual
-            # target observations or explicit matching call spellings.
-            analyzer.prepare_site_queries(selected)
             # This relation exists even when a base or receiver is unresolved:
             # changing the declaring class can alter a method's MRO lookup.
             # It is a source dependency, not an invocation edge.
@@ -331,7 +322,7 @@ class Graph:
                 context = _receiver_context(ident, self.nodes, self.asts)
                 if context is not None:
                     declaring, method, receiver = context
-                    analyzer._unit_support(
+                    analyzer.recorder.support(
                         declaring, self.asts[declaring], ident, tree,
                         "class-receiver-context",
                         dict(receiver=receiver, via_method=method),
@@ -343,46 +334,32 @@ class Graph:
                 expr, scope = item["_expr"], item["execution_owner"]
                 if not chosen(scope):
                     continue
-                # Always retain the actual Jedi observation, including rejected descriptors.
-                signal = analyzer.query(scope, expr)
-                result = analyzer.tool_first_lexical(scope, expr, signal)
-                tool_first_kind = "lexical" if result is not None else None
-                if result is None:
-                    result = analyzer.tool_first_subscript(scope, expr, signal)
-                    if result is not None:
-                        tool_first_kind = "container"
-                tool_first = result is not None
-                if result is None:
-                    analyzer.legacy_target_sites += 1
-                    result = analyzer.resolve(scope, expr)
-                if item["kind"] == "implicit_decorator" and isinstance(expr, ast.Call):
-                    # Factory application calls its returned decorator, not the factory again.
-                    result = analyzer.resolve(scope, expr)
-                result, decision = analyzer.adjudicate(scope, expr, result, signal)
-                if tool_first:
-                    decision["target_provider"] = "jedi-exact-captured-definition"
-                    decision["reason"] = ("jedi-target-with-lexical-source" if tool_first_kind == "lexical"
-                                          else "jedi-target-with-container-source")
-                else:
-                    decision["target_provider"] = "finite-association-with-jedi-signal"
-                targets = sorted({a.target for a in result.atoms if a.kind in CALLABLE_KINDS})
-                boundaries = sorted({a.target for a in result.atoms if a.kind == "boundary"})
-                reasons = sorted(result.reasons)
+                # The tool observation is the sole target authority.
+                signal = (analyzer.query(scope, item["_call"], signature=True)
+                          if item["kind"] == "call" else analyzer.query(scope, expr))
+                targets = sorted({a.target for a in signal.atoms if a.kind in CALLABLE_KINDS})
+                boundaries = sorted({a.target for a in signal.atoms if a.kind == "boundary"})
+                reasons = sorted(signal.reasons)
                 if any(b.startswith("dependency-version-unmatched:") for b in boundaries):
                     reasons.append("dependency-version-unmatched")
-                complete = not reasons and analyzer.complete(result)
+                complete = not reasons
+                raw_key = ((analyzer.module_for[scope],
+                            *analyzer.signature_position(item["_call"]), "signature")
+                           if item["kind"] == "call" else
+                           (analyzer.module_for[scope], expr.end_lineno,
+                            expr.end_col_offset, False))
+                raw_observations = analyzer.queries.get(raw_key, (None, []))[1]
+                analyzer.recorder.call(scope, item["_call"], targets, raw_observations)
                 record = {k: v for k, v in item.items() if not k.startswith("_")}
                 record.update(
                     targets=targets,
                     unknown_origin=bool(reasons),
                     complete=complete,
-                    completeness_basis=sorted(result.proofs) if complete else None,
-                    resolution_kind=(
-                        "proven-targets" if targets or boundaries else "proven-no-target"
-                    )
-                    if complete
-                    else ("partial-targets" if targets or boundaries else "unsupported-or-unknown"),
-                    resolution_decision=decision,
+                    completeness_basis="jedi-observation-mapped" if complete else None,
+                    resolution_kind=("mapped-observation" if targets or boundaries else
+                                     "unsupported-or-unknown"),
+                    target_provider=("jedi-get-signatures" if item["kind"] == "call"
+                                     else "jedi-infer"),
                     unresolved_reasons=reasons,
                     boundaries=[
                         dict(
@@ -398,40 +375,20 @@ class Graph:
                         dict(
                             tool="jedi",
                             version="0.20.1",
-                            role="definition signal",
-                            raw=analyzer.queries[
-                                (
-                                    analyzer.module_for[scope],
-                                    expr.end_lineno,
-                                    expr.end_col_offset,
-                                    False,
-                                )
-                            ][1],
-                        ),
-                        dict(
-                            tool="lct",
-                            role=("source evidence for Jedi target" if tool_first
-                                  else "validated binding/argument/container association"),
-                            association_trace=analyzer.explain(scope, expr),
-                            decision=decision,
-                            signal_agrees=targets
-                            == sorted(a.target for a in signal.atoms if a.kind in CALLABLE_KINDS),
+                            role=("call signature" if item["kind"] == "call"
+                                  else "inferred definition"),
+                            api=("get_signatures" if item["kind"] == "call" else "infer"),
+                            position=(list(analyzer.signature_position(item["_call"]))
+                                      if item["kind"] == "call" else
+                                      [expr.end_lineno, expr.end_col_offset]),
+                            raw=raw_observations,
                         ),
                     ],
                 )
-                goto_key = (analyzer.module_for[scope], expr.end_lineno,
-                            expr.end_col_offset, True)
-                if (any((target, id(expr)) in analyzer._classmethod_site_targets
-                        for target in targets) and goto_key in analyzer.queries):
-                    record["evidence"].append(dict(
-                        tool="jedi", version="0.20.1",
-                        role="exact inherited classmethod declaration via goto",
-                        raw=analyzer.queries[goto_key][1],
-                    ))
                 sites.append(record)
                 for target in targets:
                     if target in analyzer.trees:
-                        analyzer._unit_support(
+                        analyzer.recorder.support(
                             target, analyzer.trees[target], scope, expr, "call-target",
                             dict(call_site=item["site_id"], target_id=target,
                                  unknown_reasons=reasons),
@@ -453,27 +410,8 @@ class Graph:
                         site_id=item["site_id"],
                         complete=complete,
                         unknown_origin=bool(reasons),
-                        target_role="decorated-factory"
-                        if any(
-                            a.target == target
-                            and a.kind in ("context-factory", "async-context-factory")
-                            for a in result.atoms
-                        )
-                        else "definition",
-                        invocation_phase=next(
-                            (
-                                analyzer.invocation_phase(a)
-                                for a in result.atoms
-                                if a.target == target
-                            ),
-                            "ordinary-call",
-                        ),
-                        executes_body=False
-                        if any(
-                            a.target == target and analyzer.invocation_phase(a) != "ordinary-call"
-                            for a in result.atoms
-                        )
-                        else None,
+                        target_role="definition",
+                        invocation_phase="ordinary-call",
                     )
                 for boundary in boundaries:
                     target = "boundary:" + (
@@ -516,63 +454,29 @@ class Graph:
                     or len(tree.decorator_list) != 1
                 ):
                     continue
-                wrapper = analyzer.context_wrapper(
-                    self.nodes[ident]["parent"], tree.decorator_list[0]
-                )
-                if wrapper:
-                    origin = (
-                        "contextlib.asynccontextmanager"
-                        if wrapper == "async-context-factory"
-                        else "contextlib.contextmanager"
-                    )
-                    self.add_edge(
-                        "boundary:external-or-excluded:" + origin,
-                        ident,
-                        "WRAPS",
-                        "resolved",
-                        "verified contextlib decorator binds a generator factory",
-                        tree.lineno,
-                        tree.col_offset,
-                        wrapper_origin=origin,
-                        wrapped_body_phase="generator-resume",
-                    )
+                decorator = tree.decorator_list[0]
+                decorator_name = decorator.func if isinstance(decorator, ast.Call) else decorator
+                observed = analyzer.query(self.nodes[ident]["parent"], decorator_name)
+                for atom in observed.atoms:
+                    if atom.kind == "boundary" and atom.target in (
+                            "contextlib.contextmanager", "contextlib.asynccontextmanager"):
+                        self.add_edge("boundary:external-or-excluded:" + atom.target,
+                                      ident, "WRAPS", "resolved", "Jedi decorator observation",
+                                      tree.lineno, tree.col_offset, wrapper_origin=atom.target)
             for scope, statement, context in analyzer.context_sites:
                 if not chosen(scope):
                     continue
-                receivers = analyzer.resolve(scope, context)
-                context_complete = analyzer.complete(receivers)
-                expected = (
-                    "async-context-manager"
-                    if isinstance(statement, ast.AsyncWith)
-                    else "context-manager"
-                )
-                for receiver in receivers.atoms:
-                    if receiver.kind != expected:
-                        continue
-                    self.add_edge(
-                        scope,
-                        receiver.target,
-                        "CONTEXT_ENTERS",
-                        "resolved" if context_complete else "possible",
-                        "context entry resumes the wrapped generator, separate from factory creation",
-                        context.lineno,
-                        context.col_offset,
-                        ast.unparse(context),
-                        invocation_phase="generator-resume",
-                        executes_body=True,
-                        complete=context_complete,
-                        unknown_origin=not context_complete,
-                        unresolved_reasons=sorted(receivers.reasons)
-                        + (
-                            ["missing-write-source-coverage"]
-                            if not analyzer.requirements_complete(receivers)
-                            else []
-                        ),
-                    )
+                # A context expression is observable even when Jedi does not
+                # establish the entered/resumed body. Preserve the boundary.
+                self.add_edge(scope, None, "CONTEXT_ENTERS", "unresolved",
+                              "context entry target not supplied by Jedi observation",
+                              context.lineno, context.col_offset, ast.unparse(context),
+                              complete=False, unknown_origin=True,
+                              unresolved_reasons=["context-enter-target-unobserved"])
             for scope, expr, phase in analyzer.references:
                 if not chosen(scope):
                     continue
-                result = analyzer.resolve(scope, expr)
+                result = analyzer.query(scope, expr)
                 for a in result.atoms:
                     if a.kind in CALLABLE_KINDS or a.kind == "module":
                         self.add_edge(
@@ -590,7 +494,7 @@ class Graph:
                 if not chosen(scope):
                     continue
                 for alias_index, alias in enumerate(stmt.names):
-                    result = analyzer.binding(scope, "import", (stmt, alias))
+                    result = analyzer.query(scope, alias)
                     namespace = self.named_import_namespace(scope, stmt, alias)
                     source = self.nodes[scope]
                     requested_module = self.import_request_module(scope, stmt, alias)
@@ -641,7 +545,7 @@ class Graph:
                         )
                     if not result.atoms:
                         reasons = sorted(result.reasons)
-                        lookup = self.import_lookup(scope, stmt, alias)
+                        lookup = self.import_lookup(scope, stmt, alias, namespace=namespace)
                         target = lookup[1] if lookup else None
                         detail = dict(lookup=lookup[2], lookup_status="unresolved",
                                       unresolved_reasons=reasons, unknown_origin=True,
@@ -660,7 +564,7 @@ class Graph:
             for ident, scope, base in analyzer.inheritance:
                 if not chosen(scope):
                     continue
-                result = analyzer.resolve(scope, base)
+                result = analyzer.query(scope, base)
                 for a in result.atoms:
                     if a.kind == "class":
                         self.add_edge(
@@ -673,26 +577,18 @@ class Graph:
                             base.col_offset,
                             ast.unparse(base),
                         )
+            sites.sort(key=lambda site: (
+                self.nodes[site["execution_owner"]]["repository"],
+                self.nodes[site["execution_owner"]]["path"],
+                site["line"], site["column"], site["kind"], site["site_id"]))
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
-            whole_capture = selected is None or selected == self.asts.keys()
-            flow = (value_flow_evidence(list(self.nodes.values()), self.asts,
-                                        analyzer, sites, self.imported)
-                    if whole_capture else dict(nodes=[], edges=[], reads=[], complete=False))
+            flow = dict(nodes=[], edges=[], reads=[], complete=False)
+            recorder = analyzer.recorder
             info = dict(
-                engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
-                schema=3,
+                engine="AST catalog + Jedi 0.20.1 observations",
+                schema=4,
                 sites=sites,
                 call_sites=len(sites),
-                analysis_limited=analyzer.limited,
-                association_evaluations=20000 - analyzer.budget,
-                slot_scope_index_build_scopes=analyzer.slot_scope_index_build_scopes,
-                slot_origin_binding_index_entries=analyzer.slot_origin_binding_index_entries,
-                slot_writer_index_receivers=analyzer.slot_writer_index_receivers,
-                slot_writer_index_events=analyzer.slot_writer_index_events,
-                slot_call_index_events=analyzer.slot_call_index_events,
-                slot_scope_fallback_scopes=len(analyzer._slot_fallback_scopes),
-                slot_scope_candidates_checked=analyzer.slot_scope_candidates_checked,
-                slot_events_checked=analyzer.slot_events_checked,
                 jedi_queries=len(analyzer.queries),
                 jedi_queries_reused=analyzer.reused_queries,
                 jedi_queries_executed=analyzer.executed_queries,
@@ -700,37 +596,34 @@ class Graph:
                 jedi_query_cache_hits=analyzer.query_cache_hits,
                 jedi_raw_observation_hits=analyzer.raw_jedi_observation_hits,
                 jedi_raw_result_counts=dict(analyzer.raw_query_counts),
-                tool_first_sites=analyzer.tool_first_sites,
-                source_only_lexical_visits=analyzer.source_only_lexical_visits,
-                source_only_container_reads=analyzer.source_only_container_reads,
-                source_only_literal_entries_checked=analyzer.source_only_literal_entries_checked,
-                legacy_target_sites=analyzer.legacy_target_sites,
+                jedi_source_query_entries=recorder.goto_entries,
+                jedi_source_query_cache_hits=recorder.goto_cache_hits,
+                jedi_source_queries_executed=recorder.goto_executed,
+                jedi_total_queries_executed=analyzer.executed_queries + recorder.goto_executed,
+                source_origin_index_entries=recorder.indexed_origin_entries,
+                source_owner_site_visits=recorder.owner_site_visits,
+                source_subscriptions=len(recorder.subscriptions),
+                source_writes=len(recorder.writes),
                 candidate_site_queries_prepared=analyzer.site_queries_prepared,
-                classmethod_source_sites=analyzer.classmethod_source_sites,
-                candidate_calls=analyzer.candidate_calls,
-                candidate_visits=analyzer.candidate_visits,
-                candidate_target_positions=analyzer.candidate_target_positions,
-                candidate_unknown_bucket_visits=analyzer.candidate_unknown_bucket_visits,
-                candidate_preparation_reentries=analyzer.preparation_candidate_reentries,
-                _query_observations=analyzer.reusable_queries(),
+                _query_observations=[],
                 _import_dependencies=import_dependencies,
                 _import_requests=import_requests,
-                _analysis_reads=sorted(analyzer.analysis_reads),
-                _analysis_watches=sorted(analyzer.analysis_watches),
+                _analysis_reads=sorted({(c, p, k) for _, c, p, k in recorder.reads}),
+                _analysis_watches=sorted({(c, k, u) for _, c, k, u in recorder.watches}),
                 _analysis_inputs=analyzer.analysis_inputs.export(),
-                _unit_analysis_reads=sorted(analyzer.unit_analysis_reads),
-                _unit_analysis_watches=sorted(analyzer.unit_analysis_watches),
-                _unit_input_events=sorted(analyzer.unit_input_events),
-                _unit_supports=list(analyzer.unit_supports.values()),
-                _unit_subscriptions=list(analyzer.unit_container_subscriptions.values()),
-                _unit_writes=list(analyzer.unit_container_writes.values()),
-                _unit_dependency_truncated=analyzer.unit_dependency_truncated,
+                _unit_analysis_reads=sorted(recorder.reads),
+                _unit_analysis_watches=sorted(recorder.watches),
+                _unit_input_events=sorted(recorder.inputs),
+                _unit_supports=list(recorder.supports.values()),
+                _unit_subscriptions=list(recorder.subscriptions.values()),
+                _unit_writes=list(recorder.writes.values()),
+                _unit_dependency_truncated=recorder.truncated,
                 _value_flow=flow,
-                _value_read_witnesses=dict(analyzer.value_reads),
-                _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
+                _value_read_witnesses={},
+                _analysis_dependency_truncated=recorder.truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
-                limits="20k associations; recursion 40; unsupported constructs remain unknown",
+                limits="Jedi observation; source evidence limit 20k",
             )
             if retain_analyzer:
                 info["_analyzer"] = analyzer

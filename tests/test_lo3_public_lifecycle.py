@@ -68,7 +68,8 @@ def test_public_consecutive_container_callback_restart_and_failed_publish(tmp_pa
     with forbid_provider(), patch.object(Graph, "build", selected_only):
         second = build(config, offline=True, lexical_only=True)
     second_version = second["version"]
-    assert "second" in _targets(config, second_version)
+    assert _targets(config, second_version) == {"first"}
+    assert semantic(config, second_version) != old_semantic
     assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert not any(":function:unrelated#" in owner for owner in
                    second["incremental"]["analysis_scope"]["selected_owner_ids"])
@@ -76,7 +77,7 @@ def test_public_consecutive_container_callback_restart_and_failed_publish(tmp_pa
     with forbid_provider(), patch.object(Graph, "build", selected_only), pytest.raises(ToolError, match="Injected"):
         build(config, offline=True, lexical_only=True, fail_at="before_publish")
     assert current(config) == second_version
-    assert "second" in _targets(config, second_version)
+    assert _targets(config, second_version) == {"first"}
     script = ("import json,sys; from lct.graph import Graph; from lct.storage import build; "
               "original=Graph.build; "
               "def_guard=''; "

@@ -1,8 +1,6 @@
 """Bounded validation of typed evidence reuse across captured versions."""
 
-import importlib.util
 from copy import deepcopy
-from pathlib import Path
 
 import pytest
 
@@ -34,12 +32,13 @@ def context(old_a=OLD_A, new_a=NEW_A):
 
 def nested_record(ident, node):
     version = node["version_id"]
-    return {"resolution_decision": {
-        "call_access": {"definitions": [{"target": ident, "version_id": version}],
-                        "unused_inputs": {"dependencies": [{"evidence": [{
-                            "reason": "definition-dependencies", "function": ident,
-                            "call_line": 2, "invocation_scope": "owner", "version_id": version}]}]}},
-        "opaque": f"literal version_id={version} remains unchanged"}}
+    return {"evidence": [{"tool": "jedi", "raw": [{
+        "mapping": "exact-captured-definition", "target": ident,
+        "version_id": version, "source_sha256": node["source_sha256"],
+        "column": 4, "full_name": "a.first", "line": 1,
+        "module_path": "src/a.py", "name": "first", "repository": "fixture",
+        "type": "function", "parameters": [{"name": "first"}, {"name": "second"}]}]}],
+        "opaque": f"literal version_id={version} remains unchanged"}
 
 
 def test_nested_typed_versions_are_rebound_without_mutating_old_record():
@@ -47,23 +46,24 @@ def test_nested_typed_versions_are_rebound_without_mutating_old_record():
     record = nested_record(ids["first"], old[ids["first"]])
     original = deepcopy(record)
     updated = ctx.rebind(record, owner_id=ids["owner"])
-    proof = updated["resolution_decision"]
-    assert proof["call_access"]["definitions"][0]["version_id"] == new[ids["first"]]["version_id"]
-    assert proof["call_access"]["unused_inputs"]["dependencies"][0]["evidence"][0]["version_id"] == new[ids["first"]]["version_id"]
-    assert proof["opaque"] == original["resolution_decision"]["opaque"]
+    raw = updated["evidence"][0]["raw"][0]
+    assert raw["version_id"] == new[ids["first"]]["version_id"]
+    assert raw["source_sha256"] == new[ids["first"]]["source_sha256"]
+    assert raw["parameters"] == [{"name": "first"}, {"name": "second"}]
+    assert updated["opaque"] == original["opaque"]
     assert record == original and updated is not record
 
 
 def test_bad_stamp_unknown_schema_and_missing_target_fail_closed():
     ctx, ids, old, _ = context()
     record = nested_record(ids["first"], old[ids["first"]])
-    record["resolution_decision"]["call_access"]["definitions"][0]["version_id"] = "tampered"
+    record["evidence"][0]["raw"][0]["version_id"] = "tampered"
     with pytest.raises(EvidenceReuseRejected, match="stamp mismatch"):
         ctx.rebind(record, owner_id=ids["owner"])
     with pytest.raises(EvidenceReuseRejected, match="unknown version"):
         ctx.rebind({"mystery": {"target": ids["first"], "version_id": "old"}}, owner_id=ids["owner"])
     with pytest.raises(EvidenceReuseRejected, match="old definition missing"):
-        ctx.rebind({"definitions": [{"target": "absent", "version_id": "old"}]}, owner_id=ids["owner"])
+        ctx.rebind(nested_record("absent", old[ids["first"]]), owner_id=ids["owner"])
 
 
 @pytest.mark.parametrize("new_source", [
@@ -75,6 +75,15 @@ def test_deleted_changed_or_relocated_definition_rejected(new_source):
     ctx, ids, old, _ = context(new_a=new_source)
     with pytest.raises(EvidenceReuseRejected):
         ctx.rebind(nested_record(ids["first"], old[ids["first"]]), owner_id=ids["owner"])
+
+
+def test_ambiguous_definition_identity_rejects_retained_jedi_raw():
+    ctx, ids, old, _ = context()
+    first = old[ids["first"]]
+    key = (first["repository"], first["path"], first["qualname"], first["kind"])
+    ctx.new_by_key[key].append(deepcopy(ctx.new_by_key[key][0]))
+    with pytest.raises(EvidenceReuseRejected, match="ambiguous or deleted"):
+        ctx.rebind(nested_record(ids["first"], first), owner_id=ids["owner"])
 
 
 def test_owner_invalidation_and_repeated_lookup_use_prepared_index_only():
@@ -111,6 +120,43 @@ def test_raw_mapping_checks_both_old_stamps_and_rebinds_source_fingerprint():
         ctx.rebind(record, owner_id=ids["owner"])
 
 
+def test_retained_jedi_parameter_error_rebinds_without_inventing_parameters():
+    ctx, ids, old, new = context()
+    record = nested_record(ids["first"], old[ids["first"]])
+    raw = record["evidence"][0]["raw"][0]
+    raw["parameters"] = []
+    raw["parameters_error"] = "RecursionError"
+    original = deepcopy(record)
+    rebound = ctx.rebind(record, owner_id=ids["owner"])
+    current = rebound["evidence"][0]["raw"][0]
+    assert current["parameters"] == []
+    assert current["parameters_error"] == "RecursionError"
+    assert current["version_id"] == new[ids["first"]]["version_id"]
+    assert current["source_sha256"] == new[ids["first"]]["source_sha256"]
+    assert record == original and rebound is not record
+
+
+@pytest.mark.parametrize("damage", ["partial", "missing", "empty", "extra", "fingerprint"])
+def test_malformed_or_unverified_jedi_parameter_error_fails_closed(damage):
+    ctx, ids, old, _ = context()
+    record = nested_record(ids["first"], old[ids["first"]])
+    raw = record["evidence"][0]["raw"][0]
+    raw["parameters"] = []
+    raw["parameters_error"] = "RecursionError"
+    if damage == "partial":
+        raw["parameters"] = [{"name": "partly computed"}]
+    elif damage == "missing":
+        del raw["parameters"]
+    elif damage == "empty":
+        raw["parameters_error"] = ""
+    elif damage == "extra":
+        raw["resolver_fallback"] = True
+    else:
+        raw["source_sha256"] = "unverified"
+    with pytest.raises(EvidenceReuseRejected):
+        ctx.rebind(record, owner_id=ids["owner"])
+
+
 @pytest.mark.parametrize("proof", [None, (), ("one",), ("wrong", "wrong"), ("", "")])
 def test_source_only_rebinding_requires_two_matching_captured_hashes(proof):
     _, ids, old, new = context()
@@ -125,31 +171,3 @@ def test_source_only_rebinding_requires_two_matching_captured_hashes(proof):
                         selected_paths={("fixture", "src/a.py")},
                         verified_sources={("fixture", "src/b.py"): (source, source)})
     assert ctx.rebind(nested_record(owner, old[owner]), owner_id=owner)
-
-
-def test_v5_reanalyzes_owner_after_tampered_retained_evidence():
-    path = (Path(__file__).resolve().parents[1] / "review/batch4-incremental"
-            / "directional-experiment/v5.py")
-    spec = importlib.util.spec_from_file_location("v5_evidence_test", path)
-    v5 = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(v5)
-    _, before, after = next(c for c in v5.constructor_cases()
-                            if c[0] == "same_named_initializers_isolated")
-    old = v5.v1.local.build(before)
-    old = deepcopy(old)
-    site = next(s for s in old["info"]["sites"]
-                if ":src/c.py:" in s["execution_owner"] and s.get("resolution_decision"))
-    def tamper(value):
-        if isinstance(value, dict):
-            if "version_id" in value:
-                value["version_id"] = "tampered"
-                return True
-            return any(tamper(v) for v in value.values())
-        if isinstance(value, list):
-            return any(tamper(v) for v in value)
-        return False
-    assert tamper(site)
-    candidate, cost = v5.candidate(before, after, old)
-    assert cost["rejected_owner_paths"] == ["src/c.py"]
-    assert "src/c.py" in cost["selected"]
-    assert v5.v1.local.normalized(candidate) == v5.v1.local.normalized(v5.v1.local.build(after))

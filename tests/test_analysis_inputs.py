@@ -100,7 +100,8 @@ def test_file_dependencies_reads_real_legacy_consumer_columns(tmp_path):
     legacy["artifact_sizes"]["graph-sites.sqlite"] = size
     with FileDependencies(folder, legacy) as deps:
         assert deps.input_scope_available
-        assert deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py")
+        assert not deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py")
+        assert ("synthetic-review", "src/trpg_state_machine/availability.py") in deps.input_scope_watchers()
 
 
 @pytest.mark.parametrize("mask", [0, 32, -1, True, "1"])
@@ -148,52 +149,30 @@ def test_query_empty_error_and_cache_observe_same_capture_scope(tmp_path):
         analyzer.close()
 
 
-def test_non_jedi_entrypoints_share_one_scope_and_purpose_mask(tmp_path):
-    source = "def target(): pass\nclass C: pass\n"
-    nodes, trees = python_nodes(dict(repository="r", path="a.py", text=source,
-                                     sha256=digest(source), is_test=False))
-    graph = Graph(nodes, trees, [dict(name="r", path=str(tmp_path), head="captured")])
-    module = next(n["node_id"] for n in nodes if n["kind"] == "module")
-    target = next(n["node_id"] for n in nodes if n.get("qualname") == "target")
-    cls = next(n["node_id"] for n in nodes if n.get("qualname") == "C")
-    analyzer = Analyzer(graph.nodes, trees, graph.repos, graph.imported,
-                        candidate_components={module: frozenset({module})})
-    try:
-        assert list(analyzer.candidate_sites(target)) == []
-        assert analyzer.reaching(module, "target", 10**9)
-        assert analyzer.member(cls, "absent") is None
-        import ast
-        assert analyzer.resolve(module, ast.parse("1", mode="eval").body).atoms
-        rows = analyzer.analysis_inputs.export()["consumers"]
-        assert len(rows) == 1 and (rows[0]["purposes"] & 30) == 30
-    finally:
-        analyzer.close()
+def test_jedi_query_records_one_capture_scope_without_candidate_solver(tmp_path):
+    from tests.test_python_pipeline import analyze, site
+    graph = analyze(tmp_path, {"a.py": "def target(): pass\ndef run(): target()\n",
+                               "b.py": "def other(): pass\n"}, closed=False)
+    observed = site(graph, "target", "run")
+    assert observed["names"] == {"target"}
+    assert observed["target_provider"] == "jedi-get-signatures"
+    ledger = graph[2]["_analysis_inputs"]
+    assert ledger["scopes"] == [dict(id="capture:all-captured-python", kind="capture")]
+    assert ledger["members"] == []
+    assert len(ledger["consumers"]) == 1
+    assert ledger["consumers"][0]["path"] == "a.py"
+    assert ledger["consumers"][0]["purposes"] & 1
 
 
-def test_cross_scope_consumer_and_missing_member_observed(tmp_path):
-    sources = {"a.py": "def consumer(): pass\n", "b.py": "class C: pass\n"}
-    nodes, trees = [], {}
-    for path, source in sources.items():
-        ns, ts = python_nodes(dict(repository="r", path=path, text=source,
-                                   sha256=digest(source), is_test=False))
-        nodes.extend(ns)
-        trees.update(ts)
-    graph = Graph(nodes, trees, [dict(name="r", path=str(tmp_path), head="captured")])
-    a = next(n["node_id"] for n in nodes if n.get("qualname") == "consumer")
-    b = next(n["node_id"] for n in nodes if n.get("qualname") == "C")
-    module_ids = {n["node_id"] for n in nodes if n["kind"] == "module"}
-    components = {m: frozenset(module_ids) for m in module_ids}
-    analyzer = Analyzer(graph.nodes, trees, graph.repos, graph.imported,
-                        candidate_components=components)
-    try:
-        analyzer.stack.append((a, 0, (0, 0)))
-        assert analyzer.member(b, "new_member") is None
-        analyzer.stack.pop()
-        rows = analyzer.analysis_inputs.export()["consumers"]
-        assert len(rows) == 1 and rows[0]["module_id"].endswith("a.py:module:a#1")
-        assert rows[0]["purposes"] & 8
-    finally:
-        analyzer.close()
+def test_cross_module_jedi_query_keeps_source_consumer_not_a_synthetic_component(tmp_path):
+    from tests.test_python_pipeline import analyze, site
+    graph = analyze(tmp_path, {"a.py": "from b import target\ndef run(): target()\n",
+                               "b.py": "def target(): pass\n"}, closed=False)
+    assert site(graph, "target", "run")["names"] == {"target"}
+    ledger = graph[2]["_analysis_inputs"]
+    assert {r["path"] for r in ledger["consumers"]} == {"a.py"}
+    assert ledger["members"] == []
+    assert graph[2]["_unit_supports"]
 
 
 @pytest.mark.parametrize("noise", [0, 20])
@@ -204,9 +183,8 @@ def test_persisted_scope_reader_and_local_full_equality(tmp_path, noise):
     assert metadata["analysis_input_schema"] == SCHEMA
     assert metadata["analysis_input_coverage"] == COVERAGE
     with FileDependencies(folder, metadata) as deps:
-        assert deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py") == {
-            ("synthetic-review", "src/trpg_state_machine/availability.py")}
-        assert deps.input_scope_watchers() == set()
+        assert deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py") == set()
+        assert ("synthetic-review", "src/trpg_state_machine/availability.py") in deps.input_scope_watchers()
         plan = list(deps.db.execute("explain query plan select scope_id from analysis_input_members "
                                     "where repository=? and path=?", (
                                     "synthetic-review", "src/trpg_state_machine/availability.py")))
@@ -230,7 +208,7 @@ def test_scope_manifest_and_truncation_fail_closed(tmp_path):
     first = build(config, offline=True, lexical_only=True)
     folder, metadata = manifest(config, first["version"])
     with FileDependencies(folder, metadata) as deps:
-        assert deps.input_scope_watchers() == set()
+        assert ("synthetic-review", "src/trpg_state_machine/availability.py") in deps.input_scope_watchers()
     for change in ({"analysis_input_schema": 99},
                    {"analysis_input_scope_count": metadata["analysis_input_scope_count"] + 1}):
         with pytest.raises(ToolError):
@@ -238,10 +216,6 @@ def test_scope_manifest_and_truncation_fail_closed(tmp_path):
     with FileDependencies(folder, dict(metadata, analysis_input_truncated=True)) as deps:
         with pytest.raises(ToolError):
             deps.input_scope_readers("synthetic-review", "src/trpg_state_machine/availability.py")
-    from lct.python_incremental import prepare
-    assert prepare(None, dict(metadata, analysis_input_schema=None), [], [],
-                   dependencies=None, graph_sites=None) == (
-                       None, "previous-analysis-input-evidence-unavailable")
 
 
 def test_identical_capture_preserves_scope_rows(tmp_path):

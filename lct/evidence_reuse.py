@@ -67,8 +67,7 @@ class RebindContext:
     def rebind(self, record, *, owner_id):
         """Return an independent copy with validated, typed definition versions.
 
-        The only accepted version-bearing schemas are call_access.definitions
-        entries, definition-dependencies evidence, and Jedi raw mappings marked
+        The only accepted version-bearing schema is a Jedi raw mapping marked
         exact-captured-definition. Other shapes fail closed.
         """
         owner_old, _ = self.matched(owner_id)
@@ -87,15 +86,16 @@ class RebindContext:
             if "version_id" not in value:
                 return result
             target = None
-            if parent == "definitions" and set(value) == {"target", "version_id"}:
-                target = value["target"]
-            elif (parent == "evidence" and value.get("reason") == "definition-dependencies"
-                  and set(value) == {"reason", "function", "version_id", "call_line", "invocation_scope"}):
-                target = value["function"]
-            elif (parent == "raw" and value.get("mapping") == "exact-captured-definition"
-                  and set(value) == {"column", "full_name", "line", "mapping",
-                                     "module_path", "name", "repository", "source_sha256",
-                                     "target", "type", "version_id"}):
+            raw_keys = {"column", "full_name", "line", "mapping", "module_path",
+                        "name", "repository", "source_sha256", "target", "type", "version_id"}
+            keys = set(value)
+            parameter_error = (keys == raw_keys | {"parameters", "parameters_error"}
+                               and isinstance(value["parameters_error"], str)
+                               and bool(value["parameters_error"])
+                               and value["parameters"] == [])
+            if (parent == "raw" and value.get("mapping") == "exact-captured-definition"
+                    and (keys in (raw_keys, raw_keys | {"parameters"}) or
+                         parameter_error)):
                 target = value["target"]
             else:
                 raise EvidenceReuseRejected("unknown version reference shape")

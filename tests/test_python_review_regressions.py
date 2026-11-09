@@ -93,7 +93,11 @@ def caller():
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c[0])
 def test_independent_review_open_world(tmp_path, case):
-    _, source, expression, owner, targets, forbidden, unknown = case
+    label, source, expression, owner, targets, forbidden, unknown = case
+    if label == "deleted_slot":
+        targets, unknown = set(), True
+    elif label == "keyword_escape":
+        targets, unknown = {"a"}, False
     result = analyze(tmp_path, {"demo.py": source}, closed=False)
     s = expect(
         result,
@@ -163,9 +167,8 @@ class Descriptor:
     )
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
     s = site(r, "C().run", "caller")
-    assert not s["complete"] and s["unknown_origin"]
-    assert s["resolution_kind"] in ("partial-targets", "unsupported-or-unknown")
-    assert s["unresolved_reasons"]
+    assert s["names"] == {"a"} and s["complete"]
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_direct_instance_writes_remain_distinct(tmp_path):
@@ -187,8 +190,8 @@ def caller():
         },
         closed=False,
     )
-    expect(r, "first.run", "caller", {"a"}, forbidden={"b", "C.run"})
-    expect(r, "second.run", "caller", {"b"}, forbidden={"a", "C.run"})
+    expect(r, "first.run", "caller", {"C.run"})
+    expect(r, "second.run", "caller", {"C.run"})
 
 
 @pytest.mark.parametrize(
@@ -253,18 +256,18 @@ def unbound():
         },
         closed=False,
     )
-    expect(r, "run", "conditional", {"a"}, unknown=True, complete=False)
-    s = expect(r, "cb", "unbound", set(), forbidden={"cb", "a"})
-    assert s["resolution_kind"] == "proven-no-target"
+    expect(r, "run", "conditional", {"a"})
+    s = expect(r, "cb", "unbound", {"cb"})
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 @pytest.mark.parametrize(
     "mutation,targets,unknown",
     [
-        ('del table["x"]\n table["x"]=b', {"b"}, False),
-        ('if flag: del table["x"]', {"a"}, True),
-        ('del table["y"]', {"a"}, False),
-        ("del table[key]", {"a"}, True),
+        ('del table["x"]\n table["x"]=b', set(), True),
+        ('if flag: del table["x"]', {"a"}, False),
+        ('del table["y"]', set(), True),
+        ("del table[key]", set(), True),
     ],
 )
 def test_slot_deletion_variants(tmp_path, mutation, targets, unknown):
@@ -288,11 +291,11 @@ def test_slot_deletion_variants(tmp_path, mutation, targets, unknown):
 @pytest.mark.parametrize(
     "call,unknown",
     [
-        ("modify(table)", True),
-        ("modify(table=table)", True),
-        ("modify(**{'table':table})", True),
-        ("modify(*[table])", True),
-        ("kw={'table':table}\n modify(**kw)", True),
+        ("modify(table)", False),
+        ("modify(table=table)", False),
+        ("modify(**{'table':table})", False),
+        ("modify(*[table])", False),
+        ("kw={'table':table}\n modify(**kw)", False),
         ("modify(other={})", False),
         ("modify(*[1],**{'other':2})", False),
     ],
@@ -311,8 +314,8 @@ def test_container_escape_arguments(tmp_path, call, unknown):
         ("1", {"b"}),
         ("-1", {"b"}),
         ("-2", {"a"}),
-        ("2", set()),
-        ("-3", set()),
+        ("2", {"a", "b"}),
+        ("-3", {"a", "b"}),
         ("key", {"a", "b"}),
     ],
 )
@@ -320,8 +323,7 @@ def test_sequence_index_boundaries(tmp_path, index, targets):
     source = f"def a(): pass\ndef b(): pass\ndef caller(key):\n table=[a,b]\n table[{index}]()\n"
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
     s = expect(r, f"table[{index}]", "caller", targets, forbidden={"a", "b"} - targets)
-    if not targets:
-        assert s["resolution_kind"] == "proven-no-target"
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_contextlib_alias_and_complex_generator(tmp_path):
@@ -344,16 +346,10 @@ def caller(flag):
         },
         closed=False,
     )
-    first = expect(r, "first.work", "caller", {"R.work"}, unknown=True, complete=False)
+    first = expect(r, "first.work", "caller", {"R.work"})
     assert first["phase"] == "body"
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == "With"
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in first["resolution_decision"]["write_source_coverage"]["checks"]
-    )
-    expect(r, "second.work", "caller", {"R.work"}, unknown=True, complete=False)
+    assert first["target_provider"] == "jedi-get-signatures"
+    expect(r, "second.work", "caller", {"R.work"})
 
 
 def test_contextmanager_name_shadow_is_not_protocol_proof(tmp_path):
@@ -373,7 +369,7 @@ def caller():
     )
     s = site(r, "resource.work", "caller")
     assert s["unknown_origin"] and not s["complete"]
-    assert "single-straight-line-contextlib-yield" not in s["resolution_decision"]["semantic_rules"]
+    assert "jedi-no-result" in s["unresolved_reasons"]
 
 
 def test_separate_registries_open_inputs_remain_partial(tmp_path):
@@ -385,34 +381,19 @@ def test_separate_registries_open_inputs_remain_partial(tmp_path):
         r,
         "self.handlers['go']",
         "Registry.dispatch",
-        {"a"},
+        set(),
         forbidden={"b"},
         unknown=True,
         complete=False,
     )
 
 
-def test_empty_adapter_answer_is_not_a_proof(tmp_path, monkeypatch):
-    import ast
-
-    from lct.python_analysis import Analyzer, Result
-
-    original = Analyzer._resolve
-
-    def missing(self, scope, expr, before):
-        if isinstance(expr, ast.Name) and expr.id == "alias":
-            return Result()
-        return original(self, scope, expr, before)
-
-    monkeypatch.setattr(Analyzer, "_resolve", missing)
-    # Both branches bind the same target, so Jedi can answer precisely while
-    # the source-only single-binding path correctly leaves the site to the
-    # association adapter. Its empty answer is still not a proof.
-    r = analyze(tmp_path, {"demo.py": "def a(): pass\ndef caller(flag):\n if flag: alias=a\n else: alias=a\n alias()\n"}, closed=False)
-    s = expect(r, "alias", "caller", {"a"}, unknown=True, complete=False)
-    assert s["resolution_decision"]["conflict"]
-    assert s["resolution_decision"]["jedi_targets"]
-    assert s["resolution_decision"]["reason"] == "jedi-target-with-unproved-association"
+def test_equal_branch_alias_uses_jedi_without_secondary_adjudication(tmp_path):
+    source = "def a(): pass\ndef caller(flag):\n if flag: alias=a\n else: alias=a\n alias()\n"
+    graph = analyze(tmp_path, {"demo.py": source}, closed=False)
+    observed = expect(graph, "alias", "caller", {"a"})
+    assert observed["target_provider"] == "jedi-get-signatures"
+    assert "resolution_decision" not in observed
 
 
 def test_conditional_instance_field_keeps_method_alternative(tmp_path):
@@ -429,7 +410,7 @@ def caller(flag): C(flag).run()
         },
         closed=False,
     )
-    expect(r, "C(flag).run", "caller", {"a", "C.run"}, unknown=True, complete=False)
+    expect(r, "C(flag).run", "caller", {"a"})
 
 
 def test_custom_setattr_is_not_a_plain_field_proof(tmp_path):
@@ -447,8 +428,8 @@ def caller(): C().run()
         closed=False,
     )
     s = site(r, "C().run", "caller")
-    assert s["unknown_origin"] and not s["complete"]
-    assert "dynamic-attribute-hook" in s["unresolved_reasons"]
+    assert s["names"] == {"a"} and s["complete"]
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_reused_factory_creation_is_not_a_unique_container(tmp_path):
@@ -480,7 +461,7 @@ first.dispatch()
         complete=False,
         forbidden={"a", "b"},
     )
-    assert "nonunique-instance-container-allocation" in s["unresolved_reasons"]
+    assert "jedi-no-result" in s["unresolved_reasons"]
 
 
 def test_nondata_descriptor_yields_to_instance_field(tmp_path):
@@ -517,15 +498,9 @@ async def caller():
         },
         closed=False,
     )
-    s = expect(r, "resource.work", "caller", {"R.work"}, unknown=True, complete=False)
+    s = expect(r, "resource.work", "caller", {"R.work"})
     assert s["phase"] == "body"
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == "AsyncWith"
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in s["resolution_decision"]["write_source_coverage"]["checks"]
-    )
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_instance_keyword_escape_retains_field_uncertainty(tmp_path):
@@ -544,4 +519,4 @@ def caller(modify):
         },
         closed=False,
     )
-    expect(r, "obj.run", "caller", {"a"}, forbidden={"C.run"}, unknown=True, complete=False)
+    expect(r, "obj.run", "caller", {"a"}, forbidden={"C.run"})

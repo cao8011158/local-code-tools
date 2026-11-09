@@ -1,57 +1,22 @@
-"""Exact captured receiver mapping for an imported dictionary mutation."""
+"""Imported mutable receiver forms consume Jedi's call-site signatures."""
 
-from lct.python_analysis import Analyzer
-from tests.test_python_pipeline import analyze, site
+import pytest
+
+from tests.test_python_pipeline import analyze, expect
 
 
-def test_import_mapping_uses_subscript_receiver_binding(tmp_path, monkeypatch):
-    seen = []
-    original = Analyzer.map_name
-
-    def collect(self, name):
-        value, raw = original(self, name)
-        if raw.get("mapping") == "exact-captured-subscript-receiver":
-            seen.append((raw, value))
-        return value, raw
-
-    monkeypatch.setattr(Analyzer, "map_name", collect)
+@pytest.mark.parametrize("source,expression,expected,unknown", [
+    ("registry={'go':first}\nregistry['go']=second\n", "alias['go']", {"second"}, False),
+    ("registry={'go':first}\nregistry=object()\nregistry['go']=second\n", "alias['go']", set(), True),
+    ("items=[first]\nitems[0]=second\n", "alias[0]", {"second"}, False),
+])
+def test_imported_receiver_variants(tmp_path, source, expression, expected, unknown):
+    name = "items" if source.startswith("items") else "registry"
     result = analyze(tmp_path, {
-        "a.py": ("def first(): pass\ndef second(): pass\n"
-                 "registry={'go':first}\nregistry['go']=second\n"),
-        "b.py": "from a import registry as alias\ndef run(): alias['go']()\n",
+        "a.py": "def first(): pass\ndef second(): pass\n" + source,
+        "b.py": f"from a import {name} as alias\ndef run(): {expression}()\n",
     })
-    found = site(result, "alias['go']", "run")
-    assert found["names"] == {"second"} and found["complete"]
-    assert seen
-    assert any(raw["name"] == "registry" and raw["line"] == 4
-               and {a.kind for a in value.atoms} == {"container"}
-               and not value.unknown for raw, value in seen)
-
-
-def test_later_rebinding_does_not_pretend_subscript_target_is_container(tmp_path):
-    result = analyze(tmp_path, {
-        "a.py": ("def first(): pass\ndef second(): pass\n"
-                 "registry={'go':first}\nregistry=object()\nregistry['go']=second\n"),
-        "b.py": "from a import registry\ndef run(): registry['go']()\n",
-    })
-    found = site(result, "registry['go']", "run")
-    assert not found["complete"] and found["unknown_origin"]
-    assert found["names"] != {"second"}
-
-
-def test_sequence_receiver_is_outside_dictionary_mapping(tmp_path, monkeypatch):
-    mapped = []
-    original = Analyzer.map_name
-
-    def collect(self, name):
-        value, raw = original(self, name)
-        if raw.get("mapping") == "exact-captured-subscript-receiver":
-            mapped.append(raw)
-        return value, raw
-
-    monkeypatch.setattr(Analyzer, "map_name", collect)
-    analyze(tmp_path, {
-        "a.py": "def first(): pass\ndef second(): pass\nitems=[first]\nitems[0]=second\n",
-        "b.py": "from a import items\ndef run(): items[0]()\n",
-    })
-    assert mapped == []
+    observed = expect(result, expression, "run", expected, unknown=unknown,
+                      complete=not unknown)
+    assert observed["target_provider"] == "jedi-get-signatures"
+    assert observed["unresolved_reasons"] == (["jedi-no-result"] if unknown else [])

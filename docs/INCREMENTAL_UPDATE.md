@@ -1,5 +1,7 @@
 # Incremental update planner contract (Batch 4, first layer)
 
+> **Jedi authority candidate (2026-11-02):** The older dictionary value-flow target certificate and finite LCT adjudication described in portions of this file were retired in the [current refactor](../review/parser-refactor/JEDI_AUTHORITY_PLAN.md). The owner worklist now uses source-only origin/support/subscription evidence and direct Jedi targets; its schema 2 source coverage is partial. Historical sections below remain useful for old snapshots and the evolution of local scheduling, not as a statement that the retired target solver still runs.
+
 The owner-update and full-fallback behavior in the historical Batch 2 section
 below describes the implementation through Batch 3. LOCAL-ONLY-UPDATES LO-2
 now routes warm builds through owner-level scheduling from source supports,
@@ -231,7 +233,7 @@ below; the planner's `full-capture` flag does not describe those later gates.
 
 ## Narrow private Jedi observation reuse and import dependency inventory
 
-The public build now stores certified direct lexical definition observations in
+The historical public build stored certified direct lexical definition observations in
 an indexed private table inside `graph-sites.sqlite`. A one-time AST pass per
 module checks for a unique undecorated definition without another name binder.
 On a later build it verifies

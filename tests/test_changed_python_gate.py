@@ -1,8 +1,6 @@
 """Unsupported captured Python states preserve the complete analysis path."""
 
-from lct.common import inventory
-from lct.unit_incremental import prepare
-from lct.storage import GRAPH_SITES, FileDependencies, build, manifest
+from lct.storage import build
 from tests.test_general_passive_incremental import semantic
 from tests.synthetic_support import initialize
 from tests.semantic_comparison import assert_semantic_equal
@@ -55,32 +53,25 @@ def test_simultaneous_document_and_python_change_falls_back(tmp_path):
     assert scope["python_files_parsed"] == 1
 
 
-def test_association_bound_survives_local_and_exact_capture_generations(tmp_path):
+def test_local_and_identical_capture_generations_match_fresh(tmp_path):
     c, repo = fixture(tmp_path)
-    baseline = build(c, offline=True, lexical_only=True)
-    first_bound = baseline["graph"]["association_bound"]
     source = repo / "src/weights.py"
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")
     local = build(c, offline=True, lexical_only=True)
     assert local["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert local["graph"]["association_bound"] >= local["graph"]["association_evaluations"]
+    assert local["graph"]["jedi_queries_executed"] > 0
     identical = build(c, offline=True, lexical_only=True)
     assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
-    assert identical["graph"]["association_evaluations"] == 0
-    assert identical["graph"]["tool_first_sites"] == 0
-    assert identical["graph"]["source_only_lexical_visits"] == 0
-    assert identical["graph"]["legacy_target_sites"] == 0
-    assert identical["graph"]["association_bound"] == local["graph"]["association_bound"]
+    assert identical["graph"]["jedi_queries_executed"] == 0
+    assert identical["graph"]["jedi_query_entries"] == 0
+    assert identical["graph"]["jedi_query_cache_hits"] == 0
+    assert identical["graph"]["candidate_site_queries_prepared"] == 0
+    assert_semantic_equal(full_semantic(c, local["version"]),
+                          full_semantic(c, identical["version"]))
     source.write_text("def one(): pass\ndef two(): pass\ndef run(): two()\n")
     second = build(c, offline=True, lexical_only=True)
     assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert second["graph"]["association_bound"] == max(
-        identical["graph"]["association_bound"], second["graph"]["association_evaluations"])
-    source.write_text("def one(): pass\ndef two(): pass\ndef run(): one()\n")
-    old_folder, old_manifest = manifest(c, second["version"])
-    files, repos, _ = inventory(c)
-    near_budget = dict(old_manifest, graph=dict(old_manifest["graph"], association_bound=20000))
-    with FileDependencies(old_folder, old_manifest) as relations:
-        candidate, reason = prepare(old_folder, near_budget, files, repos,
-                                    dependencies=relations, graph_sites=GRAPH_SITES)
-    assert candidate is not None and reason == "incremental-owners", reason
+    fresh_c = dict(c, data=str(tmp_path / "fresh"))
+    fresh = build(fresh_c, offline=True, lexical_only=True)
+    assert_semantic_equal(full_semantic(c, second["version"]),
+                          full_semantic(fresh_c, fresh["version"]))

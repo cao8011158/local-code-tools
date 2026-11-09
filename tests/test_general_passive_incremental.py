@@ -235,7 +235,7 @@ def test_deleted_passive_source_keeps_remaining_unrelated_proofs(tmp_path, monke
                           full_semantic(full_config, fresh["version"]))
 
 
-def test_complex_capture_becoming_whole_v6_rebuilds_policy(tmp_path):
+def test_complex_capture_becoming_simple_rebuilds_local_source(tmp_path):
     config, repo = initialize(tmp_path / "isolated")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
@@ -250,21 +250,21 @@ def test_complex_capture_becoming_whole_v6_rebuilds_policy(tmp_path):
     (target / "errors.py").write_text("def error():\n    return 2\n")
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert updated["simple_python_certificate"] == "simple-python-v6"
+    assert updated["simple_python_certificate"] is None
     full_config = dict(config, data=str(tmp_path / "fresh"))
     fresh = build(full_config, offline=True, lexical_only=True)
     assert_semantic_equal(full_semantic(config, updated["version"]),
                           full_semantic(full_config, fresh["version"]))
 
 
-def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, monkeypatch):
+def test_local_preserves_passive_sources_for_new_complex_capture(tmp_path, monkeypatch):
     config, repo = initialize(tmp_path / "isolated")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
     for i in range(20):
         (repo / f"src/noise_{i}.py").write_text(f"def pure_{i}():\n    return {i}\n")
     first = build(config, offline=True, lexical_only=True)
-    assert first["simple_python_certificate"] == "simple-python-v6"
+    assert first["simple_python_certificate"] is None
     (repo / "src/noise_0.py").write_text("def pure_0():\n    return 200\n")
     local = build(config, offline=True, lexical_only=True)
     assert local["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
@@ -284,7 +284,7 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
     assert sorted(parsed) == ([] if not (repo / "src/noise_7.py").exists() else
                               ["src/trpg_state_machine/_execution.py", "src/trpg_state_machine/errors.py"])
     assert updated["simple_python_certificate"] is None
-    assert updated["value_flow_coverage"] == "partial"
+    assert updated["value_flow_coverage"] == "source-only-no-target-certificate"
     folder, _ = manifest(config, updated["version"])
     with sqlite3.connect(folder / "graph-sites.sqlite") as db:
         assert db.execute("select count(*) from simple_python_certificates").fetchone()[0] == 0
@@ -297,13 +297,13 @@ def test_v6_local_preserves_passive_proofs_for_new_complex_capture(tmp_path, mon
     identical = build(config, offline=True, lexical_only=True)
     assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
     assert identical["simple_python_certificate"] is None
-    assert identical["value_flow_coverage"] == "partial"
+    assert identical["value_flow_coverage"] == "source-only-no-target-certificate"
     source = target / "_execution.py"
     source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_changed"', 1))
     later = build(config, offline=True, lexical_only=True)
     assert later["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert later["simple_python_certificate"] is None
-    assert later["value_flow_coverage"] == "partial"
+    assert later["value_flow_coverage"] == "source-only-no-target-certificate"
     fresh_later_config = dict(config, data=str(tmp_path / "fresh-later"))
     fresh_later = build(fresh_later_config, offline=True, lexical_only=True)
     assert semantic(config, later["version"]) == semantic(fresh_later_config, fresh_later["version"])

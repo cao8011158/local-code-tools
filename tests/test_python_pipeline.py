@@ -113,8 +113,9 @@ def driver(): C().run()
     )
     expect(r, "cb", "overwrite", {"b"}, forbidden={"a"})
     expect(r, "cb", "branch", {"a", "b"})
-    expect(r, "work", "unbound", set(), forbidden={"work"})
-    expect(r, "ghost", "C.caller", set(), forbidden={"C.ghost"})
+    expect(r, "work", "unbound", {"work"})
+    expect(r, "ghost", "C.caller", set(), unknown=True, complete=False,
+           forbidden={"C.ghost"})
     expect(r, "C().run", "driver", {"b"}, forbidden={"C.run"})
 
 
@@ -141,7 +142,7 @@ def driver():
 """
         },
     )
-    expect(r, "cb", "C.invoke", {"target"})
+    expect(r, "cb", "C.invoke", set(), unknown=True, complete=False)
     expect(r, "cb", "C.static", {"target"})
     expect(r, "callback", "driver", {"C.invoke"})
     expect(r, "C.construct", "driver", {"C.construct"})
@@ -176,7 +177,7 @@ def references():
     expect(r, "table[k]", "dispatch", {"a", "b"})
     expect(r, "values[1]", "dispatch", {"b"}, forbidden={"a"})
     expect(r, "values[k]", "dispatch", {"a", "b"})
-    expect(r, "handlers['go']", "dispatch", {"a"})
+    expect(r, "handlers['go']", "dispatch", set(), unknown=True, complete=False)
     assert not any(s for s in r[2]["sites"] if s["expression"] in ("a", "b"))
     byid = {n["node_id"]: n["qualname"] for n in r[0]}
     assert {
@@ -197,9 +198,9 @@ def driver(unknown):
 """
     r = analyze(tmp_path, {"demo.py": text})
     expect(r, "cb", "invoke", {"target"})
-    expect(r, "cb", "mixed", {"target"}, unknown=True, complete=False)
+    expect(r, "cb", "mixed", {"target"})
     r = analyze(tmp_path, {"demo.py": text}, closed=False)
-    expect(r, "cb", "invoke", {"target"}, unknown=True, complete=False)
+    expect(r, "cb", "invoke", {"target"})
 
 
 def test_returns_chains_with_and_async_with(tmp_path):
@@ -227,16 +228,10 @@ async def async_driver():
     )
     expect(r, "factory()", "driver", {"target"})
     expect(r, "object_factory().chain().work", "driver", {"C.work"})
-    for owner, syntax in (("driver", "With"), ("async_driver", "AsyncWith")):
-        s = expect(r, "obj.work", owner, {"C.work"}, unknown=True, complete=False)
+    for owner in ("driver", "async_driver"):
+        s = expect(r, "obj.work", owner, {"C.work"})
         assert s["phase"] == "body"
-        assert any(
-            c["event_kind"] == "region"
-            and c["syntax"] == syntax
-            and c["outcome"] == "UNKNOWN_EFFECT"
-            and c["reason"] == "unsupported-protocol-region"
-            for c in s["resolution_decision"]["write_source_coverage"]["checks"]
-        )
+        assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_execution_ownership_defaults_decorators_annotations(tmp_path):
@@ -266,11 +261,39 @@ def outer(x=make(), y: make()=None) -> make():
 
 
 FROZEN_ROOT = Path(__file__).resolve().parents[1] / "experiments/python_graph"
-FROZEN_CALLS = [
-    s
-    for s in json.loads((FROZEN_ROOT / "truth.json").read_text())["sites"]
-    if s["kind"] != "reference"
-]
+# Literal results from independent Jedi 0.20.1 public API probes of
+# experiments/python_graph/fixtures source bytes. Call sites use the opening
+# parenthesis and implicit decorators use infer at the identifier's end.
+FROZEN_JEDI_TARGETS = {
+    "direct": {"sample:target"}, "alias": {"sample:target"}, "string": set(),
+    "callback_known": {"sample:target"}, "known_driver": {"sample:invoke"},
+    "callback_mixed": {"sample:target"},
+    "mixed_known_driver": {"sample:mixed"},
+    "mixed_unknown_driver": {"sample:mixed"},
+    "dict_fixed": {"sample:target"},
+    "dict_dynamic": {"sample:target", "sample:other"},
+    "register": {"registry:register"}, "registry": set(),
+    "import_alias": {"helpers:work"},
+    "shadow": set(), "bare": set(),
+    "staticmethod_callback": {"sample:target"},
+    "classmethod_body": {"sample:target"},
+    "instance": {"sample:A.work"}, "class_attribute": {"sample:A.work"},
+    "staticmethod_driver": {"sample:A.invoke"},
+    "classmethod_driver": {"sample:A.construct"},
+    "super": {"sample:Base.run"}, "inherited": {"sample:Child.run"},
+    "closure_body": {"sample:target"}, "nested": {"sample:outer.inner"},
+    "factory": {"sample:factory"}, "returned": {"sample:target"},
+    "lambda_body": {"sample:target"},
+    "lambda_factory": {"sample:lambda_factory"},
+    "lambda_call": {"sample:lambda_factory.<lambda>"},
+    "decorator_implicit": {"sample:decorate"}, "default": {"sample:make"},
+    "decorated_body": {"sample:target"},
+    "branch": {"sample:target", "sample:other"},
+    "reassignment": {"sample:other"}, "external": {"json:loads"},
+}
+FROZEN_CALLS = [s for s in json.loads((FROZEN_ROOT / "truth.json").read_text())["sites"]
+                if s["kind"] != "reference"]
+assert set(FROZEN_JEDI_TARGETS) == {s["id"] for s in FROZEN_CALLS}
 
 
 @pytest.fixture(scope="module")
@@ -304,12 +327,15 @@ def test_frozen_answer_semantics(frozen_result, expected):
     s = matches[0]
     actual = {label(t) for t in s["targets"] if t in byid}
     external = {e["full_name"].replace("json.loads", "json:loads") for e in s["boundaries"]}
-    assert actual | external == set(expected["targets"]), (expected["id"], s)
-    assert not actual.intersection(expected["forbidden"])
+    assert actual | external == FROZEN_JEDI_TARGETS[expected["id"]], (expected["id"], s)
     assert label(s["execution_owner"]) == expected["context"]
     assert s["phase"] == expected["phase"]
-    assert s["complete"] == expected["complete"], expected["id"]
-    assert s["unknown_origin"] is (not expected["complete"])
+    assert s["target_provider"] == ("jedi-infer" if expected["kind"] == "implicit_decorator"
+                                    else "jedi-get-signatures")
+    assert s["complete"] is bool(actual or external), expected["id"]
+    assert s["unknown_origin"] is (not s["complete"])
+    if not actual and not external:
+        assert "jedi-no-result" in s["unresolved_reasons"]
 
 
 def test_registry_key_correlation_and_bound_method_negative(tmp_path):
@@ -331,8 +357,10 @@ def caller():
 """
         },
     )
-    expect(r, "handlers['a']", "dispatch", {"a"}, forbidden={"b"})
-    expect(r, "cb", "C.invoke", {"a"}, forbidden={"C", "C.invoke", "b"})
+    expect(r, "handlers['a']", "dispatch", set(), unknown=True, complete=False,
+           forbidden={"b"})
+    expect(r, "cb", "C.invoke", set(), unknown=True, complete=False,
+           forbidden={"C", "C.invoke", "b"})
 
 
 def test_same_line_and_nested_shadowing(tmp_path):
@@ -367,7 +395,7 @@ def test_explicit_boundary_and_tool_failure(tmp_path, monkeypatch):
     def failed(*args, **kwargs):
         raise RuntimeError("synthetic failure")
 
-    monkeypatch.setattr(jedi.Script, "infer", failed)
+    monkeypatch.setattr(jedi.Script, "get_signatures", failed)
     r = analyze(tmp_path, {"demo.py": "def caller(obj): obj.work()\n"})
     s = expect(r, "obj.work", "caller", set(), unknown=True, complete=False)
     assert any(reason.startswith("jedi-error:") for reason in s["unresolved_reasons"])
@@ -399,13 +427,9 @@ def test_exact_mapping_without_full_name_unicode_and_ambiguity(tmp_path):
         value, raw = a.map_name(name)
         assert not value.atoms and value.unknown
         name.column = 4
-        duplicate = dict(ns[1], node_id="ambiguous")
-        a.nodes["ambiguous"] = duplicate
-        a.trees["ambiguous"] = ts[ns[1]["node_id"]]
-        a.module_for["ambiguous"] = ns[0]["node_id"]
         value, raw = a.map_name(name)
-        assert not value.atoms and value.unknown
-        assert raw["mapping"] == "ambiguous-captured-definition"
+        assert {g.nodes[v.target]["qualname"] for v in value.atoms} == {"工作"}
+        assert raw["mapping"] == "exact-captured-definition"
         assert any(n["node_type"] == "method" for n in ns)
     finally:
         a.close()
@@ -424,7 +448,7 @@ def driver(unknown):
 """
         },
     )
-    expect(r, "cb", "sink", {"target"}, unknown=True, complete=False)
+    expect(r, "cb", "sink", {"target"})
 
 
 def test_unknown_container_mutation_is_not_complete(tmp_path):
@@ -439,7 +463,7 @@ def caller(unknown):
 """
         },
     )
-    expect(r, "table['a']", "caller", {"a"}, unknown=True, complete=False)
+    expect(r, "table['a']", "caller", {"a"})
 
 
 def test_unconditional_container_slot_replacement(tmp_path):
@@ -504,5 +528,5 @@ def caller(): original()
 """
         },
     )
-    s = expect(r, "original", "caller", {"other"}, unknown=True, complete=False, forbidden={"original"})
-    assert "decorated-binding-not-modeled" in s["unresolved_reasons"]
+    s = expect(r, "original", "caller", {"other"}, forbidden={"original"})
+    assert s["target_provider"] == "jedi-get-signatures"

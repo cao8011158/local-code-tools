@@ -4,7 +4,6 @@ import ast
 
 from .extract import module_name
 from .graph import Graph
-from .value_flow import capture_shape
 
 CERTIFICATE = "simple-python-v6"
 _EXPRESSIONS = (ast.Name, ast.Constant, ast.Call, ast.keyword, ast.Attribute,
@@ -515,7 +514,7 @@ def _certify_v4(files, asts, *, graph=None, selected_context=None, _context=None
 
 
 def certify(files, asts, *, graph=None):
-    """Retain strict forms, then closed common forms and dictionary components."""
+    """Classify bounded syntax for legacy source metadata only."""
     python = [f for f in files if f["path"].endswith(".py")]
     if not python:
         return None
@@ -535,47 +534,6 @@ def certify(files, asts, *, graph=None):
                    for f in items)
     if plain_ok(python):
         return CERTIFICATE
-    shape = capture_shape(list(graph.nodes.values()), asts, graph.imported)
-    if shape is None:
-        return None
-    modeled = shape[2]
-    plain_files = [f for f in python if
-                   f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1" not in modeled]
-    return CERTIFICATE if plain_ok(plain_files) else None
-
-
-def component_policy(files, asts, graph):
-    """Connected explicit imports in a validated closed captured universe."""
-    if certify(files, asts, graph=graph) != CERTIFICATE:
-        return None
-    modules = {f"{f['repository']}:{f['path']}:module:{module_name(f['path'])}#1"
-               for f in files if f["path"].endswith(".py")}
-    neighbors = {m: {m} for m in modules}
-    for module in modules:
-        tree = asts[module]
-        for stmt in tree.body:
-            if isinstance(stmt, ast.ImportFrom):
-                if not stmt.module or not stmt.names or any(a.name == "*" for a in stmt.names):
-                    return None
-                request = graph.import_request_module(module, stmt, stmt.names[0])
-                if request is None:
-                    return None
-                for target in graph.imported(graph.nodes[module]["repository"], request):
-                    if target in modules:
-                        neighbors[module].add(target)
-                        neighbors[target].add(module)
-    components = {}
-    pending = set(modules)
-    while pending:
-        module = next(iter(pending))
-        seen, todo = set(), [module]
-        while todo:
-            current = todo.pop()
-            if current not in seen:
-                seen.add(current)
-                todo.extend(neighbors[current] - seen)
-        component = frozenset(seen)
-        pending.difference_update(component)
-        for member in component:
-            components[member] = component
-    return components
+    # The former dictionary admission certificate inferred function values
+    # from literal writes. Source dependency recording is independent of it.
+    return None

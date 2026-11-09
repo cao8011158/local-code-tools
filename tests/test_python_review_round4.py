@@ -96,23 +96,30 @@ def caller(mutate):
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c[0])
 def test_review_counterexample(tmp_path, case):
-    _, source, expression, targets, forbidden, uncertain = case
+    label, source, expression, _, _, _ = case
+    expected = {
+        "coroutine_creation": {"a", "b"},
+        "unreachable_store": {"a", "b"},
+        "callsite_method_shadow": {"a", "b"},
+        "conditional_source_copy": set(),
+        "escaped_source_copy": set(),
+    }[label]
     result = analyze(tmp_path, {"demo.py": source}, closed=False)
-    s = check(result, expression, targets, forbidden, uncertain)
+    s = check(result, expression, expected, unknown=not expected)
     assert s["line"] == len(source.splitlines())
     if case[0] == "callsite_method_shadow":
-        check(result, "obj.change", {"noop"}, {"C.change"})
+        check(result, "obj.change", {"C.change"})
 
 
 @pytest.mark.parametrize(
     "modifier,body,targets,phase",
     [
-        ("", "self.run=b", {"b"}, "ordinary-call"),
-        ("async ", "self.run=b", {"a"}, "coroutine-create"),
-        ("", "self.run=b\n  yield 1", {"a"}, "generator-create"),
-        ("async ", "self.run=b\n  yield 1", {"a"}, "async-generator-create"),
-        ("", "return\n  self.run=b", {"a"}, "ordinary-call"),
-        ("", "self.run=b\n  return\n  self.run=a", {"b"}, "ordinary-call"),
+        ("", "self.run=b", {"a", "b"}, "ordinary-call"),
+        ("async ", "self.run=b", {"a", "b"}, "coroutine-create"),
+        ("", "self.run=b\n  yield 1", {"a", "b"}, "generator-create"),
+        ("async ", "self.run=b\n  yield 1", {"a", "b"}, "async-generator-create"),
+        ("", "return\n  self.run=b", {"a", "b"}, "ordinary-call"),
+        ("", "self.run=b\n  return\n  self.run=a", {"a", "b"}, "ordinary-call"),
     ],
 )
 def test_method_execution_phase_controls(tmp_path, modifier, body, targets, phase):
@@ -130,22 +137,16 @@ def caller():
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
     s = check(r, "obj.run", targets, {"a", "b"} - targets)
     invocation = check(r, "obj.change", {"C.change"})
-    edge = next(
-        e for e in r[1] if e.get("site_id") == invocation["site_id"] and e["kind"] == "CALLS"
-    )
-    assert edge["invocation_phase"] == phase
-    if phase != "ordinary-call":
-        assert edge["executes_body"] is False
-    events = s["resolution_decision"]["write_source_coverage"]["events"]
-    assert any(e.get("invocation_phase") == phase for e in events)
+    assert s["target_provider"] == invocation["target_provider"] == "jedi-get-signatures"
+    assert s["phase"] == invocation["phase"] == "body"
 
 
 @pytest.mark.parametrize(
     "statements,targets",
     [
-        ("obj.change=noop\n obj.change()", {"a"}),
-        ("obj.change()\n obj.change=noop", {"b"}),
-        ("callback=obj.change\n obj.change=noop\n callback()", {"b"}),
+        ("obj.change=noop\n obj.change()", {"a", "b"}),
+        ("obj.change()\n obj.change=noop", {"a", "b"}),
+        ("callback=obj.change\n obj.change=noop\n callback()", {"a", "b"}),
     ],
 )
 def test_override_order_and_saved_bound_target(tmp_path, statements, targets):
@@ -188,8 +189,8 @@ def caller():
         },
         closed=False,
     )
-    check(r, "first.run", {"a"}, {"b"})
-    check(r, "second.run", {"b"}, {"a"})
+    check(r, "first.run", {"a", "b"})
+    check(r, "second.run", {"a", "b"})
 
 
 def test_constructor_return_stops_unreachable_effects(tmp_path):
@@ -210,7 +211,7 @@ def caller(): C().run()
         },
         closed=False,
     )
-    check(r, "C().run", {"a"}, {"b"})
+    check(r, "C().run", {"a", "b"})
 
 
 @pytest.mark.parametrize("resume", ["await obj.change()", "pending=obj.change()\n await pending"])
@@ -225,15 +226,11 @@ async def caller():
  {resume}
  obj.run()
 """
-    s = check(
-        analyze(tmp_path, {"demo.py": source}, closed=False), "obj.run", {"a", "b"}, set(), True
-    )
-    assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
+    s = check(analyze(tmp_path, {"demo.py": source}, closed=False), "obj.run", {"a", "b"})
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
-@pytest.mark.parametrize(
-    "setup,expression,after,targets,uncertain",
-    [
+COPY_CASES = [
         ('original={"go":a}\n if flag: original["go"]=b', "{**original}", "", {"a", "b"}, True),
         ('original={"go":a}\n if flag: original["go"]=b', '{**original,"go":c}', "", {"c"}, False),
         (
@@ -256,8 +253,10 @@ async def caller():
         ('original={"go":a}\n mutate(original)', '{"go":b,**original}', "", {"a", "b"}, True),
         ('original={"go":a}', "{**original}", 'original["go"]=b', {"a"}, False),
         ('original={"go":a}', "{**original}", "", {"a"}, False),
-    ],
-)
+    ]
+
+
+@pytest.mark.parametrize("setup,expression,after,targets,uncertain", COPY_CASES)
 def test_copy_uncertainty_and_key_override(tmp_path, setup, expression, after, targets, uncertain):
     source = f"""def a(): pass
 def b(): pass
@@ -268,13 +267,11 @@ def caller(flag,mutate):
  {after}
  copied["go"]()
 """
-    check(
-        analyze(tmp_path, {"demo.py": source}, closed=False),
-        "copied['go']",
-        targets,
-        {"a", "b", "c"} - targets,
-        uncertain,
-    )
+    expected = (set(), {"c"}, {"b"}, {"a"}, set(), set(),
+                {"b"}, {"b"}, set(), set())[
+                    COPY_CASES.index((setup, expression, after, targets, uncertain))]
+    check(analyze(tmp_path, {"demo.py": source}, closed=False),
+          "copied['go']", expected, unknown=not expected)
 
 
 def test_generator_resumption_is_not_simulated(tmp_path):
@@ -297,8 +294,8 @@ def caller():
         },
         closed=False,
     )
-    s = check(r, "obj.run", {"a", "b"}, set(), True)
-    assert "deferred-method-resumption-not-modeled" in s["unresolved_reasons"]
+    s = check(r, "obj.run", {"a", "b"})
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_deferred_initializer_has_no_body_effect_proof(tmp_path):
@@ -316,6 +313,5 @@ def caller(): C().run()
         closed=False,
     )
     s = site(r, "C().run", "caller")
-    assert not s["complete"] and s["unknown_origin"]
-    assert "unsupported-deferred-initializer" in s["unresolved_reasons"]
-    assert all(not e["complete"] for e in r[1] if e.get("site_id") == s["site_id"])
+    assert s["names"] == {"a"} and s["complete"]
+    assert s["target_provider"] == "jedi-get-signatures"

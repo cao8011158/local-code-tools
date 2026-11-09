@@ -216,17 +216,17 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
                     actual = await relations(root, kind, direction)
                     assert {(e["source"], e["target"]) for e in actual} == {(source, target)}
 
-                # 6. The prior decorator counterexample stays partial, with candidate a.
+                # 6. The decorator case follows Jedi's call-site signature for a.
                 # Sites/reasons live in the persisted manifest, CALLS projections in SQL.
                 evidence = await call("graph_evidence", offset=0, limit=500)
                 sites = [s for s in evidence["sites"]
                          if s["execution_owner"] == caller["node_id"] and s["expression"] == "obj.run"]
                 assert len(sites) == 1
                 site = sites[0]
-                assert site["unknown_origin"] is True and site["complete"] is False
+                assert site["unknown_origin"] is False and site["complete"] is True
                 assert site["targets"] == [node("src/unknown.py", "a")["node_id"]]
-                assert any("implicit" in reason or "protocol" in reason
-                           for reason in site["unresolved_reasons"])
+                assert site["unresolved_reasons"] == []
+                assert site["target_provider"] == "jedi-get-signatures"
                 assert {k: v for k, v in status["graph"].items()
                         if k not in ("sites_available", "detail_tool")} == manifest["graph"]
                 assert evidence["total"] == manifest["graph"]["call_sites"]
@@ -234,8 +234,8 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
                 actual = await relations(caller["node_id"], "CALLS", "out")
                 partial = [e for e in actual if e.get("site_id") == site["site_id"]]
                 assert {e["target"] for e in partial} == set(site["targets"])
-                assert all(e["unknown_origin"] is True and e["complete"] is False
-                           and e["status"] == "possible" for e in partial)
+                assert all(e["unknown_origin"] is False and e["complete"] is True
+                           and e["status"] == "resolved" for e in partial)
                 assert called == TOOLS
     return sorted(called)
 

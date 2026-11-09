@@ -46,7 +46,8 @@ def test_two_owner_updates_retain_open_callback_reason(tmp_path):
         callback = next(s for s in sites(config, updated["version"])
                         if s["expression"] == "callback")
         assert any(t.endswith(f":function:{target}#1.1") for t in callback["targets"])
-        assert callback["unknown_origin"] is True  # open-project input remains explicit
+        assert callback["unknown_origin"] is False
+        assert callback["target_provider"] == "jedi-get-signatures"
     assert current(config) == updated["version"]
     assert first["version"] != updated["version"]
 
@@ -100,7 +101,6 @@ def test_new_callee_requires_another_actual_analysis_pass(tmp_path):
     assert any(ident.endswith(":function:second#1.1")
                for ident in scope["selected_owner_ids"])
     assert scope["owner_jedi_queries_executed"] == updated["graph"]["jedi_queries_executed"]
-    assert scope["owner_association_evaluations"] == updated["graph"]["association_evaluations"]
 
 
 def test_partial_dictionary_evidence_does_not_claim_complete(tmp_path):
@@ -108,12 +108,12 @@ def test_partial_dictionary_evidence_does_not_claim_complete(tmp_path):
         "provider.py": "def first() -> int: return 1\ndef second() -> int: return 2\nregistry={'go':first}\n",
         "consumer.py": "from provider import registry\ndef run(): registry['go']()\n"})
     old = build(config, offline=True, lexical_only=True)
-    assert old["value_flow_coverage"] == "partial"
+    assert old["value_flow_coverage"] == "source-only-no-target-certificate"
     (repo / "src/provider.py").write_text(
         "def first() -> int: return 1\ndef second() -> int: return 2\nregistry={'go':second}\n")
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert updated["value_flow_coverage"] == "partial"
+    assert updated["value_flow_coverage"] == "source-only-no-target-certificate"
 
 
 def test_owner_update_replaces_source_observations_exactly(tmp_path):
@@ -162,7 +162,6 @@ def test_two_pass_owner_expansion_reuses_capture_and_counts_actual_work(tmp_path
     assert scope["owner_analysis_iterations"] == 2
     assert len(inventory) == len(set(inventory)) == 2
     assert scope["owner_jedi_queries_executed"] == updated["graph"]["jedi_queries_executed"]
-    assert scope["owner_association_evaluations"] == updated["graph"]["association_evaluations"]
 
 
 def test_ast_cache_preserves_module_and_definition_object_identity():
@@ -271,8 +270,8 @@ def test_non_field_open_receiver_has_no_field_receipt_and_does_not_crash(tmp_pat
     first = build(config, offline=True, lexical_only=True)
     open_site = next(site for site in sites(config, first["version"])
                      if site["expression"] == "self")
-    assert "open-receiver-input" in open_site["unresolved_reasons"]
-    assert open_site["resolution_decision"]["write_source_coverage"] is None
+    assert open_site["unresolved_reasons"] == ["jedi-no-result"]
+    assert open_site["target_provider"] == "jedi-get-signatures"
     (repo / "src/idle.py").write_text("def fn(): return 2\n")
     updated = build(config, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"

@@ -9,9 +9,12 @@ from fractions import Fraction
 
 from .common import canonical, digest
 
-SCHEMA = 1
-COVERAGE = "observed-source-supports-partial"
-LIMIT = 20000
+SCHEMA = 2
+COVERAGE = "jedi-source-sites-partial"
+# Source facts, not callable-target search work. The pinned 83-file capture
+# produced 24,822 distinct facts; keep a bounded capacity above that measured
+# inventory while retaining explicit truncation and failed update semantics.
+LIMIT = 32768
 _UNSET = object()
 
 

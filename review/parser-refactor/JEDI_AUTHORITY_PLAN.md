@@ -2,6 +2,10 @@
 
 2026-11-02 Asia/Shanghai. User's latest instruction and SESSION_HANDOFF.md supersede earlier PR-2 header repair and PR-3 solver proposals.
 
+## 2026-11-10 user-approved sequence
+
+The [current stage record](JEDI_TWO_BATCHES_REPORT.md) pins the resumed work and supersedes the earlier blanket statement about empty call observations. Batch 1 removes duplicate target processing and preserves empty results as unknown. Batch 2 may supplement only a truly empty final Jedi call result with an already recorded callback-argument or function-container source. The supplemental lookup follows the specific argument binding or container key and uses Jedi for the callable definition. Successful observations, API errors, nonempty unmapped observations and other unknown calls do not enter it. The graph preserves the original Jedi observation and identifies any separately supported supplemental edge.
+
 ## Fixed state and ownership
 
 - Remote implementation baseline: `1e265a9a6e087b87299940c6815f9957b8ceac37`, tree `b550b2a5cf0785c3a28fc956b9220e1f56657a05`, feature `feat/local-only-updates`.

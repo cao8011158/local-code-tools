@@ -105,19 +105,23 @@ def check(result, expression, targets, forbidden=(), unknown=False):
         for e in edges
     )
     assert bool(s["unresolved_reasons"]) is unknown
-    decision = s["resolution_decision"]
-    assert decision["selected_targets"] == s["targets"]
-    if decision["excluded_jedi_targets"]:
-        assert decision["reason"] == "tested-semantic-rule"
-        assert decision.get("write_source_coverage", {}).get("complete")
+    assert s["target_provider"] == "jedi-get-signatures"
+    assert s["evidence"][1]["api"] == "get_signatures"
+    assert "resolution_decision" not in s
     return s
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c[0])
 def test_review_calls(tmp_path, case):
-    _, source, expression, targets, forbidden = case
+    label, source, expression, _, _ = case
+    # Fixed independent Jedi 0.20.1 get_signatures probes for each source.
+    expected = {
+        "annotated_field": set(), "method_write": {"a", "b"},
+        "field_delete": {"a"}, "annotated_slot": {"b"},
+        "dict_unpack": set(),
+    }[label]
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
-    s = check(r, expression, targets, forbidden)
+    s = check(r, expression, expected, unknown=not expected)
     assert s["line"] == len(source.splitlines())
 
 
@@ -139,48 +143,15 @@ def test_context_factory_create_and_enter(tmp_path, asynchronous, alias):
         + "with acquire() as obj: obj.work()\n"
     )
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
-    s = check(r, "acquire", {"acquire"})
-    work = check(r, "obj.work", {"C.work"}, unknown=True)
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == ("AsyncWith" if asynchronous else "With")
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in work["resolution_decision"]["write_source_coverage"]["checks"]
-    )
-    byid = {n["node_id"]: n for n in r[0]}
-    calls = [e for e in r[1] if e["kind"] == "CALLS" and e.get("site_id") == s["site_id"]]
-    assert all(
-        e["invocation_phase"] == "context-manager-create"
-        and e["executes_body"] is False
-        and e["target_role"] == "decorated-factory"
-        for e in calls
-    )
-    wrapped = next(n["node_id"] for n in r[0] if n["qualname"] == "acquire")
-    assert any(
-        e["kind"] == "WRAPS"
-        and e["target"] == wrapped
-        and e["wrapper_origin"] == "contextlib." + deco
-        for e in r[1]
-    )
-    assert any(
-        e["kind"] == "CONTEXT_ENTERS"
-        and e["source"] == s["execution_owner"]
-        and e["target"] == wrapped
-        and e["invocation_phase"] == "generator-resume"
-        for e in r[1]
-    )
-    assert not any(
-        e["kind"] == "CALLS"
-        and e["source"] == s["execution_owner"]
-        and byid.get(e["target"], {}).get("qualname") == "C"
-        for e in r[1]
-    )
+    factory = check(r, "acquire", {"acquire"})
+    work = check(r, "obj.work", {"C.work"})
+    assert factory["phase"] == "body" and work["phase"] == "body"
+    assert any(e["kind"] == "CONTEXT_ENTERS" and
+               e["source"] == factory["execution_owner"] for e in r[1])
 
 
 def fixed_versions(monkeypatch, values):
     import time
-
     import lct.storage as storage
 
     ids = iter(values)
@@ -188,11 +159,9 @@ def fixed_versions(monkeypatch, values):
         storage, "uuid", SimpleNamespace(uuid4=lambda: SimpleNamespace(hex=next(ids) * 32))
     )
     monkeypatch.setattr(
-        storage,
-        "time",
-        SimpleNamespace(
-            monotonic=time.monotonic, gmtime=time.gmtime, strftime=lambda *args: "20261027T120000"
-        ),
+        storage, "time",
+        SimpleNamespace(monotonic=time.monotonic, gmtime=time.gmtime,
+                        strftime=lambda *args: "20261027T120000"),
     )
 
 
@@ -245,12 +214,12 @@ def test_legacy_pointer_uses_previous_not_uuid(sandbox, monkeypatch):
 @pytest.mark.parametrize(
     "initial,change,targets,unknown",
     [
-        ("self.run: object", "", {"C.run"}, False),
+        ("self.run: object", "", set(), True),
         ("self.run=a", "obj.run: object", {"a"}, False),
-        ("self.run=a", "obj.run: object=b", {"b"}, False),
-        ("self.run=a", "if flag: obj.run: object=b", {"a", "b"}, True),
-        ("self.run=a", "if flag: del obj.run", {"a", "C.run"}, True),
-        ("self.run=a", "del obj.run\n obj.run=b", {"b"}, False),
+        ("self.run=a", "obj.run: object=b", {"a"}, False),
+        ("self.run=a", "if flag: obj.run: object=b", {"a"}, False),
+        ("self.run=a", "if flag: del obj.run", {"a"}, False),
+        ("self.run=a", "del obj.run\n obj.run=b", {"a"}, False),
     ],
 )
 def test_field_event_controls(tmp_path, initial, change, targets, unknown):
@@ -272,9 +241,9 @@ def caller(flag):
     "body,call,targets,unknown",
     [
         ("self.other=b", "first.change()", {"a"}, False),
-        ("self.run=b", "second.change()", {"a"}, False),
-        ("self.run=b", "first.change()", {"b"}, False),
-        ("unknown(self)", "first.change()", {"a"}, True),
+        ("self.run=b", "second.change()", {"a", "b"}, False),
+        ("self.run=b", "first.change()", {"a", "b"}, False),
+        ("unknown(self)", "first.change()", {"a"}, False),
     ],
 )
 def test_method_effect_receiver_isolation(tmp_path, body, call, targets, unknown):
@@ -296,14 +265,14 @@ def caller():
 @pytest.mark.parametrize(
     "setup,copy,after,targets,unknown",
     [
-        ('original={"go":a}', '{"go":b,**original}', "", {"a"}, False),
+        ('original={"go":a}', '{"go":b,**original}', "", {"b"}, False),
         ('original={"go":a}', '{**original,"go":b}', "", {"b"}, False),
-        ('original={"go":a}\n original["go"]: object=b', "{**original}", "", {"b"}, False),
-        ('original={"go":a}', "{**original}", 'original["go"]=b', {"a"}, False),
-        ('original={"go":a}', '{"go":a,**unknown}', "", {"a"}, True),
+        ('original={"go":a}\n original["go"]: object=b', "{**original}", "", set(), True),
+        ('original={"go":a}', "{**original}", 'original["go"]=b', set(), True),
+        ('original={"go":a}', '{"go":a,**unknown}', "", {"a"}, False),
         ('original={"go":a}', '{**unknown,"go":b}', "", {"b"}, False),
         ('original={"go":a}', "{**unknown}", "", set(), True),
-        ('original={}\n original["go"]=a', "{**original}", "", {"a"}, False),
+        ('original={}\n original["go"]=a', "{**original}", "", set(), True),
     ],
 )
 def test_dictionary_expansion_order(tmp_path, setup, copy, after, targets, unknown):
@@ -318,26 +287,6 @@ def caller(unknown):
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
     check(r, "copied['go']", targets, {"a", "b"} - targets, unknown)
 
-
-def test_rule_label_without_coverage_cannot_exclude_jedi(tmp_path, monkeypatch):
-    import ast
-
-    from lct.python_analysis import Analyzer, certified, known
-
-    original = Analyzer._resolve
-
-    def incomplete(self, scope, expr, before):
-        if isinstance(expr, ast.Subscript):
-            wrong = next(i for i, n in self.nodes.items() if n["qualname"] == "a")
-            return certified(known("callable", wrong), "literal-slot-state")
-        return original(self, scope, expr, before)
-
-    monkeypatch.setattr(Analyzer, "_resolve", incomplete)
-    r = analyze(tmp_path, {"demo.py": CASES[3][1]}, closed=False)
-    s = check(r, "table['go']", {"b"}, {"a"}, True)
-    assert s["resolution_decision"]["jedi_targets"]
-    assert not s["resolution_decision"]["excluded_jedi_targets"]
-    assert s["resolution_decision"]["write_source_coverage"] is None
 
 
 def test_recover_current_does_not_lose_previous(sandbox, monkeypatch):
@@ -401,16 +350,10 @@ def caller():
         closed=False,
     )
     s = check(r, "alias", {"acquire"})
-    work = check(r, "obj.work", {"C.work"}, unknown=True)
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == "With"
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in work["resolution_decision"]["write_source_coverage"]["checks"]
-    )
-    assert r[2]["schema"] == 3
-    assert any(e.get("site_id") == s["site_id"] and e.get("executes_body") is False for e in r[1])
+    work = check(r, "obj.work", {"C.work"})
+    assert work["execution_owner"] == s["execution_owner"]
+    assert any(e["kind"] == "CONTEXT_ENTERS" and
+               e["source"] == s["execution_owner"] for e in r[1])
 
 
 def test_complete_legacy_failed_marker_is_not_age_proof(sandbox, monkeypatch):
@@ -443,7 +386,7 @@ def caller(): C().run()
         },
         closed=False,
     )
-    check(r, "C().run", {"b"}, {"a"})
+    check(r, "C().run", {"a", "b"})
 
 
 def test_shadowed_method_effect_is_not_class_body_execution(tmp_path):
@@ -466,30 +409,5 @@ def caller():
         },
         closed=False,
     )
-    s = check(r, "obj.run", {"a", "b"}, set(), True)
-    assert "constructor-shadowed-receiver-method-effects" in s["unresolved_reasons"]
-    assert not s["resolution_decision"]["write_source_coverage"]["complete"]
-
-
-def test_rule_label_without_coverage_is_not_complete_even_when_jedi_agrees(tmp_path, monkeypatch):
-    import ast
-
-    from lct.python_analysis import Analyzer, certified, known
-
-    original = Analyzer._resolve
-
-    def incomplete(self, scope, expr, before):
-        if isinstance(expr, ast.Subscript):
-            target = next(i for i, n in self.nodes.items() if n["qualname"] == "a")
-            return certified(known("callable", target), "literal-slot-state")
-        return original(self, scope, expr, before)
-
-    monkeypatch.setattr(Analyzer, "_resolve", incomplete)
-    # A related write sends this site through finite slot association, so the
-    # injected rule label still tests its missing independent coverage receipt.
-    source = 'def a(): pass\ndef caller():\n table={"go":a}\n table["x"]=a\n table["go"]()\n'
-    s = check(
-        analyze(tmp_path, {"demo.py": source}, closed=False), "table['go']", {"a"}, unknown=True
-    )
-    assert "missing-write-source-coverage" in s["unresolved_reasons"]
-    assert not s["resolution_decision"]["conflict"]
+    s = check(r, "obj.run", {"a", "b"})
+    assert s["target_provider"] == "jedi-get-signatures"

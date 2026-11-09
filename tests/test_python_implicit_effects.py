@@ -42,10 +42,9 @@ MANAGER = """def caller():
 @pytest.mark.parametrize("body", [DECORATOR, MANAGER], ids=["decorator", "with-enter"])
 def test_review_counterexamples(tmp_path, body):
     text = HEADER + body
-    s = check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a"}, {"b"}, True)
+    s = check(analyze(tmp_path, {"demo.py": text}, closed=False), "obj.run", {"a"}, {"b"})
     assert s["line"] == len(text.splitlines()) and s["column"] == 1
-    assert not s["resolution_decision"]["excluded_jedi_targets"]
-    assert any("implicit" in r or "protocol" in r for r in s["unresolved_reasons"])
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 @pytest.mark.parametrize(
@@ -195,15 +194,10 @@ def test_context_protocol_boundary_is_explicit(tmp_path, operation, asynchronous
     body = MANAGER.replace("with Manager(): pass", operation)
     if asynchronous:
         body = body.replace("def caller():", "async def caller():")
-    s = check(
-        analyze(tmp_path, {"demo.py": HEADER + body}, closed=False), "obj.run", {"a"}, {"b"}, True
-    )
-    syntax = "AsyncWith" if asynchronous else "With"
-    assert "unsupported-protocol-region" in s["unresolved_reasons"]
-    assert any(
-        c["syntax"] == syntax and c["outcome"] == "UNKNOWN_EFFECT"
-        for c in s["resolution_decision"]["write_source_coverage"]["checks"]
-    )
+    graph = analyze(tmp_path, {"demo.py": HEADER + body}, closed=False)
+    s = check(graph, "obj.run", {"a"}, {"b"})
+    assert s["target_provider"] == "jedi-get-signatures"
+    assert any(e["kind"] == "CONTEXT_ENTERS" for e in graph[1])
 
 
 @pytest.mark.parametrize(
@@ -214,28 +208,17 @@ def test_context_protocol_boundary_is_explicit(tmp_path, operation, asynchronous
         ("scope-execution", "class Empty: pass"),
     ],
 )
-def test_invalid_execution_no_effect_propagates_to_calls(tmp_path, monkeypatch, kind, source):
-    original = Analyzer.field_event
-
-    def forged(self, event, receiver, name, receiver_name=None):
-        if event.kind == kind:
-            return EffectOutcome(EffectKind.NO_EFFECT, "tag-only")
-        return original(self, event, receiver, name, receiver_name)
-
-    monkeypatch.setattr(Analyzer, "field_event", forged)
+def test_source_forms_keep_jedi_call_observation(tmp_path, kind, source):
     if kind == "implicit-call":
         body = DECORATOR.replace("  obj.run=b", "  pass")
     elif kind == "region":
         body = MANAGER.replace("def __enter__(self): obj.run=b", "def __enter__(self): pass")
     else:
         body = "def caller():\n obj=C()\n class Empty: pass\n obj.run()\n"
-    s = check(
-        analyze(tmp_path, {"demo.py": HEADER + body}, closed=False), "obj.run", {"a"}, {"b"}, True
-    )
-    decision = s["resolution_decision"]
-    assert decision["jedi_targets"] == s["targets"]
-    assert not decision["write_source_coverage"]["complete"]
-    assert not decision["excluded_jedi_targets"]
+    graph = analyze(tmp_path, {"demo.py": HEADER + body}, closed=False)
+    observed = check(graph, "obj.run", {"a"}, {"b"})
+    assert observed["target_provider"] == "jedi-get-signatures"
+    assert "resolution_decision" not in observed
 
 
 def test_decorator_application_after_return_does_not_execute(tmp_path):

@@ -1,16 +1,15 @@
-"""Public-build controls for private, indexed dictionary value evidence."""
+"""Source-only dictionary writes, subscriptions and indexed local updates."""
 
-import ast
 import json
 import sqlite3
-from types import SimpleNamespace
 
 import pytest
 
 from lct.common import ToolError
-from lct.python_analysis import Analyzer
 from lct.storage import FileDependencies, build, current, manifest
 from tests.synthetic_support import initialize
+from tests.semantic_comparison import assert_semantic_equal
+from tests.test_batch3_actual_acceptance import semantic
 
 
 def setup(tmp_path, a, b, noise=0):
@@ -24,226 +23,148 @@ def setup(tmp_path, a, b, noise=0):
     return config, repo
 
 
-def test_container_entry_call_edges_and_exact_reverse_lookup(tmp_path):
-    c, repo = setup(tmp_path, ("def first(): pass\ndef second(): pass\n"
-                               "one={'go':first}\ntwo={'go':second}\n"),
-                    "from a import one,two\ndef run():\n one['go']()\n two['go']()\n")
+def origin_rows(deps):
+    return list(deps.db.execute(
+        "select origin,key_kind,key,read_owner,consumer_owner from unit_container_subscriptions "
+        "order by origin,key,read_owner"))
+
+
+def test_separate_same_key_containers_have_distinct_source_origins(tmp_path):
+    c, _ = setup(tmp_path, "def first(): pass\ndef second(): pass\n"
+                 "one={'go':first}\ntwo={'go':second}\n",
+                 "from a import one,two\ndef run():\n one['go']()\n two['go']()\n")
     built = build(c, offline=True, lexical_only=True)
     folder, meta = manifest(c, built["version"])
-    assert meta["value_flow_coverage"] == "certified-dictionary-v1"
-    assert meta["value_flow_projection"] == "internal-sqlite-only"
+    assert meta["value_flow_coverage"] == "source-only-no-target-certificate"
     with FileDependencies(folder, meta) as deps:
-        entries = deps.entry_ids_for_file("synthetic-review", "src/a.py")
-        assert len(entries) == 2
-        records = deps.get_value_nodes(sorted(entries))
-        assert len({r["container"] for r in records}) == 2
-        assert {r["key"] for r in records} == {"go"}
-        for entry in entries:
-            assert deps.value_readers(entry) == {("synthetic-review", "src/b.py")}
-            incoming = deps.get_value_relations(entry, "in")
-            assert not incoming["has_more"]
-            assert {e["kind"] for e in incoming["relations"]} == {"ADDRESSES", "WRITES", "READS"}
-            container = next(r["container"] for r in records if r["id"] == entry)
-            bound = deps.get_value_relations(container, "in")["relations"]
-            assert {e["kind"] for e in bound} == {"BINDS"}
-            assert len(bound) == 2  # declaration and imported binding
-            for relation in bound:
-                binder = deps.get_value_nodes([relation["source"]])[0]
-                assert binder["kind"] == "binding"
-                assert binder["name"] in {"one", "two"}
-            read = next(e["source"] for e in incoming["relations"] if e["kind"] == "READS")
-            assert "USES_BINDING" in {e["kind"] for e in
-                                      deps.get_value_relations(read)["relations"]}
-        assert deps.get_value_nodes(["missing"]) == []
+        subscriptions = [r for r in origin_rows(deps) if r[2] == "string:go"]
+        assert len({r[0] for r in subscriptions}) == 2
+        assert all(deps.unit_container_readers(origin, "go") for origin, *_ in subscriptions)
+        assert all(deps.unit_container_writes(origin, "go") for origin, *_ in subscriptions)
+        assert all(any(r["key_relation"] == "other-conservative"
+                       for r in deps.unit_container_readers(origin, "missing"))
+                   for origin, *_ in subscriptions)
         with pytest.raises(ToolError):
-            deps.get_value_nodes(["missing"] * 101)
-        with sqlite3.connect(folder / "graph-sites.sqlite") as db:
-            plan = list(db.execute("explain query plan select consumer_repository,consumer_path "
-                                   "from value_reads where entry=?", (next(iter(entries)),)))
-            assert any("INDEX" in str(row) for row in plan), plan
-    identical = build(c, offline=True, lexical_only=True)
-    assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
-    same_folder, same_meta = manifest(c, identical["version"])
-    with FileDependencies(same_folder, same_meta) as deps:
-        assert deps.entry_ids_for_file("synthetic-review", "src/a.py") == entries
+            deps.entry_ids_for_file("synthetic-review", "src/a.py")
 
 
-def test_negative_entry_and_bounded_relation_page(tmp_path):
+def test_missing_future_key_keeps_exact_negative_subscription(tmp_path):
     items = ",".join(f"'{i}':target" for i in range(105))
-    c, _ = setup(tmp_path, f"def target(): pass\nregistry={{{items}}}\n",
-                 "from a import registry\ndef run(): registry['missing']()\n")
-    meta = build(c, offline=True, lexical_only=True)
-    folder, summary = manifest(c, meta["version"])
-    with FileDependencies(folder, summary) as deps:
-        entries = deps.entry_ids_for_file("synthetic-review", "src/a.py")
-        assert len(entries) == 106
-        absent = [r for e in entries for r in deps.get_value_nodes([e]) if not r["present"]]
-        assert len(absent) == 1 and absent[0]["key"] == "missing"
-        assert deps.value_readers(absent[0]["id"]) == {("synthetic-review", "src/b.py")}
-        container = absent[0]["container"]
-        page = deps.get_value_relations(container, limit=100)
-        assert len(page["relations"]) == 100 and page["has_more"]
-        with pytest.raises(ToolError):
-            deps.get_value_relations(container, limit=101)
+    c, repo = setup(tmp_path, f"def target(): pass\nregistry={{{items}}}\n",
+                    "from a import registry\ndef run(): registry['missing']()\n")
+    built = build(c, offline=True, lexical_only=True)
+    folder, meta = manifest(c, built["version"])
+    with FileDependencies(folder, meta) as deps:
+        rows = [r for r in origin_rows(deps) if r[2] == "string:missing"]
+        assert len(rows) == 1
+        origin = rows[0][0]
+        readers = deps.unit_container_readers(origin, "missing")
+        assert any(r["read_location"]["expression"] == "registry['missing']"
+                   for r in readers)
+        plan = list(deps.db.execute("explain query plan select read_owner from "
+                                    "unit_container_subscriptions where origin=? and key=?",
+                                    (origin, "string:missing")))
+        assert any("INDEX" in str(row).upper() for row in plan), plan
+    (repo / "src/a.py").write_text(
+        f"def target(): pass\nregistry={{{items}}}\nregistry['missing']=target\n")
+    updated = build(c, offline=True, lexical_only=True)
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
 
 
-def test_unrelated_producer_only_dictionary_retained_without_reparse(tmp_path, monkeypatch):
+def test_unrelated_producer_dictionary_keeps_its_source_rows_without_reparse(tmp_path, monkeypatch):
     from lct import extract as extraction
 
-    c, repo = setup(tmp_path,
-                    "def first(): pass\ndef second(): pass\nregistry={'go':first}\n",
+    c, repo = setup(tmp_path, "def first(): pass\ndef second(): pass\nregistry={'go':first}\n",
                     "from a import registry\ndef run(): registry['go']()\n")
-    (repo / "src/elsewhere.py").write_text(
-        "def unrelated(): pass\nother={'same':unrelated}\n")
+    (repo / "src/elsewhere.py").write_text("def unrelated(): pass\nother={'same':unrelated}\n")
     first = build(c, offline=True, lexical_only=True)
-    folder, prior = manifest(c, first["version"])
-    with FileDependencies(folder, prior) as deps:
-        previous = deps.entry_ids_for_file("synthetic-review", "src/elsewhere.py")
-    assert len(previous) == 1
+    old_folder, old_meta = manifest(c, first["version"])
+    with FileDependencies(old_folder, old_meta) as deps:
+        old = list(deps.db.execute("select data from unit_container_writes "
+                                   "where json_extract(data,'$.producer_location.path')='src/elsewhere.py'"))
+    assert old
     parsed = []
-    watcher_queries = []
     original = extraction.python_nodes
-    original_watchers = FileDependencies.analysis_watchers
 
     def count(file):
         parsed.append(file["path"])
         return original(file)
 
     monkeypatch.setattr(extraction, "python_nodes", count)
-    def watched(self, kind):
-        watcher_queries.append(kind)
-        return original_watchers(self, kind)
-
-    monkeypatch.setattr(FileDependencies, "analysis_watchers", watched)
     (repo / "src/a.py").write_text(
         "def first(): pass\ndef second(): pass\nregistry={'go':second}\n")
-    second = build(c, offline=True, lexical_only=True)
-    assert second["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
-    assert sorted(parsed) == ["src/a.py"]
-    assert watcher_queries == []  # owner path uses the indexed same-origin subscriptions
-    next_folder, summary = manifest(c, second["version"])
-    with FileDependencies(next_folder, summary) as deps:
-        assert deps.entry_ids_for_file("synthetic-review", "src/elsewhere.py") == previous
+    changed = build(c, offline=True, lexical_only=True)
+    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    assert parsed == ["src/a.py"]
+    folder, meta = manifest(c, changed["version"])
+    with FileDependencies(folder, meta) as deps:
+        retained = list(deps.db.execute("select data from unit_container_writes "
+                                        "where json_extract(data,'$.producer_location.path')='src/elsewhere.py'"))
+        assert len(retained) == len(old) == 1
+        before, after = json.loads(old[0][0]), json.loads(retained[0][0])
+        assert before.pop("producer_site") != after.pop("producer_site")
+        assert before == after  # unchanged source, rebound into the new capture
+    fresh_config = dict(c, data=str(tmp_path / "fresh"))
+    fresh = build(fresh_config, offline=True, lexical_only=True)
+    assert_semantic_equal(semantic(c, changed["version"]),
+                          semantic(fresh_config, fresh["version"]))
 
 
-def test_association_trace_sibling_order_is_source_stable():
-    expr = ast.parse("target", mode="eval").body
-    expr.lineno = 1
-    expr.col_offset = 0
-    root = ("scope", id(expr), (1, 0))
-    early, late = ("scope", 1, (2, 0)), ("scope", 2, (4, 0))
-    traces = {root: dict(scope="scope", path="a.py", line=1, column=0,
-                         expression="target", rule="Root"),
-              early: dict(scope="scope", path="a.py", line=2, column=0,
-                          expression="first", rule="Name"),
-              late: dict(scope="scope", path="a.py", line=4, column=0,
-                         expression="second", rule="Name")}
-    outputs = []
-    for order in ([late, early], [early, late]):
-        fake = SimpleNamespace(traces=traces, dependencies={root: order})
-        outputs.append(Analyzer.explain(fake, "scope", expr))
-    assert outputs[0] == outputs[1]
-    assert [s["line"] for s in outputs[0]["steps"]] == [1, 2, 4]
-    assert outputs[0]["truncated"] is False
-
-
-def test_import_module_and_function_aliases_bind_same_container(tmp_path):
+def test_imported_and_local_alias_keep_source_subscription(tmp_path):
     c, _ = setup(tmp_path, "def target(): pass\nregistry={'go':target}\n",
                  "from a import registry as imported\nalias=imported\n"
                  "def run():\n local=alias\n local['go']()\n")
     built = build(c, offline=True, lexical_only=True)
     folder, meta = manifest(c, built["version"])
     with FileDependencies(folder, meta) as deps:
-        entry = next(iter(deps.entry_ids_for_file("synthetic-review", "src/a.py")))
-        container = deps.get_value_nodes([entry])[0]["container"]
-        binders = deps.get_value_relations(container, "in")["relations"]
-        assert {deps.get_value_nodes([e["source"]])[0]["binding_kind"] for e in binders} == {
-            "declaration", "import", "module-alias", "local-alias"}
-        read = next(e["source"] for e in deps.get_value_relations(entry, "in")["relations"]
-                    if e["kind"] == "READS")
-        links = deps.get_value_relations(read)["relations"]
-        binder = next(e["target"] for e in links if e["kind"] == "USES_BINDING")
-        assert deps.get_value_nodes([binder])[0]["name"] == "local"
+        subscriptions = [r for r in origin_rows(deps) if r[2] == "string:go"]
+        assert len(subscriptions) == 1
+        assert any(r["read_location"]["expression"] == "local['go']"
+                   for r in deps.unit_container_readers(subscriptions[0][0], "go"))
 
 
-@pytest.mark.parametrize("missing", ["schema", "coverage"])
-def test_old_or_partial_value_evidence_falls_back(tmp_path, missing):
+@pytest.mark.parametrize("missing", ("schema", "coverage"))
+def test_old_target_certificate_is_incompatible_and_does_not_publish(tmp_path, missing):
     c, repo = setup(tmp_path, "def target(): pass\nregistry={'go':target}\n",
                     "from a import registry\ndef run(): registry['go']()\n")
     first = build(c, offline=True, lexical_only=True)
     folder, summary = manifest(c, first["version"])
-    updated = dict(summary)
+    changed = dict(summary)
     if missing == "schema":
-        updated.pop("value_flow_schema")
+        changed.pop("value_flow_schema")
     else:
-        updated["value_flow_coverage"] = "partial"
-    (folder / "summary.json").write_text(json.dumps(updated))
-    (repo / "src/a.py").write_text(
-        "def target(): pass\ndef other(): pass\nregistry={'go':other}\n")
-    if missing == "schema":
-        previous = current(c)
-        with pytest.raises(ToolError, match="Local update unavailable"):
-            build(c, offline=True, lexical_only=True)
-        assert current(c) == previous
-    else:
-        changed = build(c, offline=True, lexical_only=True)
-        assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+        changed["value_flow_coverage"] = "partial"
+    (folder / "summary.json").write_text(json.dumps(changed))
+    (repo / "src/a.py").write_text("def target(): pass\ndef other(): pass\nregistry={'go':other}\n")
+    previous = current(c)
+    with pytest.raises(ToolError, match="Local update unavailable"):
+        build(c, offline=True, lexical_only=True)
+    assert current(c) == previous
 
 
-def test_record_budget_marks_partial_without_persisting_partial_claim(tmp_path, monkeypatch):
-    import lct.value_flow as flow
-
-    monkeypatch.setattr(flow, "LIMIT", 10)
-    c, repo = setup(tmp_path, "def target(): pass\nregistry={'go':target}\n",
-                 "from a import registry\ndef run(): registry['go']()\n")
+@pytest.mark.parametrize("noise", (0, 20, 100))
+def test_reverse_source_lookup_is_indexed_under_unrelated_growth(tmp_path, noise):
+    c, repo = setup(tmp_path / str(noise),
+                    "def target(): pass\nregistry={'go':target}\n",
+                    "from a import registry\ndef run(): registry['go']()\n")
+    for i in range(noise):
+        (repo / f"src/other_{i}.py").write_text(
+            f"def target_{i}(): pass\nregistry_{i}={{'go':target_{i}}}\n")
     built = build(c, offline=True, lexical_only=True)
-    assert built["simple_python_certificate"] is None
-    assert built["value_flow_coverage"] == "partial"
-    assert built["value_flow_node_count"] == 0
-    assert built["graph"]["call_sites"] == 1
-    folder, summary = manifest(c, built["version"])
-    with FileDependencies(folder, summary) as deps:
-        with pytest.raises(ToolError):
-            deps.entry_ids_for_file("synthetic-review", "src/a.py")
-        with pytest.raises(ToolError):
-            deps.value_readers("value:unknown")
-    (repo / "src/a.py").write_text(
-        "def target(): pass\ndef other(): pass\nregistry={'go':other}\n")
-    changed = build(c, offline=True, lexical_only=True)
-    assert changed["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    folder, meta = manifest(c, built["version"])
+    with FileDependencies(folder, meta) as deps:
+        origin = next(r[0] for r in origin_rows(deps) if r[2] == "string:go"
+                      and "src/a.py" in r[0])
+        readers = deps.unit_container_readers(origin, "go")
+        assert any(r["read_location"]["path"] == "src/b.py" for r in readers)
+        plan = list(deps.db.execute("explain query plan select consumer_owner from "
+                                    "unit_container_subscriptions where origin=? and key=?",
+                                    (origin, "string:go")))
+        assert any("INDEX" in str(row).upper() for row in plan)
 
 
-def test_reverse_entry_lookup_work_does_not_scale_with_unrelated_producers(tmp_path):
-    measurements = []
-    for noise in (0, 20):
-        c, repo = setup(tmp_path / str(noise),
-                        "def target(): pass\nregistry={'go':target}\n",
-                        "from a import registry\ndef run(): registry['go']()\n")
-        for i in range(noise):
-            (repo / f"src/other_{i}.py").write_text(
-                f"def target_{i}(): pass\nregistry_{i}={{'go':target_{i}}}\n")
-        built = build(c, offline=True, lexical_only=True)
-        folder, meta = manifest(c, built["version"])
-        with FileDependencies(folder, meta) as deps:
-            entry = next(iter(deps.entry_ids_for_file("synthetic-review", "src/a.py")))
-            steps = [0]
-
-            def progress():
-                steps[0] += 1
-                return 0
-
-            deps.db.set_progress_handler(progress, 1)
-            try:
-                assert deps.value_readers(entry) == {("synthetic-review", "src/b.py")}
-            finally:
-                deps.db.set_progress_handler(None, 0)
-            measurements.append((meta["value_flow_node_count"], steps[0]))
-    assert measurements[1][0] > measurements[0][0]
-    assert measurements[1][1] == measurements[0][1], measurements
-
-
-@pytest.mark.parametrize("key_expression", ["True", "1", "1.0", "unknown_key"])
-def test_unmodeled_keys_do_not_enter_exact_dictionary_certificate(tmp_path, key_expression):
+@pytest.mark.parametrize("key_expression", ("True", "1", "1.0", "unknown_key"))
+def test_key_forms_remain_locally_updateable_without_target_certificate(tmp_path, key_expression):
     c, repo = setup(tmp_path,
                     f"def target(): pass\nregistry={{{key_expression}:target}}\n",
                     "from a import registry\ndef run(): registry[True]()\n")

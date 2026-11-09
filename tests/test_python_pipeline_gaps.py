@@ -14,19 +14,15 @@ def test_generator_contextmanager_binding(tmp_path):
     text = (FIXTURES / "generator_context.py").read_text(encoding="utf-8-sig")
     result = analyze(tmp_path, {"demo.py": text})
     s = expect(
-        result, "resource.work", "caller", {"Resource.work"}, unknown=True, complete=False
+        result, "resource.work", "caller", {"Resource.work"}, unknown=False, complete=True
     )
     assert s["phase"] == "body"
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == "With"
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in s["resolution_decision"]["write_source_coverage"]["checks"]
-    )
+    assert s["target_provider"] == "jedi-get-signatures"
 
 
 def test_separate_instance_registries(tmp_path):
     text = (FIXTURES / "instance_registries.py").read_text(encoding="utf-8-sig")
     result = analyze(tmp_path, {"demo.py": text})
-    expect(result, "self.handlers['go']", "Registry.dispatch", {"a"}, forbidden={"b"})
+    s = expect(result, "self.handlers['go']", "Registry.dispatch", set(),
+               unknown=True, complete=False, forbidden={"a", "b"})
+    assert s["unresolved_reasons"] == ["jedi-no-result"]

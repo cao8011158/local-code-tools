@@ -1,5 +1,7 @@
 # Python 节点与关系契约（第一阶段）
 
+> 本文为早期阶段契约。当前解析重构的目标权威、来源边界和未知结果见 [Jedi authority plan](../review/parser-refactor/JEDI_AUTHORITY_PLAN.md) 与 [developer report](../review/parser-refactor/DEVELOPER_JEDI_AUTHORITY.md)。下文有关 LCT finite associations、目标裁决、字段/容器回推的历史描述不代表当前候选实现。
+
 本契约只描述 LCT 当前源程序；未迁移或重建真实索引。入口仍为
 lct.extract.extract(files) → (nodes, asts) 和 Graph(nodes, asts, repos).build() → (edges, info)。
 调用方先捕获源码；Jedi 只读本次捕获的私有副本，源码不被 import/执行。

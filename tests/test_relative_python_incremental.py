@@ -5,7 +5,6 @@ import sqlite3
 import pytest
 
 import lct.extract as extraction
-from lct.simple_python import CERTIFICATE
 from lct.python_incremental import prepare
 from lct.storage import build, current, manifest
 from tests.synthetic_support import initialize
@@ -45,7 +44,7 @@ def fixture(tmp_path, noise=0, caller="from .b import f as alias\ndef run(): ali
 def test_relative_provider_change_is_local_and_full_equal(tmp_path, monkeypatch, noise):
     config, repo, package = fixture(tmp_path, noise)
     first = build(config, offline=True, lexical_only=True)
-    assert first["simple_python_certificate"] == CERTIFICATE
+    assert first["graph"]["jedi_queries_executed"] > 0
     before = records(config, first["version"])
     parsed = []
     original = extraction.python_nodes
@@ -94,7 +93,7 @@ def test_parent_level_and_same_named_other_package_stay_separate(tmp_path, monke
     (other / "b.py").write_text("def f(): pass\n")
     (other / "a.py").write_text("from .b import f\ndef use(): f()\n")
     first = build(config, offline=True, lexical_only=True)
-    assert first["simple_python_certificate"] == CERTIFICATE
+    assert first["graph"]["jedi_queries_executed"] > 0
     parsed = []
     original = extraction.python_nodes
     def count(file):

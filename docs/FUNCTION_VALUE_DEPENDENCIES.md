@@ -1,5 +1,7 @@
 # Function-value dependency contract (proposed)
 
+> **Current refactor boundary (2026-11-02):** This is a historical broader design proposal, not authority to retain its finite target adjudication or expected/latest callable value certificate. The active [Jedi target-authority plan](../review/parser-refactor/JEDI_AUTHORITY_PLAN.md) assigns target inference to Jedi 0.20.1 and keeps source positions, subscriptions and incremental scheduling separate. Its documented gaps remain unknown until independently confirmed and deliberately scoped; old acceptance expectations below must be interpreted against that current boundary.
+
 Status: broader design contract; a narrow dictionary value-flow slice is now implemented as described in [incremental update status](INCREMENTAL_UPDATE.md#function-value-dependency-design-status). The earlier source baseline is preserved in [the Batch 4 audit](../review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md). The full contract below is not an implementation claim.
 
 ## Scope and invariants

@@ -144,7 +144,12 @@ def test_namespace_child_lookup_is_indexed_without_changing_request_evidence(tmp
             return [json.loads(raw) for (raw,) in db.execute("select data from sites")
                     if "src/caller.py" in raw]
     assert caller_site(folder)[0]["unknown_origin"]
-    assert caller_site(new_folder)[0]["evidence"][1]["raw"][0]["full_name"] == "pkg.foo"
+    new_site = caller_site(new_folder)[0]
+    assert new_site["targets"] == []
+    assert new_site["unresolved_reasons"] == ["jedi-no-result"]
+    assert new_site["evidence"][1]["raw"] == []
+    with FileDependencies(new_folder, manifest(c, updated["version"])[1]) as indexed:
+        assert indexed.importers("synthetic-review", "pkg.foo") == {source}
 
 
 def test_direct_child_request_still_detects_ancestor_layout(tmp_path):

@@ -1,20 +1,26 @@
-"""Public-build evidence for local literal writer scope exclusion."""
+"""Captured dictionary origin evidence remains scoped under unrelated growth."""
 
 import json
 import sqlite3
 
-from lct.storage import build, manifest
+from lct.storage import FileDependencies, build, manifest
 from tests.synthetic_support import initialize
 
 
-def _caller_site(config, version):
-    folder, _ = manifest(config, version)
+def _rows(config, version):
+    folder, metadata = manifest(config, version)
+    with FileDependencies(folder, metadata) as deps:
+        reads = [json.loads(data) for (data,) in deps.db.execute(
+            "select data from unit_container_subscriptions")]
+        writes = [json.loads(data) for (data,) in deps.db.execute(
+            "select data from unit_container_writes")]
     with sqlite3.connect(folder / "graph-sites.sqlite") as db:
-        return next(json.loads(raw) for (raw,) in db.execute("select data from sites")
+        site = next(json.loads(raw) for (raw,) in db.execute("select data from sites")
                     if '"expression":"registry[\'go\']"' in raw)
+    return site, reads, writes
 
 
-def test_unrelated_local_alias_writers_do_not_grow_consumer_checks(tmp_path):
+def test_unrelated_local_alias_writers_do_not_change_related_source_read(tmp_path):
     config, repo = initialize(tmp_path / "isolated")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
@@ -29,79 +35,60 @@ def test_unrelated_local_alias_writers_do_not_grow_consumer_checks(tmp_path):
                 path.write_text(f"def writer_{number}():\n"
                                 "    slot={}\n    alias=slot\n    alias['x']=1\n")
         result = build(config, offline=True, lexical_only=True)
-        site = _caller_site(config, result["version"])
-        coverage = site["resolution_decision"]["write_source_coverage"]
-        evidence.append((result["graph"], site, coverage))
-        # The AST effect index currently prepares all known writer scopes;
-        # caller candidate checks below must still stay bounded.
-        assert result["graph"]["slot_scope_index_build_scopes"] == count
-        assert result["graph"]["slot_scope_fallback_scopes"] == 0
+        site, reads, writes = _rows(config, result["version"])
+        related = [r for r in reads if r["read_location"]["expression"] == "registry['go']"]
+        assert len(related) == 1 and related[0]["key"] == "string:go"
+        assert site["target_provider"] == "jedi-get-signatures"
+        evidence.append((site["targets"], related[0]["origin"], len(writes)))
         if count == 0:
             identical = build(config, offline=True, lexical_only=True)
-            assert identical["incremental"]["analysis_scope"]["mode"] == (
-                "identical-python-capture-reuse")
-            assert _caller_site(config, identical["version"]) == site
-            assert all(identical["graph"][key] == 0 for key in (
-                "slot_scope_index_build_scopes", "slot_scope_fallback_scopes",
-                "slot_scope_candidates_checked", "slot_events_checked"))
-    first_graph, first_site, first_coverage = evidence[0]
-    for graph, site, coverage in evidence[1:]:
-        assert site["targets"] == first_site["targets"]
-        assert site["complete"] == first_site["complete"]
-        assert site["unresolved_reasons"] == first_site["unresolved_reasons"]
-        assert coverage == first_coverage
-        assert graph["slot_scope_candidates_checked"] <= first_graph[
-            "slot_scope_candidates_checked"]
-        assert graph["slot_events_checked"] <= first_graph["slot_events_checked"]
+            assert identical["incremental"]["analysis_scope"]["mode"] == "identical-python-capture-reuse"
+            assert _rows(config, identical["version"])[0] == site
+    assert evidence[0][:2] == evidence[1][:2] == evidence[2][:2]
+    assert evidence[0][2] < evidence[1][2] < evidence[2][2]
 
 
-def test_only_source_related_receivers_are_read_candidates(tmp_path):
+def test_only_related_imported_writers_share_receiver_origin(tmp_path):
     config, repo = initialize(tmp_path / "uncertain")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
     (repo / "src/b.py").write_text(
         "def target(): pass\nregistry={'go':target}\n"
-        "def run():\n    return registry['go']()\n")
+        "def run(): return registry['go']()\n")
     sources = (
         "def parameter(registry):\n    registry['x']=1\n",
-        "from b import registry\ndef imported():\n    registry['x']=1\n",
+        "from b import registry\ndef imported(): registry['x']=1\n",
         "def escaped():\n    slot={}\n    slot['x']=1\n    return slot\n",
         "def called(f):\n    slot={}\n    slot['x']=1\n    f(slot)\n",
         "def rebound(registry):\n    slot={}\n    slot=registry\n    slot['x']=1\n",
-        "from b import registry as remote\n"
-        "def imported_rebound():\n    slot={}\n    alias=slot\n"
-        "    alias=remote\n    alias['x']=1\n",
+        "from b import registry as remote\ndef imported_rebound():\n"
+        "    slot={}\n    alias=slot\n    alias=remote\n    alias['x']=1\n",
     )
     for number, source in enumerate(sources):
         (repo / f"src/uncertain_{number}.py").write_text(source)
-    result = build(config, offline=True, lexical_only=True)
-    graph = result["graph"]
-    assert graph["slot_scope_index_build_scopes"] == len(sources)
-    assert graph["slot_writer_index_receivers"] == len(sources)
-    # Two unlocated parameter receivers retain a boundary/watch, without
-    # becoming candidate writers for every unrelated known container.
-    assert graph["slot_scope_fallback_scopes"] == 2
-    coverage = _caller_site(config, result["version"])["resolution_decision"][
-        "write_source_coverage"]
-    assert any("uncertain_1.py" in ident for ident in coverage["required_events"])
-    assert any("uncertain_5.py" in ident for ident in coverage["required_events"])
-    assert not any(f"uncertain_{i}.py" in ident for ident in coverage["required_events"]
-                   for i in (0, 2, 3, 4))
+    built = build(config, offline=True, lexical_only=True)
+    site, reads, writes = _rows(config, built["version"])
+    assert site["targets"] and site["target_provider"] == "jedi-get-signatures"
+    receiver = next(r["origin"] for r in reads
+                    if r["read_location"]["expression"] == "registry['go']")
+    related = {w["producer_location"]["path"] for w in writes if w["origin"] == receiver}
+    assert "src/b.py" in related
+    assert not related.intersection({f"src/uncertain_{i}.py" for i in (0, 2, 3, 4)})
 
 
-def test_alias_rebound_between_two_fresh_local_origins_stays_isolated(tmp_path):
+def test_alias_rebound_between_fresh_local_origins_stays_isolated(tmp_path):
     config, repo = initialize(tmp_path / "aliases")
     (repo / "src/weights.py").unlink()
     (repo / "docs/guide.md").unlink()
     (repo / "src/b.py").write_text(
         "def target(): pass\nregistry={'go':target}\n"
-        "def run():\n    return registry['go']()\n")
+        "def run(): return registry['go']()\n")
     (repo / "src/a.py").write_text(
         "def writer():\n    first={}\n    alias=first\n    alias['x']=1\n"
         "    second={}\n    alias=second\n    alias['x']=2\n")
-    result = build(config, offline=True, lexical_only=True)
-    assert result["graph"]["slot_scope_index_build_scopes"] == 1
-    assert result["graph"]["slot_scope_fallback_scopes"] == 0
-    assert not any("src/a.py" in ident for ident in _caller_site(
-        config, result["version"])["resolution_decision"]["write_source_coverage"][
-            "required_events"])
+    built = build(config, offline=True, lexical_only=True)
+    _, reads, writes = _rows(config, built["version"])
+    receiver = next(r["origin"] for r in reads
+                    if r["read_location"]["expression"] == "registry['go']")
+    local_origins = {w["origin"] for w in writes if w["producer_location"]["path"] == "src/a.py"}
+    assert len(local_origins) == 2 and receiver not in local_origins

@@ -16,7 +16,6 @@ from lct.query import Query
 from lct.storage import attach_dense, build, current, manifest, recover
 from tests.synthetic_support import deterministic_vector, forbid_provider, initialize
 from tests.semantic_comparison import assert_semantic_equal
-from tests.limited_precision_comparison import assert_limited_refinement
 
 FIXTURES = Path(__file__).resolve().parents[1] / "review/batch4-incremental/fixtures"
 SOURCE_COMMIT = "a7b0804d5635e185a79ff3c1d1fa6241c2b858fe"
@@ -87,19 +86,12 @@ def semantic(c, version):
     return results
 
 
-def full_equal(tmp_path, c, result, name, *, traversal_independent=False,
-               limited_refinement=False):
+def full_equal(tmp_path, c, result, name, *, traversal_independent=False):
     oracle_config = dict(c, data=str(tmp_path / ("fresh-" + name)))
     with forbid_provider():
         fresh = build(oracle_config, offline=True, lexical_only=True)
     actual, expected = semantic(c, result["version"]), semantic(oracle_config, fresh["version"])
-    if limited_refinement:
-        folder, _ = manifest(c, result["version"])
-        with sqlite3.connect(folder / "catalog.sqlite") as db:
-            sources = {(repository, path): text for repository, path, text in
-                       db.execute("select repository,path,text from files")}
-        assert_limited_refinement(actual, expected, sources)
-    elif traversal_independent:
+    if traversal_independent:
         assert_semantic_equal(actual, expected)
     else:
         assert actual == expected
@@ -139,8 +131,8 @@ def test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch(tmp_pa
     assert len(original) == 9
     with forbid_provider():
         lexical = build(c, offline=True, lexical_only=True)
-    assert lexical["graph"]["analysis_limited"] is True
-    assert lexical["graph"]["association_evaluations"] == 20000
+    assert lexical["graph"]["call_sites"] > 0
+    assert lexical["graph"]["jedi_queries_executed"] > 0
     old_version = lexical["version"]
     old_semantic = semantic(c, old_version)
     q = Query(c)
@@ -171,23 +163,19 @@ def test_nine_original_bytes_limited_graph_bm25_and_attached_real_usearch(tmp_pa
                            version=dense["version"])["version"] == dense["version"]
     print(json.dumps(dict(group="nine", files=len(original), vector_chunks=count,
                           seed_seconds=round(seed_seconds, 4),
-                          association=lexical["graph"]["association_evaluations"],
                           jedi=lexical["graph"]["jedi_queries_executed"],
                           sites=lexical["graph"]["call_sites"],
                           dense_partitions=len(metadata["partitions"]))), flush=True)
-    # Limited initial precision retains UNKNOWN while later work stays local.
+    # Cold and changed snapshots share Jedi-observation semantics.
     source = repo / "src/trpg_state_machine/_execution.py"
     source.write_bytes(source.read_bytes().replace(b'"actor"', b'"actor_b3"', 1))
     with forbid_provider():
         updated = build(c, offline=True, lexical_only=True)
     assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
     assert updated["incremental"]["analysis_scope"]["reason"] == "incremental-owners"
-    assert updated["graph"]["analysis_limited"]
+    assert updated["graph"]["call_sites"] > 0
     assert semantic(c, old_version) == old_semantic
-    # A limited cold pass can omit proven source facts that a local owner pass
-    # later discovers. Require all fresh facts plus direct source evidence for
-    # each permitted additional annotation reference/container subscription.
-    full_equal(tmp_path, c, updated, "nine-edited", limited_refinement=True)
+    full_equal(tmp_path, c, updated, "nine-edited", traversal_independent=True)
 
 
 def test_three_actual_sources_owner_lifecycle_and_membership(tmp_path):
@@ -195,7 +183,7 @@ def test_three_actual_sources_owner_lifecycle_and_membership(tmp_path):
     assert len(original) == 3
     with forbid_provider():
         first = build(c, offline=True, lexical_only=True)
-    assert not first["graph"]["analysis_limited"]
+    assert first["graph"]["jedi_queries_executed"] > 0
     before = semantic(c, first["version"])
     path = repo / "src/trpg_state_machine/_execution.py"
     path.write_bytes(path.read_bytes().replace(b'"actor"', b'"actor_b3"', 1))
@@ -246,7 +234,7 @@ def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
     assert len(original) == 6
     with forbid_provider():
         first = build(c, offline=True, lexical_only=True)
-    assert not first["graph"]["analysis_limited"]
+    assert first["graph"]["jedi_queries_executed"] > 0
     sites = semantic(c, first["version"])["sites"]
     assert sites
     source = repo / "src/trpg_state_machine/dnd_runtime.py"
@@ -278,8 +266,7 @@ def test_complex_seed_group_missing_external_context_and_fresh_update(tmp_path):
                           reason=updated["incremental"]["analysis_scope"]["reason"],
                           value_mode=changed_value["incremental"]["analysis_scope"]["mode"],
                           value_reason=changed_value["incremental"]["analysis_scope"]["reason"],
-                          value_owner_association=changed_value["incremental"]["analysis_scope"].get(
-                              "owner_association_evaluations", 0),
-                          association=first["graph"]["association_evaluations"],
+                          selected_owners=changed_value["incremental"]["analysis_scope"].get(
+                              "selected_owners", 0),
                           jedi=first["graph"]["jedi_queries_executed"])),
                      flush=True)

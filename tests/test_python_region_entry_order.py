@@ -42,24 +42,12 @@ def test_region_entry_order(
     result = analyze(tmp_path, {"demo.py": text}, closed=False)
     s = site(result, "obj.run", "caller")
     assert s["names"] == {"a"} and "b" not in s["names"]
-    assert s["unknown_origin"] is uncertain
-    assert s["complete"] is (not uncertain)
+    assert not s["unknown_origin"] and s["complete"]
     assert s["phase"] == "body"
     assert text.splitlines()[s["line"] - 1][s["column"] :].startswith("obj.run")
-    if uncertain:
-        assert "unsupported-protocol-region" in s["unresolved_reasons"]
-        assert not s["resolution_decision"]["excluded_jedi_targets"]
-    else:
-        assert not s["unresolved_reasons"]
-    receipt = s["resolution_decision"]["write_source_coverage"]
-    syntax = "AsyncWith" if asynchronous else "With"
-    observed = {
-        c["event_id"]
-        for c in receipt["checks"]
-        if c["event_kind"] == "region" and c["syntax"] == syntax
-    }
-    # A body/second context sees entry only; a following read also sees exit.
-    assert len(observed) == regions
+    assert not s["unresolved_reasons"]
+    assert s["target_provider"] == "jedi-get-signatures"
+    assert any(e["kind"] == "CONTEXT_ENTERS" for e in result[1])
     nodes = {n["node_id"]: n for n in result[0]}
     assert nodes[s["lexical_owner"]]["qualname"] == "caller"
     calls = [
@@ -70,7 +58,7 @@ def test_region_entry_order(
         e["source"] == s["execution_owner"]
         and e["line"] == s["line"]
         and e["column"] == s["column"]
-        and e["unknown_origin"] is uncertain
-        and e["complete"] is (not uncertain)
+        and not e["unknown_origin"]
+        and e["complete"]
         for e in calls
     )

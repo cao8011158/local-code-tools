@@ -39,13 +39,11 @@ from .embedding import Embeddings, bound
 from .extract import embedding_texts, extract, module_name
 from .graph import Graph
 from .lexical import add_document
-from .python_analysis import Atom, Result
-from .simple_python import CERTIFICATE, certify
 from . import analysis_inputs
 from . import passive_python
 from . import dependency_origins
 from . import unit_evidence
-from .value_flow import LIMIT as VALUE_FLOW_LIMIT
+VALUE_FLOW_LIMIT = 20000  # legacy sidecar validation for readable snapshots
 
 DDL = """
 create table if not exists nodes(node_id text primary key, repository text, path text, kind text, data text, search_hash text);
@@ -62,7 +60,7 @@ create table if not exists terms(term text primary key,df integer);
 GRAPH_SITES = "graph-sites.sqlite"
 SOURCE_FILES = "source-files.json"
 QUERY_RUNTIME = {"python": sys.version, "implementation": sys.implementation.cache_tag,
-                 "jedi": jedi.__version__}
+                 "jedi": jedi.__version__, "target_authority": "jedi-infer-v2"}
 
 
 def current(c):
@@ -347,7 +345,9 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
             db.execute("insert into analysis_reads values(?,?,?,?,?,?,?)", (
                 consumer, *modules[consumer], producer, *modules[producer], kind))
         for consumer, kind, universe in analysis_watches or ():
-            if (consumer not in modules or kind != "slot-writer-universe"
+            if (consumer not in modules or kind not in {
+                    "slot-writer-universe", "unresolved-container-origin",
+                    "unresolved-argument-source"}
                     or universe != "all-captured-python"):
                 raise ToolError("Analysis watch module ownership unavailable")
             db.execute("insert into analysis_watches values(?,?,?,?,?)", (
@@ -416,7 +416,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
         m["analysis_read_count"] = len(analysis_reads)
         m["analysis_watch_count"] = len(analysis_watches)
         m["analysis_dependency_truncated"] = bool(analysis_dependency_truncated)
-    m["value_flow_schema"] = 1
+    m["value_flow_schema"] = 2
     m["analysis_input_schema"] = analysis_inputs.SCHEMA
     m["passive_python_schema"] = 1
     m["passive_python_policy"] = passive_python.POLICY
@@ -426,9 +426,7 @@ def split_graph(folder, m, query_observations=(), import_dependencies=(),
     m["analysis_input_member_count"] = len(inputs["members"])
     m["analysis_input_consumer_count"] = len(inputs["consumers"])
     m["analysis_input_truncated"] = bool(inputs["truncated"])
-    m["value_flow_coverage"] = ("certified-dictionary-v1" if
-                                m.get("simple_python_certificate") == CERTIFICATE and
-                                value_flow is not None and value_flow.get("complete") else "partial")
+    m["value_flow_coverage"] = "source-only-no-target-certificate"
     m["value_flow_node_count"] = len((value_flow or {}).get("nodes", ()))
     m["value_flow_edge_count"] = len((value_flow or {}).get("edges", ()))
     m["value_flow_projection"] = "internal-sqlite-only"
@@ -496,7 +494,9 @@ class FileDependencies:
                     != manifest["analysis_watch_count"] or
                     any(kind not in allowed_reads for (kind,) in self.db.execute(
                         "select distinct kind from analysis_reads")) or
-                    any(kind != "slot-writer-universe" or universe != "all-captured-python"
+                    any(kind not in {"slot-writer-universe", "unresolved-container-origin",
+                                     "unresolved-argument-source"}
+                        or universe != "all-captured-python"
                         for kind, universe in self.db.execute(
                             "select distinct kind,universe from analysis_watches"))):
                 raise ToolError("Previous analysis dependency records unavailable")
@@ -763,36 +763,8 @@ class FileDependencies:
         self.close()
 
 
-class _QueryReuse:
-    """Indexed private observations; one row is checked only when a site asks for it."""
-
-    def __init__(self, folder, allowed_modules, python_changed):
-        self.db = sqlite3.connect((folder / GRAPH_SITES).as_uri() + "?mode=ro&immutable=1", uri=True)
-        self.allowed_modules = allowed_modules
-        self.python_changed = python_changed
-
-    def get(self, key):
-        if key[0] not in self.allowed_modules:
-            return None
-        try:
-            row = self.db.execute("select data,checksum from query_observations where key=?",
-                                  (canonical(list(key)),)).fetchone()
-            if not row or digest(row[0]) != row[1]:
-                return None
-            record = json.loads(row[0])
-            if record["key"] != list(key):
-                return None
-            return (Result(frozenset(Atom(**atom) for atom in record["atoms"]),
-                           frozenset(record["reasons"]), frozenset(record["proofs"])), record["raw"])
-        except (sqlite3.Error, KeyError, TypeError, ValueError):
-            return None
-
-    def close(self):
-        self.db.close()
-
-
 def _same_python_inputs(previous_folder, previous_manifest, files, repos, c):
-    """Locate unchanged captured modules; only certified local queries may reuse."""
+    """Check whether a captured graph can be reused without analysis."""
     if (previous_manifest.get("program_hash") != program_hash()
             or previous_manifest.get("config_hash") != identity(c)
             or previous_manifest.get("graph", {}).get("query_runtime") != QUERY_RUNTIME
@@ -841,9 +813,8 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             prior.get("analysis_input_coverage") != analysis_inputs.COVERAGE or
             prior.get("analysis_input_truncated")):
         return None, "previous-analysis-input-evidence-unavailable"
-    if (prior.get("simple_python_certificate") in {"simple-python-v5", CERTIFICATE} and
-            (prior.get("value_flow_schema") != 1 or
-             prior.get("value_flow_coverage") != "certified-dictionary-v1")):
+    if (prior.get("value_flow_schema") != 2 or
+            prior.get("value_flow_coverage") != "source-only-no-target-certificate"):
         return None, "previous-value-flow-evidence-unavailable"
     with FileDependencies(folder, prior):
         pass  # Validate the private scope/endpoints before copying immutable rows.
@@ -973,16 +944,11 @@ def _reuse_python_graph(folder, prior, files, repos, c):
             sorted(owner_observations[2]))
     info["jedi_queries_reused"] = info["jedi_queries"]
     info["jedi_queries_executed"] = 0
-    info["jedi_raw_observation_hits"] = 0
-    info["association_evaluations"] = 0
-    for key in ("tool_first_sites", "source_only_lexical_visits",
-                "source_only_container_reads", "source_only_literal_entries_checked",
-                "legacy_target_sites"):
-        info[key] = 0
-    for key in ("slot_scope_index_build_scopes", "slot_scope_fallback_scopes",
-                "slot_scope_candidates_checked", "slot_events_checked",
-                "slot_writer_index_receivers", "slot_writer_index_events",
-                "slot_call_index_events", "slot_origin_binding_index_entries"):
+    for key in ("jedi_query_entries", "jedi_query_cache_hits",
+                "jedi_raw_observation_hits", "candidate_site_queries_prepared",
+                "jedi_source_query_entries", "jedi_source_query_cache_hits",
+                "jedi_source_queries_executed", "jedi_total_queries_executed",
+                "source_origin_index_entries", "source_owner_site_visits"):
         info[key] = 0
     return (nodes, edges, info), "python-capture-identical"
 
@@ -1131,40 +1097,11 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             nodes, edges, graph_info = prepared
             asts = {}
         texts = embedding_texts(nodes, files)
-        reuse = None
         reuse_reason = preparation_reason
-        if previous and prepared is None:
+        if prepared is None:
             graph = Graph(nodes, asts, repos)
-            try:
-                old_folder, old_manifest = manifest(c, previous, compatible=False)
-                eligible, reuse_reason, unchanged, python_changed = _same_python_inputs(
-                    old_folder, old_manifest, files, repos, c)
-                if eligible and old_manifest["graph"].get("dependency_bindings") == graph.cross_bindings:
-                    checksum, size = hash_artifact(old_folder, GRAPH_SITES)
-                    if (checksum == old_manifest["artifacts"][GRAPH_SITES]
-                            and size == old_manifest["artifact_sizes"][GRAPH_SITES]):
-                        allowed = {n["node_id"] for n in nodes if n["kind"] == "module"
-                                   and (n["repository"], n["path"]) in unchanged}
-                        reuse = _QueryReuse(old_folder, allowed, python_changed)
-                    else:
-                        reuse_reason = "previous-query-cache-integrity-failed"
-                elif eligible:
-                    reuse_reason = "dependency-bindings-changed"
-            except (OSError, ToolError, KeyError, sqlite3.Error):
-                reuse_reason = "previous-query-cache-unavailable"
+            edges, graph_info = graph.build(selected_owners=set(asts))
         if prepared is None:
-            if not previous:
-                graph = Graph(nodes, asts, repos)
-            try:
-                # Cold indexing genuinely owns every new AST definition. Use
-                # the same conservative candidate index as warm owner updates.
-                edges, graph_info = graph.build(
-                    query_reuse=reuse, selected_owners=set(asts))
-            finally:
-                if reuse is not None:
-                    reuse.close()
-        if prepared is None:
-            graph_info["association_bound"] = graph_info["association_evaluations"]
             # The cold owner engine records transient tuple-keyed read witnesses
             # for parity with selected updates; only the flow sidecar persists.
             graph_info.pop("_value_read_witnesses", None)
@@ -1223,6 +1160,10 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
             sites_analyzed=(graph_info["call_sites"] - local_metrics["reused_sites"]
                             if local_metrics else 0 if prepared is not None else graph_info["call_sites"]),
             jedi_queries_executed=graph_info["jedi_queries_executed"],
+            jedi_source_queries_executed=graph_info.get("jedi_source_queries_executed", 0),
+            jedi_total_queries_executed=graph_info.get("jedi_total_queries_executed", 0),
+            source_origin_index_entries=graph_info.get("source_origin_index_entries", 0),
+            source_owner_site_visits=graph_info.get("source_owner_site_visits", 0),
             reused_graph_edges=(local_metrics["reused_edges"] if local_metrics else
                                 sum(e["kind"] != "CONTAINS" for e in edges)
                                 if prepared is not None else 0),
@@ -1236,8 +1177,6 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 "owner_analysis_iterations", 0)
             analysis_scope["owner_preflight_jedi_queries_executed"] = local_attempts.get(
                 "owner_jedi_queries_executed", 0)
-            analysis_scope["owner_preflight_association_evaluations"] = local_attempts.get(
-                "owner_association_evaluations", 0)
         analysis_scope["total_python_files_parsed"] = (
             analysis_scope["python_files_parsed"] if local_metrics else
             analysis_scope["python_files_parsed"] + local_attempts["python_files_parsed"])
@@ -1369,13 +1308,7 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 edges=dict(Counter(e["kind"] for e in edges)),
                 call_resolution=dict(Counter(e["status"] for e in edges if e["kind"] == "CALLS")),
                 graph=graph_info,
-                simple_python_certificate=(
-                    graph_info.pop("_simple_python_certificate")
-                    if preparation_reason == "incremental-owners" else
-                    (None if analysis_scope["mode"] == "general-passive-component" else
-                     old_manifest["simple_python_certificate"]) if local_metrics else
-                    certify(files, asts, graph=graph) if prepared is None else
-                    old_manifest.get("simple_python_certificate")),
+                simple_python_certificate=None,
                 vector_chunks=0 if lexical_only else len(texts),
                 planned_vector_chunks=len(texts),
                 incremental=dict(
@@ -1397,9 +1330,6 @@ def build(c, offline=False, fail_at=None, lexical_only=False, prepare_only=False
                 ),
                 seconds=round(time.monotonic() - started, 2),
             )
-            if (m["simple_python_certificate"] == CERTIFICATE and
-                    (value_flow is None or not value_flow.get("complete"))):
-                m["simple_python_certificate"] = None
             check_catalog_sidecars(folder)
             m["artifacts"] = {}
             m["artifact_sizes"] = {}

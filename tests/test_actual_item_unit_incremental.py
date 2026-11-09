@@ -5,7 +5,6 @@ import shutil
 import sqlite3
 from pathlib import Path
 
-from lct.simple_python import CERTIFICATE
 from lct.storage import build, manifest
 from tests.synthetic_support import initialize
 
@@ -52,7 +51,7 @@ def oracle(tmp_path, config, updated):
 def test_actual_item_unit_local_with_unrelated_growth(tmp_path):
     config, repo, module = setup(tmp_path)
     baseline = build(config, offline=True, lexical_only=True)
-    assert baseline["simple_python_certificate"] == CERTIFICATE
+    assert baseline["graph"]["jedi_queries_executed"] > 0
     old = records(config, baseline["version"])
     source = module.read_bytes()
     assert source == SOURCE.read_bytes()
@@ -92,9 +91,11 @@ def test_actual_item_unit_importer_reanalyzed_and_shadow_falls_back(tmp_path):
 def test_builtin_shadow_or_ordered_guard_rejects_certificate(tmp_path):
     config, repo, module = setup(tmp_path)
     raw = module.read_text()
+    baseline = build(config, offline=True, lexical_only=True)
+    baseline_records = records(config, baseline["version"])
     assert "type(data) is dict" in raw
     assert "data[\"quantity\"] == 1" in raw
-    for changed in (raw.replace("type(data) is dict", "data[\"quantity\"] == 1", 1),
+    for number, changed in enumerate((raw.replace("type(data) is dict", "data[\"quantity\"] == 1", 1),
                     raw + "\ndef type(value):\n    return int\n",
                     raw.replace("def valid_item_unit(data):", "def valid_item_unit(data, type):"),
                     'def f(x):\n    return (type(x) is int) is False and x <= 0\n',
@@ -106,21 +107,33 @@ def test_builtin_shadow_or_ordered_guard_rejects_certificate(tmp_path):
                     'def mutate(x):\n    return None\n'
                     'def f(data):\n    return type(data) is dict and '
                     'type(data["x"]) is int and mutate(data) is None is (data["x"] <= 3)\n',
-                    'from helper import f as type\ndef f(x):\n    return type(x) is int and x <= 0\n'):
+                    'from helper import f as type\ndef f(x):\n    return type(x) is int and x <= 0\n')):
         module.write_text(changed)
         result = build(config, offline=True, lexical_only=True)
-        assert result["simple_python_certificate"] is None
+        assert result["incremental"]["analysis_scope"]["mode"] == "incremental-owners", (number, result["incremental"]["analysis_scope"])
+        fresh_config = dict(config, data=str(tmp_path / f"guard-oracle-{number}"))
+        fresh = build(fresh_config, offline=True, lexical_only=True)
+        assert records(config, result["version"]) == records(fresh_config, fresh["version"])
+        if number == 0:
+            assert records(config, baseline["version"]) == baseline_records
 
 
 def test_new_helper_bindings_cannot_escape_or_impersonate_stdlib(tmp_path):
     config, _, module = setup(tmp_path)
     raw = module.read_text()
-    for changed in (raw + "\ndef escape():\n    return re.fullmatch\n",
+    baseline = build(config, offline=True, lexical_only=True)
+    baseline_records = records(config, baseline["version"])
+    for number, changed in enumerate((raw + "\ndef escape():\n    return re.fullmatch\n",
                     raw + "\ndef escape():\n    return re\n",
                     raw + "\ndef escape():\n    return type\n",
                     raw + "\ndef escape(data):\n    cb = re.fullmatch\n    return cb(data)\n",
                     raw + "\ndef escape(data):\n    cb = set\n    return cb(data)\n",
-                    raw.replace("import re", "from helper import f as re")):
+                    raw.replace("import re", "from helper import f as re"))):
         module.write_text(changed)
         result = build(config, offline=True, lexical_only=True)
-        assert result["simple_python_certificate"] is None
+        assert result["incremental"]["analysis_scope"]["mode"] == "incremental-owners", (number, result["incremental"]["analysis_scope"])
+        fresh_config = dict(config, data=str(tmp_path / f"escape-oracle-{number}"))
+        fresh = build(fresh_config, offline=True, lexical_only=True)
+        assert records(config, result["version"]) == records(fresh_config, fresh["version"])
+        if number == 0:
+            assert records(config, baseline["version"]) == baseline_records

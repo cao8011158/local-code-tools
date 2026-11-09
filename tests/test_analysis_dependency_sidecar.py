@@ -127,15 +127,10 @@ def test_record_budget_marks_partial_queries_unavailable(tmp_path, monkeypatch):
     config, repo = _base(tmp_path)
     (repo / "src/a.py").write_text("def writer(registry):\n    registry['x']=1\n")
     monkeypatch.setattr(analysis, "ANALYSIS_DEPENDENCY_LIMIT", 1)
-    result = build(config, offline=True, lexical_only=True)
-    folder, meta = manifest(config, result["version"])
-    assert meta["analysis_dependency_truncated"]
-    assert meta["analysis_read_count"] + meta["analysis_watch_count"] == 1
-    with FileDependencies(folder, meta) as relations:
-        with pytest.raises(ToolError, match="truncated"):
-            relations.analysis_readers("synthetic-review", "src/a.py")
-        with pytest.raises(ToolError, match="truncated"):
-            relations.analysis_watchers("slot-writer-universe")
+    before = current(config)
+    with pytest.raises(ToolError, match="Analysis dependency record budget exceeded"):
+        build(config, offline=True, lexical_only=True)
+    assert current(config) == before
 
 
 def test_local_sidecar_merge_replaces_selected_consumer_and_checks_endpoints(monkeypatch):
@@ -176,13 +171,13 @@ def test_local_sidecar_merge_replaces_selected_consumer_and_checks_endpoints(mon
     assert merge()[1] == "combined-analysis-dependency-budget-uncertified"
 
 
-def test_real_certified_local_path_keeps_empty_analysis_records(tmp_path):
+def test_simple_local_path_keeps_empty_analysis_records(tmp_path):
     config, repo = initialize(tmp_path / "simple")
     (repo / "src/weights.py").write_text("def one(): pass\n")
     (repo / "src/other.py").write_text("def idle(): pass\n")
     (repo / "docs/guide.md").unlink()
     baseline = build(config, offline=True, lexical_only=True)
-    assert baseline["simple_python_certificate"]
+    assert baseline["simple_python_certificate"] is None
     (repo / "src/weights.py").write_text("def one(): pass\ndef two(): pass\n")
     local = build(config, offline=True, lexical_only=True)
     assert local["incremental"]["analysis_scope"]["mode"] == "incremental-owners"

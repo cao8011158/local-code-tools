@@ -33,21 +33,22 @@ def test_two_callback_arguments_keep_distinct_provider_and_consumer_sites(tmp_pa
         supports = [r for r in deps.unit_sources(execute)["supports"]
                     if r["kind"] == "actual-parameter"]
         assert len(supports) == 2
-        assert {r["detail"]["parameter"]["name"]: r["detail"]["target_ids"][0]
-                .split(":function:")[-1].split("#")[0] for r in supports} == {
-                    "first_cb": "a", "second_cb": "b"}
+        assert {r["detail"]["parameter"] for r in supports} == {
+            "first_cb", "second_cb"}
         assert {r["producer_owner"] for r in supports} == {run}
         assert len({r["consumer_site"] for r in supports}) == 2
-        assert all(r["detail"]["argument_source"]["call_site"] == r["producer_site"]
+        assert len({r["detail"]["call_site"] for r in supports}) == 1
+        assert len({r["producer_site"] for r in supports}) == 2
+        assert all(r["detail"]["call_location"]["expression"] == "execute"
                    and r["producer_location"]["path"] == "src/a.py" for r in supports)
         assert {(execute, r["consumer_site"]) for r in supports} <= deps.unit_readers(run)
-        assert {r["detail"]["parameter"]["name"] for r in deps.unit_sources(
+        assert {r["detail"]["parameter"] for r in deps.unit_sources(
             execute, supports[0]["consumer_site"])["supports"] if r["kind"] == "actual-parameter"} == {
-            supports[0]["detail"]["parameter"]["name"]}
+            supports[0]["detail"]["parameter"]}
 
 
 def test_getter_slot_read_retains_actual_read_and_final_consumer(tmp_path):
-    _, _, folder, summary = capture(tmp_path, {
+    config, repo, folder, summary = capture(tmp_path, {
         "a.py": "def first(): pass\ndef second(): pass\n"
                 "registry={'go': first, 'else': second}\n"
                 "def get_callback(): return registry['go']\n",
@@ -60,19 +61,33 @@ def test_getter_slot_read_retains_actual_read_and_final_consumer(tmp_path):
         assert row is not None
         origin = row[0]
         readers = deps.unit_container_readers(origin, "go")
-        assert any(r["read_owner"] == getter and r["consumer_owner"] == run
+        assert any(r["read_owner"] == getter and r["consumer_owner"] == getter
                    and r["key"] == "string:go" and r["key_relation"] == "same"
                    and r["read_location"]["expression"] == "registry['go']"
-                   and r["consumer_location"]["path"] == "src/b.py"
+                   and r["consumer_location"]["path"] == "src/a.py"
                    for r in readers)
         # Different keys in one origin stay conservative invalidation inputs.
         assert any(r["key_relation"] == "other-conservative"
                    for r in deps.unit_container_readers(origin, "else"))
         assert {w["key"] for w in deps.unit_container_writes(origin)} >= {
             "string:go", "string:else"}
-        assert any(s["kind"] == "container-writer" and s["detail"]["origin"] == origin
-                   and s["detail"]["read_owner"] == getter
+        assert any(s["kind"] == "call-target" and s["producer_owner"] == getter
+                   and s["consumer_owner"] == run
                    for s in deps.unit_sources(run)["supports"])
+        assert any(owner == run for owner, _ in deps.unit_readers(getter))
+    (repo / "src/a.py").write_text(
+        "def first(): pass\ndef second(): pass\n"
+        "registry={'go': first, 'else': second}\n"
+        "registry['go']=second\n"
+        "def get_callback(): return registry['go']\n")
+    updated = build(config, offline=True, lexical_only=True)
+    assert updated["incremental"]["analysis_scope"]["mode"] == "incremental-owners"
+    from tests.semantic_comparison import assert_semantic_equal
+    from tests.test_batch3_actual_acceptance import semantic
+    fresh_config = dict(config, data=str(tmp_path / "fresh-getter"))
+    fresh = build(fresh_config, offline=True, lexical_only=True)
+    assert_semantic_equal(semantic(config, updated["version"]),
+                          semantic(fresh_config, fresh["version"]))
 
 
 def test_missing_key_subscribes_to_future_writer_and_numeric_keys_agree(tmp_path):
