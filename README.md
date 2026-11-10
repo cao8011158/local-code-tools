@@ -1,12 +1,13 @@
 # Agentic TRPG Local Code Tools 1.0.0
 
-## Function-value dependency design and bounded implementation
-
-[Design contract](docs/FUNCTION_VALUE_DEPENDENCIES.md) and [source-grounded gap audit](review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md) describe the broader model and its baseline. The current bounded dictionary value-flow slice and its fail-closed `simple-python-v5` admission are documented in [incremental update status](docs/INCREMENTAL_UPDATE.md#function-value-dependency-design-status). Semantic dictionary/entry/binding/write/read evidence lives only in the immutable SQLite sidecar; searchable code levels and the optional Neo4j public graph projection do not gain new kinds. Repository agents should start at [AGENTS.md](AGENTS.md) and the [local skill](.agents/skills/code-graph-dependency-change/SKILL.md).
-
 这是独立私有源码审阅仓库，包含真实的解析、Code Graph、检索、增量版本管理、CLI 和 stdio MCP 实现。
 **本仓库不提供真实数据库、节点目录数据、图数据、向量、索引或 Release 附件。**
 Git checkout 用于审阅、开发和合成测试。本机已有完整工具包保留在原位置，上传不会重建或删除它。
+
+## CGR 本地检索
+
+使用 `uv sync --locked` 安装，再运行 `uv run --locked lct up --config configs/agentic-trpg.toml`。
+配置、Qdrant、Codex MCP 与刷新流程见 [本地代码图和文档检索](docs/CGR_LOCAL_RETRIEVAL.md)。
 
 ## 安装
 
@@ -24,11 +25,6 @@ uv sync --locked
 解析控制使用开放输入模式。
 本批不启动 MCP 或构建真实索引。实际结果、范围和剩余限制见
 [第一阶段报告](review/PYTHON_PIPELINE_PHASE1.md)。
-
-另有可选的 [Neo4j 投影](docs/NEO4J_FULL_GRAPH.md)（[API 与 CLI](docs/NEO4J_SMALL_GRAPH.md)）：
-从已发布 SQLite catalog/manifest 分批导入固定版本，完成校验后原子发布；失败候选
-不可查询，同输入重试清理后从头导入。未接入现有 MCP 或向量检索。安装可选
-`neo4j` 依赖组后使用独立 `python -m lct.neo4j_graph` 管理入口。已知节点的图查询可使用 [官方 Neo4j MCP read-cypher 模板](docs/OFFICIAL_NEO4J_MCP.md)；投影迁移与索引维护仅在终端离线执行。
 
 默认测试不需要 `config.json`、真实索引、API key 或三个业务仓库；测试配置和生成数据库放在临时目录。
 Embedding API 被测试夹具禁止调用。一项使用已有真实历史缓存的测试默认跳过，只有显式
@@ -67,13 +63,6 @@ Copy-Item config.example.json config.json
 `protocol_acceptance.py` 是已有本机验收入口，默认要求配置/真实索引，有些路径可能申请缺失查询或文档向量；
 不能把它们当成默认离线测试。`dense_acceptance.py --offline` 禁止申请新向量。
 
-已有完整 lexical 版本需要追加向量而不重新解析源码时，使用
-`local_code_tools.py attach-dense --version <当前版本> --expected-program-hash <原版本program_hash> --offline`。
-它仅从已发布 catalog 的捕获源码重建 embedding 输入，读取缓存，创建新版本并原子发布；
-`--offline` 缺向量即拒绝，去掉该参数才允许在配置预算内请求 Voyage。程序升级导致旧版本
-`program_hash` 不同，必须显式提供旧哈希；schema、配置、模型、HNSW 和校验和仍严格验证。
-源码新鲜度沿用旧版本上次检查时间，不执行实时目录扫描。
-
 本次上传的只读实库验证命令为：
 
 ```powershell
@@ -92,7 +81,6 @@ MCP 注册保存的是本机绝对解释器/入口，换电脑后须安装依赖
 | --- | --- |
 | `lct/extract.py` | Python AST/嵌套节点、签名、现有docstring输入、Markdown章节 |
 | `lct/graph.py` | CONTAINS/IMPORTS/CALLS/INHERITS、别名/赋值/回调/字典传播和依赖边界 |
-| `lct/neo4j_graph.py` | 已发布 SQLite 小图的可选 Neo4j 导入与固定版本查询 |
 | `lct/embedding.py` | 真正的Voyage客户端、内容键缓存、限额、有限重试和断点复用 |
 | `lct/lexical.py` | 中英/标识符分词与持久BM25 posting |
 | `lct/storage.py` | 节点目录、差异更新、HNSW、候选版本、原子切换及恢复 |

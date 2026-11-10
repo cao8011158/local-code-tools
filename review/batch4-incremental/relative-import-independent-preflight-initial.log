@@ -1,9 +1,0 @@
-...........F                                                             [100%]
-=================================== FAILURES ===================================
-__________ test_relative_import_reverse_lookup_uses_normalized_index ___________
-review/batch4-incremental/test_relative_import_independent.py:155: in test_relative_import_reverse_lookup_uses_normalized_index
-    assert probes[0] == probes[1]
-E   assert 21 == 16
-=========================== short test summary info ============================
-FAILED review/batch4-incremental/test_relative_import_independent.py::test_relative_import_reverse_lookup_uses_normalized_index
-1 failed, 11 passed in 2.24s

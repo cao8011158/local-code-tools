@@ -1,9 +1,0 @@
-.....F
-=================================== FAILURES ===================================
-______ test_actual_parameter_reader_index_does_not_scan_unrelated_origins ______
-review/batch4-incremental/test_scope_reads_independent.py:132: in test_actual_parameter_reader_index_does_not_scan_unrelated_origins
-    assert measured[0]['vm_steps']==measured[1]['vm_steps']
-E   assert 26 == 21
-=========================== short test summary info ============================
-FAILED review/batch4-incremental/test_scope_reads_independent.py::test_actual_parameter_reader_index_does_not_scan_unrelated_origins
-1 failed, 5 passed in 4.22s

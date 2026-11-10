@@ -7,16 +7,12 @@ engine: unsupported mutation and control flow contribute explicit unknown origin
 import ast
 import sys
 import tempfile
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
 import jedi
 
 from .common import canonical, digest
-from .dependency_origins import LIMIT as ORIGIN_LIMIT, key_identity
-from .analysis_inputs import AnalysisInputs
-from .parso_cache_compat import ensure_parso_cache_timestamps
 from .python_access import AccessKind, ReceiverAccess, access, combine
 from .python_effects import (
     EffectCatalog,
@@ -28,18 +24,6 @@ from .python_effects import (
 )
 
 _DYNAMIC = object()
-_SAME_INPUT_SCOPE = object()
-
-
-class RequiredAnalysisContext(Exception):
-    """A captured Jedi target needs its AST in the bounded compute component."""
-
-    def __init__(self, repository, path):
-        self.repository, self.path = repository, path
-        super().__init__(repository, path)
-ANALYSIS_DEPENDENCY_LIMIT = 20000
-ANALYSIS_READ_KINDS = frozenset({"container-effects", "member-lookup", "return-body",
-                                 "parameter-origin", "jedi-target"})
 CALLABLE_KINDS = frozenset(("callable", "class", "context-factory", "async-context-factory"))
 
 
@@ -105,27 +89,15 @@ def invalid(rule):
 class Analyzer:
     """Resolve one private source capture with recursion and work budgets."""
 
-    def __init__(self, nodes, trees, repos, imported, query_reuse=None,
-                 candidate_components=None, source_context=None,
-                 candidate_site_evidence=None, selected_owners=None):
-        ensure_parso_cache_timestamps()
+    def __init__(self, nodes, trees, repos, imported):
         self.nodes, self.trees, self.repos = nodes, trees, repos
         self.imported = imported
-        self.candidate_components = candidate_components
-        self.analysis_inputs = AnalysisInputs({i: n for i, n in nodes.items()
-                                              if n["kind"] == "module"})
-        self._analysis_input_ready = False
         self.owner = {id(t): ident for ident, t in trees.items()}
         self.modules = {i: t for i, t in trees.items() if isinstance(t, ast.Module)}
         self.statements = {
             i: t.body if not isinstance(t, ast.Lambda) else [] for i, t in trees.items()
         }
         self.queries, self.memo, self.container_exprs = {}, {}, {}
-        self._query_context = {}
-        self.query_reuse = query_reuse or {}
-        self.reused_queries = 0
-        self.executed_queries = 0
-        self._query_inflight = 0
         self.active = set()
         self.stack, self.traces, self.dependencies = [], {}, {}
         self.sites, self.references, self.import_sites, self.inheritance = [], [], [], []
@@ -140,27 +112,22 @@ class Analyzer:
         self.coverage_models = {}
         self.method_effects = {}
         self.execution_nodes = {}
-        context = (source_context if source_context is not None else
-                   {ident: tree._lct_source for ident, tree in self.modules.items()})
-        for ident, source in context.items():
-            if ident not in nodes or nodes[ident]["kind"] != "module":
-                raise ValueError("Captured context module unavailable")
+        for ident, t in self.modules.items():
             n = nodes[ident]
             path = self.root / n["repository"] / n["path"]
             if not path.resolve().is_relative_to(self.root):
                 raise ValueError("Source path escapes captured workspace")
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(source, encoding="utf-8")
+            path.write_text(t._lct_source, encoding="utf-8")
             self.paths[path.resolve()] = ident
-        roots = defaultdict(set)
+        roots = set()
         for path, ident in self.paths.items():
-            module = nodes[ident]
-            mod = module["qualname"]
+            mod = nodes[ident]["qualname"]
             depth = len(mod.split(".")) if path.name == "__init__.py" else len(mod.split(".")) - 1
             root = path.parent
             for _ in range(depth):
                 root = root.parent
-            roots[module["repository"]].add(str(root))
+            roots.add(str(root))
         library_paths = [
             p
             for p in sys.path
@@ -168,55 +135,21 @@ class Analyzer:
             and ("site-packages" in p or "python" in p.lower())
             and str(Path(p).resolve()) != str(Path.cwd().resolve())
         ]
-        projects = {}
-        for repository in roots:
-            dependencies = set()
-            for ident in context:
-                module = nodes[ident]
-                if module["repository"] == repository:
-                    continue
-                if ident in self.imported(repository, module["qualname"]):
-                    dependencies.update(roots[module["repository"]])
-            projects[repository] = jedi.Project(
-                self.root / repository,
-                sys_path=sorted(roots[repository]) + sorted(dependencies - roots[repository])
-                + library_paths,
-                smart_sys_path=False,
-                load_unsafe_extensions=False,
-            )
+        project = jedi.Project(
+            self.root,
+            sys_path=sorted(roots) + library_paths,
+            smart_sys_path=False,
+            load_unsafe_extensions=False,
+        )
         for path, ident in self.paths.items():
-            if ident not in self.modules:
-                continue
             self.scripts[ident] = jedi.Script(
-                code=trees[ident]._lct_source, path=path,
-                project=projects[nodes[ident]["repository"]],
+                code=trees[ident]._lct_source, path=path, project=project
             )
         for ident in trees:
             mod = ident
             while nodes[mod]["kind"] != "module":
                 mod = nodes[mod]["parent"]
             self.module_for[ident] = mod
-        self.analysis_reads = set()
-        self.analysis_watches = set()
-        self.unit_analysis_reads = set()
-        self.unit_analysis_watches = set()
-        self.unit_input_events = set()
-        self._unit_component_members = {}
-        self.unit_supports = {}
-        self.unit_container_subscriptions = {}
-        self.unit_container_writes = {}
-        self._unit_writes_by_origin = defaultdict(list)
-        self._unit_subscriptions_by_query = defaultdict(dict)
-        self.unit_dependency_truncated = False
-        self.analysis_dependency_truncated = False
-        self._source_lines = {
-            ident: tree._lct_source.splitlines() for ident, tree in self.modules.items()
-        }
-        self._definitions_by_line = defaultdict(list)
-        for ident, node in self.nodes.items():
-            if ident in self.module_for:
-                self._definitions_by_line[self.module_for[ident], node["definition_line"]].append(ident)
-        self._definition_index_sizes = (len(self.nodes), len(self.module_for))
         for ident, tree in self.modules.items():
             deferred = any(
                 isinstance(s, ast.ImportFrom)
@@ -225,444 +158,13 @@ class Analyzer:
                 for s in tree.body
             )
             self.inventory(tree, ident, ident, "module", deferred)
-        self._unit_site_by_expr = {(s["execution_owner"], id(s["_expr"])):
-                                   (s["site_id"], s["_expr"])
-                                   for s in self.sites}
-        self._unit_site_by_id = {s["site_id"]: (s["execution_owner"], s["_expr"])
-                                 for s in self.sites}
 
-        self._query_certificates = self._build_query_certificates()
-
-        self._site_index_size = len(self.sites)
-        self._site_keys = defaultdict(set)
-        self._site_spellings = defaultdict(set)
-        self._site_unqueried = set()
-        self._site_no_atoms = set()
-        self._site_targets = defaultdict(set)
-        previous_sites = {(s["execution_owner"], s["line"], s["column"], s["kind"]): s
-                          for s in (candidate_site_evidence or ())}
-        selected_owners = frozenset(selected_owners or ())
-        self._selected_owner_mode = bool(selected_owners)
-        component_sites = {component: [] for component in (candidate_components or {}).values()}
-        if self.candidate_components is not None:
-            for pos, site in enumerate(self.sites):
-                owner = self.module_for.get(site["execution_owner"])
-                component = self.candidate_components.get(owner)
-                if component is None:
-                    # Unknown owners cannot be excluded from any candidate set.
-                    self.candidate_components = None
-                    component_sites.clear()
-                    break
-                component_sites[component].append(pos)
-        self._component_site_order = dict(component_sites)
-        self._component_site_positions = {key: frozenset(positions)
-                                          for key, positions in component_sites.items()}
-        for pos, site in enumerate(self.sites):
-            if site["_call"] is None:
-                continue
-            self._site_unqueried.add(pos)
-            expr = site["_expr"]
-            old = previous_sites.get((site["execution_owner"], site["line"],
-                                      site["column"], site["kind"]))
-            if (site["execution_owner"] not in selected_owners and old is not None
-                    and old.get("expression") == site["expression"]):
-                if old.get("unknown_origin") or not old.get("complete"):
-                    # Unknown and partial candidates must stay in the search.
-                    pass
-                else:
-                    self._site_unqueried.discard(pos)
-                for target in old["targets"]:
-                    self._site_targets[target].add(pos)
-            key = (self.module_for[site["execution_owner"]], expr.end_lineno,
-                   expr.end_col_offset, False)
-            self._site_keys[key].add(pos)
-            spelling = (expr.id if isinstance(expr, ast.Name) else
-                        expr.attr if isinstance(expr, ast.Attribute) else None)
-            if spelling is not None:
-                self._site_spellings[spelling].add(pos)
-            if key in self.queries:
-                self._observe_query(key, self.queries[key][0])
         self.effects = EffectCatalog(trees, self.execution_nodes)
-        self._slot_scopes_by_origin, self._slot_fallback_scopes = self._index_local_slot_scopes()
-        self.slot_scope_index_build_scopes = len(self.effects.slot_scopes)
-        self.slot_scope_candidates_checked = 0
-        self.slot_events_checked = 0
-        self.value_reads = {}
         self.access = ReceiverAccess(self, Atom, Result)
-        self._analysis_input_ready = True
-
-    def _observe_analysis_input(self, scope, purpose, producer_scope=_SAME_INPUT_SCOPE,
-                                *, consumer_scope=None):
-        """Record one captured input range without changing semantic resolution."""
-        if not self._analysis_input_ready:
-            raise RuntimeError("Analysis input observed during Analyzer initialization")
-        consumer_scope = (consumer_scope if consumer_scope is not None else
-                          self.stack[-1][0] if self.stack else scope)
-        consumer = self.module_for.get(consumer_scope)
-        producer = self.module_for.get(scope if producer_scope is _SAME_INPUT_SCOPE
-                                       else producer_scope)
-        if consumer is None:
-            self.analysis_inputs.truncated = True
-            return
-        component = (self.candidate_components.get(consumer)
-                     if self.candidate_components is not None and
-                     len(self.sites) == self._site_index_size else None)
-        if component is not None and producer not in component:
-            component = None
-        self.analysis_inputs.observe(consumer, component, purpose)
-        owner = self.stack[0][0] if self.stack else consumer_scope
-        if owner in self.nodes:
-            ident = self.analysis_inputs.component_ids.get(component) if component is not None else None
-            members = () if ident is None else self._unit_component_members.get(ident)
-            if ident is not None and members is None:
-                members = tuple(sorted(self.analysis_inputs.members[ident]))
-                self._unit_component_members[ident] = members
-            self.unit_input_events.add((owner, consumer, members, purpose))
-
-    def _record_analysis_dependency(self, destination, record):
-        if record in destination:
-            return
-        if len(self.analysis_reads) + len(self.analysis_watches) >= ANALYSIS_DEPENDENCY_LIMIT:
-            self.analysis_dependency_truncated = True
-            return
-        destination.add(record)
-
-    def _unit_site(self, scope, expr, role):
-        """Source-located private site for noncall reads/writes and returns."""
-        existing = self._unit_site_by_expr.get((scope, id(expr)))
-        if existing is not None and role == "call":
-            return existing[0]
-        module = self.nodes[self.module_for[scope]]
-        return digest(canonical([module["repository"], module["path"],
-                                 module["snapshot_id"], getattr(expr, "lineno", 0),
-                                 getattr(expr, "col_offset", 0),
-                                 getattr(expr, "end_lineno", 0),
-                                 getattr(expr, "end_col_offset", 0), role]))
-
-    def _unit_consumer(self, scope, expr):
-        if self.stack:
-            root_scope, root_expr, _ = self.stack[0]
-            indexed = self._unit_site_by_expr.get((root_scope, root_expr))
-            if indexed is not None:
-                root = indexed[1]
-                return root_scope, self._unit_site(root_scope, root, "call")
-        return scope, self._unit_site(scope, expr, "read")
-
-    def _unit_consumer_in(self, scope, expr):
-        for owner, expression, _ in reversed(self.stack):
-            if owner == scope and (owner, expression) in self._unit_site_by_expr:
-                site, original = self._unit_site_by_expr[owner, expression]
-                return site, original
-        return self._unit_site(scope, expr, "read"), expr
-
-    def _unit_record(self, collection, record):
-        if self.unit_dependency_truncated:
-            return
-        if (len(self.unit_supports) + len(self.unit_container_subscriptions) +
-                len(self.unit_container_writes) >= ORIGIN_LIMIT):
-            self.unit_dependency_truncated = True
-            return
-        collection[canonical(record)] = record
-
-    @staticmethod
-    def _unit_expression(expr):
-        if isinstance(expr, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            return expr.name
-        return ast.unparse(expr)[:240]
-
-    @staticmethod
-    def _unit_origin(atom):
-        # The existing finite container model distinguishes constructor
-        # allocations even when the dictionary expression is one __init__ AST.
-        return atom.target if not atom.allocation else atom.target + "@" + atom.allocation
-
-    def _unit_support(self, producer_owner, producer_expr, consumer_owner,
-                      consumer_expr, kind, detail, status="observed", *,
-                      producer_site=None, consumer_site=None):
-        producer_site = producer_site or self._unit_site(producer_owner, producer_expr, "source")
-        consumer_site = consumer_site or self._unit_site(consumer_owner, consumer_expr, "read")
-        self._unit_record(self.unit_supports, dict(
-            producer_owner=producer_owner, producer_site=producer_site,
-            producer_location=dict(repository=self.nodes[producer_owner]["repository"],
-                                   path=self.nodes[producer_owner]["path"],
-                                   line=getattr(producer_expr, "lineno", 0),
-                                   column=getattr(producer_expr, "col_offset", 0),
-                                   end_line=getattr(producer_expr, "end_lineno", 0),
-                                   end_column=getattr(producer_expr, "end_col_offset", 0),
-                                   expression=self._unit_expression(producer_expr)),
-            consumer_owner=consumer_owner, consumer_site=consumer_site,
-            consumer_location=dict(repository=self.nodes[consumer_owner]["repository"],
-                                   path=self.nodes[consumer_owner]["path"],
-                                   line=getattr(consumer_expr, "lineno", 0),
-                                   column=getattr(consumer_expr, "col_offset", 0),
-                                   end_line=getattr(consumer_expr, "end_lineno", 0),
-                                   end_column=getattr(consumer_expr, "end_col_offset", 0),
-                                   expression=self._unit_expression(consumer_expr)),
-            kind=kind, status=status, detail=detail))
-
-    def _unit_write(self, origin, key_kind, key, owner, expr, kind, status):
-        record = dict(origin=origin, key_kind=key_kind, key=key,
-                      producer_owner=owner, producer_site=self._unit_site(owner, expr, "write"),
-                      producer_location=dict(repository=self.nodes[owner]["repository"],
-                                             path=self.nodes[owner]["path"],
-                                             line=expr.lineno, column=expr.col_offset,
-                                             end_line=expr.end_lineno,
-                                             end_column=expr.end_col_offset,
-                                             expression=self._unit_expression(expr)),
-                      kind=kind, status=status)
-        if canonical(record) not in self.unit_container_writes:
-            self._unit_record(self.unit_container_writes, record)
-            if not self.unit_dependency_truncated:
-                self._unit_writes_by_origin[origin].append(record)
-        return record
-
-    def _unit_subscribe(self, origin, key_kind, key, scope, expr, reasons):
-        # Resolution memo entries may be consumed by several distinct outer
-        # call sites. Retain their actual reads for every later consumer.
-        observation = (origin, key_kind, key, scope, expr, frozenset(reasons))
-        for query in self.stack:
-            self._unit_subscriptions_by_query[query][(origin, key_kind, key,
-                                                        scope, id(expr))] = observation
-        consumer_owner, consumer_site = self._unit_consumer(scope, expr)
-        consumer_expr = self._unit_site_by_id.get(consumer_site, (consumer_owner, expr))[1]
-        read_site = self._unit_site(scope, expr, "container-read")
-        consumer_location = dict(repository=self.nodes[consumer_owner]["repository"],
-                                 path=self.nodes[consumer_owner]["path"],
-                                 line=consumer_expr.lineno, column=consumer_expr.col_offset,
-                                 end_line=consumer_expr.end_lineno,
-                                 end_column=consumer_expr.end_col_offset,
-                                 expression=ast.unparse(consumer_expr)[:240])
-        record = dict(origin=origin, key_kind=key_kind, key=key,
-                      read_owner=scope, read_site=read_site,
-                      read_location=dict(repository=self.nodes[scope]["repository"],
-                                         path=self.nodes[scope]["path"],
-                                         line=expr.lineno, column=expr.col_offset,
-                                         end_line=expr.end_lineno,
-                                         end_column=expr.end_col_offset,
-                                         expression=ast.unparse(expr)[:240]),
-                      consumer_owner=consumer_owner, consumer_site=consumer_site,
-                      consumer_location=consumer_location,
-                      unknown_reasons=sorted(reasons))
-        self._unit_record(self.unit_container_subscriptions, record)
-        for write in self._unit_writes_by_origin.get(origin, ()):
-            if (key_kind == "exact" and write["key_kind"] == "exact"
-                    and write["key"] != key):
-                continue
-            support = dict(producer_owner=write["producer_owner"],
-                           producer_site=write["producer_site"],
-                           producer_location=write["producer_location"],
-                           consumer_owner=consumer_owner, consumer_site=consumer_site,
-                           consumer_location=consumer_location,
-                           kind="container-writer", status="candidate",
-                           detail=dict(origin=origin, key_kind=key_kind, key=key,
-                                       read_owner=scope, read_site=read_site,
-                                       read_location=record["read_location"],
-                                       write_kind=write["kind"],
-                                       unknown_reasons=sorted(reasons)))
-            self._unit_record(self.unit_supports, support)
-
-    def _record_scope_read(self, producer_scope, kind, consumer_scope=None):
-        """Record an observed cross-module read at the current evaluation scope."""
-        if consumer_scope is None:
-            consumer_scope = self.stack[-1][0] if self.stack else None
-        producer = self.module_for.get(producer_scope)
-        consumer = self.module_for.get(consumer_scope)
-        if producer is not None and consumer is not None and producer != consumer:
-            self._record_analysis_dependency(self.analysis_reads, (consumer, producer, kind))
-            owner = self.stack[0][0] if self.stack else consumer_scope
-            if owner in self.nodes:
-                self.unit_analysis_reads.add((owner, consumer, producer, kind))
-
-    def _record_query_targets(self, scope, raw):
-        for record in raw:
-            if record.get("target") in self.module_for and record.get("mapping") == "exact-captured-definition":
-                self._record_scope_read(record["target"], "jedi-target", scope)
-
-    def _index_local_slot_scopes(self):
-        """Exclude only nonescaping, straight-line function-local containers.
-
-        This is an admission proof for a scope, not an approximation of its
-        receivers. A failed proof keeps the entire scope in the original scan.
-        No resolution/Jedi work is performed while building this index.
-        """
-        by_origin = defaultdict(set)
-        fallback = set()
-        for scope in self.effects.slot_scopes:
-            tree = self.trees[scope]
-            if not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                fallback.add(scope)
-                continue
-            bindings = {}
-            written = set()
-            safe = True
-            for stmt in tree.body:
-                if isinstance(stmt, ast.Pass):
-                    continue
-                if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
-                    continue
-                if isinstance(stmt, ast.Return) and (stmt.value is None or
-                        isinstance(stmt.value, ast.Constant)):
-                    continue
-                if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
-                    safe = False
-                    break
-                dest, value = stmt.targets[0], stmt.value
-                if isinstance(dest, ast.Name):
-                    if isinstance(value, (ast.Dict, ast.List, ast.Tuple)):
-                        parts = ([*value.keys, *value.values] if isinstance(value, ast.Dict)
-                                 else value.elts)
-                        if any(part is None or not isinstance(part, ast.Constant) for part in parts):
-                            safe = False
-                            break
-                        bindings[dest.id] = f"{scope}:{value.lineno}:{value.col_offset}"
-                    elif isinstance(value, ast.Name) and value.id in bindings:
-                        bindings[dest.id] = bindings[value.id]
-                    else:
-                        safe = False
-                        break
-                elif (isinstance(dest, ast.Subscript) and isinstance(dest.value, ast.Name)
-                      and dest.value.id in bindings and
-                      isinstance(dest.ctx, ast.Store) and
-                      self.literal_key(dest.slice)[0] and
-                      isinstance(value, ast.Constant)):
-                    written.add(bindings[dest.value.id])
-                else:
-                    safe = False
-                    break
-            if safe and written:
-                for origin in written:
-                    by_origin[origin].add(scope)
-            else:
-                fallback.add(scope)
-        return by_origin, fallback
-
-    def _observe_query(self, key, result):
-        """Index only observations already made by the ordinary query path."""
-        positions = self._site_keys.get(key, ())
-        self._site_unqueried.difference_update(positions)
-        if not result.atoms:
-            self._site_no_atoms.update(positions)
-        else:
-            for atom in result.atoms:
-                self._site_targets[atom.target].update(positions)
-
-    def candidate_sites(self, function):
-        """Preserve may_call's admission and original site order, including unknowns."""
-        self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
-        component = self._candidate_component(function)
-        if ((self._query_inflight and not self._selected_owner_mode) or
-                len(self.sites) != self._site_index_size):
-            return self.sites if component is None or len(self.sites) != self._site_index_size else self.sites_for(function)
-        if component is None:
-            positions = (self._site_spellings.get(self.nodes[function]["name"], set())
-                         | self._site_targets.get(function, set())
-                         | self._site_no_atoms | self._site_unqueried)
-        else:
-            allowed = self._component_site_positions[component]
-            positions = ((self._site_spellings.get(self.nodes[function]["name"], set()) & allowed)
-                         | (self._site_targets.get(function, set()) & allowed)
-                         | (self._site_no_atoms & allowed) | (self._site_unqueried & allowed))
-        return (self.sites[pos] for pos in sorted(positions))
-
-    def _candidate_component(self, function):
-        if self.candidate_components is None:
-            return None
-        module = self.module_for.get(function)
-        component = self.candidate_components.get(module)
-        if component not in self._component_site_positions:
-            return None
-        return component
-
-    def sites_for(self, function):
-        """The full ordered candidate universe within a certified component."""
-        self._observe_analysis_input(function, "call-candidates", consumer_scope=function)
-        component = self._candidate_component(function)
-        if component is None or len(self.sites) != self._site_index_size:
-            return self.sites
-        return (self.sites[pos] for pos in self._component_site_order[component])
 
     def close(self):
         """Release only this analyzer's private captured sources."""
         self.temp.cleanup()
-
-    def _build_query_certificates(self):
-        """Scan each captured module once for uniquely bound direct declarations."""
-        certificates = {}
-        for module, tree in self.modules.items():
-            declarations, unsafe_names = defaultdict(list), set()
-            unsafe_module = False
-            for obj in ast.walk(tree):
-                if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                    declarations[obj.name].append(obj)
-                elif isinstance(obj, ast.Name) and isinstance(obj.ctx, (ast.Store, ast.Del)):
-                    unsafe_names.add(obj.id)
-                elif isinstance(obj, ast.arg):
-                    unsafe_names.add(obj.arg)
-                elif isinstance(obj, ast.alias):
-                    if obj.name == "*":
-                        unsafe_module = True
-                    unsafe_names.add(obj.asname or obj.name.split(".")[0])
-                elif isinstance(obj, (ast.Global, ast.Nonlocal)):
-                    unsafe_names.update(obj.names)
-                elif isinstance(obj, ast.ExceptHandler) and obj.name:
-                    unsafe_names.add(obj.name)
-                elif isinstance(obj, ast.Match):
-                    # Captures have a separate binding grammar; decline the module.
-                    unsafe_module = True
-                elif isinstance(obj, ast.Call) and isinstance(obj.func, ast.Name) and obj.func.id in (
-                    "eval", "exec", "locals", "globals", "vars"
-                ):
-                    unsafe_module = True
-            if unsafe_module:
-                continue
-            for name, matches in declarations.items():
-                if len(matches) != 1 or name in unsafe_names:
-                    continue
-                obj = matches[0]
-                target = self.owner.get(id(obj))
-                if target is None or self.nodes[target]["name"] != name:
-                    continue
-                parent = self.nodes[target]["parent"]
-                owner = self.trees.get(parent)
-                if (not isinstance(owner, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef))
-                        or obj not in owner.body or obj.decorator_list):
-                    continue
-                if isinstance(obj, ast.ClassDef):
-                    if obj.bases or obj.keywords:
-                        continue
-                elif (any(not isinstance(default, ast.Constant) for default in obj.args.defaults)
-                      or any(default is not None and not isinstance(default, ast.Constant)
-                             for default in obj.args.kw_defaults)):
-                    continue
-                certificates[module, name] = target, parent
-        return certificates
-
-    def _direct_lexical_query(self, scope, expr, result, raw, *, local_only=False):
-        """Proof for one direct local name; opaque imported/assigned origins are excluded."""
-        if not isinstance(expr, ast.Name) or len(raw) != 1 or len(result.atoms) != 1 or result.requirements:
-            return False
-        module = self.module_for[scope]
-        certificate = self._query_certificates.get((module, expr.id))
-        if certificate is None:
-            return False
-        target, owner = certificate
-        if local_only and isinstance(self.trees[owner], ast.Module):
-            # Other Python modules may write a module global. Function locals
-            # cannot be rebound from another captured module's lexical body.
-            return False
-        atom = next(iter(result.atoms))
-        record = raw[0]
-        if (atom.target != target or atom.kind not in ("callable", "class")
-                or record.get("mapping") != "exact-captured-definition"
-                or record.get("target") != target or record.get("name") != expr.id
-                or record.get("source_sha256") != self.nodes[target]["source_sha256"]):
-            return False
-        current = scope
-        while current != owner:
-            current = self.nodes[current]["parent"]
-            if current is None or current not in self.nodes or current == module and owner != module:
-                return False
-        return True
 
     def inventory(self, obj, lexical, execution, phase, deferred):
         """Record syntax positions and definition-time execution owners."""
@@ -763,9 +265,6 @@ class Analyzer:
         )
         path = Path(name.module_path).resolve() if name.module_path else None
         module = self.paths.get(path)
-        if module is not None and module not in self.modules:
-            owner = self.nodes[module]
-            raise RequiredAnalysisContext(owner["repository"], owner["path"])
         if not module:
             if not name.module_path and not name.full_name:
                 raw["mapping"] = "unlocatable-jedi-result"
@@ -787,19 +286,12 @@ class Analyzer:
         if name.type == "module":
             raw["mapping"] = "exact-captured-module"
             return known("module", module), raw
-        lines = self._source_lines[module]
+        lines = self.trees[module]._lct_source.splitlines()
         col = len(lines[name.line - 1][: name.column].encode("utf-8")) if name.line else None
         matches = []
-        candidates = (
-            self._definitions_by_line.get((module, name.line), ())
-            if (len(self.nodes), len(self.module_for)) == self._definition_index_sizes
-            else (
-                ident for ident, node in self.nodes.items()
-                if self.module_for.get(ident) == module and node["definition_line"] == name.line
-            )
-        )
-        for ident in candidates:
-            node = self.nodes[ident]
+        for ident, node in self.nodes.items():
+            if self.module_for.get(ident) != module or node["definition_line"] != name.line:
+                continue
             obj = self.trees.get(ident)
             if isinstance(obj, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 prefix = (
@@ -820,7 +312,6 @@ class Analyzer:
         if not matches and name.type == "statement":
             # Imported variables are not declarations. Follow only their exact captured
             # assignment token, retaining that location as mapping evidence.
-            receiver_matches = []
             for scope, tree in self.trees.items():
                 if self.module_for[scope] != module or isinstance(tree, ast.Lambda):
                     continue
@@ -840,36 +331,6 @@ class Analyzer:
                         ):
                             raw["mapping"] = "exact-captured-assignment"
                             return self.resolve(scope, statement.value), raw
-                        # Jedi may point an imported binding to a later subscript
-                        # mutation. Its named receiver is the container binding;
-                        # the assignment value is the *slot* value, not the import.
-                        for target in targets:
-                            if (isinstance(target, ast.Subscript)
-                                    and isinstance(target.value, ast.Name)
-                                    and target.value.id == name.name
-                                    and target.value.lineno == name.line
-                                    and target.value.col_offset == col):
-                                receiver_matches.append((scope, statement, target.value))
-            if len(receiver_matches) == 1:
-                scope, statement, receiver = receiver_matches[0]
-                # Resolve strictly before the write, so the current assignment
-                # cannot become its own origin. Unknown/ambiguous/custom receivers
-                # remain unknown and do not certify a dictionary target.
-                origin = self.resolve(scope, receiver,
-                                      before=(statement.lineno, statement.col_offset))
-                if (len(origin.atoms) == 1 and not origin.unknown
-                        and all(atom.kind == "container"
-                                and atom.target in self.container_exprs
-                                and isinstance(self.container_exprs[atom.target][1], ast.Dict)
-                                for atom in origin.atoms)
-                        and self.requirements_complete(origin)):
-                    raw["mapping"] = "exact-captured-subscript-receiver"
-                    return origin, raw
-                raw["mapping"] = "uncertain-captured-subscript-receiver"
-                return union(origin, unknown("uncertain-captured-subscript-receiver")), raw
-            if receiver_matches:
-                raw["mapping"] = "ambiguous-captured-subscript-receiver"
-                return unknown("ambiguous-captured-subscript-receiver"), raw
         if len(matches) != 1:
             raw["mapping"] = (
                 "ambiguous-captured-definition" if matches else "unmapped-captured-definition"
@@ -894,37 +355,14 @@ class Analyzer:
     def query(self, scope, expr, goto=False):
         """Preserve tool failures and every raw definition mapping."""
         module = self.module_for[scope]
-        self._observe_analysis_input(scope, "jedi-query")
         key = (module, expr.end_lineno, expr.end_col_offset, goto)
         if key in self.queries:
-            self._record_query_targets(scope, self.queries[key][1])
             return self.queries[key][0]
-        self._query_context[key] = (scope, expr)
-        cached = self.query_reuse.get(key)
-        if cached is not None:
-            result, previous_raw = cached
-            # The old observation is admitted only for unchanged captured Python.
-            # Rebind snapshot-scoped evidence from freshly extracted definitions.
-            raw = [dict(record) for record in previous_raw]
-            if self._direct_lexical_query(
-                scope, expr, result, raw,
-                local_only=getattr(self.query_reuse, "python_changed", False),
-            ):
-                for record in raw:
-                    if "target" in record:
-                        record["version_id"] = self.nodes[record["target"]]["version_id"]
-                self.queries[key] = result, raw
-                self._observe_query(key, result)
-                self._record_query_targets(scope, raw)
-                self.reused_queries += 1
-                return result
-        line = self._source_lines[module][expr.end_lineno - 1]
+        line = self.trees[module]._lct_source.splitlines()[expr.end_lineno - 1]
         column = len(line.encode("utf-8")[: expr.end_col_offset].decode("utf-8"))
         raw, results = [], []
-        self._query_inflight += 1
         try:
             script = self.scripts[module]
-            self.executed_queries += 1
             names = (
                 script.goto(expr.end_lineno, column, follow_imports=True)
                 if goto
@@ -943,33 +381,14 @@ class Analyzer:
                         record["mapping"] = "dependency-version-unmatched"
                 raw.append(record)
                 results.append(value)
-        except RequiredAnalysisContext:
-            raise
         except Exception as exc:
             raw.append(dict(error=type(exc).__name__, mapping="jedi-error"))
             results.append(unknown("jedi-error:" + type(exc).__name__))
-        finally:
-            self._query_inflight -= 1
         result = union(*results) if results else unknown("jedi-no-result")
         if not goto and any(a.kind in ("callable", "class", "instance") for a in result.atoms):
             result = union(result, unknown("jedi-inference-not-exhaustive"))
         self.queries[key] = result, raw
-        self._observe_query(key, result)
-        self._record_query_targets(scope, raw)
         return result
-
-    def reusable_queries(self):
-        """Only side-effect-free, captured-definition observations can cross snapshots."""
-        records = []
-        for key, (result, raw) in self.queries.items():
-            context = self._query_context.get(key)
-            if context is None or not self._direct_lexical_query(*context, result, raw):
-                continue
-            records.append(dict(key=list(key), execution_owner=context[0],
-                atoms=[vars(a) for a in sorted(
-                result.atoms, key=lambda a: (a.kind, a.target, a.bound, a.receiver, a.allocation))],
-                reasons=sorted(result.reasons), proofs=sorted(result.proofs), raw=raw))
-        return records
 
     def reaching(self, scope, name, before):
         """Select one name's reaching bindings, killing unconditional older values.
@@ -977,7 +396,6 @@ class Analyzer:
         If alternatives are unioned. Loops/try/match writes remain unknown. There is
         no execution environment, path simulation, heap or convergence algorithm.
         """
-        self._observe_analysis_input(scope, "lexical-lookup")
         before = (before, 10**9) if isinstance(before, int) else before
 
         def scan(body, previous):
@@ -1068,7 +486,6 @@ class Analyzer:
 
     def resolve(self, scope, expr, before=None):
         """Use finite associations where defined and Jedi otherwise."""
-        self._observe_analysis_input(scope, "resolve-input")
         if expr is None:
             return unknown("missing-value")
         before = before if before is not None else (expr.lineno, expr.col_offset)
@@ -1078,8 +495,6 @@ class Analyzer:
             if key not in deps:
                 deps.append(key)
         if key in self.memo:
-            for observation in tuple(self._unit_subscriptions_by_query.get(key, {}).values()):
-                self._unit_subscribe(*observation)
             return self.memo[key]
         if key in self.active:
             self.recursions += 1
@@ -1207,16 +622,7 @@ class Analyzer:
                         continue
                     obj = self.trees[a.target]
                     returns = [obj.body] if isinstance(obj, ast.Lambda) else self.return_values(obj)
-                    for returned in returns:
-                        value = self.resolve(a.target, returned)
-                        results.append(value)
-                        self._unit_support(a.target, returned, scope, expr,
-                                           "return-value", dict(
-                                               call_expression=ast.unparse(expr),
-                                               target_ids=sorted(atom.target for atom in value.atoms
-                                                                 if atom.kind in CALLABLE_KINDS),
-                                               unknown_reasons=sorted(value.reasons)),
-                                           "unknown" if value.unknown else "observed")
+                    results.extend(self.resolve(a.target, r) for r in returns)
             if results:
                 return union(
                     *results,
@@ -1228,7 +634,6 @@ class Analyzer:
 
     def return_values(self, obj):
         """Collect direct return expressions without entering nested definitions."""
-        self._record_scope_read(self.owner.get(id(obj)), "return-body")
         out = []
 
         def visit(n):
@@ -1245,7 +650,6 @@ class Analyzer:
 
     def name(self, scope, name, before, anchor):
         """Resolve lexical names; method bodies skip class namespaces."""
-        self._observe_analysis_input(scope, "lexical-lookup")
         current = scope
         while current in self.trees:
             t = self.trees[current]
@@ -1356,7 +760,6 @@ class Analyzer:
 
     def attribute(self, scope, expr):
         """Apply descriptor boundaries, instance fields, then nondata class members."""
-        self._observe_analysis_input(scope, "member-lookup")
         receivers = self.resolve(scope, expr.value)
         cov = self.coverage_models.setdefault(
             (scope, id(expr)), EffectCoverage("instance-field-coverage")
@@ -2166,12 +1569,11 @@ class Analyzer:
             and "staticmethod" not in decorators
         ):
             receivers = []
-            for site in self.candidate_sites(scope):
+            for site in self.sites:
                 if site["_call"] is None or not self.may_call(scope, site):
                     continue
                 for a in self.resolve(site["execution_owner"], site["_expr"]).atoms:
                     if a.kind == "callable" and a.target == scope and a.bound and a.receiver:
-                        self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         receivers.append(
                             certified(
                                 Result(
@@ -2200,13 +1602,11 @@ class Analyzer:
             # A lexical body without an observed invocation can still be reached by
             # explicitly constructed instances; preserve those finite origins.
             if "classmethod" not in decorators:
-                for site in (self.candidate_sites(parent) if self._selected_owner_mode
-                             else self.sites_for(scope)):
+                for site in self.sites:
                     if site["_call"] is None:
                         continue
                     callee = self.resolve(site["execution_owner"], site["_expr"])
                     if any(a.kind == "class" and a.target == parent for a in callee.atoms):
-                        self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                         allocation = f"{site['execution_owner']}:{site['_call'].lineno}:{site['_call'].col_offset}"
                         self.allocations[allocation] = (site["execution_owner"], site["_call"])
                         receivers.append(
@@ -2231,7 +1631,7 @@ class Analyzer:
                 else union(value, unknown("open-receiver-input"))
             )
         results = []
-        for site in self.candidate_sites(scope):
+        for site in self.sites:
             call = site["_call"]
             if call is None or not self.may_call(scope, site):
                 continue
@@ -2239,80 +1639,21 @@ class Analyzer:
             for a in targets.atoms:
                 if a.target != scope or a.kind != "callable":
                     continue
-                self._record_scope_read(site["execution_owner"], "parameter-origin", scope)
                 positional = params[1:] if a.bound else params
                 index = next((i for i, p in enumerate(positional) if p.arg == param.arg), None)
                 arg = call.args[index] if index is not None and index < len(call.args) else None
                 if isinstance(arg, ast.Starred) or any(kw.arg is None for kw in call.keywords):
                     results.append(unknown("argument-unpacking"))
-                    use_site, use_expr = self._unit_consumer_in(scope, param)
-                    self._unit_support(site["execution_owner"], call, scope, use_expr,
-                                       "actual-parameter", dict(
-                                           parameter=dict(name=param.arg, index=index,
-                                                          kind="keyword-only" if param in t.args.kwonlyargs
-                                                          else "positional"),
-                                           argument_source=dict(kind="unpacking",
-                                                                call_site=site["site_id"],
-                                                                expression=ast.unparse(call)),
-                                           target_ids=[],
-                                           unknown_reasons=["argument-unpacking"]),
-                                       "unknown", producer_site=site["site_id"],
-                                       consumer_site=use_site)
                 else:
                     arg = next((kw.value for kw in call.keywords if kw.arg == param.arg), arg)
                     if arg is not None:
-                        supplied = self.resolve(site["execution_owner"], arg)
-                        results.append(supplied)
-                        use_site, use_expr = self._unit_consumer_in(scope, param)
-                        self._unit_support(site["execution_owner"], arg, scope, use_expr,
-                                           "actual-parameter", dict(
-                                               parameter=dict(name=param.arg, index=index,
-                                                              kind="keyword" if any(
-                                                                  kw.arg == param.arg for kw in call.keywords)
-                                                              else "positional"),
-                                               argument_source=dict(kind="keyword" if any(
-                                                   kw.arg == param.arg for kw in call.keywords)
-                                                                    else "positional",
-                                                                    call_site=site["site_id"],
-                                                                    expression=ast.unparse(arg)),
-                                               target_ids=sorted(a.target for a in supplied.atoms
-                                                                 if a.kind in CALLABLE_KINDS),
-                                               unknown_reasons=sorted(supplied.reasons)),
-                                           "unknown" if supplied.unknown else "observed",
-                                           producer_site=site["site_id"], consumer_site=use_site)
+                        results.append(self.resolve(site["execution_owner"], arg))
                     else:
                         default = self.parameter_default(t, param.arg)
                         if default is not None:
-                            default_scope = self.nodes[scope]["parent"]
-                            supplied = self.resolve(default_scope, default)
-                            results.append(supplied)
-                            use_site, use_expr = self._unit_consumer_in(scope, param)
-                            self._unit_support(default_scope, default, scope, use_expr,
-                                               "default-parameter", dict(
-                                                   parameter=dict(name=param.arg, index=index,
-                                                                  kind="default"),
-                                                   argument_source=dict(kind="definition-time-default",
-                                                                        expression=ast.unparse(default)),
-                                                   target_ids=sorted(a.target for a in supplied.atoms
-                                                                     if a.kind in CALLABLE_KINDS),
-                                                   unknown_reasons=sorted(supplied.reasons)),
-                                               "unknown" if supplied.unknown else "observed",
-                                               consumer_site=use_site)
+                            results.append(self.resolve(self.nodes[scope]["parent"], default))
                         else:
                             results.append(unknown("missing-required-argument"))
-                            use_site, use_expr = self._unit_consumer_in(scope, param)
-                            self._unit_support(site["execution_owner"], call, scope, use_expr,
-                                               "actual-parameter", dict(
-                                                   parameter=dict(name=param.arg, index=index,
-                                                                  kind="keyword-only" if param in t.args.kwonlyargs
-                                                                  else "positional"),
-                                                   argument_source=dict(kind="missing",
-                                                                        call_site=site["site_id"],
-                                                                        expression=ast.unparse(call)),
-                                                   target_ids=[],
-                                                   unknown_reasons=["missing-required-argument"]),
-                                               "unknown", producer_site=site["site_id"],
-                                               consumer_site=use_site)
         if not self.repos[self.nodes[scope]["repository"]].get("closed_world", False):
             results.append(unknown("open-project-input"))
         if not results:
@@ -2328,12 +1669,6 @@ class Analyzer:
 
     def container_slots(self, atom, scope, anchor, lookup, seen=None, coverage=None):
         """Read a finite literal/copy snapshot, with ordered writes and explicit coverage."""
-        consumer = self.module_for[scope]
-        self._record_analysis_dependency(
-            self.analysis_watches, (consumer, "slot-writer-universe", "all-captured-python"))
-        owner = self.stack[0][0] if self.stack else scope
-        self.unit_analysis_watches.add((owner, consumer, "slot-writer-universe",
-                                        "all-captured-python"))
         coverage = coverage if coverage is not None else EffectCoverage("container-state")
         seen = set() if seen is None else seen
         if atom.target in seen:
@@ -2379,12 +1714,6 @@ class Analyzer:
             )
             last_override = max(overrides, default=-1)
             for index, (key, value) in enumerate(zip(obj.keys, obj.values)):
-                if key is not None:
-                    literal_fixed, literal_value = self.literal_key(key)
-                    address = key_identity(literal_value) if literal_fixed else None
-                    self._unit_write(self._unit_origin(atom), "exact" if address is not None else "range",
-                                     address, owner, key, "dictionary-literal",
-                                     "observed" if address is not None else "unknown")
                 if key is None:
                     if index < last_override:
                         # The queried key is definitely overwritten later in this literal.
@@ -2457,19 +1786,10 @@ class Analyzer:
                         sealed.add(k)
                     else:
                         uncertain("dynamic-literal-dict-key")
-        candidates = (self._slot_scopes_by_origin.get(atom.target, set()) |
-                      self._slot_fallback_scopes | {scope, owner})
-        self.slot_scope_candidates_checked += len(candidates)
-        for function in sorted(candidates):
-            root_owner = self.stack[0][0] if self.stack else scope
-            self.unit_analysis_reads.add((root_owner, consumer, self.module_for[function],
-                                          "container-effects"))
-            self._record_analysis_dependency(
-                self.analysis_reads, (consumer, self.module_for[function], "container-effects"))
+        for function in sorted(self.effects.slot_scopes | {scope, owner}):
             tree = self.trees[function]
             scoped_events = self.effects.before(function, anchor if function == scope else None)
             for event in scoped_events:
-                self.slot_events_checked += 1
                 statement = event.node
                 coverage.require(event)
                 coverage.record(
@@ -2543,11 +1863,6 @@ class Analyzer:
                     if isinstance(statement, ast.AnnAssign) and statement.value is None:
                         continue
                     write_fixed, key = self.literal_key(dest.slice)
-                    address = key_identity(key) if write_fixed else None
-                    self._unit_write(self._unit_origin(atom), "exact" if address is not None else "range",
-                                     address, function, statement, type(statement).__name__,
-                                     "candidate" if event.conditional or not event.ordered
-                                     else "observed")
                     if sequence and write_fixed and isinstance(key, int) and key < 0:
                         key += len(slots)
                     direct = not event.conditional and event.ordered and function in (scope, owner)
@@ -2675,9 +1990,6 @@ class Analyzer:
             slots, sealed, extra, observed = self.container_slots(
                 atom, scope, expr, key if fixed else None, coverage=cov
             )
-            address = key_identity(key) if fixed else None
-            self._unit_subscribe(self._unit_origin(atom), "exact" if address is not None else "range",
-                                 address, scope, expr, containers.reasons)
             events.extend(observed)
             sequence = not isinstance(self.container_exprs[atom.target][1], ast.Dict)
             lookup = key
@@ -2705,16 +2017,10 @@ class Analyzer:
                 else invalid("missing-literal-slot")
             )
         if containers.unknown:
-            self._unit_subscribe("unknown-container-universe", "range", None,
-                                 scope, expr, containers.reasons)
             results.append(unknown("unknown-container-origin"))
         result = union(*results) if results else unknown("unresolved-container-slot")
         cov.events.extend(events)
         self.coverage[(scope, id(expr))] = cov.export()
-        # Private evidence is recorded at the actual resolver read. Source spans,
-        # rather than transient AST object addresses, are exported by Graph.
-        if isinstance(expr.slice, ast.Constant) and type(expr.slice.value) is str:
-            self.value_reads[(scope, expr.lineno, expr.col_offset)] = result
         return result
 
     def literal_key(self, expr):
@@ -2770,7 +2076,7 @@ class Analyzer:
         """Join key/value arguments from the same explicit registration call."""
         results = []
         params = self.trees[function].args.posonlyargs + self.trees[function].args.args
-        for site in self.candidate_sites(function):
+        for site in self.sites:
             call = site["_call"]
             if call is None or not self.may_call(function, site):
                 continue
@@ -2797,8 +2103,6 @@ class Analyzer:
 
     def member(self, owner, name, skip_own=False, seen=None):
         """Use exact owned bindings or a single explicit base; complex MRO stays open."""
-        self._observe_analysis_input(owner, "member-lookup")
-        self._record_scope_read(owner, "member-lookup")
         seen = set() if seen is None else seen
         if owner in seen:
             return unknown("cyclic-base")
@@ -2830,9 +2134,6 @@ class Analyzer:
         compared by exact node identity. Missing or failed Jedi observations are admitted
         conservatively, preserving AST-only associations and explicit budget limits.
         """
-        self._observe_analysis_input(function, "call-candidates",
-                                     producer_scope=site["execution_owner"],
-                                     consumer_scope=function)
         expr = site["_expr"]
         name = (
             expr.id
@@ -2861,13 +2162,6 @@ class Analyzer:
         """Export bounded, source-located association evidence without internal AST ids."""
         root = (scope, id(expr), (expr.lineno, expr.col_offset))
         pending, seen, steps = [root], set(), []
-        def source_order(key):
-            record = self.traces.get(key, {})
-            before = key[2] if isinstance(key[2], tuple) else (key[2], 0)
-            return (record.get("scope", key[0]), record.get("path", ""),
-                    record.get("line", before[0]), record.get("column", before[1]),
-                    record.get("expression", ""), record.get("rule", ""),
-                    canonical(record) if record else "")
         while pending and len(steps) < 100:
             key = pending.pop()
             if key in seen:
@@ -2875,10 +2169,7 @@ class Analyzer:
             seen.add(key)
             if key in self.traces:
                 steps.append(self.traces[key])
-            # Independent association branches can be visited in different
-            # memo/Jedi orders. Sort siblings by captured source coordinates so
-            # full and updated builds export the same bounded provenance order.
-            pending.extend(reversed(sorted(self.dependencies.get(key, []), key=source_order)))
+            pending.extend(reversed(self.dependencies.get(key, [])))
         return dict(steps=steps, truncated=bool(pending))
 
     def named_bindings(self, statement, name, before):

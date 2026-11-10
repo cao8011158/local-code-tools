@@ -1,32 +1,42 @@
 """Read-only local stdio MCP. Protocol stdout is owned by the official MCP SDK."""
 
-from mcp.server.fastmcp import FastMCP
+from functools import wraps
 
-from .common import config
+from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError as MCPToolError
+
+from .common import ToolError, config
 from .query import Query
 
-server = FastMCP(
+server = MCPServer(
     "agentic-trpg-local-code",
-    log_level="WARNING",
     instructions="Search source/docstrings by repository and hierarchy; inspect version/freshness, then get_nodes and conservative graph relations. Status refresh explicitly scans source. Historical evidence is not current authority.",
 )
 core = Query(config())
 
 
+def report_tool_error(func):
+    """Preserve expected public errors across the MCP SDK migration."""
+
+    @wraps(func)
+    def call(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ToolError as error:
+            raise MCPToolError(str(error)) from error
+
+    return call
+
+
 @server.tool()
+@report_tool_error
 def index_status(refresh: bool = False) -> dict:
     """Report index compatibility/counts and last freshness check; refresh scans included files."""
     return core.index_status(refresh)
 
 
 @server.tool()
-def graph_evidence(offset: int = 0, limit: int = 100, max_bytes: int = 100000,
-                   version: str | None = None) -> dict:
-    """Page persisted graph call sites by ordinal; next_offset continues without skipping evidence."""
-    return core.graph_evidence(offset, limit, max_bytes, version)
-
-
-@server.tool()
+@report_tool_error
 def search_code(
     query: str,
     level: str = "function",
@@ -45,6 +55,7 @@ def search_code(
 
 
 @server.tool()
+@report_tool_error
 def search_docs(
     query: str,
     repositories: list[str] | None = None,
@@ -58,6 +69,7 @@ def search_docs(
 
 
 @server.tool()
+@report_tool_error
 def get_nodes(
     node_ids: list[str],
     include_source: bool = True,
@@ -69,6 +81,7 @@ def get_nodes(
 
 
 @server.tool()
+@report_tool_error
 def get_relations(
     node_ids: list[str],
     relation_types: list[str] | None = None,

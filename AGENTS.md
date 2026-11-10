@@ -1,3 +1,0 @@
-# Repository agent entry
-
-For work on Python parsing, code graph, value/call dependencies, incremental updates, snapshot storage or graph projection, first read [the function-value design contract](docs/FUNCTION_VALUE_DEPENDENCIES.md), [the source-grounded current-state audit](review/batch4-incremental/FUNCTION_VALUE_GAP_AUDIT.md), and [the repository-local procedure](.agents/skills/code-graph-dependency-change/SKILL.md). These documents distinguish proposed behavior from shipped implementation; verify source and tests before editing. Keep captured-source boundaries, uncertainty and immutable publication semantics intact.

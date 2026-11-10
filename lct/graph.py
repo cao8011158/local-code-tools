@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .common import ToolError, canonical, digest, git
 from .python_analysis import CALLABLE_KINDS, Analyzer
-from .value_flow import evidence as value_flow_evidence
 
 
 class Graph:
@@ -77,64 +76,6 @@ class Graph:
                 return {"boundary:dependency-version-unmatched:" + name}
         return {"boundary:external-or-excluded:" + name}
 
-    def named_import_namespace(self, scope, stmt, alias):
-        """Identify one captured namespace used by a named import, including reexports."""
-        name = self.import_request_module(scope, stmt, alias)
-        if not isinstance(stmt, ast.ImportFrom) or alias.name == "*" or not name:
-            return None
-        caller = self.nodes[scope]
-        allowed = self.imported(caller["repository"], name)
-        if len(allowed) != 1:
-            return None
-        module = next(iter(allowed))
-        if module not in self.nodes or self.nodes[module]["kind"] != "module":
-            return None
-        owner = self.nodes[module]
-        identity = dict(repository=owner["repository"], module=name, name=alias.name)
-        return module, identity
-
-    def import_request_module(self, scope, stmt, alias):
-        """Syntactic module search key; it does not certify module ownership."""
-        if isinstance(stmt, ast.Import):
-            return alias.name
-        module_node = scope
-        while self.nodes[module_node]["kind"] != "module":
-            module_node = self.nodes[module_node]["parent"]
-        current = self.nodes[module_node]
-        if stmt.level:
-            package = current["qualname"].split(".")
-            if not current["path"].endswith("/__init__.py"):
-                package.pop()
-            if stmt.level > len(package):
-                return None
-            prefix = package[:len(package) - stmt.level + 1]
-            name = ".".join([*prefix, *([stmt.module] if stmt.module else [])])
-        else:
-            name = stmt.module or ""
-        return name or None
-
-    def import_lookup(self, scope, stmt, alias):
-        """Keep a named boundary for a unique namespace or scoped absent module."""
-        match = self.named_import_namespace(scope, stmt, alias)
-        if match:
-            module, identity = match
-        else:
-            name = self.import_request_module(scope, stmt, alias)
-            if not isinstance(stmt, ast.ImportFrom) or alias.name == "*" or not name:
-                return None
-            repository = self.nodes[scope]["repository"]
-            allowed = self.imported(repository, name)
-            # A pinned but unmatched dependency, or two captured modules with the
-            # same name, cannot be used as evidence of a unique search namespace.
-            if allowed != {"boundary:external-or-excluded:" + name}:
-                return None
-            identity = dict(repository=repository, module=name, name=alias.name,
-                            scope="requester")
-            module = None
-        if self.modules.get((self.nodes[scope]["repository"], identity["module"] + "." + alias.name)):
-            return None
-        return module, "boundary:unresolved-import:" + digest(canonical(identity)), identity
-
     def add_edge(
         self, source, target, kind, status, basis, line=0, column=0, expression="", **extra
     ):
@@ -155,14 +96,8 @@ class Graph:
         edge["edge_id"] = digest(canonical(edge))
         self.edges.append(edge)
 
-    def build(self, query_reuse=None, source_context=None, selected_owners=None,
-              candidate_site_evidence=None, analyzer=None, retain_analyzer=False):
+    def build(self):
         """Analyze captured bytes only; return edges plus the independent site inventory."""
-        from .simple_python import component_policy
-        captured = [node for node in self.nodes.values()
-                    if node["kind"] == "module" and node["path"].endswith(".py")]
-        components = (component_policy(captured, self.asts, self)
-                      if analyzer is None else analyzer.candidate_components)
         self.edges = []
         for n in self.nodes.values():
             if n["parent"]:
@@ -175,23 +110,11 @@ class Graph:
                     n["start"],
                     n.get("column", 0),
                 )
-        analyzer = analyzer or Analyzer(
-            self.nodes, self.asts, self.repos, self.imported, query_reuse,
-            candidate_components=components, source_context=source_context,
-            candidate_site_evidence=candidate_site_evidence,
-            selected_owners=selected_owners)
-        succeeded = False
+        analyzer = Analyzer(self.nodes, self.asts, self.repos, self.imported)
         try:
-            selected = None if selected_owners is None else frozenset(selected_owners)
-            def chosen(owner):
-                return selected is None or owner in selected
             sites = []
-            import_dependencies = []
-            import_requests = []
             for item in analyzer.sites:
                 expr, scope = item["_expr"], item["execution_owner"]
-                if not chosen(scope):
-                    continue
                 # Always retain the actual Jedi observation, including rejected descriptors.
                 signal = analyzer.query(scope, expr)
                 result = analyzer.resolve(scope, expr)
@@ -253,14 +176,6 @@ class Graph:
                     ],
                 )
                 sites.append(record)
-                for target in targets:
-                    if target in analyzer.trees:
-                        analyzer._unit_support(
-                            target, analyzer.trees[target], scope, expr, "call-target",
-                            dict(call_site=item["site_id"], target_id=target,
-                                 unknown_reasons=reasons),
-                            "observed" if complete and len(targets) == 1 and not boundaries
-                            else "candidate", consumer_site=item["site_id"])
                 status = (
                     "resolved" if complete and len(targets) + len(boundaries) == 1 else "possible"
                 )
@@ -333,8 +248,6 @@ class Graph:
                         unknown_origin=bool(reasons),
                     )
             for ident, tree in self.asts.items():
-                if not chosen(self.nodes[ident]["parent"]):
-                    continue
                 if (
                     not isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef))
                     or len(tree.decorator_list) != 1
@@ -361,8 +274,6 @@ class Graph:
                         wrapped_body_phase="generator-resume",
                     )
             for scope, statement, context in analyzer.context_sites:
-                if not chosen(scope):
-                    continue
                 receivers = analyzer.resolve(scope, context)
                 context_complete = analyzer.complete(receivers)
                 expected = (
@@ -394,8 +305,6 @@ class Graph:
                         ),
                     )
             for scope, expr, phase in analyzer.references:
-                if not chosen(scope):
-                    continue
                 result = analyzer.resolve(scope, expr)
                 for a in result.atoms:
                     if a.kind in CALLABLE_KINDS or a.kind == "module":
@@ -411,33 +320,8 @@ class Graph:
                             phase=phase,
                         )
             for scope, stmt in analyzer.import_sites:
-                if not chosen(scope):
-                    continue
                 for alias in stmt.names:
                     result = analyzer.binding(scope, "import", (stmt, alias))
-                    namespace = self.named_import_namespace(scope, stmt, alias)
-                    source = self.nodes[scope]
-                    requested_module = self.import_request_module(scope, stmt, alias)
-                    targets = sorted(a.target for a in result.atoms if a.target in self.nodes)
-                    import_requests.append(dict(
-                        source_module=source["module"],
-                        source_repository=source["repository"],
-                        requested_module=requested_module,
-                        requested_name=alias.name if isinstance(stmt, ast.ImportFrom) else None,
-                        request_kind="from" if isinstance(stmt, ast.ImportFrom) else "import",
-                        lookup_repository=namespace[1]["repository"] if namespace else source["repository"],
-                        namespace_module=namespace[0] if namespace else None,
-                        status="resolved" if targets else "boundary" if result.atoms else "unresolved",
-                        target_ids=targets,
-                        target_modules=sorted({self.nodes[target]["module"] for target in targets}),
-                    ))
-                    if namespace:
-                        import_dependencies.append(dict(
-                            source_module=source["module"], namespace_module=namespace[0],
-                            requested_name=namespace[1]["name"],
-                            target_modules=sorted({self.nodes[target]["module"] for target in targets}),
-                            target_ids=targets, resolved=bool(targets),
-                        ))
                     for a in result.atoms:
                         external = a.kind in ("boundary", "external-module", "external-value")
                         target = a.target
@@ -458,26 +342,17 @@ class Graph:
                             alias.name,
                         )
                     if not result.atoms:
-                        reasons = sorted(result.reasons)
-                        lookup = self.import_lookup(scope, stmt, alias)
-                        target = lookup[1] if lookup else None
-                        detail = dict(lookup=lookup[2], lookup_status="unresolved",
-                                      unresolved_reasons=reasons, unknown_origin=True,
-                                      complete=False) if lookup else {}
                         self.add_edge(
-                            scope, target, "IMPORTS", "unresolved",
-                            "; ".join(reasons), stmt.lineno, stmt.col_offset,
-                            alias.name, **detail,
+                            scope,
+                            None,
+                            "IMPORTS",
+                            "unresolved",
+                            "; ".join(sorted(result.reasons)),
+                            stmt.lineno,
+                            stmt.col_offset,
+                            alias.name,
                         )
-                        if lookup and lookup[0] is not None:
-                            self.add_edge(
-                                target, lookup[0], "LOOKUP_IN", "resolved",
-                                "unique captured import lookup namespace; name unresolved",
-                                lookup=lookup[2], lookup_status="unresolved",
-                            )
             for ident, scope, base in analyzer.inheritance:
-                if not chosen(scope):
-                    continue
                 result = analyzer.resolve(scope, base)
                 for a in result.atoms:
                     if a.kind == "class":
@@ -492,48 +367,17 @@ class Graph:
                             ast.unparse(base),
                         )
             self.edges = list({e["edge_id"]: e for e in self.edges}.values())
-            flow = (value_flow_evidence(list(self.nodes.values()), self.asts,
-                                        analyzer, sites, self.imported)
-                    if selected is None else dict(nodes=[], edges=[], reads=[], complete=False))
-            info = dict(
+            return self.edges, dict(
                 engine="AST catalog + Jedi 0.20.1 + finite LCT associations",
                 schema=3,
                 sites=sites,
                 call_sites=len(sites),
                 analysis_limited=analyzer.limited,
                 association_evaluations=20000 - analyzer.budget,
-                slot_scope_index_build_scopes=analyzer.slot_scope_index_build_scopes,
-                slot_scope_fallback_scopes=len(analyzer._slot_fallback_scopes),
-                slot_scope_candidates_checked=analyzer.slot_scope_candidates_checked,
-                slot_events_checked=analyzer.slot_events_checked,
                 jedi_queries=len(analyzer.queries),
-                jedi_queries_reused=analyzer.reused_queries,
-                jedi_queries_executed=analyzer.executed_queries,
-                _query_observations=analyzer.reusable_queries(),
-                _import_dependencies=import_dependencies,
-                _import_requests=import_requests,
-                _analysis_reads=sorted(analyzer.analysis_reads),
-                _analysis_watches=sorted(analyzer.analysis_watches),
-                _analysis_inputs=analyzer.analysis_inputs.export(),
-                _unit_analysis_reads=sorted(analyzer.unit_analysis_reads),
-                _unit_analysis_watches=sorted(analyzer.unit_analysis_watches),
-                _unit_input_events=sorted(analyzer.unit_input_events),
-                _unit_supports=list(analyzer.unit_supports.values()),
-                _unit_subscriptions=list(analyzer.unit_container_subscriptions.values()),
-                _unit_writes=list(analyzer.unit_container_writes.values()),
-                _unit_dependency_truncated=analyzer.unit_dependency_truncated,
-                _value_flow=flow,
-                **({"_value_read_witnesses": dict(analyzer.value_reads)}
-                   if selected is not None else {}),
-                _analysis_dependency_truncated=analyzer.analysis_dependency_truncated,
                 dependency_bindings=self.cross_bindings,
                 closed_world={k: bool(r.get("closed_world", False)) for k, r in self.repos.items()},
                 limits="20k associations; recursion 40; unsupported constructs remain unknown",
             )
-            if retain_analyzer:
-                info["_analyzer"] = analyzer
-            succeeded = True
-            return self.edges, info
         finally:
-            if not retain_analyzer or not succeeded:
-                analyzer.close()
+            analyzer.close()

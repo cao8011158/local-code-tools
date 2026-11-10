@@ -1,9 +1,0 @@
-{
-  "version": "20261029T111748-7a235bf36f",
-  "namespace": "batch3-real-staged-20261029-7a235bf36f",
-  "only_mcp_retried": true,
-  "reimport": false,
-  "paid_requests": 0,
-  "result": "PASS",
-  "seconds": 16.667556569000226
-}

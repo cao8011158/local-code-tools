@@ -152,16 +152,28 @@ def inventory(c):
     files, repos = [], []
     for repo in c["repositories"]:
         root = Path(repo["path"]).resolve()
-        if "source_manifest" in repo:
-            from .source_snapshot import inventory_snapshot
-
-            snapshot_files, snapshot_repo = inventory_snapshot(c, repo, root)
-            files.extend(snapshot_files)
-            repos.append(snapshot_repo)
-            continue
-        candidates = source_candidates(c, repo, root)
+        starts = [root / x for x in repo["code_roots"] + ["docs"]]
+        if c.get("include_tests", False):
+            starts += [root / "tests"]
+            starts += list((root / "packages").glob("*/tests"))
+            starts += list((root / "apps").glob("*/tests"))
+        candidates = {p for p in root.iterdir() if p.is_file() and p.suffix in (".md", ".py")}
+        for start in starts:
+            if not start.is_dir() or start.is_symlink():
+                continue
+            for parent, dirs, names in os.walk(start):
+                dirs[:] = sorted(
+                    d for d in dirs if d not in EXCLUDED and not (Path(parent) / d).is_symlink()
+                )
+                candidates.update(Path(parent) / n for n in names if n.endswith((".py", ".md")))
         for p in sorted(candidates):
             rel = p.relative_to(root).as_posix()
+            if p.is_symlink() or any(part in EXCLUDED for part in p.relative_to(root).parts):
+                continue
+            if rel in repo.get("exclude_files", []):
+                continue
+            if not c.get("include_tests", False) and "tests" in p.relative_to(root).parts:
+                continue
             raw = p.read_bytes()
             st = p.stat()
             files.append(
@@ -186,39 +198,6 @@ def inventory(c):
         )
     fingerprint = digest(canonical([(f["repository"], f["path"], f["sha256"]) for f in files]))
     return files, repos, fingerprint
-
-
-def source_candidates(c, repo, root):
-    """Bounded existing source selection, including eligible untracked additions."""
-    root = Path(root)
-    try:
-        starts = [root / x for x in repo["code_roots"] + ["docs"]]
-        if c.get("include_tests", False):
-            starts += [root / "tests"]
-            starts += list((root / "packages").glob("*/tests"))
-            starts += list((root / "apps").glob("*/tests"))
-        candidates = {p for p in root.iterdir() if p.is_file() and p.suffix in (".md", ".py")}
-        for start in starts:
-            if not start.is_dir() or start.is_symlink():
-                continue
-            for parent, dirs, names in os.walk(start):
-                dirs[:] = sorted(
-                    d for d in dirs if d not in EXCLUDED and not (Path(parent) / d).is_symlink()
-                )
-                candidates.update(Path(parent) / n for n in names if n.endswith((".py", ".md")))
-        selected = set()
-        for p in candidates:
-            rel = p.relative_to(root).as_posix()
-            if p.is_symlink() or any(part in EXCLUDED for part in p.relative_to(root).parts):
-                continue
-            if rel in repo.get("exclude_files", []):
-                continue
-            if not c.get("include_tests", False) and "tests" in p.relative_to(root).parts:
-                continue
-            selected.add(p)
-        return selected
-    except (OSError, ValueError) as exc:
-        raise ToolError("Source inventory unavailable: " + str(root)) from exc
 
 
 def now():

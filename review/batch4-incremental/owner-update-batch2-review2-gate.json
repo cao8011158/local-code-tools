@@ -1,7 +1,0 @@
-{
-  "status": "READY",
-  "batch_id": "B4-OWNER-UPDATE",
-  "review_rounds": 2,
-  "reasons": [],
-  "limitation": "Recorded evidence only; independently inspect code, logs, authorization and remote refs."
-}

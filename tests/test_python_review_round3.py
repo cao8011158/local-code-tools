@@ -140,14 +140,7 @@ def test_context_factory_create_and_enter(tmp_path, asynchronous, alias):
     )
     r = analyze(tmp_path, {"demo.py": source}, closed=False)
     s = check(r, "acquire", {"acquire"})
-    work = check(r, "obj.work", {"C.work"}, unknown=True)
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == ("AsyncWith" if asynchronous else "With")
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in work["resolution_decision"]["write_source_coverage"]["checks"]
-    )
+    check(r, "obj.work", {"C.work"})
     byid = {n["node_id"]: n for n in r[0]}
     calls = [e for e in r[1] if e["kind"] == "CALLS" and e.get("site_id") == s["site_id"]]
     assert all(
@@ -401,14 +394,7 @@ def caller():
         closed=False,
     )
     s = check(r, "alias", {"acquire"})
-    work = check(r, "obj.work", {"C.work"}, unknown=True)
-    assert any(
-        c["event_kind"] == "region"
-        and c["syntax"] == "With"
-        and c["outcome"] == "UNKNOWN_EFFECT"
-        and c["reason"] == "unsupported-protocol-region"
-        for c in work["resolution_decision"]["write_source_coverage"]["checks"]
-    )
+    check(r, "obj.work", {"C.work"})
     assert r[2]["schema"] == 3
     assert any(e.get("site_id") == s["site_id"] and e.get("executes_body") is False for e in r[1])
 

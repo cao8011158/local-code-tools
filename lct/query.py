@@ -17,7 +17,7 @@ from .common import ToolError, atomic, canonical, digest, inventory, load, now
 from .embedding import Embeddings
 from .extract import CODE_KINDS
 from .lexical import rank as lexical_rank
-from .storage import current, graph_sites, manifest, validate_folder
+from .storage import current, manifest, validate_folder
 
 
 class Query:
@@ -89,18 +89,10 @@ class Query:
             "dense_ready": m.get("dense_ready", False),
             "vector_chunks": m["vector_chunks"],
             "planned_vector_chunks": m.get("planned_vector_chunks", m["vector_chunks"]),
-            "graph": dict(m["graph"], sites_available=m["graph"]["call_sites"],
-                          detail_tool="graph_evidence"),
+            "graph": m["graph"],
             "incremental": m["incremental"],
             "embedding_run": m["embedding_run"],
         }
-
-    def graph_evidence(self, offset=0, limit=100, max_bytes=100000, version=None):
-        """Read an ordered page of call-site evidence without materializing all sites."""
-        if not 1 <= max_bytes <= 1000000:
-            raise ToolError("Invalid graph evidence byte limit")
-        folder, m = self.snapshot(version)
-        return graph_sites(folder, m, offset, limit, max_bytes)
 
     def conditions(self, kind, repositories, category=None, include_tests=False):
         """Filter in candidate generation, never after a small global TopK."""
@@ -244,17 +236,14 @@ class Query:
         cursor=None,
         exact=False,
         include_tests=False,
-        version=None,
     ):
         """Dense/BM25/RRF; all interleaves independently ranked levels without score comparison."""
         return self.search(
-            query, level, repositories, mode, candidates, limit, cursor, exact, None,
-            include_tests, version
+            query, level, repositories, mode, candidates, limit, cursor, exact, None, include_tests
         )
 
     def search_docs(
-        self, query, repositories=None, category=None, candidates=50, limit=10, cursor=None,
-        version=None
+        self, query, repositories=None, category=None, candidates=50, limit=10, cursor=None
     ):
         """Heading-aware DOC BM25; intentionally no paid document vectors."""
         return self.search(
@@ -268,7 +257,6 @@ class Query:
             False,
             category,
             False,
-            version,
         )
 
     def search(
@@ -283,7 +271,6 @@ class Query:
         exact,
         category,
         include_tests,
-        version=None,
     ):
         if level not in (*CODE_KINDS, "all", "documentsection") or mode not in (
             "dense",
@@ -306,10 +293,7 @@ class Query:
             include_tests=include_tests,
         )
         bound_cursor = self.decode_cursor(cursor, conditions) if cursor else None
-        if bound_cursor and version is not None and version != bound_cursor["version"]:
-            raise ToolError("Explicit version differs from cursor version")
-        folder, m = self.snapshot(version if version is not None else
-                                  bound_cursor["version"] if bound_cursor else None)
+        folder, m = self.snapshot(bound_cursor["version"] if bound_cursor else None)
         version = m["version"]
         qv = None
         if mode in ("dense", "rrf"):
@@ -456,11 +440,10 @@ class Query:
             raise ToolError(
                 "Invalid traversal caps/direction; depth<=4, nodes<=500, edges<=1000, bytes<=200000"
             )
-        types = relation_types or ["CONTAINS", "IMPORTS", "LOOKUP_IN", "CALLS", "INHERITS"]
+        types = relation_types or ["CONTAINS", "IMPORTS", "CALLS", "INHERITS"]
         if not set(types) <= {
             "CONTAINS",
             "IMPORTS",
-            "LOOKUP_IN",
             "CALLS",
             "INHERITS",
             "WRAPS",
@@ -511,7 +494,7 @@ class Query:
                         size += len(raw.encode())
                         if other and other not in visited:
                             visited.add(other)
-                            if not other.startswith("boundary:") or other.startswith("boundary:unresolved-import:"):
+                            if not other.startswith("boundary:"):
                                 queue.append((other, d + 1))
                     if truncated:
                         break

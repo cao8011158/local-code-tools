@@ -1,9 +1,0 @@
-# Absent import namespace lookup (Batch 4)
-
-`Graph.import_request_module` computes the syntactic module key for both ordinary and named imports, including relative imports. `Graph.build` records every import alias in its private `_import_requests` inventory. Each request contains the source module and repository, requested module and optional name, kind, requester or proved owner lookup repository, optional captured namespace ID, status, and observed target IDs/modules. A missing namespace does not become an asserted captured module.
-
-`Graph.import_lookup` gives an unresolved named import with an absent module a stable boundary keyed by `{repository, module, name, scope: "requester"}`. Here `repository` is a lookup search scope, not a proven owner. The edge keeps `unknown_origin`, incomplete status and original reasons; no `LOOKUP_IN` edge is emitted without a captured module. A present, uniquely captured namespace keeps its previous three-field lookup and `LOOKUP_IN` edge. Captured ambiguity, unsupported relative roots, wildcard imports, and unmatched dependency pins do not acquire this missing-module lookup.
-
-`_boundaries` projects the unresolved lookup's repository, module and name on its node. Its current projection does not expose `scope`; consumers should use the original edge when they need to distinguish requester search scope from proven ownership. The private request inventory is intended for storage reverse invalidation; production storage integration is paused pending the directional propagation experiment and has not been verified.
-
-Validation: `pytest -q tests/test_import_lookup_dependency.py tests/test_core.py tests/test_python_pipeline.py` yielded 87 passed, 2 skipped. The targeted tests exercise absent→present→absent identity, relative requests, distinct repositories, ordinary import requests, ambiguity, unmatched pins, and boundary-node projection. Live Neo4j projection requires `LCT_TEST_NEO4J_URI` and was skipped.

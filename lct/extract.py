@@ -48,15 +48,6 @@ def make_node(
     )
 
 
-def definition_version(node):
-    """Version of one extracted definition in its repository capture."""
-    return digest(canonical([
-        node["repository_id"], node["snapshot_id"], node["logical_id"],
-        node["definition_line"], node["column"], node["end"],
-        node["end_column"], node["fingerprint"],
-    ]))
-
-
 def python_nodes(file):
     """Extract the sole Python catalog, including methods, lambdas and redefinitions.
 
@@ -100,7 +91,20 @@ def python_nodes(file):
                 obj, "end_col_offset", len(lines[-1].rstrip("\r\n").encode("utf-8")) if lines else 0
             ),
         )
-        node["version_id"] = definition_version(node)
+        node["version_id"] = digest(
+            canonical(
+                [
+                    node["repository_id"],
+                    node["snapshot_id"],
+                    node["logical_id"],
+                    node["definition_line"],
+                    node["column"],
+                    node["end"],
+                    node["end_column"],
+                    node["fingerprint"],
+                ]
+            )
+        )
 
     identity(module, tree, "module", module["qualname"])
     nodes.append(module)

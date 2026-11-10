@@ -2,10 +2,28 @@
 name = "agentic-trpg-local-code-tools"
 version = "1.0.0"
 requires-python = ">=3.12,<3.13"
-dependencies = ["numpy==2.3.5", "usearch>=2.21,<3", "mcp>=1.26,<2", "jedi==0.20.1", "parso==0.8.7"]
+dependencies = [
+    "code-graph-rag[python-semantics,semantic]==0.6.30",
+    "filelock>=3,<5",
+    "jedi==0.20.1",
+    "markdown-it-py>=4,<5",
+    "mcp>=2.3,<3",
+    "numpy==2.3.5",
+    "qdrant-client==1.17.1",
+    "usearch>=2.21,<3",
+]
+
+[project.scripts]
+lct = "lct.entrypoint:main"
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["lct"]
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.14,<1"]
-neo4j = ["neo4j==5.26.0"]
 [tool.ruff]
 line-length = 100
 [tool.ruff.lint]

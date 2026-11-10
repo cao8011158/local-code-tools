@@ -1,1 +1,0 @@
-{"files": 9, "full_certificate": null, "individually_certified": ["src/trpg_state_machine/availability.py", "src/trpg_state_machine/errors.py", "src/trpg_state_machine/item_units.py"], "relative_imports": 66}
