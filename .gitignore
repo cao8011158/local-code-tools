@@ -6,6 +6,9 @@
 /.publication/
 /.tmp/
 /.venv/
+/.local/
+/.qdrant_code_embeddings/
+/*.egg-info/
 /.pytest_cache/
 /.ruff_cache/
 

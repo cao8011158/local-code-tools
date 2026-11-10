@@ -4,6 +4,11 @@
 **本仓库不提供真实数据库、节点目录数据、图数据、向量、索引或 Release 附件。**
 Git checkout 用于审阅、开发和合成测试。本机已有完整工具包保留在原位置，上传不会重建或删除它。
 
+## CGR 本地检索
+
+使用 `uv sync --locked` 安装，再运行 `uv run --locked lct up --config configs/agentic-trpg.toml`。
+配置、Qdrant、Codex MCP 与刷新流程见 [本地代码图和文档检索](docs/CGR_LOCAL_RETRIEVAL.md)。
+
 ## 安装
 
 需要 Python 3.12、Git 和 uv：

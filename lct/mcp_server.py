@@ -1,13 +1,12 @@
 """Read-only local stdio MCP. Protocol stdout is owned by the official MCP SDK."""
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from .common import config
 from .query import Query
 
-server = FastMCP(
+server = MCPServer(
     "agentic-trpg-local-code",
-    log_level="WARNING",
     instructions="Search source/docstrings by repository and hierarchy; inspect version/freshness, then get_nodes and conservative graph relations. Status refresh explicitly scans source. Historical evidence is not current authority.",
 )
 core = Query(config())
