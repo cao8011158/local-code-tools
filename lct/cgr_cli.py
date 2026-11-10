@@ -182,7 +182,7 @@ def codex_servers(config):
 
 
 def register_codex(config):
-    """Update only this installation's managed block and requested legacy flags."""
+    """Update only this installation's managed MCP block."""
     home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
     home.mkdir(parents=True, exist_ok=True)
     file = home / "config.toml"
@@ -211,19 +211,6 @@ def register_codex(config):
         unmanaged = tomllib.loads(source).get("mcp_servers", {})
         if servers.keys() & unmanaged.keys():
             raise ValueError("Codex already has an unmanaged MCP with this config name")
-        for name in config.disable_legacy:
-            if name in unmanaged and unmanaged[name].get("enabled", True):
-                section = re.compile(rf"(?m)^\[mcp_servers\.{re.escape(name)}\][^\n]*\n")
-                match = section.search(source)
-                if match is None:
-                    raise ValueError(f"Cannot locate legacy Codex config section {name}")
-                next_section = re.search(r"(?m)^\[", source[match.end() :])
-                end_at = match.end() + next_section.start() if next_section else len(source)
-                block = source[match.end() : end_at]
-                block, count = re.subn(r"(?m)^\s*enabled\s*=.*$", "enabled = false", block)
-                if count == 0:
-                    block = "enabled = false\n" + block
-                source = source[: match.end()] + block + source[end_at:]
         lines = [begin]
         for name, settings in servers.items():
             lines.append(f"[mcp_servers.{name}]")

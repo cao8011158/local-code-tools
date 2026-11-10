@@ -5,12 +5,9 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "code-graph-rag[python-semantics,semantic]==0.6.30",
     "filelock>=3,<5",
-    "jedi==0.20.1",
     "markdown-it-py>=4,<5",
     "mcp>=2.3,<3",
-    "numpy==2.3.5",
     "qdrant-client==1.17.1",
-    "usearch>=2.21,<3",
 ]
 
 [project.scripts]

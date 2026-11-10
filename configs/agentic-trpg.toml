@@ -1,28 +1,25 @@
 name = "agentic_trpg"
 mcp_prefix = "lct"
-index_dir = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/data/agentic-trpg"
-model_cache = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/model"
-disable_legacy = ["agentic_trpg_local_code"]
+index_dir = "../.local/agentic-trpg"
+model_cache = "../.local/model"
 
 [qdrant]
 url = "http://127.0.0.1:6333"
-executable = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/qdrant/qdrant.exe"
-directory = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/qdrant"
 
 [repositories.SM]
 kind = "code"
 name = "trpg-state-machine"
-path = "D:/Projects/agentic-trpg/trpg-state-machine"
+path = "../../trpg-state-machine"
 exclude = [".worktrees", ".test-tmp", ".uv-cache", ".agents", "tests", "dist", "docs"]
 
 [repositories.RE]
 kind = "code"
 name = "trpg-rules-engine"
-path = "D:/Projects/agentic-trpg/trpg-rules-engine"
+path = "../../trpg-rules-engine"
 exclude = [".evaluation-worktree", ".uv-cache", ".agents", "tests", "site", "docs", "tools"]
 
 [repositories.DOC]
 kind = "docs"
-path = "D:/Projects/agentic-trpg/agentic-trpg"
+path = "../../agentic-trpg"
 exclude = ["docs/FIRST_BLUSH_MVP_REQUIREMENTS.md"]
 exclude_dirs = [".git", ".venv", "venv", "__pycache__", ".worktrees", ".test-tmp", ".evaluation-worktree", "node_modules", "dist", "build", "site-packages", ".pytest_cache", ".ruff_cache", "experiments", "generated", "vendor", "third_party", "tests"]

@@ -1,9 +1,0 @@
-三次调用均成功，`dense_ready=true`。返回的索引版本均为 `20261026T215543-7961d6f6d2`。
-
-- `index_status(refresh=false)`：成功，无 `node_id`。
-- dense/function：成功  
-  `node_id`: `trpg-state-machine:src/trpg_state_machine/world_containers.py:function:ContainerService.current_weight#1.1.1`  
-  `node_version`: `25c8de77a37f9264922182a70dc726708c0c49440090ce68528ba533fcde2e49`
-- rrf/class：成功  
-  `node_id`: `trpg-state-machine:src/trpg_state_machine/world_containers.py:class:ContainerService#1.1`  
-  `node_version`: `6e08d3175141dcee318d65c3a1a38f381ac1a61cedbd0bb583fe1e34cbde0a75`

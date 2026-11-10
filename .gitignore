@@ -6,6 +6,7 @@
 /.publication/
 /.tmp/
 /.venv/
+/.uv-cache/
 /.local/
 /.qdrant_code_embeddings/
 /*.egg-info/

@@ -34,7 +34,6 @@ class Config:
     qdrant_exe: Path | None
     qdrant_dir: Path | None
     repositories: dict[str, Repository]
-    disable_legacy: tuple[str, ...]
     mcp_prefix: str
 
     @property
@@ -130,6 +129,5 @@ def load_config(path):
         exe,
         service_dir,
         repos,
-        tuple(raw.get("disable_legacy", [])),
         mcp_prefix,
     )
