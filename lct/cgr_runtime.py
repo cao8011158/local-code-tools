@@ -196,7 +196,12 @@ def verify_vectors(config, project, records):
 def refresh_index(config, project: str) -> dict:
     """Refresh one checkout, including local changes, and publish when ready."""
     if project not in config.repositories:
-        raise ValueError("project must be a configured repository alias")
+        return {
+            "project": project,
+            "ok": False,
+            "stage": "configuration",
+            "error": "project must be a configured repository alias",
+        }
     stage = "lock"
     started = time.perf_counter()
     try:

@@ -189,7 +189,13 @@ def register_codex(config):
         source = marker.sub("", source)
         servers = codex_servers(config)
         existing = managed.get(f"lct_{config.name}_search", {})
-        if existing and existing.get("args", [])[-1:] != [str(config.path)]:
+        graph_env = managed.get(f"lct_{config.name}_graph", {}).get("env", {})
+        same_installation = graph_env.get("CGR_HOME") == str(config.data / "cgr")
+        if (
+            existing
+            and not same_installation
+            and existing.get("args", [])[-1:] != [str(config.path)]
+        ):
             raise ValueError("This MCP name is already registered for a different config path")
         unmanaged = tomllib.loads(source).get("mcp_servers", {})
         if servers.keys() & unmanaged.keys():

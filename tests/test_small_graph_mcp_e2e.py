@@ -9,7 +9,6 @@ import subprocess
 import sys
 from collections import Counter
 from contextlib import closing
-from datetime import timedelta
 from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
@@ -92,20 +91,18 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
         # SDK context managers close the client streams and wait/terminate the child,
         # including when an assertion or bounded request timeout fails.
         async with stdio_client(params, errlog=errlog) as (read, write):
-            async with ClientSession(
-                read, write, read_timeout_seconds=timedelta(seconds=30)
-            ) as session:
+            async with ClientSession(read, write, read_timeout_seconds=60.0) as session:
                 initialized = await session.initialize()
-                assert initialized.serverInfo.name == "agentic-trpg-local-code"
+                assert initialized.server_info.name == "agentic-trpg-local-code"
                 listed = await session.list_tools()
                 assert {tool.name for tool in listed.tools} == TOOLS
 
                 async def call(name, **arguments):
                     """Decode SDK tool output without bypassing the protocol or server."""
                     result = await session.call_tool(name, arguments)
-                    assert not result.isError, result.content
+                    assert not result.is_error, result.content
                     called.add(name)
-                    value = result.structuredContent
+                    value = result.structured_content
                     if value is None:
                         value = json.loads(next(c.text for c in result.content if c.type == "text"))
                     assert value["version"] == version
@@ -184,7 +181,7 @@ async def exercise_mcp(tmp_path, repo, config_path, env, manifest, nodes, edges)
                     missing = await session.call_tool(
                         tool, dict(node_ids=[dispatch["node_id"]], version="nonexistent-version")
                     )
-                    assert missing.isError
+                    assert missing.is_error
                     assert "Index version expired or incomplete" in " ".join(
                         c.text for c in missing.content if c.type == "text"
                     )

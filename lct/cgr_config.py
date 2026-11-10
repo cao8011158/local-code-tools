@@ -3,6 +3,7 @@
 import hashlib
 import ipaddress
 import json
+import os
 import re
 import tomllib
 from dataclasses import dataclass
@@ -38,7 +39,7 @@ class Config:
     @property
     def collection(self):
         """Namespace points by installation, including configs with the same name."""
-        identity = hashlib.sha256(str(self.data).casefold().encode()).hexdigest()[:16]
+        identity = hashlib.sha256(os.path.normcase(str(self.data)).encode()).hexdigest()[:16]
         return f"lct_{self.name}_{identity}"
 
     @property
