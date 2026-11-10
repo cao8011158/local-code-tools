@@ -1,15 +1,18 @@
 """Test quota handling, incremental lexical writes and publication boundaries."""
 
 import sqlite3
+import sys
 import tomllib
 from contextlib import closing
 from dataclasses import replace
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
+from lct import cgr_runtime
 from lct.cgr_cli import register_codex
-from lct.cgr_config import Repository, load_config
+from lct.cgr_config import Config, Repository, load_config
 from lct.cgr_lexical import candidates, connect, publish, refresh_docs, require_ready, sync_entries
 from lct.cgr_runtime import merge_rankings
 
@@ -75,6 +78,72 @@ def test_hybrid_quota_and_backfill():
     ranked = merge_rankings(range(150), range(150, 200), 123)
     assert len(ranked) == 123
     assert sum(slot == "bm25" for _, slot, _ in ranked) == 24
+
+
+def test_hybrid_search_routes_cgr_names_before_colliding_aliases(tmp_path, monkeypatch):
+    """Search routes official names to the right lexical scope and vector filter."""
+    repositories = {
+        "SM": Repository(tmp_path, "code", "trpg-state-machine", (), ()),
+        "trpg-state-machine": Repository(tmp_path, "code", "rules-engine", (), ()),
+    }
+    config = Config(
+        tmp_path / "config.toml",
+        "example",
+        tmp_path,
+        tmp_path / "models",
+        "http://127.0.0.1:6333",
+        None,
+        None,
+        repositories,
+        "lct",
+    )
+    with closing(connect(tmp_path / "code.sqlite")) as db, db:
+        for alias, repo in repositories.items():
+            sync_entries(
+                db,
+                alias,
+                {
+                    alias: (
+                        1,
+                        "file.py",
+                        "shared token",
+                        {
+                            "project": alias,
+                            "graph_project": repo.name,
+                            "qualified_name": f"{alias}.function",
+                        },
+                    ),
+                },
+            )
+            publish(db, alias, "ready", {"nodes": 1})
+
+    embedder = ModuleType("codebase_rag.embedder")
+    embedder._unixcoder_embed_code = lambda query, _: [0.0]
+    monkeypatch.setitem(sys.modules, "codebase_rag.embedder", embedder)
+    monkeypatch.setattr(cgr_runtime, "configure", lambda _: None)
+    seen_filters = []
+
+    def query_points(**kwargs):
+        """Capture the server-side project filter while leaving lexical hits visible."""
+        seen_filters.append(kwargs["query_filter"].must[0].match.any)
+        return SimpleNamespace(points=[])
+
+    monkeypatch.setattr(cgr_runtime, "qdrant", lambda: SimpleNamespace(query_points=query_points))
+    for requested, expected_alias, expected_filter in (
+        ("trpg-state-machine", "SM", ["trpg-state-machine"]),
+        ("SM", "SM", ["trpg-state-machine"]),
+        ("rules-engine", "trpg-state-machine", ["rules-engine"]),
+    ):
+        hits = cgr_runtime.hybrid_search(config, "shared", project=requested)
+        assert [(hit["project"], hit["graph_project"]) for hit in hits] == [
+            (expected_alias, expected_filter[0])
+        ]
+        assert seen_filters[-1] == expected_filter
+    hits = cgr_runtime.hybrid_search(config, "shared")
+    assert {hit["project"] for hit in hits} == set(repositories)
+    assert seen_filters[-1] == ["trpg-state-machine", "rules-engine"]
+    with pytest.raises(ValueError, match="list_projects"):
+        cgr_runtime.hybrid_search(config, "shared", project="missing")
 
 
 def test_code_changes_and_scope(tmp_path):

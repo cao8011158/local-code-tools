@@ -15,7 +15,7 @@ Edit [configs/agentic-trpg.toml](configs/agentic-trpg.toml) for your sibling rep
 ```powershell
 uv run --locked lct up --config configs/agentic-trpg.toml
 uv run --locked lct refresh --config configs/agentic-trpg.toml --project SM
-uv run --locked lct hybrid-search --config configs/agentic-trpg.toml --project SM "SessionMemory publication"
+uv run --locked lct hybrid-search --config configs/agentic-trpg.toml --project trpg-state-machine "SessionMemory publication"
 uv run --locked lct doc-search --config configs/agentic-trpg.toml "runtime contract"
 ```
 

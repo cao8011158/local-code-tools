@@ -301,14 +301,24 @@ def up(config):
 def serve(config):
     """Expose only the three supplemental tools through stdio."""
     from mcp.server.mcpserver import MCPServer
+    from mcp.server.mcpserver.exceptions import ToolError
     from mcp.types import ToolAnnotations
 
     server = MCPServer("Local Code Tools")
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True))
     def hybrid_search(query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
-        """Find graph nodes. Pass qualified_name and graph_project to the graph MCP."""
-        return search_code(config, query, top_k, project)
+        """Find code nodes using vector search and BM25.
+
+        For project, use a CGR project name returned by the graph MCP's list_projects.
+        LCT code aliases are also accepted. Omit project to search all configured
+        code projects. Pass the hit's graph_project as project and its qualified_name
+        as qualified_name when calling a graph tool.
+        """
+        try:
+            return search_code(config, query, top_k, project)
+        except ValueError as error:
+            raise ToolError(str(error)) from error
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True))
     def search_docs(query: str, top_k: int = 5, category: str | None = None) -> list[dict]:

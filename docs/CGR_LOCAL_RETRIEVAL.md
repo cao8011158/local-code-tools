@@ -34,11 +34,13 @@ exclude = [".venv", "tests", "dist"]
 uv run --locked lct refresh --config configs/agentic-trpg.toml --project SM
 uv run --locked lct refresh --config configs/agentic-trpg.toml --project RE
 uv run --locked lct refresh --config configs/agentic-trpg.toml --project DOC
-uv run --locked lct hybrid-search --config configs/agentic-trpg.toml --project SM "SessionMemory publication"
+uv run --locked lct hybrid-search --config configs/agentic-trpg.toml --project trpg-state-machine "SessionMemory publication"
 uv run --locked lct doc-search --config configs/agentic-trpg.toml --category contract "SessionMemory 原子发布"
 ```
 
-`up` 写入 `$CODEX_HOME/config.toml`，默认是 `~/.codex/config.toml`；只管理当前配置的两个 MCP 条目，不修改其他条目的启用状态。Agentic TRPG 配置使用前缀 `lct`。重新启动 Codex 会话后，先调 `lct_search.hybrid_search`，用配置里的仓库别名选择项目，再把结果的 `qualified_name` 和 `graph_project` 分别作为 `qualified_name` 和 `project` 传给 `lct_graph.callees`，`depth=2`。官方 MCP 以 `--read-only --workspace` 启动，Codex 只暴露 `resolve`、`definition`、`context`、`callers`、`callees`、`list_projects`。补充 MCP 还暴露 `search_docs` 和 `refresh_index`。也可用 `python -m lct.entrypoint local-mcp --config <配置路径>` 单独启动补充 stdio MCP。
+`up` 写入 `$CODEX_HOME/config.toml`，默认是 `~/.codex/config.toml`；只管理当前配置的两个 MCP 条目，不修改其他条目的启用状态。Agentic TRPG 配置使用前缀 `lct`。重新启动 Codex 会话后，用 `lct_graph.list_projects` 查看 CGR 项目名，例如 `trpg-state-machine`。将这个名字作为 `project` 传给 `lct_search.hybrid_search` 或图查询。混合检索也接受 `SM` 等代码仓库配置别名，省略 `project` 时搜索全部已配置的代码仓库。从检索结果继续查图时，把结果的 `qualified_name` 和 `graph_project` 分别作为 `qualified_name` 和 `project` 传给 `lct_graph.callees`，并设置 `depth=2`。
+
+官方 MCP 以 `--read-only --workspace` 启动，Codex 只暴露 `resolve`、`definition`、`context`、`callers`、`callees`、`list_projects`。补充 MCP 还暴露 `search_docs` 和 `refresh_index`。刷新使用配置别名。也可用 `python -m lct.entrypoint local-mcp --config <配置路径>` 单独启动补充 stdio MCP。
 
 代码刷新统一调用 `.venv` 内的 `cgr start --repo-path ... --update-graph`，以 `GRAPH_BACKEND=sqlite`、`PYTHON_FRONTEND=jedi`、`CGR_EMBEDDING_PROVIDER=unixcoder` 和 `CGR_VECTOR_STORE_BACKEND=qdrant` 运行。Qdrant 按配置使用独立集合，按项目载荷过滤结果。补充索引从 CGR 节点批量读取函数和方法，图及向量通过核对后才发布 BM25。共享文件锁覆盖同一配置的代码刷新与混合查询。刷新失败会保留阶段及日志路径，并阻止读取失败的批次。维护该索引时使用 `lct refresh`，以保持这三份数据同步。
 

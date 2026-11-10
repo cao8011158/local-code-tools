@@ -338,11 +338,18 @@ def validate_query(query, top_k):
 
 
 def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
-    """Find code candidates, then use their qualified_name in the official graph MCP."""
+    """Search code by CGR project name or LCT alias, or across all code projects."""
     validate_query(query, top_k)
-    projects = config.code if project is None else (project,)
-    if not all(p in config.code for p in projects):
-        raise ValueError("project must be a configured code alias")
+    projects = config.code
+    if project is not None:
+        aliases_by_name = {config.repositories[alias].name: alias for alias in projects}
+        alias = aliases_by_name.get(project, project)
+        if alias not in projects:
+            raise ValueError(
+                f"Unknown code project {project!r}. Use a name from the graph MCP's "
+                "list_projects, a configured code alias, or omit project."
+            )
+        projects = (alias,)
     configure(config)
     from codebase_rag.embedder import _unixcoder_embed_code
 
