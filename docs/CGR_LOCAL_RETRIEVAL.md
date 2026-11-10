@@ -47,5 +47,6 @@ DOC 检索使用独立 SQLite FTS5，默认读取根目录和 `docs/` 下的 Mar
 ## 0.6.30 的运行边界
 
 - Windows 上，`StructureProcessor._directories_to_derive` 的 `Path.rglob` 会在检查排除规则之前进入大型目录。带 `--exclude .test-tmp --exclude .worktrees` 的 SM 冷建图仍可在目录枚举阶段停留数分钟。可观察 `SM-refresh.log` 中 Pass 1 的进度，目录很大的开发 checkout 可与用于索引的干净 checkout 分开配置。
+- CGR 的向量查询选取模块直接定义的函数及方法，以及模块内类等容器定义的方法。图中其余定义仍可走图工具。代码 BM25 使用同一份向量候选节点清单。
 - CGR 向量使用最多 512 tokens 的函数或方法源码片段。Python docstring 位于片段内时参与嵌入。长签名、长 docstring 和长函数都可能被 token 窗口截断。
 - MCP 本地协议调用不会调用托管模型。若在托管 Codex 会话中让 Agent 消费源码或文档摘录，这些工具结果会进入该会话的模型上下文。

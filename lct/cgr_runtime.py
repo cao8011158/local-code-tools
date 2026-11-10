@@ -2,7 +2,6 @@
 
 import json
 import os
-import sqlite3
 import subprocess
 import sys
 import time
@@ -34,6 +33,7 @@ def cgr_environment(config):
         "QDRANT_DB_PATH": str(config.data / "embedding-cache"),
         "QDRANT_VECTOR_DIM": "768",
         "CGR_EMBEDDING_PROVIDER": "unixcoder",
+        "EMBEDDING_MAX_LENGTH": "512",
         "CGR_SKIP_EMBEDDINGS": "false",
         "HF_HOME": str(config.model_cache),
         "HF_HUB_CACHE": str(config.model_cache / "hub"),
@@ -108,43 +108,36 @@ def project_filter(config, projects):
 
 
 def graph_inventory(config, project):
-    """Read the pinned CGR SQLite callable inventory in one batch."""
+    """Read the same callable inventory CGR sends to its vector pass."""
+    from codebase_rag.constants import CYPHER_QUERY_EMBEDDINGS
+    from codebase_rag.embedded_graph.connection import EmbeddedConnection
+
     graph = config.data / "cgr" / "graph.sqlite"
-    sql = """
-        SELECT n.id, n.label, n.key, json_extract(n.props,'$.name'),
-               json_extract(n.props,'$.docstring'), COALESCE(
-                   (SELECT json_extract(m.props,'$.path') FROM cgr_edges e
-                    JOIN cgr_nodes m ON m.id=e.src AND m.label='Module'
-                    WHERE e.dst=n.id AND e.type='DEFINES' LIMIT 1),
-                   (SELECT json_extract(m.props,'$.path') FROM cgr_edges e
-                    JOIN cgr_edges parent ON parent.dst=e.src AND parent.type='DEFINES'
-                    JOIN cgr_nodes m ON m.id=parent.src AND m.label='Module'
-                    WHERE e.dst=n.id AND e.type='DEFINES_METHOD' LIMIT 1),
-                   json_extract(n.props,'$.path')
-               ),
-               json_extract(n.props,'$.start_line'), json_extract(n.props,'$.end_line')
-        FROM cgr_nodes n
-        WHERE n.label IN ('Function','Method') AND n.key>=? AND n.key<?
-    """
-    slug = config.repositories[project].name
-    with closing(sqlite3.connect(graph.as_uri() + "?mode=ro", uri=True)) as db:
-        rows = db.execute(sql, (slug + ".", slug + "/")).fetchall()
+    repo = config.repositories[project]
+    query = CYPHER_QUERY_EMBEDDINGS.replace(
+        "m.path AS path", "m.path AS path, n.name AS name, n.docstring AS docstring"
+    )
+    with EmbeddedConnection(str(graph), read_only=True) as connection:
+        result = connection.run(query, {"project_name": repo.name})
     records = {}
-    for node_id, kind, qualified_name, name, docstring, path, start, end in rows:
+    for row in result.rows:
+        node = dict(zip(result.columns, row, strict=True))
+        kind, qualified_name = node["label"], node["qualified_name"]
         key = json.dumps([kind, qualified_name])
-        file = str(config.repositories[project].path / path) if path else None
+        path = node["path"]
+        file = str(repo.path / path) if path else None
         records[key] = (
-            node_id,
+            node["node_id"],
             file or "",
-            f"{name or qualified_name}\n{docstring or ''}",
+            f"{node['name'] or qualified_name}\n{node['docstring'] or ''}",
             {
                 "project": project,
-                "graph_project": slug,
+                "graph_project": repo.name,
                 "qualified_name": qualified_name,
                 "node_type": kind,
                 "file": file,
-                "start_line": start,
-                "end_line": end,
+                "start_line": node["start_line"],
+                "end_line": node["end_line"],
             },
         )
     return records
