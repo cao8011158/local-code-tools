@@ -42,7 +42,7 @@ uv run --locked lct doc-search --config configs/agentic-trpg.toml --category con
 
 代码刷新统一调用 `.venv` 内的 `cgr start --repo-path ... --update-graph`，以 `GRAPH_BACKEND=sqlite`、`PYTHON_FRONTEND=jedi`、`CGR_EMBEDDING_PROVIDER=unixcoder` 和 `CGR_VECTOR_STORE_BACKEND=qdrant` 运行。Qdrant 按配置使用独立集合，按项目载荷过滤结果。补充索引从 CGR 节点批量读取函数和方法，图及向量通过核对后才发布 BM25。共享文件锁覆盖同一配置的代码刷新与混合查询。刷新失败会保留阶段及日志路径，并阻止读取失败的批次。维护该索引时使用 `lct refresh`，以保持这三份数据同步。
 
-DOC 检索使用独立 SQLite FTS5，默认读取根目录和 `docs/` 下的 Markdown，含未提交修改。文件指纹不变时跳过切分和写入。代码 BM25 仅更新内容或位置发生变化的记录。候选返回 `slot` 与 `channels`，用于区分配额和两路命中情况。代码和 DOC 均限制每次最多返回 100 条。
+DOC 检索使用独立 SQLite FTS5，默认读取根目录和 `docs/` 下的 Markdown，含未提交修改。文件指纹不变时跳过切分和写入。代码 BM25 仅更新内容或位置发生变化的记录。候选返回 `slot` 与 `channels`，用于区分配额和两路命中情况。代码查询按 `top_k // 5` 计算 BM25 名额，候选读取量受已发布索引规模约束。
 
 ## 0.6.30 的运行边界
 

@@ -63,7 +63,8 @@ def publish(db, project, state, detail):
 
 
 def require_ready(db, projects):
-    """Reject unpublished or interrupted refresh batches."""
+    """Return publication details or reject unpublished refresh batches."""
+    published = []
     for project in projects:
         row = db.execute(
             "SELECT state, detail FROM publication WHERE project=?", (project,)
@@ -71,6 +72,8 @@ def require_ready(db, projects):
         if row is None or row["state"] != "ready":
             detail = row["detail"] if row else "run refresh_index"
             raise RuntimeError(f"{project} unavailable: {detail}")
+        published.append(json.loads(row["detail"]))
+    return published
 
 
 def sync_entries(db, project, records, path=None):

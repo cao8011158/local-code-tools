@@ -13,7 +13,15 @@ from typing import Literal
 
 from filelock import FileLock, Timeout
 
-from .cgr_lexical import candidates, connect, publish, refresh_docs, require_ready, sync_entries
+from .cgr_lexical import (
+    CATEGORIES,
+    candidates,
+    connect,
+    publish,
+    refresh_docs,
+    require_ready,
+    sync_entries,
+)
 
 CGR_VERSION = "0.6.30"
 CGR = Path(sys.executable).with_name("cgr.exe" if os.name == "nt" else "cgr")
@@ -325,8 +333,8 @@ def validate_query(query, top_k):
     """Bound MCP request work and require a meaningful result limit."""
     if not query.strip() or len(query) > 2048:
         raise ValueError("query must contain 1 to 2048 characters")
-    if top_k < 1 or top_k > 100:
-        raise ValueError("top_k must be between 1 and 100")
+    if top_k < 1:
+        raise ValueError("top_k must be positive")
 
 
 def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
@@ -340,15 +348,18 @@ def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None
 
     try:
         with guard(config, config.code[0]), database(config, config.code[0]) as db:
-            require_ready(db, projects)
-            lexical = candidates(db, query, top_k, projects)
+            published = require_ready(db, projects)
+            limit = min(top_k, sum(result["nodes"] for result in published))
+            if limit == 0:
+                return []
+            lexical = candidates(db, query, limit, projects)
             rows = {(r["project"], r["node_id"]): json.loads(r["metadata"]) for r in lexical}
             points = (
                 qdrant()
                 .query_points(
                     collection_name=config.collection,
                     query=_unixcoder_embed_code(query, None),
-                    limit=top_k,
+                    limit=limit,
                     query_filter=project_filter(config, projects),
                     with_payload=["node_id", "project", "qualified_name"],
                 )
@@ -393,12 +404,16 @@ def search_docs(
     validate_query(query, top_k)
     if config.doc is None:
         raise ValueError("This configuration has no documentation repository")
+    if category is not None and category not in CATEGORIES:
+        raise ValueError("category must be contract, implementation, history, or experiment")
     try:
         with guard(config, config.doc), database(config, config.doc) as db:
-            require_ready(db, (config.doc,))
+            publication = require_ready(db, (config.doc,))[0]
             return [
                 json.loads(row["metadata"])
-                for row in candidates(db, query, top_k, (config.doc,), category)
+                for row in candidates(
+                    db, query, min(top_k, publication["sections"]), (config.doc,), category
+                )
             ]
     except Timeout as error:
         raise RuntimeError("DOC index is in use; retry after refresh") from error

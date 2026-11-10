@@ -26,6 +26,9 @@ def test_hybrid_quota_and_backfill():
     assert [k for k, _, _ in merge_rankings(list("ABCD"), list("X"), 4)] == list("ABCD")
     ranked = merge_rankings(list("ABCDEFGHIJ"), list("AXY"), 10)
     assert [key for key, slot, _ in ranked if slot == "bm25"] == list("XY")
+    ranked = merge_rankings(range(150), range(150, 200), 123)
+    assert len(ranked) == 123
+    assert sum(slot == "bm25" for _, slot, _ in ranked) == 24
 
 
 def test_code_changes_and_scope(tmp_path):
