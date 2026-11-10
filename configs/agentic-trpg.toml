@@ -1,4 +1,5 @@
 name = "agentic_trpg"
+mcp_prefix = "lct"
 index_dir = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/data/agentic-trpg"
 model_cache = "D:/Projects/agentic-trpg/trpg-state-machine/.worktrees/local-retrieval/model"
 disable_legacy = ["agentic_trpg_local_code"]

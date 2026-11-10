@@ -151,8 +151,8 @@ def save_cgr_workspace(config):
 
 
 def codex_servers(config):
-    """Build the two named stdio server registrations for this installation."""
-    prefix = f"lct_{config.name}"
+    """Register the configured MCP names and allow only the core graph tools."""
+    prefix = config.mcp_prefix
     entry = ["-m", "lct.entrypoint"]
     return {
         f"{prefix}_graph": {
@@ -162,7 +162,14 @@ def codex_servers(config):
             "env": cgr_environment(config),
             "startup_timeout_sec": 300,
             "tool_timeout_sec": 120,
-            "disabled_tools": ["semantic_search", "ask_agent"],
+            "enabled_tools": [
+                "resolve",
+                "definition",
+                "context",
+                "callers",
+                "callees",
+                "list_projects",
+            ],
         },
         f"{prefix}_search": {
             "command": sys.executable,
@@ -182,21 +189,25 @@ def register_codex(config):
     with FileLock(home / "lct-config.lock", timeout=30):
         old = file.read_bytes() if file.exists() else b""
         source = old.decode("utf-8-sig")
-        managed = tomllib.loads(source).get("mcp_servers", {})
         begin = f"# BEGIN lct {config.name}"
         end = f"# END lct {config.name}"
         marker = re.compile(rf"(?ms)^{re.escape(begin)}\n.*?^{re.escape(end)}\n?")
+        if block := marker.search(source):
+            previous = tomllib.loads(block.group()).get("mcp_servers", {})
+            search_name = next((name for name in previous if name.endswith("_search")), "")
+            existing = previous.get(search_name, {})
+            graph_env = previous.get(f"{search_name.removesuffix('_search')}_graph", {}).get(
+                "env", {}
+            )
+            same_installation = graph_env.get("CGR_HOME") == str(config.data / "cgr")
+            if (
+                existing
+                and not same_installation
+                and existing.get("args", [])[-1:] != [str(config.path)]
+            ):
+                raise ValueError("This MCP workspace is already registered for a different config")
         source = marker.sub("", source)
         servers = codex_servers(config)
-        existing = managed.get(f"lct_{config.name}_search", {})
-        graph_env = managed.get(f"lct_{config.name}_graph", {}).get("env", {})
-        same_installation = graph_env.get("CGR_HOME") == str(config.data / "cgr")
-        if (
-            existing
-            and not same_installation
-            and existing.get("args", [])[-1:] != [str(config.path)]
-        ):
-            raise ValueError("This MCP name is already registered for a different config path")
         unmanaged = tomllib.loads(source).get("mcp_servers", {})
         if servers.keys() & unmanaged.keys():
             raise ValueError("Codex already has an unmanaged MCP with this config name")

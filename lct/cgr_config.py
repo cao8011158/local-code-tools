@@ -35,6 +35,7 @@ class Config:
     qdrant_dir: Path | None
     repositories: dict[str, Repository]
     disable_legacy: tuple[str, ...]
+    mcp_prefix: str
 
     @property
     def collection(self):
@@ -80,6 +81,9 @@ def load_config(path):
     name = raw["name"]
     if not re.fullmatch(r"[a-z][a-z0-9_]{0,30}", name):
         raise ValueError("name must be a lowercase identifier")
+    mcp_prefix = raw.get("mcp_prefix", f"lct_{name}")
+    if not isinstance(mcp_prefix, str) or not re.fullmatch(r"[a-z][a-z0-9_]{0,47}", mcp_prefix):
+        raise ValueError("mcp_prefix must be a lowercase identifier")
     repos = {}
     for key, repo in raw["repositories"].items():
         kind = repo["kind"]
@@ -127,4 +131,5 @@ def load_config(path):
         service_dir,
         repos,
         tuple(raw.get("disable_legacy", [])),
+        mcp_prefix,
     )

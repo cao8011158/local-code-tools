@@ -7,7 +7,7 @@ uv sync --locked
 uv run --locked lct up --config configs/agentic-trpg.toml
 ```
 
-配置以 TOML 文件为基准解析相对路径。`name` 决定 Codex MCP 名称，`index_dir` 保存该配置的图、BM25、发布状态和刷新日志，`model_cache` 可在项目间共享。每份项目配置使用不同的 `name` 和 `index_dir`。如需改变已发布索引的仓库路径或排除范围，先使用新的 `index_dir` 建立新索引。
+配置以 TOML 文件为基准解析相对路径。`name` 标识 CGR 工作区，`mcp_prefix` 可单独指定 Codex 服务名称的前缀，省略时为 `lct_<name>`。`index_dir` 保存图、BM25、发布状态和刷新日志，`model_cache` 可在项目间共享。独立配置使用不同的 `name`、`mcp_prefix` 和 `index_dir`。为现有配置增加仓库或改变路径、排除范围时，使用新的 `index_dir` 建立新索引，可沿用该配置的 `name` 和 `mcp_prefix`。
 
 Qdrant 可以是已经监听回环地址的服务。配置 `qdrant.executable` 和 `qdrant.directory` 后，`up` 在服务未运行时直接启动本机二进制。本机使用 Qdrant 1.16.3 Windows x64 官方二进制，客户端固定为 1.17.1。可从 [Qdrant v1.16.3 release](https://github.com/qdrant/qdrant/releases/tag/v1.16.3) 下载。需要先解压到配置指定的位置。
 
@@ -38,7 +38,7 @@ uv run --locked lct hybrid-search --config configs/agentic-trpg.toml --project S
 uv run --locked lct doc-search --config configs/agentic-trpg.toml --category contract "SessionMemory 原子发布"
 ```
 
-`up` 写入 `$CODEX_HOME/config.toml`，默认是 `~/.codex/config.toml`。重新启动 Codex 会话后，先调 `lct_agentic_trpg_search.hybrid_search`，再把结果的 `qualified_name` 和 `graph_project` 分别作为 `qualified_name` 和 `project` 传给 `lct_agentic_trpg_graph.callees`，`depth=2`。官方 MCP 以 `--read-only --workspace` 启动。Codex 隐藏 `semantic_search` 和 `ask_agent`。补充 MCP 还暴露 `search_docs` 和 `refresh_index`。
+`up` 写入 `$CODEX_HOME/config.toml`，默认是 `~/.codex/config.toml`。Agentic TRPG 配置使用前缀 `lct`。重新启动 Codex 会话后，先调 `lct_search.hybrid_search`，用配置里的仓库别名选择项目，再把结果的 `qualified_name` 和 `graph_project` 分别作为 `qualified_name` 和 `project` 传给 `lct_graph.callees`，`depth=2`。官方 MCP 以 `--read-only --workspace` 启动，Codex 只暴露 `resolve`、`definition`、`context`、`callers`、`callees`、`list_projects`。补充 MCP 还暴露 `search_docs` 和 `refresh_index`。
 
 代码刷新统一调用 `.venv` 内的 `cgr start --repo-path ... --update-graph`，以 `GRAPH_BACKEND=sqlite`、`PYTHON_FRONTEND=jedi`、`CGR_EMBEDDING_PROVIDER=unixcoder` 和 `CGR_VECTOR_STORE_BACKEND=qdrant` 运行。Qdrant 按配置使用独立集合，按项目载荷过滤结果。补充索引从 CGR 节点批量读取函数和方法，图及向量通过核对后才发布 BM25。共享文件锁覆盖同一配置的代码刷新与混合查询。刷新失败会保留阶段及日志路径，并阻止读取失败的批次。维护该索引时使用 `lct refresh`，以保持这三份数据同步。
 

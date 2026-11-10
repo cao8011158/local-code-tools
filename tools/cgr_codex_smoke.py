@@ -14,13 +14,14 @@ from pathlib import Path
 class Codex:
     """Send JSON-RPC requests to the locally installed Codex CLI."""
 
-    def __init__(self, config_name):
+    def __init__(self, config_name, mcp_prefix=None):
         """Launch Codex with the two requested MCP servers for this probe."""
         home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
         servers = tomllib.loads((home / "config.toml").read_text(encoding="utf-8-sig")).get(
             "mcp_servers", {}
         )
-        allowed = {f"lct_{config_name}_{name}" for name in ("graph", "search")}
+        prefix = mcp_prefix or f"lct_{config_name}"
+        allowed = {f"{prefix}_{name}" for name in ("graph", "search")}
         command = ["codex"]
         for name in servers.keys() - allowed:
             if re.fullmatch(r"[A-Za-z0-9_-]+", name):
@@ -93,11 +94,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("config_name")
     parser.add_argument("query")
+    parser.add_argument("--mcp-prefix")
     parser.add_argument("--project")
     parser.add_argument("--target-suffix")
     parser.add_argument("--docs")
     args = parser.parse_args()
-    codex = Codex(args.config_name)
+    prefix = args.mcp_prefix or f"lct_{args.config_name}"
+    codex = Codex(args.config_name, prefix)
     try:
         codex.rpc(
             "initialize",
@@ -112,8 +115,8 @@ def main():
         thread = codex.rpc("thread/start", {"cwd": str(Path.cwd()), "ephemeral": True})["thread"][
             "id"
         ]
-        search = f"lct_{args.config_name}_search"
-        graph = f"lct_{args.config_name}_graph"
+        search = f"{prefix}_search"
+        graph = f"{prefix}_graph"
         tool_lists = {}
         for name in (graph, search):
             status = codex.rpc(
@@ -129,10 +132,9 @@ def main():
                 list(tools) if isinstance(tools, dict) else [t["name"] for t in tools]
             )
         assert set(tool_lists[search]) == {"hybrid_search", "search_docs", "refresh_index"}
-        assert {"definition", "callees", "callers", "context", "resolve"} <= set(
+        assert {"definition", "callees", "callers", "context", "resolve", "list_projects"} == set(
             tool_lists[graph]
         ), tool_lists
-        assert "semantic_search" not in tool_lists[graph]
         filters = {"query": args.query}
         if args.project:
             filters["project"] = args.project

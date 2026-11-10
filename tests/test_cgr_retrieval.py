@@ -1,14 +1,60 @@
 """Test quota handling, incremental lexical writes and publication boundaries."""
 
 import sqlite3
+import tomllib
 from contextlib import closing
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from lct.cgr_config import Repository
+from lct.cgr_cli import register_codex
+from lct.cgr_config import Repository, load_config
 from lct.cgr_lexical import candidates, connect, publish, refresh_docs, require_ready, sync_entries
 from lct.cgr_runtime import merge_rankings
+
+
+def test_mcp_registration_renames_existing_workspace(tmp_path, monkeypatch):
+    """Rename the managed MCP pair without changing its workspace or unrelated servers."""
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path))
+    project = tmp_path / "project.toml"
+    project.write_text(
+        'name = "example"\nindex_dir = "index"\nmodel_cache = "models"\n'
+        '[repositories.APP]\nkind = "code"\npath = "."\n',
+        encoding="utf-8",
+    )
+    initial = load_config(project)
+    assert initial.mcp_prefix == "lct_example"
+    codex_config = tmp_path / "config.toml"
+    codex_config.write_text('[mcp_servers.other]\ncommand = "other"\n', encoding="utf-8")
+    register_codex(initial)
+    renamed = replace(initial, mcp_prefix="lct")
+    register_codex(renamed)
+    result = codex_config.read_bytes()
+    servers = tomllib.loads(result.decode("utf-8"))["mcp_servers"]
+    assert set(servers) == {"other", "lct_graph", "lct_search"}
+    assert set(servers["lct_graph"]["enabled_tools"]) == {
+        "resolve",
+        "definition",
+        "context",
+        "callers",
+        "callees",
+        "list_projects",
+    }
+    assert servers["lct_graph"]["args"][-2:] == ["--workspace", "example"]
+    assert servers["lct_search"]["args"][-1] == str(project)
+    assert renamed.index_identity() == initial.index_identity()
+    register_codex(renamed)
+    assert codex_config.read_bytes() == result
+    unrelated = replace(
+        renamed,
+        path=tmp_path / "other.toml",
+        data=tmp_path / "other-index",
+        mcp_prefix="other",
+    )
+    with pytest.raises(ValueError, match="workspace is already registered"):
+        register_codex(unrelated)
+    assert codex_config.read_bytes() == result
 
 
 def test_hybrid_quota_and_backfill():
