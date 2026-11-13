@@ -1,6 +1,7 @@
 """Test quota handling, incremental lexical writes and publication boundaries."""
 
 import sqlite3
+import subprocess
 import sys
 import tomllib
 from contextlib import closing
@@ -10,7 +11,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-from lct import cgr_runtime
+from lct import cgr_cli, cgr_runtime
 from lct.cgr_cli import register_codex
 from lct.cgr_config import Config, Repository, load_config
 from lct.cgr_lexical import candidates, connect, publish, refresh_docs, require_ready, sync_entries
@@ -58,6 +59,128 @@ def test_mcp_registration_renames_existing_workspace(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="workspace is already registered"):
         register_codex(unrelated)
     assert codex_config.read_bytes() == result
+
+
+def test_index_repository_additive_failure_and_retry(tmp_path, monkeypatch):
+    """Keep existing identities fixed and make a failed new build retryable."""
+    for name in ("sm", "re", "docs", "agents"):
+        (tmp_path / name).mkdir()
+    subprocess.run(["git", "init", "-q", str(tmp_path / "agents")], check=True)
+    project = tmp_path / "project.toml"
+    project.write_text(
+        'name = "example"\nindex_dir = "index"\nmodel_cache = "models"\n'
+        '[repositories.SM]\nkind = "code"\nname = "state-machine"\npath = "sm"\n'
+        '[repositories.RE]\nkind = "code"\nname = "rules-engine"\npath = "re"\n'
+        '[repositories.DOC]\nkind = "docs"\npath = "docs"\n',
+        encoding="utf-8",
+    )
+    config = load_config(project)
+    cgr_runtime.bind_indexes(config)
+    original = dict(config.repositories)
+    calls = []
+
+    def refresh(_config, alias):
+        """Record the requested alias and fail only the first build."""
+        calls.append((tuple(_config.repositories), alias))
+        return {"ok": len(calls) > 1, "project": alias}
+
+    saved = []
+    save_manifest = cgr_cli.save_cgr_workspace
+    monkeypatch.setattr(cgr_cli, "refresh", refresh)
+    monkeypatch.setattr(cgr_cli, "save_cgr_workspace", lambda current: saved.append(current))
+    monkeypatch.setattr(cgr_cli, "ensure_model", lambda current: None)
+    monkeypatch.setattr(cgr_cli, "ensure_qdrant", lambda current: "reused")
+    path = str((tmp_path / "agents").resolve())
+    first = cgr_cli.register_repository(config, "example", path, "trpg-agents")
+    assert first == {"ok": False, "project": "trpg-agents"}
+    assert not saved
+    after_failure = load_config(project)
+    assert after_failure.repositories["trpg-agents"].path == Path(path)
+    assert {key: after_failure.repositories[key] for key in original} == original
+    assert config.index_identity() == (tmp_path / "index" / "identity.json").read_text()
+    assert after_failure.index_identity() == config.index_identity()
+    assert after_failure.added_repositories == ("trpg-agents",)
+    manifest = save_manifest(after_failure)
+    assert {
+        repo["project_name"] for repo in tomllib.loads(manifest.read_text())["workspace"]["repos"]
+    } == {
+        "state-machine",
+        "rules-engine",
+    }
+    with closing(connect(tmp_path / "index" / "code.sqlite")) as db, db:
+        for alias in ("SM", "RE"):
+            sync_entries(
+                db,
+                alias,
+                {
+                    alias: (
+                        1,
+                        "file.py",
+                        "baseline marker",
+                        {
+                            "project": alias,
+                            "qualified_name": alias,
+                        },
+                    )
+                },
+            )
+            publish(db, alias, "ready", {"nodes": 1})
+    embedder = ModuleType("codebase_rag.embedder")
+    embedder._unixcoder_embed_code = lambda query, _: [0.0]
+    monkeypatch.setitem(sys.modules, "codebase_rag.embedder", embedder)
+    monkeypatch.setattr(cgr_runtime, "configure", lambda _: None)
+    monkeypatch.setattr(
+        cgr_runtime,
+        "qdrant",
+        lambda: SimpleNamespace(query_points=lambda **kwargs: SimpleNamespace(points=[])),
+    )
+    assert {hit["project"] for hit in cgr_runtime.hybrid_search(after_failure, "marker")} == {
+        "SM",
+        "RE",
+    }
+    with pytest.raises(RuntimeError, match="trpg-agents unavailable"):
+        cgr_runtime.hybrid_search(after_failure, "marker", project="trpg-agents")
+    second = cgr_cli.register_repository(config, "example", path, "trpg-agents")
+    assert second["ok"] and second["graph_mcp_restart_required"]
+    assert len(saved) == 1 and set(saved[0].repositories) == {*original, "trpg-agents"}
+    assert calls == [(tuple(after_failure.repositories), "trpg-agents")] * 2
+    with closing(connect(tmp_path / "index" / "code.sqlite")) as db, db:
+        publish(db, "trpg-agents", "ready", {"nodes": 0})
+    third = cgr_cli.register_repository(config, "example", path, "trpg-agents")
+    assert third["already_indexed"] and not third["graph_mcp_restart_required"]
+    assert len(calls) == 2 and len(saved) == 2
+    assert load_config(project).published_repositories == ("trpg-agents",)
+    with closing(connect(tmp_path / "index" / "code.sqlite")) as db, db:
+        publish(db, "trpg-agents", "failed", {"error": "later refresh failed"})
+    cgr_cli.save_cgr_workspace(load_config(project))
+    assert saved[-1].published_repositories == ("trpg-agents",)
+    manifest = save_manifest(load_config(project))
+    assert {
+        repo["project_name"] for repo in tomllib.loads(manifest.read_text())["workspace"]["repos"]
+    } == {
+        "state-machine",
+        "rules-engine",
+        "trpg-agents",
+    }
+    with pytest.raises(ValueError, match="different identity"):
+        cgr_cli.register_repository(config, "example", path, "other", "trpg-agents")
+    with pytest.raises(ValueError, match="already registered"):
+        cgr_cli.register_repository(config, "example", path, "trpg-agents", "OTHER")
+    assert set(load_config(project).repositories) == {*original, "trpg-agents"}
+    (tmp_path / "agents").rename(tmp_path / "agents-away")
+    without_checkout = load_config(project)
+    assert {hit["project"] for hit in cgr_runtime.hybrid_search(without_checkout, "marker")} == {
+        "SM",
+        "RE",
+    }
+    assert cgr_runtime.refresh_index(without_checkout, "trpg-agents")["stage"] == "checkout"
+    project.write_text(
+        project.read_text().replace(
+            '[repositories.RE]\nkind = "code"\nname = "rules-engine"\npath = "re"\n', ""
+        )
+    )
+    with pytest.raises(ValueError, match="registry does not match"):
+        load_config(project)
 
 
 def test_hybrid_quota_and_backfill():

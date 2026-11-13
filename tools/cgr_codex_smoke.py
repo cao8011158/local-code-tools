@@ -131,7 +131,12 @@ def main():
             tool_lists[name] = (
                 list(tools) if isinstance(tools, dict) else [t["name"] for t in tools]
             )
-        assert set(tool_lists[search]) == {"hybrid_search", "search_docs", "refresh_index"}
+        assert set(tool_lists[search]) == {
+            "hybrid_search",
+            "search_docs",
+            "refresh_index",
+            "index_repository",
+        }
         assert {"definition", "callees", "callers", "context", "resolve", "list_projects"} == set(
             tool_lists[graph]
         ), tool_lists

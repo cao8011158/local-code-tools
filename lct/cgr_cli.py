@@ -14,9 +14,9 @@ from urllib.error import URLError
 from urllib.parse import urlsplit
 from urllib.request import ProxyHandler, build_opener
 
-from filelock import FileLock
+from filelock import FileLock, Timeout
 
-from .cgr_config import load_config
+from .cgr_config import Repository, load_config
 from .cgr_lexical import CATEGORIES, require_ready
 from .cgr_runtime import (
     CGR,
@@ -133,10 +133,15 @@ def ensure_qdrant(config):
 
 
 def save_cgr_workspace(config):
-    """Register all code checkout roots with the official read-only MCP."""
+    """Register configured roots and durably published additions with the graph MCP."""
     from codebase_rag.workspaces.models import WorkspaceConfig, WorkspaceRepo
-    from codebase_rag.workspaces.storage import save_workspace
+    from codebase_rag.workspaces.storage import save_workspace, workspace_path
 
+    projects = [
+        alias
+        for alias in config.code
+        if alias not in config.added_repositories or alias in config.published_repositories
+    ]
     workspace = WorkspaceConfig(
         name=config.name,
         repos=[
@@ -144,10 +149,32 @@ def save_cgr_workspace(config):
                 path=str(config.repositories[alias].path),
                 project_name=config.repositories[alias].name,
             )
-            for alias in config.code
+            for alias in projects
         ],
     )
-    return save_workspace(workspace)
+    destination = workspace_path(config.name, config.data / "cgr")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=config.data) as temporary:
+        generated = save_workspace(workspace, home=Path(temporary))
+        generated.replace(destination)
+    return destination
+
+
+def publish_workspace_member(config, alias):
+    """Durably admit one completed addition and atomically replace its graph manifest."""
+    with FileLock(config.data / "identity.lock"):
+        current = load_config(config.path)
+        registry = config.data / "repository_registry.json"
+        saved = json.loads(registry.read_text(encoding="utf-8"))
+        first = alias not in current.published_repositories
+        if first:
+            saved["published"] = [*current.published_repositories, alias]
+            temporary = registry.with_suffix(".tmp")
+            temporary.write_text(json.dumps(saved, sort_keys=True), encoding="utf-8")
+            temporary.replace(registry)
+            current = load_config(config.path)
+        save_cgr_workspace(current)
+    return first
 
 
 def codex_servers(config):
@@ -268,6 +295,121 @@ def reusable(config, project):
         )
 
 
+def register_repository(
+    config, workspace: str, repo_path: str, project_name: str, project: str | None = None
+) -> dict:
+    """Serialize registration, build and graph workspace publication for one installation."""
+    config.data.mkdir(parents=True, exist_ok=True)
+    try:
+        with FileLock(config.data / "registration.lock", timeout=0):
+            return _register_repository(config, workspace, repo_path, project_name, project)
+    except Timeout:
+        return {"ok": False, "stage": "lock", "error": "repository registration is in use"}
+
+
+def _register_repository(
+    config, workspace: str, repo_path: str, project_name: str, project: str | None
+) -> dict:
+    """Register one absolute code checkout, refresh it, and publish it to the graph workspace.
+
+    Registration is durable before refresh so a failed build can be retried with the
+    same inputs or by refresh_index. Existing checkout identities cannot be remapped.
+    The running graph MCP must restart to reload its workspace membership.
+    """
+    if workspace != config.name:
+        raise ValueError(f"workspace must equal {config.name!r}")
+    if not Path(repo_path).is_absolute():
+        raise ValueError("repo_path must be an absolute checkout path")
+    root = Path(repo_path).resolve(strict=True)
+    if not root.is_dir() or not (root / ".git").exists():
+        raise ValueError("repo_path must be the exact absolute Git checkout root")
+    checkout = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    if Path(checkout.stdout.strip()).resolve() != root:
+        raise ValueError("repo_path must be the exact absolute Git checkout root")
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", project_name):
+        raise ValueError("project_name must be a CGR project name")
+    alias = project or project_name
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", alias):
+        raise ValueError("project must be a repository alias")
+
+    config.data.mkdir(parents=True, exist_ok=True)
+    already_added = False
+    with FileLock(config.data / "identity.lock"):
+        current = load_config(config.path)
+        identity = config.data / "identity.json"
+        if identity.exists() and identity.read_text(encoding="utf-8") != current.index_identity():
+            raise ValueError(f"Index ownership differs at {config.data}; choose a new index_dir")
+        for key, repo in current.repositories.items():
+            if key == alias:
+                if repo.path != root or repo.name != project_name or repo.kind != "code":
+                    raise ValueError(f"Repository alias {alias!r} already has a different identity")
+                if key not in current.added_repositories:
+                    raise ValueError(f"Repository alias {alias!r} is configured; use refresh_index")
+                already_added = True
+                break
+            if repo.name == project_name:
+                raise ValueError(f"CGR project name {project_name!r} is already registered")
+            if root == repo.path or root in repo.path.parents or repo.path in root.parents:
+                raise ValueError(f"Checkout overlaps registered repository {key!r}")
+        else:
+            base_identity = current.index_identity()
+            current.repositories[alias] = Repository(root, "code", project_name, (), ())
+            registry = config.data / "repository_registry.json"
+            added = {
+                key: [str(repo.path), repo.kind, repo.name, repo.exclude, repo.exclude_dirs]
+                for key, repo in current.repositories.items()
+                if key in (*current.added_repositories, alias)
+            }
+            temporary = registry.with_suffix(".tmp")
+            temporary.write_text(
+                json.dumps(
+                    {
+                        "base_identity": base_identity,
+                        "repos": added,
+                        "published": current.published_repositories,
+                    },
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            temporary.replace(registry)
+    current = load_config(config.path)
+    if already_added:
+        with guard(current, alias), database(current, alias) as db:
+            try:
+                published = require_ready(db, (alias,))[0]
+            except RuntimeError:
+                pass
+            else:
+                first = publish_workspace_member(current, alias)
+                return {
+                    **published,
+                    "ok": True,
+                    "project": alias,
+                    "already_indexed": True,
+                    "graph_mcp_restart_required": first,
+                }
+    ensure_model(current)
+    ensure_qdrant(current)
+    result = refresh(current, alias)
+    if result["ok"]:
+        result["graph_mcp_restart_required"] = publish_workspace_member(current, alias)
+    return result
+
+
+def refresh_registered(config, project):
+    """Refresh a project and republish graph workspace membership after an added build."""
+    result = refresh(config, project)
+    if result["ok"] and project in config.added_repositories:
+        result["graph_mcp_restart_required"] = publish_workspace_member(config, project)
+    return result
+
+
 def up(config):
     """Start Qdrant, prepare missing indexes and configure Codex once ready."""
     started = time.perf_counter()
@@ -277,15 +419,21 @@ def up(config):
     repos = {}
     for project in config.repositories:
         if reusable(config, project):
+            if (
+                project in config.added_repositories
+                and project not in config.published_repositories
+            ):
+                publish_workspace_member(config, project)
             repos[project] = {"reused": True}
             print(f"{project}: reused", file=sys.stderr, flush=True)
             continue
         print(f"{project}: refreshing", file=sys.stderr, flush=True)
-        result = refresh(config, project)
+        result = refresh_registered(config, project)
         repos[project] = result
         if not result["ok"]:
             return {"ok": False, "qdrant": service, "repos": repos}
-    save_cgr_workspace(config)
+    with FileLock(config.data / "identity.lock"):
+        save_cgr_workspace(load_config(config.path))
     file = register_codex(config)
     return {
         "ok": True,
@@ -299,12 +447,18 @@ def up(config):
 
 
 def serve(config):
-    """Expose only the three supplemental tools through stdio."""
+    """Expose search, refresh and additive repository indexing through stdio."""
     from mcp.server.mcpserver import MCPServer
     from mcp.server.mcpserver.exceptions import ToolError
     from mcp.types import ToolAnnotations
 
     server = MCPServer("Local Code Tools")
+
+    def current_config():
+        """Load durable repository membership for each request in an existing MCP process."""
+        current = load_config(config.path)
+        bind_indexes(current)
+        return current
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True))
     def hybrid_search(query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
@@ -316,19 +470,35 @@ def serve(config):
         as qualified_name when calling a graph tool.
         """
         try:
-            return search_code(config, query, top_k, project)
+            return search_code(current_config(), query, top_k, project)
         except ValueError as error:
             raise ToolError(str(error)) from error
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True))
     def search_docs(query: str, top_k: int = 5, category: str | None = None) -> list[dict]:
         """Find Markdown sections. Categories are contract, implementation, history, experiment."""
-        return search_documents(config, query, top_k, category)
+        return search_documents(current_config(), query, top_k, category)
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=False))
     def refresh_index(project: str) -> dict:
         """Refresh a configured repository alias after local changes."""
-        return refresh(config, project)
+        return refresh_registered(current_config(), project)
+
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=False))
+    def index_repository(
+        workspace: str, repo_path: str, project_name: str, project: str | None = None
+    ) -> dict:
+        """Index a Git checkout in this workspace; project defaults to project_name.
+
+        Pass the exact absolute checkout root and a unique CGR project name. A
+        successful result requires restarting the separate read-only graph MCP.
+        """
+        try:
+            return register_repository(
+                current_config(), workspace, repo_path, project_name, project
+            )
+        except (ValueError, OSError) as error:
+            raise ToolError(str(error)) from error
 
     server.run()
 
@@ -366,7 +536,7 @@ def main(argv=None):
         if args.command == "up":
             result = up(config)
         elif args.command == "refresh":
-            result = refresh(config, args.project)
+            result = refresh_registered(config, args.project)
         elif args.command == "hybrid-search":
             result = search_code(config, args.query, args.top_k, args.project)
         else:

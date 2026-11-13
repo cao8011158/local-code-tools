@@ -210,6 +210,13 @@ def refresh_index(config, project: str) -> dict:
             "stage": "configuration",
             "error": "project must be a configured repository alias",
         }
+    if not config.repositories[project].path.is_dir():
+        return {
+            "project": project,
+            "ok": False,
+            "stage": "checkout",
+            "error": f"checkout is missing: {config.repositories[project].path}",
+        }
     stage = "lock"
     started = time.perf_counter()
     try:
@@ -338,7 +345,7 @@ def validate_query(query, top_k):
 
 
 def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
-    """Search code by CGR project name or LCT alias, or across all code projects."""
+    """Search one code project or all ready projects, keeping failed additions isolated."""
     validate_query(query, top_k)
     projects = config.code
     if project is not None:
@@ -355,6 +362,16 @@ def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None
 
     try:
         with guard(config, config.code[0]), database(config, config.code[0]) as db:
+            if project is None and config.added_repositories:
+                ready = []
+                for alias in projects:
+                    if alias in config.added_repositories:
+                        try:
+                            require_ready(db, (alias,))
+                        except RuntimeError:
+                            continue
+                    ready.append(alias)
+                projects = tuple(ready)
             published = require_ready(db, projects)
             limit = min(top_k, sum(result["nodes"] for result in published))
             if limit == 0:

@@ -6,7 +6,7 @@ import json
 import os
 import re
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -35,6 +35,9 @@ class Config:
     qdrant_dir: Path | None
     repositories: dict[str, Repository]
     mcp_prefix: str
+    added_repositories: tuple[str, ...] = ()
+    base_identity: str | None = None
+    published_repositories: tuple[str, ...] = ()
 
     @property
     def collection(self):
@@ -54,6 +57,8 @@ class Config:
 
     def index_identity(self):
         """Bind persisted indexes to their owning checkouts and configuration."""
+        if self.base_identity is not None:
+            return self.base_identity
         return json.dumps(
             {
                 "name": self.name,
@@ -120,7 +125,7 @@ def load_config(path):
     service_dir = resolve(qdrant["directory"]) if "directory" in qdrant else None
     if (exe is None) != (service_dir is None):
         raise ValueError("Qdrant executable and directory must be configured together")
-    return Config(
+    config = Config(
         path,
         name,
         resolve(raw["index_dir"]),
@@ -130,4 +135,36 @@ def load_config(path):
         service_dir,
         repos,
         mcp_prefix,
+    )
+    registry = config.data / "repository_registry.json"
+    if not registry.exists():
+        return config
+    saved = json.loads(registry.read_text(encoding="utf-8"))
+    if saved.get("base_identity") != config.index_identity() or not isinstance(
+        saved.get("repos"), dict
+    ):
+        raise ValueError(f"Repository registry does not match configured index at {registry}")
+    added = {}
+    for key, fields in saved["repos"].items():
+        if key in repos or not re.fullmatch(r"[A-Za-z0-9_-]+", key):
+            raise ValueError(f"Invalid registered alias {key}")
+        if not isinstance(fields, list) or len(fields) != 5:
+            raise ValueError(f"Invalid repository identity for {key}")
+        root, kind, graph_name, exclude, exclude_dirs = fields
+        if kind != "code" or not isinstance(root, str) or not Path(root).is_absolute():
+            raise ValueError(f"Invalid registered repository {key}")
+        added[key] = Repository(Path(root), kind, graph_name, tuple(exclude), tuple(exclude_dirs))
+    published = saved.get("published", [])
+    if (
+        not isinstance(published, list)
+        or len(published) != len(set(published))
+        or any(key not in added for key in published)
+    ):
+        raise ValueError(f"Invalid published repository list at {registry}")
+    return replace(
+        config,
+        repositories={**repos, **added},
+        added_repositories=tuple(added),
+        base_identity=config.index_identity(),
+        published_repositories=tuple(published),
     )
