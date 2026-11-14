@@ -1,6 +1,6 @@
 # Agentic TRPG Local Code Tools
 
-Local Code Tools (LCT) uses pinned Code-Graph-RAG 0.6.30 for the code graph, Python analysis and vector search. LCT owns a small SQLite BM25 index for code and Markdown, combines BM25 with CGR vector results, and exposes a companion MCP search server. This checkout contains no project indexes, vectors or model weights.
+Local Code Tools (LCT) uses Code-Graph-RAG 0.6.30 from the `agentic-trpg/code-graph-rag` fork for the code graph, Python analysis and vector search. The exact commit is pinned in `pyproject.toml` and `uv.lock`. LCT owns a small SQLite BM25 index for code and Markdown, combines BM25 with CGR vector results, and exposes a companion MCP search server. This checkout contains no project indexes, vectors or model weights.
 
 ## Install and configure
 

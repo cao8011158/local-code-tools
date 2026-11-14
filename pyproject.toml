@@ -19,6 +19,14 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["lct"]
+
+[tool.uv]
+# CGR builds its Rust extension from source in its development checkout.
+no-sources-package = ["cgr-graph-rs"]
+
+[tool.uv.sources]
+code-graph-rag = { git = "https://github.com/agentic-trpg/code-graph-rag.git", rev = "5baca94163df7cc84007a136d942170f1ac4079a" }
+
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.14,<1"]
 [tool.ruff]

@@ -22,7 +22,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "code-graph-rag", extras = ["python-semantics", "semantic"], specifier = "==0.6.30" },
+    { name = "code-graph-rag", extras = ["python-semantics", "semantic"], git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5baca94163df7cc84007a136d942170f1ac4079a" },
     { name = "filelock", specifier = ">=3,<5" },
     { name = "markdown-it-py", specifier = ">=4,<5" },
     { name = "mcp", specifier = ">=2.3,<3" },
@@ -192,7 +192,7 @@ wheels = [
 [[package]]
 name = "code-graph-rag"
 version = "0.6.30"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5baca94163df7cc84007a136d942170f1ac4079a#5baca94163df7cc84007a136d942170f1ac4079a" }
 dependencies = [
     { name = "certifi" },
     { name = "cgr-graph-rs" },
@@ -217,10 +217,6 @@ dependencies = [
     { name = "tree-sitter-python" },
     { name = "typer" },
     { name = "watchdog" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/2c/afb900e1c7e02873d46b0722ea59b0f14fdf111dc995f8dcb4a6c483559b/code_graph_rag-0.6.30.tar.gz", hash = "sha256:aabcb2125e978f7497a7347abb01eaaa1d38d62dafcbaa4a6ce0afce45ee6b83", size = 2539335, upload-time = "2026-11-09T17:02:54.925Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/fc/6ea0d67a223c4e8d7ee78b7a7adbc0151e0c7013fb180ad4d62a5ef1a783/code_graph_rag-0.6.30-py3-none-any.whl", hash = "sha256:534c2d972b0a547ed77641049e343f683dfb6d76711a39fa5df5abaf6bb1b4a4", size = 2776419, upload-time = "2026-11-09T17:02:52.627Z" },
 ]
 
 [package.optional-dependencies]
