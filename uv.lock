@@ -22,7 +22,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "code-graph-rag", extras = ["python-semantics", "semantic"], git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5baca94163df7cc84007a136d942170f1ac4079a" },
+    { name = "code-graph-rag", extras = ["python-semantics", "semantic"], git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5a65d2a857103ec95f693b68956a49868774eff2" },
     { name = "filelock", specifier = ">=3,<5" },
     { name = "markdown-it-py", specifier = ">=4,<5" },
     { name = "mcp", specifier = ">=2.3,<3" },
@@ -191,8 +191,8 @@ wheels = [
 
 [[package]]
 name = "code-graph-rag"
-version = "0.6.30"
-source = { git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5baca94163df7cc84007a136d942170f1ac4079a#5baca94163df7cc84007a136d942170f1ac4079a" }
+version = "0.6.31"
+source = { git = "https://github.com/agentic-trpg/code-graph-rag.git?rev=5a65d2a857103ec95f693b68956a49868774eff2#5a65d2a857103ec95f693b68956a49868774eff2" }
 dependencies = [
     { name = "certifi" },
     { name = "cgr-graph-rs" },

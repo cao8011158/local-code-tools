@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import tomllib
+from dataclasses import replace
 from pathlib import Path
 from urllib.error import URLError
 from urllib.parse import urlsplit
@@ -21,12 +22,17 @@ from .cgr_lexical import CATEGORIES, require_ready
 from .cgr_runtime import (
     CGR,
     HERE,
+    MODEL,
+    MODEL_FILES,
+    MODEL_REVISION,
     bind_indexes,
     cgr_environment,
     configure,
     database,
     guard,
+    model_snapshot,
     project_filter,
+    published_graph_members,
     qdrant,
 )
 from .cgr_runtime import (
@@ -39,17 +45,12 @@ from .cgr_runtime import (
     search_docs as search_documents,
 )
 
-MODEL = "microsoft/unixcoder-base"
-MODEL_REVISION = "5604afdc964f6c53782a6813140ade5216b99006"
-MODEL_FILES = ("config.json", "vocab.json", "merges.txt", "pytorch_model.bin")
-
 
 def ensure_model(config):
     """Fetch public model assets once, before enabling offline inference."""
     config.model_cache.mkdir(parents=True, exist_ok=True)
     cache = config.model_cache / "hub"
-    repo = cache / "models--microsoft--unixcoder-base"
-    snapshot = repo / "snapshots" / MODEL_REVISION
+    snapshot = model_snapshot(config)
     with FileLock(config.model_cache / "lct-model.lock", timeout=600):
         if not all((snapshot / file).is_file() for file in MODEL_FILES):
             hf = CGR.with_name("hf.exe" if os.name == "nt" else "hf")
@@ -68,7 +69,7 @@ def ensure_model(config):
                 stdout=sys.stderr,
                 check=True,
             )
-        ref = repo / "refs" / "main"
+        ref = snapshot.parent.parent / "refs" / "main"
         ref.parent.mkdir(parents=True, exist_ok=True)
         if not ref.exists() or ref.read_text(encoding="utf-8").strip() != MODEL_REVISION:
             temporary = ref.with_suffix(".lct-tmp")
@@ -160,21 +161,32 @@ def save_cgr_workspace(config):
     return destination
 
 
-def publish_workspace_member(config, alias):
-    """Durably admit one completed addition and atomically replace its graph manifest."""
+def _publish_ready_workspace_member(config, alias):
+    """Write registry and manifest while the caller holds the code guard."""
     with FileLock(config.data / "identity.lock"):
         current = load_config(config.path)
+        members = published_graph_members(current)
         registry = config.data / "repository_registry.json"
         saved = json.loads(registry.read_text(encoding="utf-8"))
-        first = alias not in current.published_repositories
-        if first:
+        if alias not in current.published_repositories:
             saved["published"] = [*current.published_repositories, alias]
             temporary = registry.with_suffix(".tmp")
             temporary.write_text(json.dumps(saved, sort_keys=True), encoding="utf-8")
             temporary.replace(registry)
             current = load_config(config.path)
-        save_cgr_workspace(current)
-    return first
+        # Another registry entry may be waiting for its own interrupted manifest write.
+        published = tuple(
+            key for key in current.published_repositories if key == alias or key in members
+        )
+        save_cgr_workspace(replace(current, published_repositories=published))
+    return alias not in members
+
+
+def publish_workspace_member(config, alias):
+    """Admit a completed addition only while its index remains ready."""
+    with guard(config, alias), database(config, alias) as db:
+        require_ready(db, (alias,))
+        return _publish_ready_workspace_member(config, alias)
 
 
 def codex_servers(config):
@@ -386,7 +398,7 @@ def _register_repository(
             except RuntimeError:
                 pass
             else:
-                first = publish_workspace_member(current, alias)
+                first = _publish_ready_workspace_member(current, alias)
                 return {
                     **published,
                     "ok": True,
@@ -419,9 +431,8 @@ def up(config):
     repos = {}
     for project in config.repositories:
         if reusable(config, project):
-            if (
-                project in config.added_repositories
-                and project not in config.published_repositories
+            if project in config.added_repositories and project not in published_graph_members(
+                config
             ):
                 publish_workspace_member(config, project)
             repos[project] = {"reused": True}
@@ -432,8 +443,11 @@ def up(config):
         repos[project] = result
         if not result["ok"]:
             return {"ok": False, "qdrant": service, "repos": repos}
-    with FileLock(config.data / "identity.lock"):
-        save_cgr_workspace(load_config(config.path))
+    with guard(config, config.code[0]), FileLock(config.data / "identity.lock"):
+        current = load_config(config.path)
+        save_cgr_workspace(
+            replace(current, published_repositories=published_graph_members(current))
+        )
     file = register_codex(config)
     return {
         "ok": True,

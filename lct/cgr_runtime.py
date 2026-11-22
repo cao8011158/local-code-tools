@@ -23,9 +23,18 @@ from .cgr_lexical import (
     sync_entries,
 )
 
-CGR_VERSION = "0.6.30"
+CGR_VERSION = "0.6.31"
 CGR = Path(sys.executable).with_name("cgr.exe" if os.name == "nt" else "cgr")
 HERE = Path(__file__).resolve().parent.parent
+MODEL = "microsoft/unixcoder-base"
+MODEL_REVISION = "5604afdc964f6c53782a6813140ade5216b99006"
+MODEL_FILES = ("config.json", "vocab.json", "merges.txt", "pytorch_model.bin")
+
+
+def model_snapshot(config):
+    """Return the exact offline UniXcoder snapshot used by refresh and search."""
+    hub = config.model_cache / "hub"
+    return hub / f"models--{MODEL.replace('/', '--')}" / "snapshots" / MODEL_REVISION
 
 
 def cgr_environment(config):
@@ -41,6 +50,9 @@ def cgr_environment(config):
         "QDRANT_DB_PATH": str(config.data / "embedding-cache"),
         "QDRANT_VECTOR_DIM": "768",
         "CGR_EMBEDDING_PROVIDER": "unixcoder",
+        "CGR_EMBEDDING_REVISION": MODEL_REVISION,
+        "CGR_UNIXCODER_MODEL_PATH": str(model_snapshot(config)),
+        "CGR_UNIXCODER_WORKER_DIR": str(config.data / "embedding-worker"),
         "EMBEDDING_MAX_LENGTH": "512",
         "CGR_SKIP_EMBEDDINGS": "false",
         "HF_HOME": str(config.model_cache),
@@ -344,8 +356,26 @@ def validate_query(query, top_k):
         raise ValueError("top_k must be positive")
 
 
+def published_graph_members(config):
+    """Return registry additions with matching identities in the graph MCP manifest."""
+    if not config.published_repositories:
+        return ()
+    from codebase_rag.workspaces.storage import WorkspaceError, load_workspace
+
+    try:
+        workspace = load_workspace(config.name, home=config.data / "cgr")
+    except WorkspaceError:
+        return ()
+    members = {(member.repo_path(), member.project_name) for member in workspace.repos}
+    return tuple(
+        alias
+        for alias in config.published_repositories
+        if (config.repositories[alias].path, config.repositories[alias].name) in members
+    )
+
+
 def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None) -> list[dict]:
-    """Search one code project or all ready projects, keeping failed additions isolated."""
+    """Search ready code projects and require graph membership for registry additions."""
     validate_query(query, top_k)
     projects = config.code
     if project is not None:
@@ -363,9 +393,12 @@ def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None
     try:
         with guard(config, config.code[0]), database(config, config.code[0]) as db:
             if project is None and config.added_repositories:
+                graph_members = published_graph_members(config)
                 ready = []
                 for alias in projects:
                     if alias in config.added_repositories:
+                        if alias not in graph_members:
+                            continue
                         try:
                             require_ready(db, (alias,))
                         except RuntimeError:
@@ -373,6 +406,11 @@ def hybrid_search(config, query: str, top_k: int = 5, project: str | None = None
                     ready.append(alias)
                 projects = tuple(ready)
             published = require_ready(db, projects)
+            if project is not None and alias in config.added_repositories:
+                if alias not in published_graph_members(config):
+                    raise RuntimeError(
+                        f"{alias} unavailable: graph workspace publication is incomplete"
+                    )
             limit = min(top_k, sum(result["nodes"] for result in published))
             if limit == 0:
                 return []
