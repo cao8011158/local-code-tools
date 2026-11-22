@@ -3,7 +3,7 @@ name = "agentic-trpg-local-code-tools"
 version = "1.0.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "code-graph-rag[python-semantics,semantic]==0.6.30",
+    "code-graph-rag[python-semantics,semantic]==0.6.31",
     "filelock>=3,<5",
     "markdown-it-py>=4,<5",
     "mcp>=2.3,<3",
@@ -25,7 +25,7 @@ packages = ["lct"]
 no-sources-package = ["cgr-graph-rs"]
 
 [tool.uv.sources]
-code-graph-rag = { git = "https://github.com/agentic-trpg/code-graph-rag.git", rev = "5baca94163df7cc84007a136d942170f1ac4079a" }
+code-graph-rag = { git = "https://github.com/agentic-trpg/code-graph-rag.git", rev = "5a65d2a857103ec95f693b68956a49868774eff2" }
 
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.14,<1"]
